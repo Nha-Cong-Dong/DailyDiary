@@ -6,8 +6,11 @@ description: Quy ước code frontend React + Vite của DailyDiary. Dùng khi v
 # Quy ước frontend
 
 ## Cấu trúc
+Cây thư mục chuẩn và quy ước bên trong thư mục feature: `docs/Project_Structure.md` (không tạo thư mục ngoài cây đó;
+đổi cấu trúc thì sửa file đó cùng lúc).
 - `src/features/<tên>/`: mỗi tính năng (entry, timeline, pixels, search, profile) gồm component, hook, và query riêng.
-- `src/components/`: component dùng chung; ưu tiên shadcn/ui.
+- `src/components/`: component dùng chung; ưu tiên shadcn/ui. Thêm component bằng `npx shadcn@4.22.0 add <tên>`;
+  không cài CLI `shadcn` vào `package.json`, không chạy `npm audit fix --force`.
 - `src/lib/`: `date.ts` (múi giờ), `image.ts` (nén ảnh), `autosave.ts`, `storage.ts` (IndexedDB).
 - `src/api/`: client sinh từ OpenAPI. Không sửa tay; chạy `npm run gen:api` để sinh lại.
 
