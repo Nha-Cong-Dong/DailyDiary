@@ -9,7 +9,8 @@ DailyDiary là app nhật ký cá nhân; nội dung, ảnh và từ khóa là d�
 - Đánh cắp phiên đăng nhập.
 
 ## Quy tắc bắt buộc
-- Mọi truy vấn tới entries, entry_photos, entry_keywords, user_items phải lọc theo user_id lấy từ phiên đăng nhập, không lấy từ body/query.
+- Mọi truy vấn MongoDB tới entries (ảnh, từ khóa nhúng bên trong), user_items, feedback, user_sessions phải lọc theo user_id lấy từ phiên đăng nhập, không lấy từ body/query.
+- Không đưa nguyên dict từ request vào filter/update của MongoDB (chặn NoSQL injection: `$ne`, `$gt`, `$where`, `$regex`); regex tìm kiếm phải `re.escape` và neo đầu `^`.
 - Tài nguyên không thuộc người dùng trả 404.
 - Không log tiêu đề, nội dung, từ khóa, tên file ảnh, hay toàn bộ request body.
 - Kho ảnh riêng tư; chỉ trả presigned URL hết hạn khoảng 1 giờ; đường dẫn bắt đầu bằng user_id/.

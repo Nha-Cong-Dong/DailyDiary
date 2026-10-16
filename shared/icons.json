@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "_note": "Danh mục tạm (Q5: 1 bộ biểu tượng, khoảng 40 sub icon). Hình biểu tượng là file tĩnh của frontend; chốt lại trước bước 5.",
+  "default_icon_set": "default",
+  "icon_sets": [
+    {
+      "id": "default",
+      "name": "Cảm xúc",
+      "levels": [
+        { "score": 1, "label": "Rất tệ" },
+        { "score": 2, "label": "Không vui" },
+        { "score": 3, "label": "Bình thường" },
+        { "score": 4, "label": "Vui" },
+        { "score": 5, "label": "Tuyệt vời" }
+      ]
+    }
+  ],
+  "sub_icons": [
+    "☀️", "🌧️", "🌈", "❄️", "🌙", "⭐", "🔥", "💧",
+    "📚", "✏️", "💻", "🎓", "💼", "🧠", "🎯", "🏆",
+    "🏃", "🧘", "🏋️", "🚴", "🥗", "☕", "🍜", "🍰",
+    "❤️", "👨‍👩‍👧", "👫", "🐶", "🎉", "🎁", "🎵", "🎮",
+    "✈️", "🏖️", "⛰️", "🚗", "🛌", "🤒", "😴", "🌱"
+  ]
+}

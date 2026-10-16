@@ -12,5 +12,5 @@ Làm tính năng $ARGUMENTS theo đặc tả.
 3. Backend: viết router + service + schema; áp dụng rate limit và giới hạn từ `shared/limits.json`; viết pytest, gồm cả ca tài khoản A cố truy cập dữ liệu của B (phải bị từ chối).
 4. Frontend: viết trong `apps/web/src/features/<tên-tính-năng>/`; xử lý trạng thái đang tải, lỗi, rỗng.
 5. Nếu tính năng liên quan đến ngày hoặc múi giờ, áp dụng skill `date-timezone-rules`.
-6. Chạy `/verify` để kiểm tra trên app đang chạy.
+6. Kiểm tra trên app đang chạy: dùng skill `run` (chạy app, chụp màn hình luồng vừa làm) và chạy `cd apps/web && npm run test:e2e`; thêm smoke test Playwright cho luồng chính của tính năng vào `apps/web/e2e/`.
 7. Báo lại: đã làm gì, thông số nào đã đạt, thông số nào chưa và lý do.

@@ -1,6 +1,6 @@
 ---
 name: fastapi-backend
-description: Mẫu code chuẩn cho backend FastAPI của DailyDiary (apps/api), gồm lifespan và engine async, dependency get_db/get_current_user, AsyncSession của SQLAlchemy 2 + asyncpg, Alembic với async engine, CORS cho Vite localhost:5173, đăng nhập Google bằng Authlib với cookie HttpOnly và chống CSRF, rate limit slowapi, presigned URL S3/MinIO bằng boto3, test pytest + httpx AsyncClient. Dùng mỗi khi tạo hoặc sửa main.py, core/, dependency, model, migration, router auth/photos, conftest.py, hoặc khi gặp lỗi MissingGreenlet, lỗi cookie/CORS, 429, lỗi presigned URL, test không cô lập, kể cả khi người dùng không nói tên thư viện. Dùng cùng skill api-conventions.
+description: Mẫu code chuẩn cho backend FastAPI của DailyDiary (apps/api), gồm lifespan và AsyncMongoClient (PyMongo async), dependency Db/get_current_user, truy vấn và cập nhật MongoDB an toàn (lọc user_id, chống NoSQL injection, cập nhật nguyên tử), migration MongoDB tự viết, CORS cho Vite localhost:5173, đăng nhập Google bằng Authlib với cookie HttpOnly và chống CSRF, rate limit slowapi, presigned URL S3/MinIO bằng boto3, test pytest + httpx AsyncClient trên MongoDB thật. Dùng mỗi khi tạo hoặc sửa main.py, core/, db/, dependency, service truy vấn MongoDB, migration, router auth/photos, conftest.py, hoặc khi gặp lỗi DuplicateKeyError, WriteError do validator, ServerSelectionTimeoutError, lỗi cookie/CORS, 429, lỗi presigned URL, test không cô lập, kể cả khi người dùng không nói tên thư viện. Dùng cùng skill api-conventions.
 ---
 
 # FastAPI backend: mẫu code chuẩn
@@ -8,103 +8,93 @@ description: Mẫu code chuẩn cho backend FastAPI của DailyDiary (apps/api),
 Skill này nói **cách viết** các phần nền của `apps/api`. Quy ước dự án (vai trò thư mục,
 định dạng lỗi, mã trạng thái, đọc giới hạn từ `shared/limits.json`, các ca test bắt buộc…)
 nằm trong skill **api-conventions**. Đọc skill đó trước; ở đây chỉ dùng lại, không nhắc lại.
+Cây thư mục chuẩn: `docs/Project_Structure.md`. Mô hình dữ liệu: `docs/Project_Specs.md` mục 5.4.
 
 Mã nguồn mẫu đầy đủ nằm trong `references/`. Chỉ mở file liên quan tới việc đang làm:
 
 | Đang làm | Đọc |
 | --- | --- |
 | `core/config.py`, `main.py`, lifespan, CORS, thứ tự middleware | `references/settings-lifespan.md` |
-| Engine, `get_db`, model, truy vấn async, eager loading, UPDATE có điều kiện | `references/db-session.md` |
-| `alembic/env.py`, tạo/chạy migration | `references/alembic-async.md` |
+| `db/client.py`, service truy vấn/cập nhật MongoDB, phân trang, tìm kiếm, chống injection | `references/mongodb.md` |
+| `db/migrations/`, thêm collection/index/validator, đổi cấu trúc dữ liệu | `references/migrations.md` |
 | `/auth/google/*`, cookie phiên, `get_current_user`, CSRF, đăng xuất | `references/auth-google-cookie.md` |
 | `core/rate_limit.py`, gắn limit vào endpoint, handler 429 | `references/rate-limit.md` |
 | `/photos/upload-url`, xác nhận ảnh, link xem ảnh, MinIO/R2 | `references/s3-presigned.md` |
 | `tests/conftest.py`, fixture DB, client hai người dùng, mock OAuth | `references/testing.md` |
 
-## Vị trí file
-
-```
-apps/api/app/
-├── main.py            # create_app(), lifespan, middleware, router
-├── core/
-│   ├── config.py      # Settings (pydantic-settings)
-│   ├── db.py          # make_engine(), get_db, DbSession
-│   ├── security.py    # cookie phiên, get_current_user, CurrentUser, verify_csrf
-│   ├── oauth.py       # đối tượng OAuth của Authlib
-│   ├── rate_limit.py  # limiter, key_func, handler 429
-│   └── storage.py     # client boto3, get_s3
-├── models/            # Base + model; __init__.py import đủ model cho Alembic
-└── ...
-```
-
 ## 1. Settings và lifespan
 
 - Một lớp `Settings(BaseSettings)` đọc biến môi trường và `.env`; tạo một lần, import ở nơi cần.
-  Bí mật (`SESSION_SECRET`, khóa OAuth, khóa S3, chuỗi DB) chỉ nằm trong biến môi trường.
-- Tài nguyên sống lâu (engine, `async_sessionmaker`, client S3) tạo trong `lifespan` và gắn vào
-  `app.state`. Starlette 1.x đã bỏ `on_startup`/`on_shutdown`, nên chỉ dùng `lifespan`.
-- Khi tắt app, `await engine.dispose()` để đóng pool.
+  Bí mật (`SESSION_SECRET`, khóa OAuth, khóa S3, `MONGODB_URI`) chỉ nằm trong biến môi trường.
+- Tài nguyên sống lâu (client MongoDB, client S3) tạo trong `lifespan` và gắn vào `app.state`.
+  Starlette 1.x đã bỏ `on_startup`/`on_shutdown`, nên chỉ dùng `lifespan`.
 - Viết `create_app()` thay vì biến `app` toàn cục có sẵn trạng thái, để test tạo app mới cho mỗi lần chạy.
 
 ```python
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    engine = make_engine(settings)
-    app.state.sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    client = make_client(settings.mongodb_uri)
+    app.state.db = client[settings.mongodb_db]
     app.state.s3 = make_s3_client(settings.s3_endpoint_url)
     app.state.s3_presign = make_s3_client(settings.s3_public_endpoint_url)
-    yield
-    await engine.dispose()
+    try:
+        yield
+    finally:
+        await client.close()  # close() của AsyncMongoClient là coroutine
 ```
 
-## 2. Session SQLAlchemy async
+## 2. MongoDB với PyMongo async
 
-- Cài `sqlalchemy[asyncio]` (hoặc `sqlalchemy[postgresql-asyncpg]`). Từ bản 2.1, greenlet là extra
-  và không được cài mặc định. Thiếu nó, engine async sẽ báo lỗi ngay lần chạy đầu.
-- `async_sessionmaker(engine, expire_on_commit=False)`: sau `commit()`, object vẫn đọc được thuộc tính
-  để trả response. Nếu để mặc định `True`, việc đọc thuộc tính sẽ kích hoạt lazy load và gây `MissingGreenlet`.
-- Mỗi request một session, lấy qua dependency. Không dùng chung một session cho nhiều task
-  (`asyncio.gather`) và không lưu session vào biến toàn cục.
-- `get_db` chỉ mở và đóng session, **không tự commit**. Service gọi `await db.commit()` ở cuối
-  thao tác ghi để lỗi commit (vi phạm UNIQUE, deadlock) quay về đúng request. Session đóng mà chưa
-  commit sẽ tự rollback.
-- Quan hệ khai báo `lazy="raise"` và nạp bằng `selectinload()` khi cần. Lazy load ngầm trong async
-  luôn là lỗi, nên để nó báo lỗi rõ ràng khi chạy dev thay vì `MissingGreenlet` khó hiểu.
-- Dùng alias `Annotated` để chữ ký endpoint gọn:
+- Dùng `pymongo.AsyncMongoClient` (driver async chính thức). **Không dùng Motor**, vì đã ngừng phát triển.
+  Không dùng ODM: schema Pydantic đã kiểm tra dữ liệu, service viết truy vấn rõ ràng.
+- Một client cho mỗi process, tạo trong lifespan. Client tự quản lý pool; endpoint nhận `AsyncDatabase`
+  qua dependency `Db`. Tham số bắt buộc của client:
+  - `uuidRepresentation="standard"`: nếu thiếu, lưu `uuid.UUID` sẽ báo lỗi.
+  - `tz_aware=True`: nếu thiếu, datetime đọc ra không có múi giờ.
+  - `serverSelectionTimeoutMS=3000`: nếu để mặc định 30 s, DB sập sẽ làm request treo rất lâu.
+- `entry_date` là chuỗi `"YYYY-MM-DD"`; `_id`/`user_id` là `uuid.UUID`. BSON date lưu tới mili giây, nên
+  so sánh `updated_at` với giá trị frontend gửi lại không bị lệch.
+- **Mọi** bộ lọc trên dữ liệu người dùng có `"user_id": user_id`. Ghép filter/update từ trường Pydantic đã kiểm
+  tra kiểu, **không** đưa dict từ request vào (`{"title": {"$ne": None}}` sẽ thành toán tử).
+- Ghi một ngày = một thao tác trên một document: `find_one_and_update(..., upsert=True,
+  return_document=ReturnDocument.AFTER)`. Điều kiện nghiệp vụ đưa vào filter để kiểm tra nguyên tử
+  (vd. `"updated_at": known` phát hiện xung đột, `"photos.9": {"$exists": False}` giới hạn 10 ảnh).
+- MVP không dùng transaction. Thao tác nhiều collection (xóa tài khoản) viết theo thứ tự để chạy lại được.
+- Tìm kiếm từ khóa: `re.escape` chuỗi đã chuẩn hóa, regex neo đầu `^`, phân biệt hoa thường
+  (đã chuẩn hóa về chữ thường), để MongoDB dùng được index và không bị ReDoS.
+- Bắt `DuplicateKeyError` (vi phạm unique) và `WriteError` mã 121 (validator) ở service, rồi đổi thành lỗi chuẩn.
 
 ```python
-async def get_db(request: Request) -> AsyncIterator[AsyncSession]:
-    async with request.app.state.sessionmaker() as session:
-        yield session
+from typing import Annotated
+from fastapi import Depends, Request
+from pymongo.asynchronous.database import AsyncDatabase
 
-DbSession = Annotated[AsyncSession, Depends(get_db)]
+async def get_db(request: Request) -> AsyncDatabase:
+    return request.app.state.db
+
+Db = Annotated[AsyncDatabase, Depends(get_db)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 ```
 
-- Hosting có pooler PgBouncer (Supabase, Neon) ở chế độ transaction: tắt cache prepared statement
-  của asyncpg (`prepared_statement_cache_size=0` trên URL, hoặc `prepared_statement_name_func` +
-  `NullPool`). Chi tiết trong `references/db-session.md`.
+## 3. Migration MongoDB
 
-## 3. Alembic với async engine
+- MongoDB không có schema cố định, nhưng dự án vẫn quản lý **validator `$jsonSchema` và index** bằng migration
+  tự viết: `app/db/migrations/mNNNN_<mo_ta>.py` có `ID` và `async def up(db)`, liệt kê trong `app/db/migrate.py`.
+- Chạy: `uv run python -m app.db.migrate`. Migration đã chạy được ghi vào `_migrations` và lần sau bị bỏ qua.
+  Chỉ tiến, không có downgrade, nên mỗi migration phải **chạy lại được** mà không hỏng (index đặt tên cố định,
+  `collMod` cho validator).
+- Validator chỉ kiểm tra cấu trúc (kiểu, điểm 1–5, enum). Giới hạn độ dài/số lượng nằm ở `shared/limits.json`.
+- Không dùng TTL index cho bài xóa mềm: tác vụ dọn phải xóa ảnh trong kho trước. TTL chỉ dùng cho `user_sessions`.
+- Chạy migration ở bước triển khai, **không** chạy trong `lifespan`, vì nhiều worker sẽ chạy cùng lúc.
 
-- Khởi tạo bằng `alembic init -t async alembic`. Chỉ `run_migrations_online` khác bản sync:
-  `connection.run_sync(do_run_migrations)`.
-- Tạo engine trong `env.py` từ `settings.database_url` với `poolclass=NullPool`. Không ghi URL
-  vào `alembic.ini`: lộ bí mật, và dấu `%` trong mật khẩu sẽ làm hỏng configparser.
-- `target_metadata = Base.metadata`. `Base` có `naming_convention`, để tên constraint ổn định và
-  migration `drop_constraint` sinh ra đúng tên.
-- `app/models/__init__.py` phải import mọi model, nếu không autogenerate sẽ coi bảng là đã bị xóa.
-- Extension (`unaccent`) tạo trong migration bằng `op.execute("CREATE EXTENSION IF NOT EXISTS unaccent")`.
-- Đọc lại mọi file autogenerate trước khi commit, vì nó không nhận ra đổi tên cột/bảng.
-- Chạy `alembic upgrade head` ở bước triển khai, **không** chạy trong `lifespan`, vì nhiều worker
-  sẽ cùng chạy migration một lúc.
+Chi tiết và mẫu đổi cấu trúc dữ liệu có sẵn: `references/migrations.md`.
 
 ## 4. CORS cho Vite
 
 ```python
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.frontend_origins,   # local: ["http://localhost:5173"]
+    allow_origins=settings.frontend_origins,  # local: ["http://localhost:5173"]
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "X-CSRF-Token"],
@@ -126,9 +116,8 @@ Luồng: `/auth/google/login?tz=...` → Google → `/auth/google/callback` → 
   (cần cài `itsdangerous`). Đây là cookie tạm của luồng OAuth, đặt tên riêng (`dd_oauth`), `max_age=600`.
   Cookie này **không phải** phiên đăng nhập.
 - Phiên đăng nhập là cookie thứ hai, `dd_session`. Giá trị là token ngẫu nhiên
-  (`secrets.token_urlsafe(32)`); DB chỉ lưu SHA-256 của token trong bảng `user_sessions`. Nhờ vậy
-  đăng xuất và `DELETE /me` thu hồi phiên được ngay. Bảng này chưa có trong mục 5.4 của đặc tả,
-  nên thêm bằng migration.
+  (`secrets.token_urlsafe(32)`); collection `user_sessions` chỉ lưu SHA-256 của token làm `_id`. Nhờ vậy
+  đăng xuất và `DELETE /me` thu hồi phiên được ngay; TTL index tự dọn phiên hết hạn.
 - Thuộc tính cookie: `httponly=True, secure=settings.cookie_secure, samesite="lax", path="/"`,
   `domain=settings.cookie_domain` (local để `None`). Khi `delete_cookie`, truyền lại đúng `path`/`domain`,
   nếu không trình duyệt sẽ không xóa.
@@ -139,9 +128,9 @@ Luồng: `/auth/google/login?tz=...` → Google → `/auth/google/callback` → 
   rồi chuyển hướng về frontend kèm `?error=`.
 - Múi giờ trình duyệt: frontend mở `/auth/google/login?tz=Asia/Ho_Chi_Minh`. Backend kiểm tra bằng
   `zoneinfo.ZoneInfo`, lưu vào `request.session`, và chỉ ghi vào `users.timezone` khi tạo user mới.
-  Upsert user bằng `insert(...).on_conflict_do_update` của dialect PostgreSQL.
-- `get_current_user` đọc cookie, tìm phiên còn hạn, gán `request.state.user_id` (rate limit dùng giá trị này)
-  rồi trả `User`.
+  Upsert user bằng `find_one_and_update` với `$set` (trường luôn cập nhật) và `$setOnInsert` (trường chỉ đặt lần đầu).
+- `get_current_user` đọc cookie, tìm phiên còn hạn (vẫn kiểm tra `expires_at`, vì TTL chạy trễ tới ~60 s),
+  gán `request.state.user_id` (rate limit dùng giá trị này) rồi trả `User`.
 - CSRF cho request ghi: dependency toàn app kiểm tra `Origin` nằm trong danh sách cho phép **và**
   header `X-CSRF-Token` khớp cookie `dd_csrf` (cookie không HttpOnly, frontend đọc được).
   SameSite=Lax không chặn được subdomain cùng site, nên vẫn cần lớp này. Request không có cookie phiên
@@ -189,11 +178,10 @@ Code đầy đủ trong `references/auth-google-cookie.md`.
   **không chạy lifespan**, nên test phải override `get_db` (và `get_s3`) bằng `app.dependency_overrides`.
 - Dùng plugin `anyio` theo tài liệu FastAPI (`@pytest.mark.anyio`, fixture `anyio_backend`
   trả `"asyncio"`, scope session). Không trộn với pytest-asyncio; bản 1.x của nó đã bỏ fixture `event_loop`.
-- Cô lập test: mỗi test mở một connection và một transaction ngoài,
-  `AsyncSession(bind=conn, join_transaction_mode="create_savepoint")`, cuối test rollback. Service
-  vẫn gọi `commit()` bình thường, vì commit chỉ đóng savepoint.
-- DB test là PostgreSQL thật (container compose), không dùng SQLite, vì `on_conflict`, `unaccent`
-  và `timestamptz` hoạt động khác.
+- DB test là MongoDB thật (container compose), không dùng mongomock, vì validator, index unique, TTL và
+  toán tử cập nhật hoạt động khác. Đầu phiên test: xóa DB `*_test` và chạy migration; sau mỗi test:
+  `delete_many({})` trên mọi collection (giữ validator và index).
+- Fixture từ chối chạy nếu tên DB test không kết thúc bằng `_test`, vì nó xóa sạch DB.
 - Fixture `make_client(user)` tạo user + phiên trong DB rồi trả client đã gắn cookie `dd_session`,
   `dd_csrf`, header `Origin` và `X-CSRF-Token`. Hai client `alice`/`bob` dùng cho ca truy cập chéo tài khoản.
 - OAuth: `monkeypatch` `oauth.google.authorize_access_token` trả `{"userinfo": {...}}`; không gọi Google thật.
@@ -202,17 +190,20 @@ Code đầy đủ trong `references/auth-google-cookie.md`.
 
 | Triệu chứng | Nguyên nhân thường gặp |
 | --- | --- |
-| `MissingGreenlet` / `greenlet_spawn has not been called` | Lazy load sau commit hoặc ngoài `await`; thiếu `expire_on_commit=False`, `selectinload`, hoặc thiếu extra `asyncio` |
+| `ValueError: cannot encode native uuid.UUID with UuidRepresentation.UNSPECIFIED` | Client tạo thiếu `uuidRepresentation="standard"`; luôn tạo bằng `make_client` |
+| So sánh datetime báo `can't compare offset-naive and offset-aware` | Client thiếu `tz_aware=True`, hoặc code tạo `datetime.utcnow()` thay vì `datetime.now(UTC)` |
+| `/health` treo khoảng 30 s khi DB tắt | Thiếu `serverSelectionTimeoutMS` |
+| `WriteError ... Document failed validation` (mã 121) | Dữ liệu sai kiểu so với `$jsonSchema`; xem `errInfo` trong lỗi để biết trường nào |
+| `DuplicateKeyError` khi tạo nhật ký | Đã có bài cùng `(user_id, entry_date)`: dùng upsert thay vì `insert_one` |
+| Tìm kiếm chậm hoặc trả sai | Regex không neo `^`, không `re.escape`, hoặc dùng cờ `i` nên không dùng được index |
 | Cookie không được gửi từ Vite | Thiếu `credentials: "include"`, origin `127.0.0.1` thay vì `localhost`, hoặc `secure=True` trên HTTP ở trình duyệt không coi localhost là an toàn |
 | `mismatching_state` ở callback | Cookie `dd_oauth` bị mất: bắt đầu login ở host khác với callback, hoặc `SessionMiddleware` đặt `https_only=True` trên HTTP |
 | 429 không có CORS header | CORSMiddleware chưa phải lớp ngoài cùng |
 | Presigned URL 403 `SignatureDoesNotMatch` | Ký bằng host nội bộ, hoặc `Content-Type` lúc PUT khác lúc ký |
-| Test chạm dữ liệu của nhau / treo | Không override `get_db`, dùng chung engine giữa event loop, thiếu rollback |
-| 409 liên tục khi tự động lưu | `updated_at` bị cắt còn mili giây khi đi qua `Date` của JS; xem `references/db-session.md` |
+| Test chạm dữ liệu của nhau | Không override `get_db`, hoặc fixture không dọn collection sau test |
 | Autosave trả 403 sau khi phiên hết hạn | `verify_csrf` chạy trước auth; phải bỏ qua khi không có cookie phiên |
-| `prepared statement "__asyncpg_stmt_x__" already exists` | Chạy qua PgBouncer mà chưa tắt cache prepared statement |
 
-## Phiên bản thư viện đã tra (2026-10-16)
+## Phiên bản thư viện đã tra (cập nhật 2026-10-17)
 
 Phiên bản lấy từ PyPI. Tài liệu tra qua Context7 bằng HTTP API (`context7.com/api/v1`), vì công cụ
 MCP Context7 chưa được nạp trong phiên tạo skill.
@@ -221,9 +212,8 @@ MCP Context7 chưa được nạp trong phiên tạo skill.
 | --- | --- | --- |
 | FastAPI | 0.143.3 (yêu cầu starlette ≥ 0.46; bản mới nhất 1.8.0) | `/websites/fastapi_tiangolo` |
 | Pydantic / pydantic-settings | 2.14.1 / 2.16.0 | `/pydantic/pydantic`, `/pydantic/pydantic-settings` |
-| SQLAlchemy | 2.1.4 | `/websites/sqlalchemy_en_20` (Context7 chỉ có tài liệu 2.0; mẫu ở đây dùng được cho cả 2.0 và 2.1) |
-| asyncpg | 0.32.0 | - |
-| Alembic | 1.20.0 | `/websites/alembic_sqlalchemy` |
+| PyMongo (API async `AsyncMongoClient`) | 4.19.0 | `/mongodb/docs-pymongo` |
+| MongoDB server (local, CI) | 8.0.34 | - |
 | Authlib | 1.9.1 (+ itsdangerous 2.2.0 cho SessionMiddleware) | `/authlib/authlib` |
 | slowapi | 0.1.10 | `/laurents/slowapi` |
 | boto3 | 1.43.114 | `/boto/boto3` |

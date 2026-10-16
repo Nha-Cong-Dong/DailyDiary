@@ -37,7 +37,7 @@ Mục tiêu cụ thể:
 | Chỉ số                                                          | Cách đo                                   |
 | --------------------------------------------------------------- | ----------------------------------------- |
 | Tỉ lệ người dùng còn hoạt động sau 7 ngày (D7) và 30 ngày (D30) | Sự kiện đăng nhập / tạo bài viết          |
-| Số ngày được ghi trung bình mỗi tuần / người                    | Bảng `entries`                            |
+| Số ngày được ghi trung bình mỗi tuần / người                    | Collection `entries`                      |
 | Tỉ lệ bài ghi "đúng ngày" so với "cập nhật muộn"                | So sánh `updated_at` với `entry_date`     |
 | Thiết bị người dùng thường dùng để ghi                          | Phân tích sự kiện (máy tính / điện thoại) |
 | Mức sẵn sàng giới thiệu cho người khác (NPS)                    | Khảo sát sau 2–4 tuần                     |
@@ -164,7 +164,7 @@ Quy tắc:
 
 - **Xóa tài khoản**: xóa toàn bộ nhật ký và ảnh của người dùng.
 - **Xuất dữ liệu**: tải về toàn bộ nhật ký dạng JSON. Cam kết luôn miễn phí.
-- **Góp ý**: form ngắn trong app, lưu vào bảng `feedback`.
+- **Góp ý**: form ngắn trong app, lưu vào collection `feedback`.
 
 ---
 
@@ -175,7 +175,7 @@ Quy tắc:
 | Yêu cầu             | Thông số                                                                                                                                                                                                                               |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Kết nối             | HTTPS bắt buộc, TLS 1.2 trở lên, bật HSTS                                                                                                                                                                                              |
-| Phân quyền          | Mỗi người chỉ đọc/ghi/sửa/xóa dữ liệu của mình. Mọi truy vấn ở backend đều lọc theo `user_id` lấy từ phiên đăng nhập, không lấy từ tham số người dùng gửi lên. (Tùy chọn) bật Row Level Security của PostgreSQL làm lớp bảo vệ thứ hai |
+| Phân quyền          | Mỗi người chỉ đọc/ghi/sửa/xóa dữ liệu của mình. Mọi truy vấn ở backend đều lọc theo `user_id` lấy từ phiên đăng nhập, không lấy từ tham số người dùng gửi lên. Có test truy cập chéo tài khoản cho mọi endpoint |
 | Ảnh                 | Kho ảnh riêng tư; truy cập bằng link có thời hạn khoảng 1 giờ                                                                                                                                                                          |
 | Phiên đăng nhập     | Lưu trong cookie `HttpOnly`, `Secure`, `SameSite=Lax`; có chống CSRF cho các request ghi                                                                                                                                               |
 | Log                 | Chỉ ghi mã người dùng, API, mã trạng thái, thời gian xử lý. **Không ghi** tiêu đề, nội dung, từ khóa, ảnh. Giữ log 14–30 ngày                                                                                                          |
@@ -251,7 +251,7 @@ flowchart LR
     U -->|HTTPS, presigned URL| S3[(Object Storage<br/>kho ảnh riêng tư)]
     U --- IDB[(IndexedDB<br/>bản nháp)]
     API -->|OAuth 2.0| G[Google]
-    API --> DB[(PostgreSQL)]
+    API --> DB[(MongoDB)]
     API -->|tạo presigned URL| S3
     API --> SEN[Sentry]
     FE --> AN[PostHog / Umami]
@@ -282,7 +282,7 @@ flowchart LR
 | ------------------------- | -------------------------------------------------------- |
 | Ngôn ngữ, framework       | Python 3.12, FastAPI, Uvicorn                            |
 | Kiểm tra dữ liệu          | Pydantic v2                                              |
-| ORM, migration            | SQLAlchemy 2 (async) + asyncpg, Alembic                  |
+| Cơ sở dữ liệu, migration  | PyMongo async (driver chính thức), migration tự viết `app.db.migrate` |
 | Đăng nhập Google          | Authlib (OAuth 2.0 Authorization Code)                   |
 | Rate limit                | slowapi                                                  |
 | Kho ảnh                   | boto3 (giao thức tương thích S3), tạo presigned URL      |
@@ -293,109 +293,87 @@ flowchart LR
 
 | Thành phần            | Lựa chọn đề xuất                                                        |
 | --------------------- | ----------------------------------------------------------------------- |
-| Cơ sở dữ liệu         | PostgreSQL 16 có quản lý (vd: Supabase, Neon), bật extension `unaccent` |
+| Cơ sở dữ liệu         | MongoDB 8.0 có quản lý (vd: MongoDB Atlas, Singapore); gói phải có sao lưu tự động, nếu không thì tự chạy `mongodump` |
 | Kho ảnh               | Object storage tương thích S3 (vd: Supabase Storage, Cloudflare R2)     |
 | Hosting frontend      | Vercel, Netlify hoặc Cloudflare Pages                                   |
 | Hosting backend       | Render, Railway hoặc Fly.io                                             |
 | Khu vực máy chủ       | Singapore (gần Việt Nam)                                                |
-| Môi trường phát triển | Windows + WSL2, Docker Compose (PostgreSQL + MinIO giả lập S3)          |
+| Môi trường phát triển | Windows, uv, Docker Compose (MongoDB + MinIO giả lập S3)                |
 | CI                    | GitHub Actions: lint, test, build                                       |
 
 **Lưu ý tên miền:** để cookie phiên hoạt động ổn định, đặt frontend và backend chung tên miền gốc, ví dụ `app.dailydiary.xxx` và `api.dailydiary.xxx`, hoặc dùng proxy để frontend gọi API qua cùng tên miền.
 
 ### 5.3. Cấu trúc repo (monorepo)
 
-```
-dailydiary/
-├── apps/
-│   ├── web/                    # React + Vite + TypeScript
-│   │   ├── src/
-│   │   │   ├── api/            # client sinh từ OpenAPI
-│   │   │   ├── features/       # entry, timeline, pixels, search, profile
-│   │   │   ├── components/
-│   │   │   └── lib/            # date, image, autosave, storage (IndexedDB)
-│   │   └── vite.config.ts
-│   └── api/                    # FastAPI
-│       ├── app/
-│       │   ├── routers/        # auth, me, entries, photos, calendar, pixels, search
-│       │   ├── models/         # SQLAlchemy
-│       │   ├── schemas/        # Pydantic
-│       │   ├── services/       # logic nghiệp vụ, storage, giới hạn
-│       │   └── core/           # cấu hình, bảo mật, rate limit, logging
-│       ├── alembic/            # migration
-│       └── tests/
-├── shared/
-│   ├── limits.json             # giới hạn: số ảnh, độ dài, rate limit theo cấp tài khoản
-│   ├── icons.json              # danh mục bộ biểu tượng, sub icon gợi ý
-│   └── flag_colors.json        # bảng màu cờ hiệu
-├── seed/                       # dữ liệu mẫu 3 tháng để demo
-├── docs/                       # tài liệu ý tưởng, đặc tả, quyết định kỹ thuật
-├── docker-compose.yml          # PostgreSQL + MinIO cho môi trường local
-└── .github/workflows/
-```
+Cây thư mục chuẩn của dự án nằm ở **[`docs/Project_Structure.md`](Project_Structure.md)** (nguồn duy nhất, ADR 0004).
+Tóm tắt: `apps/api` (FastAPI, MongoDB), `apps/web` (React + Vite), `shared/` (giới hạn và danh mục dùng chung),
+`docs/` (đặc tả, kế hoạch, ADR), `.github/workflows/` (CI), `docker-compose.yml` (MongoDB + MinIO cho local).
 
-`shared/` chứa các giới hạn và danh mục dùng chung cho cả frontend và backend. Khi đổi giới hạn (vd: khi bắt đầu kiếm tiền), chỉ sửa một nơi.
+### 5.4. Mô hình dữ liệu (MongoDB)
 
-### 5.4. Mô hình dữ liệu
+Cơ sở dữ liệu là **MongoDB** (dữ liệu dạng document). Nguyên tắc thiết kế:
+- Một **nhật ký là một document**; từ khóa và ảnh (tối đa 10) **nhúng** trong document đó, nên đọc/ghi một ngày
+  chỉ cần một thao tác và luôn nguyên tử.
+- `_id` và mọi khóa tham chiếu là UUID (BSON binary subtype 4). Thời gian lưu dạng BSON date (UTC, độ chính xác
+  mili giây). `entry_date` lưu dạng **chuỗi** `"YYYY-MM-DD"` (ngày địa phương), không dùng kiểu date để tránh lệch múi giờ.
+- MVP **không dùng transaction** nhiều document: mọi thao tác ghi nằm trong một document, riêng xóa tài khoản
+  được viết theo thứ tự và chạy lại được nếu gián đoạn.
+- Validator `$jsonSchema` kiểm tra cấu trúc (kiểu, điểm 1–5, enum); giới hạn độ dài/số lượng lấy từ
+  `shared/limits.json` và kiểm tra ở backend.
+- Migration chạy bằng `python -m app.db.migrate`: chỉ tiến, chạy lại không đổi gì, ghi lịch sử vào `_migrations`.
 
 ```
 users
-  id                uuid PK
-  google_sub        text UNIQUE         -- định danh Google
-  email             text
-  display_name      varchar(50)
-  avatar_url        text
-  timezone          text                -- IANA, vd Asia/Ho_Chi_Minh
-  account_tier      text                -- beta | free | premium
-  joined_at         timestamptz
-  deleted_at        timestamptz NULL
+  _id               uuid
+  google_sub        string   UNIQUE       -- định danh Google
+  email             string
+  display_name      string                -- 1..50 ký tự
+  avatar_url        string | null
+  timezone          string                -- IANA, vd Asia/Ho_Chi_Minh
+  account_tier      "beta" | "free" | "premium"
+  joined_at         date
+  deleted_at        date | null
 
-entries
-  id                uuid PK
-  user_id           uuid FK -> users
-  entry_date        date                -- ngày địa phương của người dùng
-  title             varchar(100) NULL
-  content           text NULL           -- tối đa 20.000 ký tự
-  score             smallint            -- 1..5, bắt buộc
-  icon_set_id       text                -- mã bộ biểu tượng
-  sub_icon          text NULL           -- 1 emoji
-  flag_color        char(7) NULL        -- #RRGGBB
-  created_at        timestamptz
-  updated_at        timestamptz
-  deleted_at        timestamptz NULL    -- xóa mềm
+user_sessions                             -- phiên đăng nhập (cookie dd_session)
+  _id               binary                -- SHA-256 của token; không lưu token gốc
+  user_id           uuid                  INDEX
+  created_at        date
+  expires_at        date                  TTL: MongoDB tự xóa khi hết hạn
+
+entries                                   -- 1 document = nhật ký của 1 ngày
+  _id               uuid
+  user_id           uuid
+  entry_date        string "YYYY-MM-DD"   -- ngày địa phương của người dùng
+  title             string | null         -- tối đa 100 ký tự
+  content           string | null         -- tối đa 20.000 ký tự
+  score             int 1..5              -- bắt buộc
+  icon_set_id       string
+  sub_icon          string | null         -- 1 emoji
+  flag_color        string "#RRGGBB" | null
+  keywords          [ { keyword, norm } ] -- 0..10; norm: chữ thường, không dấu
+  photos            [ { id uuid, storage_key, thumb_key, width, height, size_bytes, position 0..9, created_at } ]
+  created_at        date
+  updated_at        date
+  deleted_at        date | null           -- xóa mềm
   UNIQUE (user_id, entry_date)
+  INDEX  (user_id, keywords.norm, entry_date)   -- tìm kiếm theo đầu từ
+  INDEX  (user_id, photos.id)                   -- thao tác theo id ảnh
+  INDEX  (deleted_at), chỉ bài đã xóa mềm       -- tác vụ dọn sau 30 ngày (không dùng TTL vì phải xóa ảnh trước)
 
-entry_keywords
-  entry_id          uuid FK -> entries
-  keyword           varchar(30)
-  keyword_norm      varchar(30)         -- chữ thường, không dấu
-  PRIMARY KEY (entry_id, keyword_norm)
-  INDEX (keyword_norm)
-
-entry_photos
-  id                uuid PK
-  entry_id          uuid FK -> entries
-  storage_key       text                -- user_id/YYYY/MM/DD/<id>.webp
-  thumb_key         text
-  width, height     int
-  size_bytes        int
-  position          smallint            -- thứ tự 0..9
-  created_at        timestamptz
-
-user_items                              -- chuẩn bị cho giai đoạn 2–3
-  user_id           uuid FK -> users
-  item_id           text                -- mã bộ biểu tượng, chủ đề...
-  source            text                -- beta | free | purchase | reward
-  acquired_at       timestamptz
+user_items                                -- chuẩn bị cho giai đoạn 2–3
+  _id, user_id, item_id, source ("beta" | "free" | "purchase" | "reward"), acquired_at
+  UNIQUE (user_id, item_id)
 
 feedback
-  id, user_id, message, created_at
+  _id, user_id, message, created_at
 ```
 
 Nguyên tắc:
 - Cơ sở dữ liệu chỉ lưu **mã** biểu tượng, chủ đề; hình biểu tượng là file tĩnh của frontend.
 - Ảnh không lưu trong cơ sở dữ liệu; chỉ lưu đường dẫn trong kho ảnh.
 - Đường dẫn ảnh đặt theo `user_id` để dễ phân quyền, tính dung lượng và xóa khi người dùng xóa tài khoản.
+- Mọi truy vấn tới `entries`, `user_items`, `feedback` có điều kiện `user_id`; bộ lọc và lệnh cập nhật luôn được
+  dựng từ trường đã kiểm tra kiểu, không bao giờ đưa nguyên dict từ request vào (tránh chèn toán tử `$...`).
 
 ### 5.5. Danh sách API (MVP)
 
@@ -450,22 +428,22 @@ Nguyên tắc:
 
 | Môi trường        | Mục đích                                                                                                                |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Local             | Docker Compose (PostgreSQL + MinIO), Google OAuth với `localhost`                                                       |
+| Local             | Docker Compose (MongoDB + MinIO), Google OAuth với `localhost`                                                          |
 | Production (beta) | Frontend trên static hosting, backend trên dịch vụ PaaS, cơ sở dữ liệu + kho ảnh có quản lý, tất cả ở khu vực Singapore |
 
 - Triển khai tự động khi đẩy code lên nhánh `main` (sau khi CI chạy qua).
-- Migration cơ sở dữ liệu chạy bằng Alembic trong bước triển khai.
+- Migration cơ sở dữ liệu chạy bằng `python -m app.db.migrate` trong bước triển khai.
 - Bí mật (khóa OAuth, khóa kho ảnh, chuỗi kết nối) lưu trong biến môi trường của dịch vụ hosting, không đưa vào repo.
 
 ### 5.8. Lưu trữ dữ liệu theo giai đoạn
 
 |                           | Giai đoạn 1                       | Giai đoạn 2                              | Giai đoạn 3                                         |
 | ------------------------- | --------------------------------- | ---------------------------------------- | --------------------------------------------------- |
-| Thông tin ngày + nội dung | PostgreSQL                        | + bộ nhớ đệm IndexedDB các tháng gần đây | + SQLite trên điện thoại, đồng bộ hai chiều         |
+| Thông tin ngày + nội dung | MongoDB                           | + bộ nhớ đệm IndexedDB các tháng gần đây | + SQLite trên điện thoại, đồng bộ hai chiều         |
 | Ảnh                       | Kho riêng tư, bản nén + ảnh nhỏ   | Có thể chuyển sang kho rẻ hơn            | Phân tầng nóng/lạnh; gói trả phí giữ chất lượng cao |
 | Biểu tượng, chủ đề        | Đóng gói trong frontend           | CDN có đánh số phiên bản                 | CDN + cửa hàng vật phẩm                             |
 | Bản nháp                  | IndexedDB                         | IndexedDB + hàng đợi đồng bộ ngoại tuyến | Cơ sở dữ liệu trên máy                              |
-| Giao dịch                 | Chưa có (đã có bảng `user_items`) | Chưa có                                  | Sổ cái riêng, chỉ thêm, chỉ server được ghi         |
+| Giao dịch                 | Chưa có (đã có `user_items`)      | Chưa có                                  | Sổ cái riêng, chỉ thêm, chỉ server được ghi         |
 | Mã hóa                    | Mã hóa khi lưu của nhà cung cấp   | Như giai đoạn 1                          | (Tùy chọn) mã hóa đầu cuối do người dùng bật        |
 
 ---
@@ -552,7 +530,7 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 ### 7.4. Chuẩn bị kỹ thuật
 
 - Giới hạn lưu trong `shared/limits.json` theo **cấp tài khoản** (`beta`, `free`, `premium`).
-- Bảng `user_items` có từ MVP để ghi nhận vật phẩm theo nguồn.
+- Collection `user_items` có từ MVP để ghi nhận vật phẩm theo nguồn.
 - Lưu `joined_at` để xác định người dùng beta.
 
 ---
@@ -609,7 +587,7 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 
 ## Phụ lục C. Tài liệu và công cụ tham khảo
 
-- **Tài liệu chính thức**: React, Vite, FastAPI, SQLAlchemy, Alembic, Authlib, PostgreSQL, MDN Web Docs.
+- **Tài liệu chính thức**: React, Vite, FastAPI, PyMongo, MongoDB, Authlib, MDN Web Docs.
 - **Đăng nhập**: Google Cloud Console (OAuth client, consent screen).
 - **Hiệu năng, bảo mật**: web.dev (Core Web Vitals), Lighthouse, PageSpeed Insights, OWASP Top 10.
 - **Thiết kế**: Figma Community, Mobbin, Dribbble, Lucide, unDraw, Google Fonts.

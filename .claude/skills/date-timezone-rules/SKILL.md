@@ -6,8 +6,9 @@ description: Quy tắc ngày và múi giờ của DailyDiary. Dùng mỗi khi co
 # Quy tắc ngày và múi giờ
 
 ## Lưu trữ
-- `entries.entry_date` (kiểu `date`): ngày **địa phương** theo `users.timezone` (IANA, vd `Asia/Ho_Chi_Minh`).
-- `created_at`, `updated_at`, `deleted_at`: `timestamptz`, luôn lưu UTC.
+- `entries.entry_date`: ngày **địa phương** theo `users.timezone` (IANA, vd `Asia/Ho_Chi_Minh`), lưu dạng chuỗi
+  `"YYYY-MM-DD"` (không dùng kiểu date của MongoDB để tránh lệch múi giờ).
+- `created_at`, `updated_at`, `deleted_at`: BSON date, luôn lưu UTC (độ chính xác mili giây).
 - Không bao giờ suy ra `entry_date` bằng `datetime.utcnow().date()` hay `new Date().toISOString().slice(0,10)`.
 
 ## Tính "hôm nay"

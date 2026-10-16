@@ -1,0 +1,58 @@
+# Môi trường local: MongoDB + MinIO (giả lập kho ảnh S3).
+# Chạy: docker compose up -d
+name: dailydiary
+
+services:
+  mongo:
+    image: mongo:8.0.34
+    environment:
+      # Bật xác thực như môi trường thật (Atlas luôn yêu cầu). Tài khoản chỉ dùng cho máy local.
+      MONGO_INITDB_ROOT_USERNAME: dd
+      MONGO_INITDB_ROOT_PASSWORD: dd
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "-u", "dd", "-p", "dd", "--eval", "db.adminCommand('ping').ok"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # Image minio/minio chính thức không còn phát hành trên Docker Hub/quay;
+  # dùng bản fork cộng đồng pgsty/minio (chỉ cho môi trường local).
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:5173
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Tạo bucket riêng tư (không cho đọc công khai), chạy xong thì thoát.
+  minio-init:
+    image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc mb --ignore-existing local/dailydiary-photos &&
+      mc anonymous set none local/dailydiary-photos
+      "
+    restart: "no"
+
+volumes:
+  mongodata:
+  miniodata:

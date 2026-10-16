@@ -24,32 +24,35 @@ markers = ["integration: cần MinIO thật"]
 
 ## DB test
 
-Dùng PostgreSQL thật trong compose, database riêng `dailydiary_test`. Không dùng SQLite, vì
-`on_conflict_do_update`, `unaccent`, `timestamptz` và `RETURNING` hoạt động khác.
+Dùng MongoDB thật trong compose, database riêng `dailydiary_test`. Không dùng mongomock, vì validator
+`$jsonSchema`, index unique, TTL và toán tử cập nhật (`$setOnInsert`, `$pull`...) hoạt động khác hoặc không có.
+
+Cô lập: đầu phiên test xóa DB test và chạy toàn bộ migration (kiểm tra luôn migration); sau mỗi test xóa document
+ở mọi collection nhưng giữ validator và index. Không dùng transaction để rollback, vì MongoDB standalone không hỗ trợ.
 
 ## `tests/conftest.py`
 
 ```python
 import os
 
-os.environ.setdefault("COOKIE_SECURE", "false")   # đặt trước khi import app
+os.environ.setdefault("ENV", "test")
+os.environ.setdefault("COOKIE_SECURE", "false")  # đặt trước khi import app
 
 import secrets
 from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
-from app.core.db import get_db
 from app.core.rate_limit import limiter
 from app.core.security import CSRF_COOKIE, SESSION_COOKIE, _hash
 from app.core.storage import get_s3
+from app.db import collections as c
+from app.db.client import get_db, make_client
+from app.db.migrate import run_migrations
 from app.main import create_app
-from app.models import Base, User, UserSession
 
 ORIGIN = settings.frontend_origins[0]
 
@@ -60,49 +63,37 @@ def anyio_backend():
 
 
 @pytest.fixture(scope="session")
-async def engine():
-    eng = create_async_engine(settings.test_database_url, poolclass=NullPool)
-    async with eng.begin() as conn:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-        # Muốn kiểm tra migration thay vì create_all:
-        #   from alembic.config import Config; from alembic import command
-        #   cfg = Config("alembic.ini")
-        #   def upgrade(sync_conn): cfg.attributes["connection"] = sync_conn; command.upgrade(cfg, "head")
-        #   await conn.run_sync(upgrade)
-    yield eng
-    await eng.dispose()
+async def mongo():
+    # Chốt an toàn: fixture này XÓA SẠCH database. Chỉ cho chạy trên DB có tên kết thúc bằng "_test".
+    if not settings.mongodb_test_db.endswith("_test"):
+        pytest.exit(f"MONGODB_TEST_DB phải có tên '*_test' (đang là '{settings.mongodb_test_db}')", returncode=2)
+    client = make_client(settings.mongodb_uri)
+    await client.drop_database(settings.mongodb_test_db)
+    await run_migrations(client[settings.mongodb_test_db])
+    yield client
+    await client.close()
 
 
 @pytest.fixture
-async def db(engine):
-    """Mỗi test nằm trong một transaction ngoài; service commit() chỉ đóng savepoint; cuối test rollback hết."""
-    async with engine.connect() as conn:
-        trans = await conn.begin()
-        session = AsyncSession(bind=conn, expire_on_commit=False, join_transaction_mode="create_savepoint")
-        try:
-            yield session
-        finally:
-            await session.close()
-            await trans.rollback()
+async def db(mongo):
+    database = mongo[settings.mongodb_test_db]
+    yield database
+    for name in c.ALL:
+        await database[name].delete_many({})
 
 
 @pytest.fixture
 def fake_s3():
     from tests.fakes import FakeStorage
+
     return FakeStorage()
 
 
 @pytest.fixture
 def app(db, fake_s3):
     app = create_app()
-
-    async def _get_db():
-        yield db
-
-    # ASGITransport không chạy lifespan → app.state.sessionmaker/s3 không tồn tại; phải override.
-    app.dependency_overrides[get_db] = _get_db
+    # ASGITransport không chạy lifespan → app.state.db/s3 không tồn tại; phải override.
+    app.dependency_overrides[get_db] = lambda: db
     app.dependency_overrides[get_s3] = lambda: fake_s3
     limiter.enabled = False
     yield app
@@ -112,31 +103,42 @@ def app(db, fake_s3):
 
 @pytest.fixture
 async def anon(app):
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test",
-                           headers={"Origin": ORIGIN}) as c:
-        yield c
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test", headers={"Origin": ORIGIN}
+    ) as client:
+        yield client
 
 
 @pytest.fixture
 def make_client(app, db):
     """Factory: tạo user + phiên thật trong DB, trả client đã đăng nhập (có cookie và CSRF)."""
+
     async def _make(email: str) -> AsyncClient:
-        user = User(google_sub=f"sub-{email}", email=email, display_name=email.split("@")[0],
-                    timezone="Asia/Ho_Chi_Minh", account_tier="beta")
-        db.add(user)
-        await db.flush()
+        now = datetime.now(UTC)
+        user = {
+            "_id": uuid4(),
+            "google_sub": f"sub-{email}",
+            "email": email,
+            "display_name": email.split("@")[0],
+            "avatar_url": None,
+            "timezone": "Asia/Ho_Chi_Minh",
+            "account_tier": "beta",
+            "joined_at": now,
+            "deleted_at": None,
+        }
+        await db[c.USERS].insert_one(user)
         token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
-        db.add(UserSession(token_hash=_hash(token), user_id=user.id,
-                           expires_at=datetime.now(UTC) + timedelta(days=1)))
-        await db.commit()
-        c = AsyncClient(
+        await db[c.USER_SESSIONS].insert_one(
+            {"_id": _hash(token), "user_id": user["_id"], "created_at": now, "expires_at": now + timedelta(days=1)}
+        )
+        client = AsyncClient(
             transport=ASGITransport(app=app),
             base_url="http://test",
             cookies={SESSION_COOKIE: token, CSRF_COOKIE: csrf},
             headers={"Origin": ORIGIN, "X-CSRF-Token": csrf},
         )
-        c.user = user  # tiện cho assert
-        return c
+        client.user = user  # tiện cho assert
+        return client
 
     return _make  # ASGITransport không mở socket, không cần đóng client
 
@@ -152,7 +154,10 @@ async def bob(make_client):
 ```
 
 Không có `pytestmark` toàn cục: đánh dấu từng file bằng `pytestmark = pytest.mark.anyio` ở đầu file test.
-Fixture async scope session (`engine`) chạy được vì `anyio_backend` cũng có scope session.
+Fixture async scope session (`mongo`) chạy được vì `anyio_backend` cũng có scope session.
+
+Thư mục test theo `docs/Project_Structure.md`: `tests/unit/` (không cần DB), `tests/db/` (migration, index,
+validator), `tests/api/` (`test_<router>.py`).
 
 ## Mẫu test
 
@@ -170,7 +175,7 @@ async def test_get_entry_requires_login(anon):
 async def test_bob_cannot_read_alice_entry(alice, bob):
     await alice.put("/entries/2026-10-16", json={"score": 4, "icon_set_id": "default"})
     r = await bob.get("/entries/2026-10-16")
-    assert r.status_code == 404          # không lộ là bài có tồn tại
+    assert r.status_code == 404  # không lộ là bài có tồn tại
 
 
 async def test_write_without_session_is_401_not_403(anon):
@@ -210,12 +215,14 @@ class _Client:
 
     def head_object(self, Bucket, Key):
         from botocore.exceptions import ClientError
+
         if Key not in self.objects:
             raise ClientError({"Error": {"Code": "404"}}, "HeadObject")
         return {"ContentLength": len(self.objects[Key])}
 
     def get_object(self, Bucket, Key, Range=None):
         import io
+
         return {"Body": io.BytesIO(self.objects[Key][:16])}
 
     def delete_objects(self, Bucket, Delete):
@@ -238,6 +245,6 @@ Test xác nhận ảnh: đặt `fake_s3.client.objects[key] = b"RIFF\x00\x00\x00
 ## Chạy
 
 ```bash
-docker compose up -d postgres
-TEST_DATABASE_URL=postgresql+asyncpg://dd:dd@localhost:5432/dailydiary_test pytest -q
+docker compose up -d mongo
+cd apps/api && uv run pytest -q   # dùng MONGODB_TEST_DB=dailydiary_test
 ```

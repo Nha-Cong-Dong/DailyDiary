@@ -21,9 +21,9 @@ def user_or_ip(request: Request) -> str:
 
 limiter = Limiter(
     key_func=user_or_ip,
-    storage_uri=settings.rate_limit_storage_uri,   # "memory://" | "redis://host:6379/0"
-    strategy="moving-window",                      # tránh dồn request ở ranh giới phút
-    headers_enabled=False,                         # True thì mọi endpoint bị limit phải có tham số `response: Response`
+    storage_uri=settings.rate_limit_storage_uri,  # "memory://" | "redis://host:6379/0"
+    strategy="moving-window",  # tránh dồn request ở ranh giới phút
+    headers_enabled=False,  # True thì mọi endpoint bị limit phải có tham số `response: Response`
 )
 
 
@@ -51,23 +51,21 @@ khi dùng `default_limits` cho mọi route.
 ```python
 from fastapi import APIRouter, Request
 
-from app.core.limits import rate_limit       # trả chuỗi kiểu "30/minute" từ shared/limits.json
+from app.core.limits import rate_limit  # trả chuỗi kiểu "30/minute" từ shared/limits.json
 from app.core.rate_limit import limiter
 from app.core.security import CurrentUser
 
 router = APIRouter(prefix="/entries", tags=["entries"])
 
 
-@router.get("/{day}")                          # decorator route ở TRÊN
-@limiter.limit(rate_limit("read"))             # decorator limit ở DƯỚI
-async def read_entry(request: Request, day: date, user: CurrentUser, db: DbSession):
-    ...
+@router.get("/{day}")  # decorator route ở TRÊN
+@limiter.limit(rate_limit("read"))  # decorator limit ở DƯỚI
+async def read_entry(request: Request, day: date, user: CurrentUser, db: DbSession): ...
 
 
 @router.post("/{day}/photos/upload-url")
-@limiter.limit(rate_limit("photo_upload"))     # ví dụ "10/minute;50/day", nhiều mức cách nhau bằng ';'
-async def photo_upload_url(request: Request, day: date, user: CurrentUser, db: DbSession):
-    ...
+@limiter.limit(rate_limit("photo_upload"))  # ví dụ "10/minute;50/day", nhiều mức cách nhau bằng ';'
+async def photo_upload_url(request: Request, day: date, user: CurrentUser, db: DbSession): ...
 ```
 
 Nếu đặt sai thứ tự decorator, limit sẽ không có tác dụng và cũng không báo lỗi.

@@ -28,19 +28,16 @@ oauth.register(
 )
 ```
 
-## Model `user_sessions` (bổ sung vào mục 5.4 của đặc tả)
+## Collection `user_sessions` (đặc tả mục 5.4)
 
-```python
-class UserSession(Base):
-    __tablename__ = "user_sessions"
-
-    token_hash: Mapped[bytes] = mapped_column(LargeBinary(32), primary_key=True)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    expires_at: Mapped[datetime]
+```
+{ _id: <SHA-256 của token, 32 byte>, user_id: <uuid>, created_at: <date>, expires_at: <date> }
 ```
 
-`ondelete="CASCADE"`: `DELETE /me` xóa user thì mọi phiên cũng mất theo.
+- Index `ix_user_id` để thu hồi mọi phiên của một người (đăng xuất mọi nơi, `DELETE /me`).
+- TTL index trên `expires_at` (`expireAfterSeconds=0`): MongoDB tự xóa phiên hết hạn. TTL chạy nền khoảng mỗi
+  60 giây nên code **vẫn phải** kiểm tra `expires_at > now`.
+- Không có khóa ngoại: `DELETE /me` phải tự `delete_many({"user_id": ...})` (xem `mongodb.md` mục 8).
 
 ## `app/core/security.py`
 
@@ -51,12 +48,13 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import Cookie, Depends, Request, Response
-from sqlalchemy import delete, select
+from pymongo.asynchronous.database import AsyncDatabase
 
 from app.core.config import settings
-from app.core.db import DbSession
-from app.core.errors import ApiError          # helper lỗi chuẩn của dự án (định dạng: api-conventions)
-from app.models import User, UserSession
+from app.core.errors import ApiError  # helper lỗi chuẩn của dự án (định dạng: api-conventions)
+from app.db import collections as c
+from app.db.client import Db
+from app.schemas.users import User  # schema Pydantic của người dùng hiện tại
 
 SESSION_COOKIE = "dd_session"
 CSRF_COOKIE = "dd_csrf"
@@ -78,23 +76,27 @@ def _cookie_kwargs(httponly: bool) -> dict:
     }
 
 
-async def create_session(db, response: Response, user_id) -> None:
+async def create_session(db: AsyncDatabase, response: Response, user_id) -> None:
     token = secrets.token_urlsafe(32)
     max_age = settings.session_ttl_days * 86400
-    db.add(UserSession(
-        token_hash=_hash(token),
-        user_id=user_id,
-        expires_at=datetime.now(UTC) + timedelta(seconds=max_age),
-    ))
-    await db.commit()
+    now = datetime.now(UTC)
+    await db[c.USER_SESSIONS].insert_one(
+        {
+            "_id": _hash(token),
+            "user_id": user_id,
+            "created_at": now,
+            "expires_at": now + timedelta(seconds=max_age),
+        }
+    )
     response.set_cookie(SESSION_COOKIE, token, max_age=max_age, **_cookie_kwargs(httponly=True))
-    response.set_cookie(CSRF_COOKIE, secrets.token_urlsafe(32), max_age=max_age, **_cookie_kwargs(httponly=False))
+    response.set_cookie(
+        CSRF_COOKIE, secrets.token_urlsafe(32), max_age=max_age, **_cookie_kwargs(httponly=False)
+    )
 
 
-async def destroy_session(db, response: Response, token: str | None) -> None:
+async def destroy_session(db: AsyncDatabase, response: Response, token: str | None) -> None:
     if token:
-        await db.execute(delete(UserSession).where(UserSession.token_hash == _hash(token)))
-        await db.commit()
+        await db[c.USER_SESSIONS].delete_one({"_id": _hash(token)})
     # delete_cookie phải truyền đúng path/domain/samesite/secure như lúc set, nếu không trình duyệt giữ cookie lại.
     for name, http_only in ((SESSION_COOKIE, True), (CSRF_COOKIE, False)):
         response.delete_cookie(name, **_cookie_kwargs(httponly=http_only))
@@ -102,25 +104,20 @@ async def destroy_session(db, response: Response, token: str | None) -> None:
 
 async def get_current_user(
     request: Request,
-    db: DbSession,
+    db: Db,
     token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
 ) -> User:
     if not token:
         raise ApiError(401, "AUTH_REQUIRED", "Bạn cần đăng nhập")
-    stmt = (
-        select(User)
-        .join(UserSession, UserSession.user_id == User.id)
-        .where(
-            UserSession.token_hash == _hash(token),
-            UserSession.expires_at > datetime.now(UTC),
-            User.deleted_at.is_(None),
-        )
-    )
-    user = await db.scalar(stmt)
-    if user is None:
+    now = datetime.now(UTC)
+    session = await db[c.USER_SESSIONS].find_one({"_id": _hash(token), "expires_at": {"$gt": now}})
+    if session is None:
         raise ApiError(401, "AUTH_REQUIRED", "Phiên đăng nhập đã hết hạn")
-    request.state.user_id = str(user.id)   # key_func của rate limit đọc giá trị này
-    return user
+    doc = await db[c.USERS].find_one({"_id": session["user_id"], "deleted_at": None})
+    if doc is None:
+        raise ApiError(401, "AUTH_REQUIRED", "Phiên đăng nhập đã hết hạn")
+    request.state.user_id = str(doc["_id"])  # key_func của rate limit đọc giá trị này
+    return User.from_doc(doc)
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
@@ -160,8 +157,8 @@ from fastapi.responses import RedirectResponse
 from slowapi.util import get_remote_address
 
 from app.core.config import settings
-from app.core.db import DbSession
-from app.core.limits import rate_limit           # đọc từ shared/limits.json
+from app.db.client import Db
+from app.core.limits import rate_limit  # đọc từ shared/limits.json
 from app.core.oauth import oauth
 from app.core.rate_limit import limiter
 from app.core.security import SESSION_COOKIE, create_session, destroy_session
@@ -187,7 +184,7 @@ async def google_login(request: Request, tz: str | None = None):
 
 @router.get("/google/callback")
 @limiter.limit(rate_limit("login"), key_func=get_remote_address)
-async def google_callback(request: Request, db: DbSession):
+async def google_callback(request: Request, db: Db):
     try:
         token = await oauth.google.authorize_access_token(request)
     except OAuthError:
@@ -213,7 +210,7 @@ async def google_callback(request: Request, db: DbSession):
 
 
 @router.post("/logout", status_code=204)
-async def logout(db: DbSession, response: Response, token: str | None = Cookie(None, alias=SESSION_COOKIE)):
+async def logout(db: Db, response: Response, token: str | None = Cookie(None, alias=SESSION_COOKIE)):
     await destroy_session(db, response, token)
 ```
 
@@ -224,27 +221,40 @@ Ghi chú:
 - Trong giai đoạn thử nghiệm, OAuth consent screen để chế độ Testing (xem đặc tả), nên email lạ sẽ bị
   Google chặn trước khi tới callback.
 
-## Upsert user (`services/user_service.py`)
+## Upsert user (`services/users.py`)
 
 ```python
-from sqlalchemy.dialects.postgresql import insert
+from datetime import UTC, datetime
+from uuid import uuid4
+
+from pymongo import ReturnDocument
+
+from app.db import collections as c
 
 
-async def upsert_google_user(db, *, google_sub, email, display_name, avatar_url, timezone) -> User:
-    stmt = (
-        insert(User)
-        .values(google_sub=google_sub, email=email, display_name=display_name,
-                avatar_url=avatar_url, timezone=timezone)
-        .on_conflict_do_update(
-            index_elements=[User.google_sub],
-            # Không cập nhật timezone/display_name: người dùng có thể đã tự sửa trong /me.
-            set_={"email": email},
-        )
-        .returning(User)
+async def upsert_google_user(db, *, google_sub, email, display_name, avatar_url, timezone) -> dict:
+    now = datetime.now(UTC)
+    return await db[c.USERS].find_one_and_update(
+        {"google_sub": google_sub},
+        {
+            "$set": {"email": email},
+            # Chỉ đặt khi tạo mới: người dùng có thể đã tự sửa tên/múi giờ trong /me.
+            "$setOnInsert": {
+                "_id": uuid4(),
+                "display_name": display_name,
+                "avatar_url": avatar_url,
+                "timezone": timezone,
+                "account_tier": "beta",
+                "joined_at": now,
+                "deleted_at": None,
+            },
+        },
+        upsert=True,
+        return_document=ReturnDocument.AFTER,
     )
-    user = await db.scalar(stmt)
-    await db.commit()
-    return user
 ```
+
+Hai request callback cùng lúc cho một người mới có thể cùng upsert: một bên thắng, bên kia nhận
+`DuplicateKeyError` trên `uq_google_sub`. Bắt lỗi đó và gọi lại `find_one_and_update` một lần (lúc này sẽ khớp document có sẵn).
 
 Nếu user có `deleted_at` (đang chờ xóa), quyết định rõ: chặn đăng nhập hay khôi phục. Không lặng lẽ cho vào.
