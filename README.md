@@ -22,7 +22,7 @@ Hướng dẫn dành cho Windows (PowerShell).
 ### 2. Tải mã nguồn
 
 ```powershell
-git clone <url-repo> DailyDiary
+git clone https://github.com/Nha-Cong-Dong/DailyDiary.git DailyDiary
 cd DailyDiary
 ```
 
