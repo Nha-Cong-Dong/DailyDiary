@@ -17,7 +17,7 @@ def _entry(user_id, day="2026-10-16", **extra):
         "user_id": user_id,
         "entry_date": day,
         "score": 4,
-        "icon_set_id": "default",
+        "icon_set_id": "sprout",
         "keywords": [],
         "photos": [],
         "created_at": now,

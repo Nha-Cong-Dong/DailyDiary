@@ -173,7 +173,7 @@ async def test_get_entry_requires_login(anon):
 
 
 async def test_bob_cannot_read_alice_entry(alice, bob):
-    await alice.put("/entries/2026-10-16", json={"score": 4, "icon_set_id": "default"})
+    await alice.put("/entries/2026-10-16", json={"score": 4})
     r = await bob.get("/entries/2026-10-16")
     assert r.status_code == 404  # không lộ là bài có tồn tại
 

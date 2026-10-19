@@ -100,7 +100,8 @@ async def month_cells(db, user_id: UUID, year: int, month: int) -> list[dict]:
     """Lịch tháng: chỉ lấy trường cần thiết, KHÔNG tải title/content (F-02)."""
     start = f"{year:04d}-{month:02d}-01"
     end = f"{year + month // 12:04d}-{month % 12 + 1:02d}-01"
-    projection = {"_id": 0, "entry_date": 1, "score": 1, "icon_set_id": 1, "sub_icon": 1, "flag_color": 1,
+    # Bộ icon lấy từ users.icon_set_id cho mọi ngày (chốt 20/10/2026), entries không lưu bộ icon riêng.
+    projection = {"_id": 0, "entry_date": 1, "score": 1, "sub_icon": 1, "flag_color": 1,
                   "photo_count": {"$size": {"$ifNull": ["$photos", []]}}}
     cursor = db[c.ENTRIES].find(
         {"user_id": user_id, "entry_date": {"$gte": start, "$lt": end}, **ACTIVE}, projection
@@ -131,10 +132,12 @@ async def save_entry(db, user_id: UUID, day: date, data: EntryUpdate, known_upda
         "title": data.title,
         "content": data.content,
         "score": data.score,
-        "icon_set_id": data.icon_set_id,
         "sub_icon": data.sub_icon,
         "flag_color": data.flag_color,
         "keywords": [{"keyword": k, "norm": keyword_norm(k)} for k in data.keywords],
+        # Tìm kiếm F-05 khớp chuỗi con không dấu trên các trường *_norm.
+        "title_norm": keyword_norm(data.title) if data.title else None,
+        "content_norm": keyword_norm(data.content) if data.content else None,
         "updated_at": now,
         "deleted_at": None,
     }
@@ -187,7 +190,7 @@ async def remove_photo(db, user_id: UUID, photo_id: UUID) -> dict | None:
 - Sắp xếp lại ảnh: đọc mảng, sắp xếp trong Python theo danh sách id client gửi (phải đúng tập id hiện có),
   rồi `update_one` với điều kiện `updated_at` cũ để tránh ghi đè đồng thời.
 
-## 6. Tìm kiếm từ khóa không dấu (F-05)
+## 6. Tìm kiếm không dấu (F-05)
 
 ```python
 import re
@@ -202,25 +205,35 @@ def keyword_norm(text: str) -> str:
     return " ".join(text.lower().split())
 
 
+def has_diacritics(q: str) -> bool:
+    """Gõ có dấu thì so đúng dấu; gõ không dấu thì so không dấu (F-05, thiết kế B7)."""
+    q = unicodedata.normalize("NFC", q).lower()
+    return keyword_norm(q) != " ".join(q.split())
+
+
 async def search(db, user_id: UUID, q: str, before: date | None, limit: int) -> list[dict]:
-    prefix = keyword_norm(q)
-    if not prefix:
+    """F-05: chuỗi con trong tiêu đề, nội dung, từ khóa. Luôn lọc user_id trước (index (user_id, entry_date))."""
+    q = " ".join(unicodedata.normalize("NFC", q).split())
+    if not q:
         return []
-    filt = {
-        "user_id": user_id,
-        **ACTIVE,
-        # Neo "^" + re.escape: dùng được index (user_id, keywords.norm, entry_date), không bị ReDoS/chèn regex.
-        "keywords.norm": {"$regex": f"^{re.escape(prefix)}"},
-    }
+    if has_diacritics(q):
+        pattern = {"$regex": re.escape(q), "$options": "i"}   # so đúng dấu trên trường gốc
+        fields = ("title", "content", "keywords.keyword")
+    else:
+        pattern = {"$regex": re.escape(keyword_norm(q))}      # *_norm đã là chữ thường, không dấu
+        fields = ("title_norm", "content_norm", "keywords.norm")
+    filt = {"user_id": user_id, **ACTIVE, "$or": [{f: pattern} for f in fields]}
     if before:
         filt["entry_date"] = {"$lt": before.isoformat()}
-    projection = {"content": 0, "photos": 0}
+    projection = {"photos": 0, "title_norm": 0, "content_norm": 0}
     cursor = db[c.ENTRIES].find(filt, projection).sort("entry_date", DESCENDING).limit(limit + 1)
     return await cursor.to_list()
 ```
 
-- Không dùng cờ `$options: "i"`: regex không phân biệt hoa thường không tận dụng được index. Vì `norm` đã là
-  chữ thường, chỉ cần chuẩn hóa chuỗi tìm kiếm.
+- Chuỗi con không neo đầu nên không dùng được index trên trường văn bản; chi phí chấp nhận được vì đã thu hẹp theo
+  `user_id` (vài nghìn trang mỗi người). Luôn `re.escape` để chặn chèn regex và ReDoS.
+- Nhánh không dấu so trên `*_norm` (đã chữ thường); nhánh có dấu cần `$options: "i"` trên trường gốc.
+- Không ghi `q` vào log hay Sentry (là nội dung nhật ký).
 - Hàm `keyword_norm` đặt ở `app/core/text.py` (xem `docs/Project_Structure.md`) và có unit test với tiếng Việt có dấu.
 
 ## 7. Lỗi từ MongoDB → lỗi chuẩn

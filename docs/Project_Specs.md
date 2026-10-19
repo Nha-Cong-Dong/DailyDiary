@@ -67,7 +67,8 @@ Mục tiêu cụ thể:
 
 ### 2.2. Ngoài phạm vi MVP
 
-- Tính năng nhiều người dùng: chia sẻ nhật ký, nhật ký chung, bình luận.
+- Tính năng nhiều người dùng: chia sẻ nhật ký, nhật ký chung, bình luận. (Giao diện MVP hiện nút "Chia sẻ" ở trạng thái khóa,
+  ghi "Sắp có".)
 - Đăng nhập Facebook và các nhà cung cấp khác.
 - Đổi chủ đề, theme, trang trí, sticker.
 - AI, video tổng kết, thông báo đẩy.
@@ -103,7 +104,7 @@ Mỗi người dùng có tối đa **1 nhật ký cho mỗi ngày**. Mỗi nhậ
 | Từ khóa                      | Không    | 0–10 từ khóa, mỗi từ 1–30 ký tự, không trùng lặp                    |
 | Cờ hiệu                      | Không    | 1 màu từ bảng 8–12 màu cố định (lưu mã hex); có lựa chọn "không cờ" |
 | Ảnh                          | Không    | 0–10 ảnh/ngày                                                       |
-| Biểu tượng chính (main icon) | **Có**   | Điểm số nguyên 1–5, thuộc một bộ chủ đề (MVP có 1–3 bộ)             |
+| Biểu tượng chính (main icon) | **Có**   | Điểm số nguyên 1–5; hình vẽ theo bộ icon trong hồ sơ (MVP có 6 bộ)  |
 | Biểu tượng con (sub icon)    | Không    | 0–1 emoji, chọn từ danh sách khoảng 30–50 emoji gợi ý               |
 
 Quy tắc:
@@ -122,7 +123,7 @@ Quy tắc:
 ### F-02. Dòng thời gian, lịch tháng, thống kê tháng
 
 - **Danh sách bài gần đây**: 10–20 bài mỗi lần tải, cuộn để tải thêm, mới nhất ở trên.
-- **Lịch tháng**: mỗi ngày hiển thị main icon và sub icon thu nhỏ. Dữ liệu cả tháng lấy trong **1 request**, chỉ gồm ngày, điểm, mã bộ biểu tượng, sub icon, màu cờ; không tải nội dung bài viết.
+- **Lịch tháng**: mỗi ngày hiển thị main icon và sub icon thu nhỏ. Dữ liệu cả tháng lấy trong **1 request**, chỉ gồm ngày, điểm, sub icon, màu cờ (bộ icon lấy từ hồ sơ, áp cho mọi ngày); không tải nội dung bài viết.
 - **Thống kê tháng**: số ngày đã ghi / tổng số ngày; điểm trung bình; phân bố điểm 1–5; tổng số ảnh; chuỗi ngày ghi liên tiếp dài nhất; biểu đồ điểm theo ngày.
 - Thời gian tải lịch + thống kê: dưới 1 giây.
 
@@ -142,14 +143,22 @@ Quy tắc:
 
 | Trường         | Hiển thị | Thông số                                                                                                                                                                         |
 | -------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ảnh đại diện   | Có       | Lấy từ Google; nếu cho đổi: tối đa 2 MB, cắt về 256×256 px                                                                                                                       |
+| Ảnh đại diện   | Có       | Mặc định lấy từ Google; cho đổi và gỡ: JPEG/PNG/WebP, tối đa 2 MB, cắt vuông 256×256 px (giới hạn ở `limits.json` mục `profile`). Làm cùng Bước 7 (kho ảnh) |
 | Tên người dùng | Có       | 1–50 ký tự, mặc định lấy từ Google                                                                                                                                               |
 | Múi giờ        | Không    | Định dạng IANA (vd: `Asia/Ho_Chi_Minh`), tự nhận từ trình duyệt khi đăng ký, cho phép sửa. Dùng để xác định thời điểm kết thúc ngày. Đổi múi giờ chỉ áp dụng cho các ngày sau đó |
+| Bộ icon        | Không    | Mã bộ main icon trong `shared/icons.json` (vd: `sprout`), chọn ở bước 2 lần đầu sử dụng, đổi được trong hồ sơ. Áp dụng cho **mọi ngày**, kể cả ngày đã ghi: đổi bộ chỉ thay hình, điểm giữ nguyên (chốt 20/10/2026) |
+| Chế độ màu, ngôn ngữ | Không | Sáng / Tối / Theo hệ thống, lưu trên trình duyệt. MVP chỉ có tiếng Việt; ô chọn English hiện khóa "Sắp có" |
 
 ### F-05. Tìm kiếm
 
-- Phạm vi: chỉ trường từ khóa.
-- Không phân biệt hoa thường, không phân biệt dấu (`da lat` khớp `Đà Lạt`), khớp theo đầu từ.
+- Phạm vi: tiêu đề, nội dung và từ khóa (chốt theo thiết kế B7, 20/10/2026).
+- Khớp **chuỗi con**, không phân biệt hoa thường. Gõ **không dấu** thì so không dấu (`da lat` khớp `Đà Lạt`);
+  gõ **có dấu** thì so đúng dấu (`mưa` không khớp `mua`).
+- Bộ lọc kết hợp: điểm (chọn nhiều mức), khoảng thời gian (tháng này / 3 tháng / năm nay / mọi lúc, mặc định
+  mọi lúc để tìm được cả trang của năm trước), chỉ ngày có ảnh. Khoảng thời gian tính theo múi giờ người dùng.
+- Kết quả hiện tiêu đề và một đoạn trích quanh chỗ khớp, tô sáng phần khớp; kèm "Từ khóa hay dùng" (6 từ khóa
+  dùng nhiều nhất của chính người dùng).
+- Từ khóa tìm kiếm không đưa lên URL, không ghi log, không gửi Sentry (là nội dung nhật ký).
 - 20–50 kết quả/trang, mới nhất trước. Thời gian phản hồi dưới 500 ms.
 
 ### F-06. Tự động lưu
@@ -330,6 +339,7 @@ users
   display_name      string                -- 1..50 ký tự
   avatar_url        string | null
   timezone          string                -- IANA, vd Asia/Ho_Chi_Minh
+  icon_set_id       string                -- id trong shared/icons.json; bộ icon vẽ cho mọi ngày
   account_tier      "beta" | "free" | "premium"
   joined_at         date
   deleted_at        date | null
@@ -347,16 +357,18 @@ entries                                   -- 1 document = nhật ký của 1 ng�
   title             string | null         -- tối đa 100 ký tự
   content           string | null         -- tối đa 20.000 ký tự
   score             int 1..5              -- bắt buộc
-  icon_set_id       string
+  title_norm        string | null         -- tiêu đề chữ thường, không dấu (tìm kiếm)
   sub_icon          string | null         -- 1 emoji
   flag_color        string "#RRGGBB" | null
+  content_norm      string | null         -- nội dung chữ thường, không dấu (tìm kiếm)
   keywords          [ { keyword, norm } ] -- 0..10; norm: chữ thường, không dấu
   photos            [ { id uuid, storage_key, thumb_key, width, height, size_bytes, position 0..9, created_at } ]
   created_at        date
   updated_at        date
   deleted_at        date | null           -- xóa mềm
   UNIQUE (user_id, entry_date)
-  INDEX  (user_id, keywords.norm, entry_date)   -- tìm kiếm theo đầu từ
+  INDEX  (user_id, keywords.norm, entry_date)   -- từ khóa hay dùng, lọc theo từ khóa
+  INDEX  (user_id, entry_date)                  -- tìm kiếm: lọc theo user rồi khớp chuỗi trên *_norm
   INDEX  (user_id, photos.id)                   -- thao tác theo id ảnh
   INDEX  (deleted_at), chỉ bài đã xóa mềm       -- tác vụ dọn sau 30 ngày (không dùng TTL vì phải xóa ảnh trước)
 
@@ -383,7 +395,7 @@ Nguyên tắc:
 | GET         | `/auth/google/callback`             | Nhận kết quả, tạo/cập nhật người dùng, đặt cookie phiên                |
 | POST        | `/auth/logout`                      | Đăng xuất                                                              |
 | GET         | `/me`                               | Lấy hồ sơ                                                              |
-| PATCH       | `/me`                               | Sửa tên, ảnh đại diện, múi giờ                                         |
+| PATCH       | `/me`                               | Sửa tên, ảnh đại diện, múi giờ, bộ icon                                |
 | DELETE      | `/me`                               | Xóa tài khoản và toàn bộ dữ liệu                                       |
 | GET         | `/entries?cursor=&limit=`           | Danh sách bài gần đây (phân trang theo con trỏ)                        |
 | GET         | `/entries/{date}`                   | Nhật ký của một ngày                                                   |
@@ -396,7 +408,8 @@ Nguyên tắc:
 | DELETE      | `/photos/{id}`                      | Xóa ảnh                                                                |
 | GET         | `/calendar/{year}/{month}`          | Dữ liệu lịch tháng + thống kê tháng                                    |
 | GET         | `/pixels/{year}`                    | Dữ liệu Year in Pixels                                                 |
-| GET         | `/search?q=&cursor=`                | Tìm kiếm theo từ khóa                                                  |
+| GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05); `q` gửi trong query string của request nhưng không ghi log |
+| GET         | `/keywords/top`                     | 6 từ khóa dùng nhiều nhất của người dùng                               |
 | GET         | `/export`                           | Xuất toàn bộ dữ liệu dạng JSON                                         |
 | POST        | `/feedback`                         | Gửi góp ý                                                              |
 
@@ -553,7 +566,7 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 ## 9. Câu hỏi mở / quyết định chưa chốt
 
 - Nhà cung cấp cụ thể cho cơ sở dữ liệu, kho ảnh, hosting backend.
-- Số bộ biểu tượng chính và danh sách sub icon cho MVP.
+- Danh sách sub icon cho MVP (số bộ biểu tượng chính đã chốt: 6 bộ, xem `shared/icons.json`).
 - Bảng màu cờ hiệu (8 hay 12 màu).
 - Có cho đổi ảnh đại diện ở MVP hay chỉ dùng ảnh Google.
 - Mốc thời gian và ngân sách cho giai đoạn 2 và 3.

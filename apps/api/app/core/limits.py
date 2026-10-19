@@ -40,6 +40,8 @@ class StorageLimits(_Strict):
 
 class ProfileLimits(_Strict):
     display_name_max: int
+    avatar_max_bytes: int
+    avatar_edge_px: int
 
 
 class PaginationLimits(_Strict):

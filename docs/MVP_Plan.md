@@ -80,8 +80,8 @@ Bước này không viết code. Mục tiêu là chốt các quyết định ả
 | Mã   | Câu hỏi                                                                                                                                             | Đề xuất                                                                                        |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Q4 ★ | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đồng ý cả bốn, rồi bổ sung vào đặc tả mục 5.4 và `api-conventions`                             |
-| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9)                                                                                                  | 1 bộ cho MVP, khoảng 40 emoji gợi ý; dùng dữ liệu tạm ở bước 1, chốt trước bước 5              |
-| Q6   | Bảng màu cờ hiệu 8 hay 12 màu                                                                                                                       | 8 màu, chốt trước bước 5                                                                       |
+| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9)                                                                                                  | Đã chốt ở bước 2: 6 bộ (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`); sub icon vẫn là danh sách tạm khoảng 40 emoji, chốt trước bước 5 |
+| Q6   | Bảng màu cờ hiệu 8 hay 12 màu                                                                                                                       | Đã chốt ở bước 2: 8 màu pastel (`blush`…`lavender`), mỗi màu có `hex` và `hex_dark`; nhật ký lưu `hex`, giao diện tối tra `hex_dark` |
 | Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Không, chỉ dùng ảnh Google (bớt một luồng upload)                                              |
 | Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Dùng bước 2                                                                                    |
 | Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Thay bằng skill `run` (chạy app, chụp màn hình) cộng một bộ smoke test Playwright tạo ở bước 1 |
@@ -158,7 +158,8 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
   - CSRF (kiểm tra `Origin`, `X-CSRF-Token`);
   - lấy múi giờ từ trình duyệt ở lần đăng nhập đầu;
   - `email_verified`.
-- `PATCH /me`: tên 1–50 ký tự; múi giờ IANA hợp lệ, chỉ áp dụng cho các ngày sau đó.
+- `PATCH /me`: tên 1–50 ký tự; múi giờ IANA hợp lệ, chỉ áp dụng cho các ngày sau đó; `icon_set_id` phải có
+  trong `shared/icons.json` (mặc định `default_icon_set`), áp dụng cho mọi ngày. Cần migration thêm trường vào validator `users`.
 - Rate limit đăng nhập 5/phút/IP.
 - **Web:**
   - trang đăng nhập;
@@ -208,6 +209,7 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Từ khóa: 0–10 từ, không trùng, kèm `keyword_norm`.
 - Cờ hiệu lấy từ `flag_colors.json`; sub icon lấy từ `icons.json`.
 - Không cho chọn ngày tương lai theo múi giờ người dùng.
+- Bộ icon lấy theo hồ sơ cho mọi ngày: migration bỏ `icon_set_id` khỏi danh sách bắt buộc của `entries` (m0001 đang bắt buộc).
 - Nhãn "ghi đúng ngày" / "cập nhật muộn".
 - Khôi phục được trong 30 ngày.
 - `updated_at` để phát hiện xung đột: BSON date lưu tới mili giây; frontend gửi lại đúng chuỗi nhận từ API.
@@ -262,6 +264,7 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
   - link xem ảnh hết hạn sau khoảng 1 giờ;
   - đường dẫn bắt đầu bằng `user_id/`.
 - Thông báo cho người dùng rằng ảnh gốc không được lưu.
+- Ảnh đại diện (F-04): đổi/gỡ, tối đa `profile.avatar_max_bytes`, cắt vuông `profile.avatar_edge_px`, `PATCH /me`.
 - Bật CORS cho bucket.
 
 **Skill:** `fastapi-backend` (tham khảo `s3-presigned.md`), `privacy-check`, `securitymaxxing:api` (tùy chọn, phần upload).
@@ -320,16 +323,22 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 ---
 
-## Bước 11 – Tìm kiếm theo từ khóa (F-05)
+## Bước 11 – Tìm kiếm (F-05)
 
-**Endpoint:** `GET /search?q=&cursor=`.
+**Endpoint:** `GET /search?q=&score=&period=&has_photo=&cursor=`, `GET /keywords/top`.
 
 **Phạm vi:**
-- Chỉ tìm trong từ khóa.
-- Không phân biệt hoa thường và dấu (`da lat` khớp `Đà Lạt`), khớp theo đầu từ (regex neo đầu trên `keywords.norm`, dùng index `(user_id, keywords.norm, entry_date)`).
-- 20–50 kết quả mỗi trang, mới nhất trước.
+- Tìm trong tiêu đề, nội dung và từ khóa (theo thiết kế B7).
+- Khớp chuỗi con, không phân biệt hoa thường; `q` không dấu thì so trên `title_norm`, `content_norm`, `keywords.norm`;
+  `q` có dấu thì so đúng dấu. Thoát ký tự đặc biệt của regex trước khi tìm.
+- Migration thêm `title_norm`, `content_norm` (điền lại cho bài cũ); luôn lọc `user_id` trước.
+- Bộ lọc điểm, khoảng thời gian (tháng này / 3 tháng / năm nay / mọi lúc), chỉ ngày có ảnh. 20–50 kết quả mỗi trang, mới nhất trước.
+- Không ghi `q` vào log, Sentry, analytics; frontend không đưa từ khóa lên URL của trang.
 
-**Hoàn thành khi:** có test tiếng Việt có dấu, test đầu từ, test truy cập chéo tài khoản; p95 dưới 500 ms với dữ liệu mẫu.
+**Skill:** `privacy-check`, `date-timezone-rules` (khoảng thời gian theo múi giờ người dùng).
+
+**Hoàn thành khi:** có test tiếng Việt có dấu và không dấu, test chuỗi con, test ký tự regex, test truy cập chéo tài khoản;
+p95 dưới 500 ms với dữ liệu mẫu.
 
 ---
 

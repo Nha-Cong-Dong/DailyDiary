@@ -28,7 +28,9 @@
         "warn_ratio": 0.8
       },
       "profile": {
-        "display_name_max": 50
+        "display_name_max": 50,
+        "avatar_max_bytes": 2097152,
+        "avatar_edge_px": 256
       },
       "pagination": {
         "entries_page_size": 20,
@@ -68,7 +70,9 @@
         "warn_ratio": 0.8
       },
       "profile": {
-        "display_name_max": 50
+        "display_name_max": 50,
+        "avatar_max_bytes": 2097152,
+        "avatar_edge_px": 256
       },
       "pagination": {
         "entries_page_size": 20,
@@ -108,7 +112,9 @@
         "warn_ratio": 0.8
       },
       "profile": {
-        "display_name_max": 50
+        "display_name_max": 50,
+        "avatar_max_bytes": 2097152,
+        "avatar_edge_px": 256
       },
       "pagination": {
         "entries_page_size": 20,

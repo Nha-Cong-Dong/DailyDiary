@@ -30,6 +30,7 @@ dailydiary/
 ├── docker-compose.yml                # MongoDB + MinIO cho môi trường local
 │
 ├── .claude/                          # cấu hình Claude Code dùng chung cả repo
+│   ├── settings.json                 # plugin dùng chung (marketplace + enabledPlugins), vd. taste-skill
 │   ├── claude-security-guidance.md   # mô hình đe dọa, quy tắc bảo mật
 │   └── skills/                       # skill quy trình: implement-feature, add-db-change, deploy,
 │                                     # privacy-check, date-timezone-rules, seed-demo-data
@@ -90,7 +91,7 @@ dailydiary/
         ├── package.json  package-lock.json  .npmrc  .oxlintrc.json  components.json
         ├── vite.config.ts  playwright.config.ts  tsconfig.json  tsconfig.app.json  tsconfig.node.json
         ├── index.html  .env.example
-        ├── public/                   # file tĩnh phục vụ nguyên trạng (favicon; (B2) hình biểu tượng)
+        ├── public/                   # file tĩnh phục vụ nguyên trạng (favicon Jotly)
         ├── e2e/                      # smoke test Playwright: <luồng>.spec.ts
         └── src/
             ├── main.tsx  App.tsx  index.css  vite-env.d.ts
@@ -98,23 +99,35 @@ dailydiary/
             │   ├── client.ts         # openapi-fetch, credentials: "include"
             │   ├── openapi.json      # [sinh tự động] từ scripts/export_openapi.py
             │   └── schema.d.ts       # [sinh tự động] npm run gen:api
-            ├── routes/               # router.tsx, RootLayout.tsx, <Tên>Page.tsx (mỏng, ghép từ features)
+            ├── routes/               # router.tsx, RootLayout.tsx, <Tên>Page.tsx (mỏng, ghép từ features);
+            │                         # chỉ có khi chạy dev (tải lười, không vào bản build): DevUiPage,
+            │                         # TodayPage, OnboardingPage, DayPage (/day/:date), PixelsPage,
+            │                         # SearchPage, ProfilePage, cho tới khi có API ở các bước 3–12
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
+            │   ├── landing/          # trang giới thiệu cho người chưa đăng nhập (trang chủ /)
             │   ├── auth/             # (B3) đăng nhập, bảo vệ route
-            │   ├── profile/          # (B3) hồ sơ; (B12) xuất dữ liệu, xóa tài khoản
-            │   ├── entry/            # (B5–B7) viết nhật ký, ảnh, trạng thái tự động lưu
+            │   ├── profile/          # 3 bước lần đầu, Hồ sơ & cài đặt (giao diện; components/ vì ≥ 6 component);
+            │   │                     # (B3) PATCH /me; (B12) xuất dữ liệu, xóa tài khoản
+            │   ├── entry/            # màn Hôm nay, chi tiết một ngày, từ khóa (giao diện); (B5–B7) lưu nhật ký,
+            │   │                     # ảnh, tự động lưu
             │   ├── timeline/         # (B8) dòng thời gian
             │   ├── calendar/         # (B9) lịch tháng + thống kê tháng
-            │   ├── pixels/           # (B10) Year in Pixels
-            │   ├── search/           # (B11) tìm kiếm
+            │   ├── pixels/           # Year in Pixels cả năm (giao diện, dữ liệu mẫu); (B10) GET /pixels/{year}
+            │   ├── search/           # tìm theo từ khóa + bộ lọc (giao diện, dữ liệu mẫu); (B11) GET /search
             │   └── feedback/         # (B12) góp ý
             ├── components/
-            │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên>
-            │   └── layout/           # (B2) thanh điều hướng, khung trang dùng chung
-            ├── lib/                  # query.ts, limits.ts, utils.ts; (B3) date.ts;
+            │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên> (đã chỉnh theo hệ thiết kế;
+            │   │                     # có dialog, alert-dialog)
+            │   ├── diary/            # thành phần nhật ký dùng chung: main/sub icon, chọn điểm, cờ hiệu,
+            │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh
+            │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang
+            ├── lib/                  # query.ts, limits.ts, utils.ts, catalog.ts (icons/cờ từ shared/),
+            │                         # theme.ts (sáng/tối), date.ts (ngày theo múi giờ hồ sơ),
+            │                         # profile.ts (hồ sơ tạm, (B3) thay bằng GET /me), text.ts (bỏ dấu, tô sáng),
+            │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API);
             │                         # (B6) autosave.ts, storage.ts (IndexedDB); (B7) image.ts
-            ├── styles/               # shadcn-tailwind.css (vendored), CSS dùng chung
+            ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn)
             └── test/setup.ts         # cấu hình Vitest
 ```
 
@@ -151,3 +164,7 @@ dailydiary/
 | --- | --- | --- |
 | 1 | 17/10/2026 | Cây đầu tiên trong `Project_Specs.md` mục 5.3 (MongoDB, chia feature) |
 | 2 | 17/10/2026 | Tách ra file riêng. Bổ sung file cấu hình, `.claude/`, `docs/adr/`, `apps/api/scripts/` (export OpenAPI, seed), `Dockerfile` (B4), `tests/fakes.py`, `src/api/openapi.json`. Bỏ `seed/` ở gốc. Chốt feature frontend dạng phẳng. Sau hậu kiểm và gợi ý từ `/btw` |
+| 3 | 19/10/2026 | Thêm `.claude/settings.json` để cả nhóm dùng chung plugin `taste-skill` (marketplace `Leonxlnx/taste-skill`) và `mattpocock-skills` (`claude-plugins-official`) |
+| 4 | 19/10/2026 | Bước 2 (hệ thiết kế Jotly): thêm `components/diary/`, `features/landing/`, `lib/catalog.ts`, `lib/theme.ts`, `routes/DevUiPage.tsx`, `styles/motion.css`; bỏ nhãn (B2) ở `components/layout/` và `public/` |
+| 5 | 19/10/2026 | Thiết kế B6: màn Hôm nay (`features/entry/`), 3 bước lần đầu (`features/profile/`), `lib/date.ts` (bỏ nhãn (B3)), `lib/profile.ts`, `routes/TodayPage.tsx`, `routes/OnboardingPage.tsx`; khung app theo B6 |
+| 6 | 20/10/2026 | Thiết kế B7: `features/pixels/`, `features/search/` (bỏ `.gitkeep`), chi tiết ngày trong `features/entry/`, Hồ sơ trong `features/profile/` (tách `components/`), `lib/text.ts`, `lib/demo.ts`, `components/ui/dialog`, `alert-dialog`, `components/layout/Avatar.tsx`, `components/diary/PhotoViewer.tsx`; route dev tải lười |
