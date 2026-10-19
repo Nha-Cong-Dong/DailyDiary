@@ -9,10 +9,10 @@ type SubIconPickerProps = {
   className?: string
 }
 
-/** Lưới chọn sub icon (emoji) từ shared/icons.json. Mỗi ô 48×48 px. */
+/** Chọn sub icon (emoji) từ shared/icons.json. Mỗi ô 44×44 px; bố cục hàng do `className` quyết định. */
 export function SubIconPicker({ value, onChange, icons = subIcons, className }: SubIconPickerProps) {
   return (
-    <div className={cn('flex flex-wrap gap-2.5', className)}>
+    <div className={cn('flex flex-wrap gap-1.5', className)}>
       {icons.map((icon) => {
         const on = value === icon
         return (
@@ -23,7 +23,7 @@ export function SubIconPicker({ value, onChange, icons = subIcons, className }: 
             aria-pressed={on}
             onClick={() => onChange(on ? null : icon)}
             className={cn(
-              'inline-flex size-12 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] text-2xl leading-none outline-none focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+              'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] text-[22px] leading-none outline-none focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
               on ? 'border-line bg-secondary shadow-ink-sm' : 'border-border hover:border-line',
             )}
           >

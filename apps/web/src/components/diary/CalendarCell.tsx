@@ -66,7 +66,7 @@ export function CalendarCell({
       <span
         className={cn(
           'tabular-nums',
-          size === 'md' ? 'text-[13px] leading-[18px]' : 'text-[10px] leading-3',
+          size === 'md' ? 'text-[13px] leading-[18px]' : 'text-label leading-3',
           state === 'today' ? 'font-bold' : 'font-medium',
           state === 'future' ? 'text-faint' : 'text-foreground',
         )}

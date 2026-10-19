@@ -77,6 +77,8 @@
     --color-pressed: var(--pressed);
     --color-primary-hover: var(--primary-hover);
     --color-destructive-soft: var(--destructive-soft);
+    --color-destructive-fill: var(--destructive-fill);
+    --color-highlight: var(--highlight);
     --color-disabled: var(--disabled);
     --color-disabled-foreground: var(--disabled-foreground);
     --color-disabled-line: var(--disabled-line);
@@ -132,6 +134,8 @@
     --pressed: #E7DDCC;
     --primary-hover: #3D372C;
     --destructive-soft: #FFE7E3;
+    --destructive-fill: #A43C33;
+    --highlight: #F8DFA8;
     --disabled: #EFE7D9;
     --disabled-foreground: #8D8579;
     --disabled-line: #C9C0B2;
@@ -213,6 +217,8 @@
     --pressed: #36322C;
     --primary-hover: #E5DDD0;
     --destructive-soft: #3A211E;
+    --destructive-fill: #A43C33;
+    --highlight: #5A4A24;
     --disabled: #2C2822;
     --disabled-foreground: #68625A;
     --disabled-line: #3F3A33;

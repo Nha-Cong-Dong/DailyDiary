@@ -1,4 +1,5 @@
 import type { Score } from '@/lib/catalog'
+import { daysInMonth } from '@/lib/date'
 
 // Dữ liệu minh họa cố định cho landing (không phải dữ liệu người dùng): tháng 10/2026, "hôm nay" là ngày 18.
 export const DEMO_YEAR = 2026
@@ -28,7 +29,7 @@ export const OCTOBER: Record<number, DemoDay> = {
 
 export const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
 
-const MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+const MONTH_LENGTHS = Array.from({ length: 12 }, (_, m) => daysInMonth(DEMO_YEAR, m + 1))
 
 export type DemoPixel = { day: number; month: number; score: Score | null; future: boolean } | null
 

@@ -11,7 +11,7 @@ test('trang /dev/ui kết nối được API', async ({ page }) => {
   await expect(page.getByText('API: ok')).toBeVisible()
 })
 
-for (const path of ['/', '/dev/ui']) {
+for (const path of ['/', '/dev/ui', '/today', '/onboarding', '/day/2026-10-18', '/pixels', '/search', '/profile']) {
   test(`không có thanh cuộn ngang ở ${path} (kể cả màn hình 360 px)`, async ({ page }) => {
     await page.goto(path)
     await page.waitForLoadState('networkidle')

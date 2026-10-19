@@ -53,13 +53,15 @@ type PixelLegendProps = {
   onToggle?: (key: PixelFilter) => void
   /** Di chuột lên một mục để làm nổi tạm thời; `null` khi rời chuột. */
   onHighlight?: (key: PixelFilter | null) => void
+  /** Ẩn mục không có ý nghĩa (vd "Chưa tới" của một năm đã qua). */
+  hide?: PixelFilter[]
 }
 
 /** Chú thích màu dưới lưới pixels; có thể dùng làm bộ lọc. */
-export function PixelLegend({ className, active = null, onToggle, onHighlight }: PixelLegendProps) {
+export function PixelLegend({ className, active = null, onToggle, onHighlight, hide = [] }: PixelLegendProps) {
   return (
     <ul className={cn('flex flex-wrap items-center text-label', onToggle ? 'gap-1' : 'gap-3.5', className)}>
-      {LEGEND.map((item) => {
+      {LEGEND.filter((item) => !hide.includes(item.key)).map((item) => {
         const swatch = (
           <PixelCell
             score={item.score}

@@ -12,6 +12,8 @@
     --animate-bob: bob 0.55s ease both;
     --animate-seek: seek 0.8s ease;
     --animate-draw: draw 0.9s 0.8s cubic-bezier(0.6, 0, 0.3, 1) forwards;
+    /* Khai báo để keyframes `paint` luôn được xuất (dùng cả ở .paint-on-scroll bên dưới). */
+    --animate-paint: paint 0.6s ease both;
 
     @keyframes rise {
         from { opacity: 0; translate: 0 16px; }

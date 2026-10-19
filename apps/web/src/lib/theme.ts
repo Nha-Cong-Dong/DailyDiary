@@ -1,36 +1,64 @@
 import { useSyncExternalStore } from 'react'
 
-/** Chế độ sáng/tối: lớp `dark` trên <html>, nhớ lựa chọn trong localStorage, mặc định theo hệ điều hành. */
+/**
+ * Chế độ màu: lớp `dark` trên <html>. Người dùng chọn Sáng / Tối / Theo hệ thống (Hồ sơ); lựa chọn nhớ trong
+ * localStorage. "Theo hệ thống" (mặc định) đi theo prefers-color-scheme và đổi ngay khi hệ điều hành đổi.
+ */
+export type ThemePreference = 'light' | 'dark' | 'system'
+
 const STORAGE_KEY = 'jotly-theme'
 const listeners = new Set<() => void>()
+let preference: ThemePreference = 'system'
 
-function readStored(): 'light' | 'dark' | null {
+function systemDark(): boolean {
+  return Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)
+}
+
+function apply() {
+  const dark = preference === 'system' ? systemDark() : preference === 'dark'
+  document.documentElement.classList.toggle('dark', dark)
+  listeners.forEach((l) => l())
+}
+
+function readStored(): ThemePreference {
   try {
     const v = localStorage.getItem(STORAGE_KEY)
-    return v === 'light' || v === 'dark' ? v : null
+    return v === 'light' || v === 'dark' ? v : 'system'
   } catch {
-    return null
+    return 'system'
   }
 }
 
 export function initTheme() {
-  const stored = readStored()
-  const dark = stored ? stored === 'dark' : window.matchMedia?.('(prefers-color-scheme: dark)').matches
-  document.documentElement.classList.toggle('dark', Boolean(dark))
+  preference = readStored()
+  window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
+    if (preference === 'system') apply()
+  })
+  apply()
 }
 
 export function isDark() {
   return document.documentElement.classList.contains('dark')
 }
 
-export function setDark(dark: boolean) {
-  document.documentElement.classList.toggle('dark', dark)
+export function getThemePreference(): ThemePreference {
+  return preference
+}
+
+export function setThemePreference(next: ThemePreference) {
+  preference = next
   try {
-    localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light')
+    if (next === 'system') localStorage.removeItem(STORAGE_KEY)
+    else localStorage.setItem(STORAGE_KEY, next)
   } catch {
     // Trình duyệt chặn lưu trữ: vẫn đổi được trong phiên hiện tại.
   }
-  listeners.forEach((l) => l())
+  apply()
+}
+
+/** Nút bật/tắt nhanh ở thanh trên: chọn hẳn Sáng hoặc Tối. */
+export function setDark(dark: boolean) {
+  setThemePreference(dark ? 'dark' : 'light')
 }
 
 function subscribe(listener: () => void) {
@@ -40,4 +68,8 @@ function subscribe(listener: () => void) {
 
 export function useDarkMode() {
   return useSyncExternalStore(subscribe, isDark, () => false)
+}
+
+export function useThemePreference(): ThemePreference {
+  return useSyncExternalStore(subscribe, getThemePreference, () => 'system')
 }

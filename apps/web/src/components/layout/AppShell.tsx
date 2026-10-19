@@ -1,12 +1,12 @@
 import { Outlet } from 'react-router'
-import { AppNav, BottomTabs } from './AppNav'
+import { AppHeader, BottomTabs } from './AppNav'
 
-/** Khung trang trong app (sau đăng nhập): thanh trên, nội dung trong khung 1200 px, thanh tab dưới trên điện thoại. */
+/** Khung trang trong app (sau đăng nhập): thanh trên, nội dung trong khung 1120 px, thanh tab dưới trên điện thoại. */
 export function AppShell() {
   return (
-    <div className="min-h-dvh pb-20 md:pb-0">
-      <AppNav />
-      <main className="mx-auto w-full max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-dvh pb-24 md:pb-0">
+      <AppHeader />
+      <main className="mx-auto w-full max-w-[1120px] px-4 py-6 sm:px-[clamp(16px,4vw,40px)] md:py-[clamp(40px,6vw,72px)]">
         <Outlet />
       </main>
       <BottomTabs />

@@ -21,7 +21,7 @@ export function MonthPreview({ className }: { className?: string }) {
       </div>
       <div className="grid grid-cols-7 gap-1">
         {WEEKDAYS.map((w) => (
-          <span key={w} className="text-center text-[10px] leading-[14px] font-semibold text-muted-foreground">
+          <span key={w} className="text-center text-label font-semibold text-muted-foreground">
             {w}
           </span>
         ))}

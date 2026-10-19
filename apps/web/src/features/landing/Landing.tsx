@@ -1,4 +1,4 @@
-import { Eye, Image, Lock, Search, Trash2 } from 'lucide-react'
+import { Download, Image, Lock, Search, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { MoodMark } from '@/components/diary/MoodMark'
@@ -19,7 +19,8 @@ const START_HREF = '/today'
 
 const wrap = 'mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,40px)]'
 const sectionPad = 'py-[clamp(80px,10vw,128px)]'
-const sectionTitle = 'font-heading text-[clamp(26px,2.6vw,34px)] leading-[1.25] font-bold'
+// Thang chữ T1 · Sổ tay: 12 nhãn / 14 nhỏ / 16 body / 18 nội dung / 22 H3 / 30 H2 / 56 Display.
+const sectionTitle = 'font-heading text-[clamp(26px,2.6vw,30px)] leading-[1.3] font-bold text-balance'
 const card = 'rounded-[20px] border-[1.5px] border-line bg-card'
 
 /** Ô vuông nét đứt giữ chỗ cho logo Google (lấy từ bộ tài nguyên chính thức ở Bước 3). */
@@ -32,7 +33,7 @@ function GoogleButton({ inverted }: { inverted?: boolean }) {
     <Link
       to={START_HREF}
       className={cn(
-        'inline-flex h-12 items-center gap-2.5 rounded-md border-[1.5px] pr-5 pl-4 text-[15px] font-semibold focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+        'inline-flex h-12 items-center gap-2.5 rounded-md border-[1.5px] pr-5 pl-4 text-base font-semibold focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
         inverted
           ? 'press border-primary-foreground bg-primary-foreground text-primary'
           : 'lift border-line bg-card shadow-ink-sm',
@@ -92,8 +93,8 @@ function Hero() {
   const lavender = flagColors.find((f) => f.id === 'lavender')!
   return (
     <section className={cn(wrap, 'flex flex-wrap items-center gap-[72px] pt-[clamp(56px,8vw,112px)] pb-[clamp(80px,10vw,136px)]')}>
-      <div className="flex min-w-0 flex-[1_1_400px] flex-col gap-5">
-        <h1 className="group/h1 max-w-[460px] animate-rise text-[clamp(32px,3.6vw,46px)] leading-[1.2] font-bold text-balance">
+      <div className="flex min-w-0 flex-[1.2_1_440px] flex-col gap-5">
+        <h1 className="group/h1 max-w-[560px] animate-rise text-[clamp(32px,4.4vw,56px)] leading-[1.2] font-bold tracking-[-0.01em] text-balance">
           Chạm để ghi chú, mở để{' '}
           <span className="relative inline-block whitespace-nowrap">
             nhìn lại.
@@ -117,21 +118,21 @@ function Hero() {
             </svg>
           </span>
         </h1>
-        <p className="max-w-[400px] animate-rise text-[17px] leading-7 text-muted-foreground" style={{ animationDelay: '.12s' }}>
+        <p className="max-w-[440px] animate-rise text-reading text-muted-foreground" style={{ animationDelay: '.12s' }}>
           Mỗi ngày một trang. Chấm điểm, chọn biểu tượng, viết vài dòng nếu muốn.
         </p>
         <div className="mt-3 flex animate-rise flex-wrap items-center gap-x-[22px] gap-y-3.5" style={{ animationDelay: '.24s' }}>
           <GoogleButton />
-          <a href="#mot-cham" className="link-underline text-[15px] font-medium">
+          <a href="#mot-cham" className="link-underline text-base font-medium">
             Xem cách hoạt động
           </a>
         </div>
-        <p className="animate-rise text-[13px] leading-5 text-muted-foreground" style={{ animationDelay: '.32s' }}>
+        <p className="animate-rise text-sm leading-[22px] text-muted-foreground" style={{ animationDelay: '.32s' }}>
           Đăng nhập bằng Gmail, không cần mật khẩu.
         </p>
       </div>
 
-      <div aria-hidden="true" className="flex min-w-0 flex-[1_1_400px] flex-col items-end">
+      <div aria-hidden="true" className="flex min-w-0 flex-[1_1_380px] flex-col items-end">
         <MonthPreview className="w-full max-w-[400px] rotate-2" />
         <article
           className={cn(card, 'group/tilt tilt -mt-[88px] w-full max-w-[340px] -rotate-[2.5deg] animate-drop-left self-start overflow-hidden shadow-ink')}
@@ -159,12 +160,22 @@ function Hero() {
   )
 }
 
-function FeatureCard({ visual, title, children }: { visual: ReactNode; title: string; children: ReactNode }) {
+function FeatureCard({
+  visual,
+  title,
+  children,
+  className,
+}: {
+  visual: ReactNode
+  title: string
+  children: ReactNode
+  className?: string
+}) {
   return (
-    <article className={cn(card, 'group/card reveal-on-scroll lift flex flex-col gap-3 p-7 shadow-ink-sm')}>
+    <article className={cn(card, 'group/card reveal-on-scroll lift flex flex-col gap-3 p-7 shadow-ink-sm', className)}>
       <div className="mb-2">{visual}</div>
       <h3 className="text-lg leading-[26px] font-semibold">{title}</h3>
-      <p className="text-[15px] leading-6 text-muted-foreground">{children}</p>
+      <p className="text-base leading-[26px] text-muted-foreground">{children}</p>
     </article>
   )
 }
@@ -183,8 +194,10 @@ function Features() {
   return (
     <section id="tinh-nang" className={cn(wrap, sectionPad, 'flex flex-col gap-12')}>
       <h2 className={sectionTitle}>Mỗi ngày, theo cách của bạn</h2>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))] gap-8">
+      {/* 5 thẻ: máy tính 3 + 2 (hàng dưới rộng hơn), máy tính bảng 2 + 2 + 1, điện thoại 1 cột; không hàng nào hụt ô. */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-6">
         <FeatureCard
+          className="lg:col-span-2"
           title="Một trang mỗi ngày"
           visual={
             <div className="flex flex-wrap gap-2">
@@ -196,7 +209,7 @@ function Features() {
                   <Image className="size-[18px] text-muted-foreground" aria-hidden="true" />
                 </span>
               ))}
-              <span className="flex h-12 items-center rounded-[10px] border-[1.5px] border-dashed border-line px-2.5 text-[13px] font-semibold transition-[translate,rotate] duration-300 ease-[cubic-bezier(.3,1.5,.5,1)] group-hover/card:-translate-y-1 group-hover/card:-rotate-[5deg]">
+              <span className="flex h-12 items-center rounded-[10px] border-[1.5px] border-dashed border-line px-2.5 text-sm font-semibold transition-[translate,rotate] duration-300 ease-[cubic-bezier(.3,1.5,.5,1)] group-hover/card:-translate-y-1 group-hover/card:-rotate-[5deg]">
                 3/{maxPhotos}
               </span>
             </div>
@@ -205,6 +218,7 @@ function Features() {
           Tiêu đề, nội dung, từ khóa và tối đa {maxPhotos} ảnh.
         </FeatureCard>
         <FeatureCard
+          className="lg:col-span-2"
           title="Biểu tượng cho từng ngày"
           visual={
             <div className="flex flex-wrap items-center gap-1">
@@ -220,6 +234,7 @@ function Features() {
           Sáu bộ icon chấm điểm, chọn bộ bạn thích.
         </FeatureCard>
         <FeatureCard
+          className="lg:col-span-2"
           title="Cờ hiệu"
           visual={
             <div className="flex flex-wrap gap-1.5">
@@ -236,6 +251,7 @@ function Features() {
           Gắn một màu cho ngày đáng nhớ.
         </FeatureCard>
         <FeatureCard
+          className="lg:col-span-3"
           title="Lịch tháng và thống kê"
           visual={
             <dl className="flex flex-wrap gap-6">
@@ -255,11 +271,12 @@ function Features() {
           Nhìn lại cả tháng chỉ trong một trang.
         </FeatureCard>
         <FeatureCard
+          className="md:col-span-2 lg:col-span-3"
           title="Tìm theo từ khóa"
           visual={
             <div className="flex h-11 items-center gap-2 rounded-[12px] border-[1.5px] border-line bg-background px-3">
               <Search className="size-[18px] text-muted-foreground group-hover/card:animate-seek" aria-hidden="true" />
-              <span className="text-[15px]">mưa</span>
+              <span className="text-base">mưa</span>
             </div>
           }
         >
@@ -273,7 +290,8 @@ function Features() {
 function Privacy() {
   const items = [
     { icon: Lock, title: 'Riêng tư mặc định', text: 'Chỉ mình bạn xem được.' },
-    { icon: Eye, title: 'Bạn chọn người xem', text: 'Tự quyết định có chia sẻ hay không.' },
+    // Chia sẻ nhật ký nằm ngoài MVP (Project_Specs 2.2); xuất dữ liệu là F-07, cam kết luôn miễn phí.
+    { icon: Download, title: 'Tải về bất cứ lúc nào', text: 'Xuất toàn bộ nhật ký ra file, luôn miễn phí.' },
     { icon: Trash2, title: 'Xóa bất cứ lúc nào', text: 'Xóa từng trang hoặc toàn bộ dữ liệu.' },
   ]
   return (
@@ -286,7 +304,7 @@ function Privacy() {
               <item.icon className="size-5" aria-hidden="true" />
             </span>
             <h3 className="text-lg leading-[26px] font-semibold">{item.title}</h3>
-            <p className="text-[15px] leading-6 text-muted-foreground">{item.text}</p>
+            <p className="text-base leading-[26px] text-muted-foreground">{item.text}</p>
           </div>
         ))}
       </div>
@@ -332,7 +350,7 @@ export function Landing() {
 
         <section className={cn(wrap, 'pb-[clamp(80px,10vw,128px)]')}>
           <div className="flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-[1.5px] border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(.3,1.4,.5,1)] hover:[transform:translate(-3px,-3px)] hover:shadow-[9px_9px_0_var(--cta-shadow)]">
-            <h2 className="text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold">Hôm nay của bạn thế nào?</h2>
+            <h2 className={sectionTitle}>Hôm nay của bạn thế nào?</h2>
             <GoogleButton inverted />
           </div>
         </section>
@@ -342,9 +360,9 @@ export function Landing() {
         <div className={cn(wrap, 'flex flex-wrap items-center justify-between gap-4 py-7')}>
           <div className="flex flex-wrap items-center gap-2">
             <Logo size="sm" className="hover:[&_svg]:animate-wiggle [&_svg]:origin-[50%_60%]" />
-            <span className="ml-2 text-[13px] text-muted-foreground">Jot it down, keep it forever.</span>
+            <span className="ml-2 text-sm text-muted-foreground">Jot it down, keep it forever.</span>
           </div>
-          <div className="flex flex-wrap gap-5 text-[13px]">
+          <div className="flex flex-wrap gap-5 text-sm">
             {/* Chờ nội dung điều khoản và chính sách thật trước khi ra mắt. */}
             <a href="#" className="link-underline">
               [Điều khoản sử dụng]
