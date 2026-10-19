@@ -11,6 +11,8 @@ Cây thư mục chuẩn và quy ước bên trong thư mục feature: `docs/Proj
 - `src/features/<tên>/`: mỗi tính năng (entry, timeline, pixels, search, profile) gồm component, hook, và query riêng.
 - `src/components/`: component dùng chung; ưu tiên shadcn/ui. Thêm component bằng `npx shadcn@4.22.0 add <tên>`;
   không cài CLI `shadcn` vào `package.json`, không chạy `npm audit fix --force`.
+  Sau mỗi lần thêm, đổi `import { cn } from "cn"` trong file mới thành `from "@/lib/utils"` (bản đã khai báo
+  token chữ và bóng của Jotly; dùng thẳng `cn` sẽ gộp sai class như `text-label`).
 - `src/lib/`: `date.ts` (múi giờ), `image.ts` (nén ảnh), `autosave.ts`, `storage.ts` (IndexedDB).
 - `src/api/`: client sinh từ OpenAPI. Không sửa tay; chạy `npm run gen:api` để sinh lại.
 
@@ -26,6 +28,7 @@ Cây thư mục chuẩn và quy ước bên trong thư mục feature: `docs/Proj
 ## Giao diện
 - Ưu tiên máy tính nhưng phải dùng được từ 360 px; luồng chọn biểu tượng và thêm ảnh phải dễ bấm trên điện thoại.
 - Kích thước sub icon lấy từ biến CSS `--sub-icon-ratio` (mặc định 0.55).
+- Màu, chữ, bo góc, bóng: dùng token trong `src/index.css` (`bg-card`, `border-line`, `shadow-ink`, `text-title-3`…), không viết mã hex trong component. Xem mẫu ở `/dev/ui`.
 - Màu cờ hiệu, danh sách icon đọc từ `shared/`.
 - Mọi danh sách có trạng thái đang tải, lỗi, rỗng.
 - Đạt LCP < 2,5 s, CLS < 0,1: đặt kích thước cố định cho ảnh thu nhỏ và ô lịch.

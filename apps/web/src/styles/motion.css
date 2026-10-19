@@ -1,0 +1,130 @@
+/* Chuyển động của Jotly (thiết kế B5 · Landing, bản có animation).
+   Quy ước: animation vào trang dùng thuộc tính `translate`/`scale`/`rotate`; hiệu ứng di chuột dùng `transform`
+   để hai bên không đè nhau khi animation giữ trạng thái cuối (fill-mode both). */
+
+@theme {
+    --animate-rise: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    --animate-drop-right: drop-right 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    --animate-drop-left: drop-left 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    --animate-pop: pop 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+    --animate-stamp: stamp 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+    --animate-wiggle: wiggle 0.5s ease;
+    --animate-bob: bob 0.55s ease both;
+    --animate-seek: seek 0.8s ease;
+    --animate-draw: draw 0.9s 0.8s cubic-bezier(0.6, 0, 0.3, 1) forwards;
+
+    @keyframes rise {
+        from { opacity: 0; translate: 0 16px; }
+        to { opacity: 1; translate: none; }
+    }
+    /* Thẻ nghiêng rơi xuống rồi nảy; điểm cuối trùng góc nghiêng của chính thẻ (rotate-2 / -rotate-[2.5deg]). */
+    @keyframes drop-right {
+        0% { opacity: 0; translate: 0 -32px; rotate: -5deg; }
+        65% { opacity: 1; translate: 0 5px; rotate: 3deg; }
+        100% { opacity: 1; translate: none; rotate: 2deg; }
+    }
+    @keyframes drop-left {
+        0% { opacity: 0; translate: 0 -32px; rotate: 4deg; }
+        65% { opacity: 1; translate: 0 5px; rotate: -3.5deg; }
+        100% { opacity: 1; translate: none; rotate: -2.5deg; }
+    }
+    @keyframes pop {
+        0% { opacity: 0; scale: 0.2; }
+        70% { opacity: 1; scale: 1.18; }
+        100% { opacity: 1; scale: 1; }
+    }
+    @keyframes stamp {
+        0% { transform: scale(0.8) rotate(-8deg); }
+        55% { transform: scale(1.14) rotate(4deg); }
+        100% { transform: none; }
+    }
+    @keyframes wiggle {
+        0%, 100% { rotate: 0deg; }
+        30% { rotate: -8deg; }
+        65% { rotate: 6deg; }
+    }
+    @keyframes bob {
+        0%, 100% { translate: 0 0; }
+        45% { translate: 0 -6px; }
+    }
+    @keyframes seek {
+        0%, 100% { translate: 0 0; }
+        25% { translate: -3px -2px; }
+        50% { translate: 3px -1px; }
+        75% { translate: -1px 2px; }
+    }
+    @keyframes draw {
+        to { stroke-dashoffset: 0; }
+    }
+    @keyframes paint {
+        from { opacity: 0; scale: 0.2; }
+        to { opacity: 1; scale: 1; }
+    }
+}
+
+/* Nút/thẻ "dán": nhấc lên khi di chuột (bóng dài ra), ấn xuống khi bấm. */
+@utility lift {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    &:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink-shadow); }
+    &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink-shadow); }
+}
+
+/* Nút đặc (không có bóng): chỉ nhấc và ấn. */
+@utility press {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    &:hover { transform: translate(-2px, -2px); }
+    &:active { transform: translate(2px, 2px); box-shadow: none; }
+}
+
+/* Thẻ nghiêng trong hero: thẳng lại và nổi lên khi di chuột. */
+@utility tilt {
+    transition: rotate 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), translate 0.35s cubic-bezier(0.3, 1.4, 0.5, 1),
+        scale 0.35s ease, box-shadow 0.35s ease;
+    &:hover { rotate: 0deg; translate: 0 -6px; box-shadow: 8px 8px 0 var(--ink-shadow); z-index: 2; }
+    &:active { rotate: 0deg; translate: 0 -2px; scale: 0.99; }
+}
+
+/* Link gạch chân: gạch dày và xa chữ hơn khi di chuột. */
+@utility link-underline {
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+    transition: text-underline-offset 0.2s ease, text-decoration-thickness 0.2s ease, opacity 0.15s;
+    &:hover { text-underline-offset: 7px; text-decoration-thickness: 2.5px; }
+    &:active { opacity: 0.6; }
+}
+
+/* Nét vẽ tay (gạch dưới tiêu đề hero): cần pathLength="1" trên <path>. */
+@utility draw-in {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: var(--animate-draw);
+    transition: stroke-width 0.25s ease;
+}
+
+/* Hiện dần khi cuộn tới (trình duyệt hỗ trợ scroll-driven animation); nơi khác hiện ngay. */
+@supports (animation-timeline: view()) {
+    .reveal-on-scroll {
+        animation: rise linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 80%;
+    }
+    /* Year in Pixels: khung đặt tên timeline, từng ô "tô màu" theo tiến độ cuộn (animation-range đặt riêng mỗi ô). */
+    .paint-timeline {
+        view-timeline-name: --pixels;
+    }
+    .paint-on-scroll {
+        animation: paint linear both;
+        animation-timeline: --pixels;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation: none !important;
+        transition: none !important;
+    }
+    .draw-in {
+        stroke-dashoffset: 0;
+    }
+}
