@@ -1,11 +1,11 @@
 import { CircleCheck, Download, LogOut, Lock, Mail, Trash2 } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { DEMO_ENTRIES } from '@/lib/demo'
 import { tierLimits } from '@/lib/limits'
-import { updateProfile, useProfile } from '@/lib/profile'
+import { useProfile, useUpdateProfile } from '@/lib/profile'
+import { useLogout } from '@/lib/session'
 import { setThemePreference, useThemePreference, type ThemePreference } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { AvatarField } from './components/AvatarField'
@@ -46,9 +46,24 @@ function Row({ title, hint, children, danger }: { title: string; hint: string; c
   )
 }
 
-/** Trang Hồ sơ & cài đặt (thiết kế B7). Chưa có PATCH /me, GET /export, DELETE /me: mọi thay đổi chỉ trong trang. */
-export function ProfileSettings() {
+/**
+ * Trang Hồ sơ & cài đặt (thiết kế B7). Tên, bộ icon, múi giờ, gỡ ảnh lưu qua PATCH /me.
+ * Chưa có: tải ảnh mới (Bước 7), xuất dữ liệu và xóa tài khoản (Bước 12).
+ */
+type ProfileSettingsProps = {
+  /** Nội dung mục Chia sẻ do trang ghép vào (features/share); không có thì hiện "mọi trang đều riêng tư". */
+  sharing?: ReactNode
+  /** Số link đang bật, để nhắc trong hộp thoại xóa tài khoản. */
+  shareCount?: number
+}
+
+export function ProfileSettings({ sharing, shareCount = 0 }: ProfileSettingsProps) {
   const profile = useProfile()
+  const save = useUpdateProfile()
+  const logout = useLogout()
+  const navigate = useNavigate()
+  // Ảnh vừa chọn chỉ để xem trước trong trình duyệt; undefined = dùng ảnh đang lưu.
+  const [preview, setPreview] = useState<string | null | undefined>(undefined)
   const theme = useThemePreference()
   const ids = useId()
   const [name, setName] = useState(profile.displayName)
@@ -66,10 +81,17 @@ export function ProfileSettings() {
     const trimmed = name.trim()
     if (!trimmed) return setNameError('Tên không được để trống')
     if (trimmed.length > maxName) return setNameError(`Tên tối đa ${maxName} ký tự`)
-    updateProfile({ displayName: trimmed })
-    setName(trimmed)
-    setNameError(null)
-    setSaved(true)
+    save.mutate(
+      { display_name: trimmed },
+      {
+        onSuccess: () => {
+          setName(trimmed)
+          setNameError(null)
+          setSaved(true)
+        },
+        onError: () => setNameError('Chưa lưu được. Thử lại nhé.'),
+      },
+    )
   }
 
   return (
@@ -77,7 +99,20 @@ export function ProfileSettings() {
       <h1 className="animate-rise text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Hồ sơ &amp; cài đặt</h1>
 
       <Section id={`${ids}-profile`} title="Hồ sơ" delay={0.04}>
-        <AvatarField name={name || profile.displayName} src={profile.avatarUrl} onChange={(src) => updateProfile({ avatarUrl: src })} />
+        <AvatarField
+          name={name || profile.displayName}
+          src={preview !== undefined ? preview : profile.avatarUrl}
+          onChange={(src) => {
+            if (src) return setPreview(src)
+            setPreview(undefined)
+            if (profile.avatarUrl) save.mutate({ avatar_url: null })
+          }}
+        />
+        {preview ? (
+          <p role="status" className="-mt-3 text-[13px] leading-5 text-muted-foreground">
+            Đang xem trước. Lưu ảnh mới lên máy chủ có ở Bước 7.
+          </p>
+        ) : null}
         <div className="flex flex-col gap-2">
           <label htmlFor={`${ids}-name`} className="text-sm leading-[22px] font-semibold">
             Tên hiển thị
@@ -139,14 +174,18 @@ export function ProfileSettings() {
             </span>
             <span className="text-[13px] leading-5 text-muted-foreground">Đổi bộ icon chỉ thay hình. Điểm đã ghi giữ nguyên.</span>
           </div>
-          <IconSetPicker labelledBy={`${ids}-set`} value={profile.iconSetId} onChange={(iconSetId) => updateProfile({ iconSetId })} />
+          <IconSetPicker
+            labelledBy={`${ids}-set`}
+            value={profile.iconSetId}
+            onChange={(iconSetId) => save.mutate({ icon_set_id: iconSetId })}
+          />
         </div>
         <TimeZoneField
           value={timeZone}
           saved={initialTimeZone}
           onChange={(tz) => {
             setTimeZone(tz)
-            updateProfile({ timeZone: tz })
+            save.mutate({ timezone: tz })
           }}
         />
       </Section>
@@ -199,23 +238,24 @@ export function ProfileSettings() {
       </Section>
 
       <Section id={`${ids}-share`} title="Chia sẻ" delay={0.16}>
-        <div className="flex items-start gap-3.5 rounded-[16px] border-[1.5px] border-dashed border-border bg-muted p-[18px]">
-          <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-          <div className="flex flex-col gap-1">
-            <p className="text-[15px] leading-6">Mọi trang đều riêng tư, chỉ mình bạn xem được.</p>
-            <p className="text-sm leading-[22px] text-muted-foreground">
-              Chia sẻ một trang bằng link · <strong className="font-semibold text-foreground">Sắp có</strong>
-            </p>
-          </div>
-        </div>
+        {sharing ?? (
+          <p className="flex items-start gap-3.5 text-[15px] leading-6">
+            <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+            Mọi trang đều riêng tư, chỉ mình bạn xem được.
+          </p>
+        )}
       </Section>
 
       <Section id={`${ids}-account`} title="Tài khoản" delay={0.2}>
         <Row title="Đăng xuất" hint="Nhật ký vẫn còn, đăng nhập lại bằng Google để xem.">
-          <Button asChild variant="secondary" size="sm" className="h-10 px-3.5">
-            <Link to="/">
-              <LogOut aria-hidden="true" /> Đăng xuất
-            </Link>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-10 px-3.5"
+            disabled={logout.isPending}
+            onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true }) })}
+          >
+            <LogOut aria-hidden="true" /> Đăng xuất
           </Button>
         </Row>
         <Row title="Tải dữ liệu về" hint="Toàn bộ nhật ký dạng JSON, luôn miễn phí.">
@@ -253,9 +293,9 @@ export function ProfileSettings() {
       </footer>
 
       <DeleteAccountDialog
+        shareCount={shareCount}
         open={wipeOpen}
         onOpenChange={setWipeOpen}
-        pageCount={DEMO_ENTRIES.length}
         onConfirm={() => setWiped(true)}
       />
     </div>

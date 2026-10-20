@@ -10,12 +10,15 @@ dependencies = [
     "pydantic-settings>=2.16",
     "pymongo>=4.19,<5",
     "slowapi>=0.1.10",
+    "authlib==1.8.0",
+    "itsdangerous==2.2.0",
+    "httpx>=0.28",
+    "tzdata>=2026.5",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=9.1",
-    "httpx>=0.28",
     "ruff>=0.17",
 ]
 

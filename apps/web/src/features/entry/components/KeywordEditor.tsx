@@ -2,7 +2,7 @@ import { useId, useState } from 'react'
 import { AddKeywordButton, KeywordChip } from '@/components/diary/KeywordChip'
 import { Input } from '@/components/ui/input'
 import { tierLimits } from '@/lib/limits'
-import { addKeyword } from './keywords'
+import { addKeyword } from '../keywords'
 
 type KeywordEditorProps = {
   keywords: string[]

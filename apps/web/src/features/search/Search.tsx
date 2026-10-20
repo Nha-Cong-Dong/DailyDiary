@@ -1,4 +1,4 @@
-import { Image, Search as SearchIcon, X } from 'lucide-react'
+import { ArrowRight, Image, Search as SearchIcon, X } from 'lucide-react'
 import { useDeferredValue, useId, useState } from 'react'
 import { Link } from 'react-router'
 import { MoodMark } from '@/components/diary/MoodMark'
@@ -12,7 +12,7 @@ import { highlight, matches, snippet } from '@/lib/text'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { NO_FILTERS, PERIODS, type SearchFilters } from './searchEntries'
-import { useSearch, useTopKeywords } from './useSearch'
+import { useHasEntries, useSearch, useTopKeywords } from './useSearch'
 
 const SCORE_SWATCH: Record<Score, string> = {
   1: 'bg-score-1',
@@ -114,6 +114,8 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
   const query = deferredQ.trim()
   const { data, isError } = useSearch(deferredQ, filters, today)
   const { data: top = [] } = useTopKeywords()
+  // Người dùng mới chưa có trang nào: bỏ bộ lọc, hiện màn trống (thiết kế B9).
+  const { data: hasEntries = true } = useHasEntries()
   const filtersOn = filters.scores.length > 0 || filters.period !== 'all' || filters.withPhotos
   const results = data?.results ?? []
   const hidden = (data?.matched ?? 0) - results.length
@@ -177,105 +179,129 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
         ) : null}
       </div>
 
-      <div
-        role="group"
-        aria-label="Bộ lọc"
-        className="flex animate-rise flex-wrap items-center gap-x-7 gap-y-3.5 rounded-[18px] border-[1.5px] border-dashed border-border bg-muted px-[18px] py-4"
-        style={{ animationDelay: '.1s' }}
-      >
-        <div role="group" aria-label="Lọc theo điểm" className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 text-[13px] leading-5 font-semibold">Điểm</span>
-          {SCORES.map((k) => (
-            <button
-              key={k}
-              type="button"
-              aria-label={`Điểm ${k}, ${scoreLabel(iconSetId, k)}`}
-              aria-pressed={filters.scores.includes(k)}
-              onClick={() => toggleScore(k)}
-              className={cn(chip(filters.scores.includes(k)), 'min-w-11 justify-center px-2.5')}
-            >
-              <span aria-hidden="true" className={cn('size-3 rounded-[4px] border border-line', SCORE_SWATCH[k])} />
-              {k}
-            </button>
-          ))}
-        </div>
-        <div role="radiogroup" aria-label="Khoảng thời gian" className="flex w-full flex-wrap items-center gap-1.5 sm:inline-flex sm:w-auto">
-          <span className="mr-1 text-[13px] leading-5 font-semibold">Thời gian</span>
-          <span className="grid w-full grid-cols-4 gap-0.5 rounded-[12px] border-[1.5px] border-line bg-card p-[3px] sm:inline-flex sm:w-auto">
-            {PERIODS.map((p) => {
-              const on = filters.period === p.id
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  onClick={() => setFilters((f) => ({ ...f, period: p.id }))}
-                  className={cn(
-                    'h-8 cursor-pointer rounded-[9px] px-1.5 text-[13px] whitespace-nowrap transition-colors focus-visible:outline-3 focus-visible:outline-ring sm:px-3',
-                    on ? 'bg-foreground font-semibold text-background' : 'font-medium hover:bg-secondary',
-                  )}
-                >
-                  {p.label}
-                </button>
-              )
-            })}
-          </span>
-        </div>
-        <button
-          type="button"
-          aria-pressed={filters.withPhotos}
-          onClick={() => setFilters((f) => ({ ...f, withPhotos: !f.withPhotos }))}
-          className={cn(chip(filters.withPhotos), 'pl-2.5')}
+      {!hasEntries ? (
+        <div
+          aria-live="polite"
+          className="flex animate-rise flex-col items-center gap-3 rounded-[22px] border-[1.5px] border-dashed border-line px-6 py-10 text-center"
         >
-          <Image className="size-4" aria-hidden="true" />
-          Có ảnh
-        </button>
-      </div>
-
-      <div aria-live="polite" className="flex flex-col gap-4">
-        {isError ? (
-          <Alert variant="destructive">
-            <AlertDescription>Không tìm được lúc này. Thử lại sau ít phút.</AlertDescription>
-          </Alert>
-        ) : !query ? (
-          <div className="flex flex-col items-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
-            <p className="font-semibold">Bạn muốn tìm lại điều gì?</p>
-            <p className="text-sm leading-[22px] text-muted-foreground">
-              Gõ một từ khóa, hoặc chọn từ khóa hay dùng ở trên. Gõ không dấu cũng tìm được.
-            </p>
-          </div>
-        ) : !data ? null : results.length ? (
-          <>
-            <p className="text-sm leading-[22px] text-muted-foreground">
-              <strong className="font-semibold text-foreground">
-                {results.length} kết quả cho “{query}”
-              </strong>
-              {hidden > 0 && filtersOn ? ` · ${hidden} trang khác bị ẩn bởi bộ lọc` : ''}
-            </p>
-            <ul className="flex flex-col gap-3.5">
-              {results.map((e, i) => (
-                <ResultCard key={e.entry_date} e={e} q={query} iconSetId={iconSetId} index={i} />
+          <span className="inline-flex size-16 items-center justify-center rounded-[18px] border-[1.5px] border-line bg-card shadow-ink-sm hover:[&_svg]:animate-seek">
+            <SearchIcon className="size-7" aria-hidden="true" />
+          </span>
+          <h2 className="mt-1 text-title-3 font-bold">{query ? `Chưa có trang nào chứa “${query}”` : 'Chưa có trang nào để tìm'}</h2>
+          <p className="max-w-[440px] text-[15px] leading-6 text-muted-foreground">
+            Khi bạn viết và gắn từ khóa, mọi trang sẽ tìm được ở đây. Ví dụ: tìm “cà phê” để mở lại những ngày có ly cà phê.
+          </p>
+          <Link
+            to="/today"
+            className="group mt-2 inline-flex h-12 items-center gap-2 rounded-[14px] border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground shadow-[4px_4px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--cta-shadow)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--cta-shadow)]"
+          >
+            Viết trang đầu tiên
+            <ArrowRight className="size-[18px] transition-transform group-hover:translate-x-[3px]" aria-hidden="true" />
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div
+            role="group"
+            aria-label="Bộ lọc"
+            className="flex animate-rise flex-wrap items-center gap-x-7 gap-y-3.5 rounded-[18px] border-[1.5px] border-dashed border-border bg-muted px-[18px] py-4"
+            style={{ animationDelay: '.1s' }}
+          >
+            <div role="group" aria-label="Lọc theo điểm" className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-[13px] leading-5 font-semibold">Điểm</span>
+              {SCORES.map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-label={`Điểm ${k}, ${scoreLabel(iconSetId, k)}`}
+                  aria-pressed={filters.scores.includes(k)}
+                  onClick={() => toggleScore(k)}
+                  className={cn(chip(filters.scores.includes(k)), 'min-w-11 justify-center px-2.5')}
+                >
+                  <span aria-hidden="true" className={cn('size-3 rounded-[4px] border border-line', SCORE_SWATCH[k])} />
+                  {k}
+                </button>
               ))}
-            </ul>
-          </>
-        ) : data.matched > 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
-            <p className="font-semibold">Không có trang nào khớp với bộ lọc</p>
-            <p className="text-sm leading-[22px] text-muted-foreground">
-              Có {data.matched} trang chứa “{query}”, nhưng không trang nào hợp với điểm, thời gian hoặc ảnh bạn chọn.
-            </p>
-            <Button variant="secondary" size="sm" className="h-10" onClick={() => setFilters(NO_FILTERS)}>
-              Bỏ lọc
-            </Button>
+            </div>
+            <div role="radiogroup" aria-label="Khoảng thời gian" className="flex w-full flex-wrap items-center gap-1.5 sm:inline-flex sm:w-auto">
+              <span className="mr-1 text-[13px] leading-5 font-semibold">Thời gian</span>
+              <span className="grid w-full grid-cols-4 gap-0.5 rounded-[12px] border-[1.5px] border-line bg-card p-[3px] sm:inline-flex sm:w-auto">
+                {PERIODS.map((p) => {
+                  const on = filters.period === p.id
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      onClick={() => setFilters((f) => ({ ...f, period: p.id }))}
+                      className={cn(
+                        'h-8 cursor-pointer rounded-[9px] px-1.5 text-[13px] whitespace-nowrap transition-colors focus-visible:outline-3 focus-visible:outline-ring sm:px-3',
+                        on ? 'bg-foreground font-semibold text-background' : 'font-medium hover:bg-secondary',
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  )
+                })}
+              </span>
+            </div>
+            <button
+              type="button"
+              aria-pressed={filters.withPhotos}
+              onClick={() => setFilters((f) => ({ ...f, withPhotos: !f.withPhotos }))}
+              className={cn(chip(filters.withPhotos), 'pl-2.5')}
+            >
+              <Image className="size-4" aria-hidden="true" />
+              Có ảnh
+            </button>
           </div>
-        ) : (
-          <div className="flex flex-col items-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
-            <p className="font-semibold">Không tìm thấy “{query}”</p>
-            <p className="text-sm leading-[22px] text-muted-foreground">Thử một từ ngắn hơn, hoặc gõ không dấu.</p>
+
+          <div aria-live="polite" className="flex flex-col gap-4">
+            {isError ? (
+              <Alert variant="destructive">
+                <AlertDescription>Không tìm được lúc này. Thử lại sau ít phút.</AlertDescription>
+              </Alert>
+            ) : !query ? (
+              <div className="flex flex-col items-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
+                <p className="font-semibold">Bạn muốn tìm lại điều gì?</p>
+                <p className="text-sm leading-[22px] text-muted-foreground">
+                  Gõ một từ khóa, hoặc chọn từ khóa hay dùng ở trên. Gõ không dấu cũng tìm được.
+                </p>
+              </div>
+            ) : !data ? null : results.length ? (
+              <>
+                <p className="text-sm leading-[22px] text-muted-foreground">
+                  <strong className="font-semibold text-foreground">
+                    {results.length} kết quả cho “{query}”
+                  </strong>
+                  {hidden > 0 && filtersOn ? ` · ${hidden} trang khác bị ẩn bởi bộ lọc` : ''}
+                </p>
+                <ul className="flex flex-col gap-3.5">
+                  {results.map((e, i) => (
+                    <ResultCard key={e.entry_date} e={e} q={query} iconSetId={iconSetId} index={i} />
+                  ))}
+                </ul>
+              </>
+            ) : data.matched > 0 ? (
+              <div className="flex flex-col items-center gap-3 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
+                <p className="font-semibold">Không có trang nào khớp với bộ lọc</p>
+                <p className="text-sm leading-[22px] text-muted-foreground">
+                  Có {data.matched} trang chứa “{query}”, nhưng không trang nào hợp với điểm, thời gian hoặc ảnh bạn chọn.
+                </p>
+                <Button variant="secondary" size="sm" className="h-10" onClick={() => setFilters(NO_FILTERS)}>
+                  Bỏ lọc
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
+                <p className="font-semibold">Không tìm thấy “{query}”</p>
+                <p className="text-sm leading-[22px] text-muted-foreground">Thử một từ ngắn hơn, hoặc gõ không dấu.</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   )
 }

@@ -2,7 +2,8 @@
   "version": 1,
   "default_tier": "beta",
   "ip_rate_limits": {
-    "login": "5/minute"
+    "login": "5/minute",
+    "share_view": "60/minute"
   },
   "tiers": {
     "beta": {

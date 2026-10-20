@@ -85,3 +85,59 @@ async def test_uuid_and_datetime_roundtrip(db):
 async def test_sessions_expire_via_ttl_index(db):
     info = await db[c.USER_SESSIONS].index_information()
     assert info["ttl_expires_at"]["expireAfterSeconds"] == 0
+
+
+async def test_m0002_backfills_icon_set_and_onboarded_and_is_idempotent(db):
+    from app.db.migrations import m0002_user_icon_set_onboarded as m2
+
+    joined = datetime(2025, 9, 1, tzinfo=UTC)
+    old = {
+        "_id": uuid4(),
+        "google_sub": "sub-old",
+        "email": "old@example.com",
+        "display_name": "Old",
+        "timezone": "Asia/Ho_Chi_Minh",
+        "account_tier": "beta",
+        "joined_at": joined,
+    }
+    await db[c.USERS].insert_one(old)
+    await m2.up(db)
+    await m2.up(db)  # chạy lại không đổi gì
+    got = await db[c.USERS].find_one({"_id": old["_id"]})
+    assert got["icon_set_id"] == "sprout"
+    assert got["onboarded_at"] == joined
+
+    with pytest.raises(WriteError):
+        await db[c.USERS].insert_one({**old, "_id": uuid4(), "google_sub": "sub-x", "icon_set_id": 5})
+
+
+async def test_m0003_share_links_indexes_validator_and_idempotent(db):
+    from app.db.migrations import m0003_share_links as m3
+
+    await m3.up(db)  # chạy lại không lỗi
+    info = await db[c.SHARE_LINKS].index_information()
+    assert info["uq_user_date"]["unique"] and info["uq_token"]["unique"]
+
+    now = datetime.now(UTC)
+    user = uuid4()
+    link = {
+        "_id": uuid4(),
+        "user_id": user,
+        "entry_date": "2026-10-18",
+        "token": "a" * 22,
+        **{name: True for name in m3.SHOW_FIELDS},
+        "photo_ids": [],
+        "created_at": now,
+        "updated_at": now,
+    }
+    await db[c.SHARE_LINKS].insert_one(link)
+    with pytest.raises(DuplicateKeyError):  # một link mỗi ngày
+        await db[c.SHARE_LINKS].insert_one({**link, "_id": uuid4(), "token": "b" * 22})
+    with pytest.raises(DuplicateKeyError):  # token không trùng
+        await db[c.SHARE_LINKS].insert_one({**link, "_id": uuid4(), "entry_date": "2026-10-17"})
+    with pytest.raises(WriteError):
+        await db[c.SHARE_LINKS].insert_one({**link, "_id": uuid4(), "token": "short", "user_id": uuid4()})
+    with pytest.raises(WriteError):
+        await db[c.SHARE_LINKS].insert_one(
+            {**link, "_id": uuid4(), "token": "c" * 22, "user_id": uuid4(), "show_title": "yes"}
+        )

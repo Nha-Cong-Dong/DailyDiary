@@ -8,6 +8,7 @@
 """
 
 import asyncio
+import sys
 from datetime import UTC, datetime
 
 from pymongo.asynchronous.database import AsyncDatabase
@@ -15,9 +16,9 @@ from pymongo.asynchronous.database import AsyncDatabase
 from app.core.config import settings
 from app.db import collections as c
 from app.db.client import make_client
-from app.db.migrations import m0001_initial
+from app.db.migrations import m0001_initial, m0002_user_icon_set_onboarded, m0003_share_links
 
-MIGRATIONS = [m0001_initial]
+MIGRATIONS = [m0001_initial, m0002_user_icon_set_onboarded, m0003_share_links]
 
 
 async def run_migrations(db: AsyncDatabase) -> list[str]:
@@ -42,4 +43,6 @@ async def _main() -> None:
 
 
 if __name__ == "__main__":
+    # Console Windows mặc định cp1252, in tiếng Việt sẽ lỗi sau khi migration đã chạy.
+    sys.stdout.reconfigure(encoding="utf-8")
     asyncio.run(_main())

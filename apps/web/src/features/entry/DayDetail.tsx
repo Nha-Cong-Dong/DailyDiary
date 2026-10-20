@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Pencil, Share2, Trash2 } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Link2, Pencil, Share2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { KeywordChip } from '@/components/diary/KeywordChip'
@@ -55,8 +55,11 @@ function DayStep({ date, dir, disabled }: { date: string; dir: 'prev' | 'next'; 
   )
 }
 
-/** Trang chi tiết một ngày (thiết kế B7 · Chi tiết một ngày). */
-export function DayDetail({ date }: { date: string }) {
+/** Điều khiển Chia sẻ do trang ghép vào (features/share): link đang bật không, và mở hộp thoại. */
+export type DayShareControls = { active: boolean; open: () => void }
+
+/** Trang chi tiết một ngày (thiết kế B7 · Chi tiết một ngày; nút và chip Chia sẻ theo B8). */
+export function DayDetail({ date, share }: { date: string; share?: DayShareControls }) {
   const { timeZone, iconSetId } = useProfile()
   const dark = useDarkMode()
   const now = useNow()
@@ -132,7 +135,7 @@ export function DayDetail({ date }: { date: string }) {
           {date === today ? (
             <Button onClick={() => navigate('/today')}>Viết cho hôm nay</Button>
           ) : (
-            <p className="text-sm text-muted-foreground">Ghi bù cho ngày đã qua có ở Bước 5.</p>
+            <Button onClick={() => navigate(`/day/${date}/backfill`)}>Ghi bù ngày này</Button>
           )}
         </section>
       ) : (
@@ -147,29 +150,25 @@ export function DayDetail({ date }: { date: string }) {
                 <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={76} />
               </span>
               <div className="flex flex-wrap gap-2">
-                {date === today ? (
-                  <Button variant="secondary" size="sm" className="h-10 px-3" onClick={() => navigate('/today')}>
-                    <Pencil aria-hidden="true" /> Sửa
-                  </Button>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Button variant="secondary" size="sm" className="h-10 px-3" disabled aria-describedby="day-edit-soon">
-                      <Pencil aria-hidden="true" /> Sửa
-                    </Button>
-                    <span id="day-edit-soon" className="text-[13px] text-muted-foreground">
-                      Bước 5
-                    </span>
-                  </span>
-                )}
-                {/* Chia sẻ nằm ngoài MVP (Project_Specs 2.2): hiện nhưng khóa. */}
-                <span className="inline-flex items-center gap-1.5">
-                  <Button variant="secondary" size="sm" className="h-10 px-3" disabled aria-describedby="day-share-soon">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-10 px-3"
+                  onClick={() => navigate(date === today ? '/today' : `/day/${date}/edit`)}
+                >
+                  <Pencil aria-hidden="true" /> Sửa
+                </Button>
+                {share ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-haspopup="dialog"
+                    className="h-10 px-3 hover:[&_svg]:animate-wiggle"
+                    onClick={share.open}
+                  >
                     <Share2 aria-hidden="true" /> Chia sẻ
                   </Button>
-                  <span id="day-share-soon" className="text-[13px] text-muted-foreground">
-                    Sắp có
-                  </span>
-                </span>
+                ) : null}
                 <Button
                   variant="destructive"
                   size="icon"
@@ -183,9 +182,22 @@ export function DayDetail({ date }: { date: string }) {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <p className="text-sm leading-[22px] text-muted-foreground">
-                {longDateLabel(date)} · Điểm {entry.score} · {scoreLabel(iconSetId, entry.score)}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <p className="text-sm leading-[22px] text-muted-foreground">
+                  {longDateLabel(date)} · Điểm {entry.score} · {scoreLabel(iconSetId, entry.score)}
+                </p>
+                {share?.active ? (
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    onClick={share.open}
+                    className="inline-flex h-7 animate-pop cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] border-line bg-secondary pr-2.5 pl-2 text-xs font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px"
+                  >
+                    <Link2 className="size-3.5" aria-hidden="true" />
+                    Đang chia sẻ
+                  </button>
+                ) : null}
+              </div>
               {entry.title ? <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">{entry.title}</h1> : null}
               <p className="inline-flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground tabular-nums">
                 <Clock className="size-3.5" aria-hidden="true" />
@@ -247,7 +259,7 @@ export function DayDetail({ date }: { date: string }) {
             </AlertDialogTitle>
             <AlertDialogDescription>
               Điểm, nội dung{entry?.photos.length ? ` và ${entry.photos.length} ảnh` : ''} của ngày này sẽ được chuyển vào
-              thùng rác. Khôi phục được trong 30 ngày.
+              thùng rác. Khôi phục được trong 30 ngày.{share?.active ? ' Link chia sẻ của trang này sẽ tắt.' : ''}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

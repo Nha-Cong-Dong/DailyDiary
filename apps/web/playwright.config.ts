@@ -17,7 +17,8 @@ export default defineConfig({
       cwd: '../api',
       url: 'http://localhost:8000/health',
       reuseExistingServer: !process.env.CI,
-      env: { PYTHONUTF8: '1' },
+      // Đăng nhập thử (POST /auth/dev-login) cho e2e; cookie không Secure vì chạy http://localhost.
+      env: { PYTHONUTF8: '1', DEV_LOGIN: 'true', COOKIE_SECURE: 'false' },
     },
     {
       command: 'npm run dev',

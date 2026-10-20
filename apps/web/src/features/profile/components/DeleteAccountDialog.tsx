@@ -16,12 +16,13 @@ const CONFIRM_WORD = 'XÓA'
 type DeleteAccountDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  pageCount: number
   onConfirm: () => void
+  /** Số link chia sẻ đang bật: xóa tài khoản thì người nhận không mở được nữa. */
+  shareCount?: number
 }
 
 /** Xóa tài khoản (F-08): xác nhận hai lần, lần hai phải gõ "XÓA". */
-export function DeleteAccountDialog({ open, onOpenChange, pageCount, onConfirm }: DeleteAccountDialogProps) {
+export function DeleteAccountDialog({ open, onOpenChange, onConfirm, shareCount = 0 }: DeleteAccountDialogProps) {
   const id = useId()
   const [text, setText] = useState('')
   const ok = text.trim().normalize('NFC').toLocaleUpperCase('vi') === CONFIRM_WORD
@@ -37,8 +38,9 @@ export function DeleteAccountDialog({ open, onOpenChange, pageCount, onConfirm }
         <AlertDialogHeader>
           <AlertDialogTitle>Xóa tài khoản và toàn bộ dữ liệu?</AlertDialogTitle>
           <AlertDialogDescription>
-            {pageCount} trang nhật ký, kèm mọi điểm và ảnh, cùng tài khoản sẽ bị xóa vĩnh viễn. Muốn giữ lại thì tải dữ
-            liệu về trước.
+            Mọi trang nhật ký, kèm điểm và ảnh, cùng tài khoản sẽ bị xóa vĩnh viễn.
+            {shareCount ? ` ${shareCount} link chia sẻ cũng tắt, người nhận sẽ không mở được nữa.` : ''} Muốn giữ lại
+            thì tải dữ liệu về trước.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex flex-col gap-2">

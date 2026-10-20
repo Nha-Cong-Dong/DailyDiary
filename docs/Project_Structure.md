@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 2 (17/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 8 (21/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -59,28 +59,30 @@ dailydiary/
     │   │   ├── core/                 # hạ tầng dùng chung, KHÔNG chứa nghiệp vụ
     │   │   │   ├── config.py         # Settings (biến môi trường)
     │   │   │   ├── errors.py         # ApiError + định dạng lỗi chuẩn
-    │   │   │   ├── logging.py        # log request (không ghi body/query)
+    │   │   │   ├── logging.py        # log request (không ghi body/query; che token ở /public/shares/***)
     │   │   │   ├── limits.py         # đọc shared/limits.json
     │   │   │   ├── rate_limit.py     # slowapi limiter + handler 429
+    │   │   │   ├── catalog.py        # đọc shared/icons.json (danh sách bộ icon, bộ mặc định)
     │   │   │   ├── text.py           # (B5) chuẩn hóa NFC, norm từ khóa không dấu
-    │   │   │   ├── security.py       # (B3) cookie phiên, get_current_user, CSRF
-    │   │   │   ├── oauth.py          # (B3) Authlib Google
+    │   │   │   ├── security.py       # cookie phiên, get_current_user, CSRF
+    │   │   │   ├── oauth.py          # Authlib Google
     │   │   │   └── storage.py        # (B7) boto3, presigned URL
     │   │   ├── db/
     │   │   │   ├── client.py         # AsyncMongoClient, dependency Db
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
-    │   │   │   └── migrations/       # m0001_initial.py, m0002_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut
-    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id
-    │   │   ├── routers/              # health; (B3) auth, me; (B5) entries; (B7) photos; (B9) calendar;
+    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_<mo_ta>.py ...
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, shares.py)
+    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, shares.py)
+    │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, shares (F-10: chủ trang + /public/shares);
+│   │   │                         # (B5) entries; (B7) photos; (B9) calendar;
     │   │   │                         # (B10) pixels; (B11) search; (B12) export, feedback
     │   │   └── jobs/                 # (B12–B13) dọn bài xóa mềm, hoàn tất xóa tài khoản, sao lưu
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
     │   │   ├── export_openapi.py     # xuất OpenAPI cho web (npm run gen:api, CI kiểm tra lệch)
     │   │   └── seed_demo.py          # (B14) nạp dữ liệu mẫu 3 tháng vào DB local
     │   └── tests/
-    │       ├── conftest.py           # DB *_test, client; (B3) người dùng alice/bob
+    │       ├── conftest.py           # DB *_test, client, make_client (phiên đăng nhập), alice/bob
     │       ├── fakes.py              # (B7) S3 giả
     │       ├── unit/                 # hàm thuần, không cần DB
     │       ├── db/                   # migration, index, validator
@@ -92,43 +94,52 @@ dailydiary/
         ├── vite.config.ts  playwright.config.ts  tsconfig.json  tsconfig.app.json  tsconfig.node.json
         ├── index.html  .env.example
         ├── public/                   # file tĩnh phục vụ nguyên trạng (favicon Jotly)
-        ├── e2e/                      # smoke test Playwright: <luồng>.spec.ts
+        ├── e2e/                      # smoke test Playwright: <luồng>.spec.ts; session.ts (đăng nhập thử)
         └── src/
             ├── main.tsx  App.tsx  index.css  vite-env.d.ts
             ├── api/
             │   ├── client.ts         # openapi-fetch, credentials: "include"
             │   ├── openapi.json      # [sinh tự động] từ scripts/export_openapi.py
             │   └── schema.d.ts       # [sinh tự động] npm run gen:api
-            ├── routes/               # router.tsx, RootLayout.tsx, <Tên>Page.tsx (mỏng, ghép từ features);
-            │                         # chỉ có khi chạy dev (tải lười, không vào bản build): DevUiPage,
-            │                         # TodayPage, OnboardingPage, DayPage (/day/:date), PixelsPage,
-            │                         # SearchPage, ProfilePage, cho tới khi có API ở các bước 3–12
+            ├── routes/               # router.tsx, RootLayout.tsx (+ RootLoading), ErrorPage.tsx (lỗi route), <Tên>Page.tsx
+            │                         # (mỏng, ghép từ features; ghép feature với nhau ở đây, vd. DayPage = entry + share);
+            │                         # LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage có trong bản build;
+            │                         # chỉ có khi chạy dev (tải lười, không vào bản build): DevUiPage, TimelinePage,
+            │                         # DayPage (/day/:date), DayEditPage (/day/:date/edit), BackfillPage (/day/:date/backfill),
+            │                         # PixelsPage, SearchPage, SharePage (/s/:token), SharedListPage (/profile/shares),
+            │                         # cho tới khi có API ở các bước 5–11b
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
             │   ├── landing/          # trang giới thiệu cho người chưa đăng nhập (trang chủ /)
-            │   ├── auth/             # (B3) đăng nhập, bảo vệ route
+            │   ├── auth/             # trang đăng nhập + trạng thái lỗi (loginState.ts), RequireAuth (bảo vệ route)
             │   ├── profile/          # 3 bước lần đầu, Hồ sơ & cài đặt (giao diện; components/ vì ≥ 6 component);
-            │   │                     # (B3) PATCH /me; (B12) xuất dữ liệu, xóa tài khoản
-            │   ├── entry/            # màn Hôm nay, chi tiết một ngày, từ khóa (giao diện); (B5–B7) lưu nhật ký,
-            │   │                     # ảnh, tự động lưu
-            │   ├── timeline/         # (B8) dòng thời gian
-            │   ├── calendar/         # (B9) lịch tháng + thống kê tháng
+            │   │                     # PATCH /me; (B12) xuất dữ liệu, xóa tài khoản
+            │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù (giao diện, lưu tạm trong tab:
+            │   │                     # localDays.ts, uploadPhoto.ts giả lập); components/ vì ≥ 6 component;
+            │   │                     # (B5–B7) lưu nhật ký, ảnh, tự động lưu
+            │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng (thiết kế B8,
+            │   │                     # dữ liệu mẫu); (B8–B9) GET /entries, /calendar
+            │   ├── calendar/         # (B9) dự phòng; lịch tháng hiện nằm trong timeline/ theo thiết kế B8
             │   ├── pixels/           # Year in Pixels cả năm (giao diện, dữ liệu mẫu); (B10) GET /pixels/{year}
             │   ├── search/           # tìm theo từ khóa + bộ lọc (giao diện, dữ liệu mẫu); (B11) GET /search
+            │   ├── share/            # Chia sẻ một trang (F-10, thiết kế B8): hộp thoại, trang người nhận, trang đang chia sẻ,
+            │   │                     # link đã tắt; kiểu lấy từ schema.d.ts, dữ liệu mẫu demoShares.ts; components/
             │   └── feedback/         # (B12) góp ý
             ├── components/
             │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên> (đã chỉnh theo hệ thiết kế;
-            │   │                     # có dialog, alert-dialog)
+            │   │                     # có dialog, alert-dialog, switch)
             │   ├── diary/            # thành phần nhật ký dùng chung: main/sub icon, chọn điểm, cờ hiệu,
-            │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh
-            │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang
+            │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh, tải ảnh (PhotoUploader)
+            │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang,
+            │                         # thanh ngoại tuyến (OfflineBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark)
             ├── lib/                  # query.ts, limits.ts, utils.ts, catalog.ts (icons/cờ từ shared/),
             │                         # theme.ts (sáng/tối), date.ts (ngày theo múi giờ hồ sơ),
-            │                         # profile.ts (hồ sơ tạm, (B3) thay bằng GET /me), text.ts (bỏ dấu, tô sáng),
-            │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API);
-            │                         # (B6) autosave.ts, storage.ts (IndexedDB); (B7) image.ts
+            │                         # profile.ts (GET/PATCH /me), session.ts (đăng xuất, đăng nhập thử), text.ts (bỏ dấu, tô sáng),
+            │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống),
+            │                         # image.ts (kiểm tra loại/kích thước ảnh), online.ts (trạng thái mạng);
+            │                         # (B6) autosave.ts, storage.ts (IndexedDB)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn)
-            └── test/setup.ts         # cấu hình Vitest
+            └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me khi render test)
 ```
 
 ## Quy ước bên trong thư mục
@@ -168,3 +179,5 @@ dailydiary/
 | 4 | 19/10/2026 | Bước 2 (hệ thiết kế Jotly): thêm `components/diary/`, `features/landing/`, `lib/catalog.ts`, `lib/theme.ts`, `routes/DevUiPage.tsx`, `styles/motion.css`; bỏ nhãn (B2) ở `components/layout/` và `public/` |
 | 5 | 19/10/2026 | Thiết kế B6: màn Hôm nay (`features/entry/`), 3 bước lần đầu (`features/profile/`), `lib/date.ts` (bỏ nhãn (B3)), `lib/profile.ts`, `routes/TodayPage.tsx`, `routes/OnboardingPage.tsx`; khung app theo B6 |
 | 6 | 20/10/2026 | Thiết kế B7: `features/pixels/`, `features/search/` (bỏ `.gitkeep`), chi tiết ngày trong `features/entry/`, Hồ sơ trong `features/profile/` (tách `components/`), `lib/text.ts`, `lib/demo.ts`, `components/ui/dialog`, `alert-dialog`, `components/layout/Avatar.tsx`, `components/diary/PhotoViewer.tsx`; route dev tải lười |
+| 7 | 20/10/2026 | Bước 3 (đăng nhập Google, hồ sơ): `core/security.py`, `core/oauth.py`, `core/catalog.py`, `routers/auth.py`, `routers/me.py`, `schemas/users.py`, `services/users.py`, migration `m0002`, `features/auth/`, `routes/LoginPage.tsx`, `lib/session.ts`, `src/test/withMe.tsx`, `e2e/session.ts`; bỏ nhãn (B3); các trang Lần đầu, Hôm nay, Hồ sơ vào bản build |
+| 8 | 21/10/2026 | Thiết kế B8–B9 + Chia sẻ (ADR 0005): `features/timeline/` (bỏ `.gitkeep`), `features/share/`, Sửa/Ghi bù trong `features/entry/` (tách `components/`), `PhotoUploader`, `lib/image.ts` (bỏ nhãn (B7)), `lib/online.ts`, `OfflineBanner`, `PageStates`, `GoogleMark` (thay ô giữ chỗ logo Google), `routes/ErrorPage.tsx` và các trang dev mới; backend `shares` (router, service, schema, migration `m0003`); `core/logging.py` che token; `scripts/export_openapi.py` sửa lỗi in trên console Windows |

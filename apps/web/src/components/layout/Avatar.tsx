@@ -25,7 +25,7 @@ export function Avatar({ name, src, size = 40, className }: AvatarProps) {
       )}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.36), backgroundColor: flagHex(LAVENDER, dark) }}
     >
-      {src ? <img src={src} alt="" className="size-full object-cover" /> : initials(name)}
+      {src ? <img src={src} alt="" referrerPolicy="no-referrer" className="size-full object-cover" /> : initials(name)}
     </span>
   )
 }

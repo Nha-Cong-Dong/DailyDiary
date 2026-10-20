@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     cookie_secure: bool = True
     session_secret: str | None = None
     session_ttl_days: int = 30
+    # Đăng nhập thử không cần Google (POST /auth/dev-login). Chỉ có hiệu lực khi env là local/test;
+    # create_app() từ chối khởi động nếu bật ở môi trường khác.
+    dev_login: bool = False
     google_client_id: str | None = None
     google_client_secret: str | None = None
     google_redirect_uri: str = "http://localhost:8000/auth/google/callback"

@@ -27,5 +27,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    // Test render cả màn (dùng userEvent) có thể quá 5 s mặc định khi cả bộ chạy song song trên máy chậm.
+    testTimeout: 15_000,
   },
 })

@@ -2,7 +2,7 @@
 
 |                |                                                                                     |
 | -------------- | ----------------------------------------------------------------------------------- |
-| **Trạng thái** | Đã duyệt; chốt Q1–Q3 (16/10/2026), Q11–Q13 (17/10/2026); đang ở bước 1              |
+| **Trạng thái** | Đã duyệt; chốt Q1–Q3 (16/10/2026), Q11–Q13 (17/10/2026); xong bước 3 (21/10/2026) |
 | **Ngày lập**   | 16/10/2026                                                                          |
 | **Căn cứ**     | `docs/Project_Specs.md` v0.1 (mục 3–6), skill trong `.claude/` và `apps/*/.claude/` |
 
@@ -34,6 +34,7 @@
 | 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
 | 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
+| 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
 | 12   | Xuất dữ liệu, xóa tài khoản, góp ý (F-07–F-09)                                                  | 11              | 7         |
 | 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
 | 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
@@ -166,6 +167,12 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
   - route yêu cầu đăng nhập: gặp 401 thì chuyển về `/login`;
   - trang hồ sơ;
   - `lib/date.ts`: "hôm nay" theo múi giờ hồ sơ.
+- **Đã chốt khi làm (20/10/2026):**
+  - `users.onboarded_at` (migration `m0002`): người mới đăng nhập vào `/onboarding`, người cũ vào `/today`;
+    `PATCH /me` nhận `onboarded: true` (chỉ bật, không tắt).
+  - `POST /auth/dev-login` để test và e2e không cần Google: chỉ có khi `ENV` là local/test và `DEV_LOGIN=true`,
+    không có trong OpenAPI; ở production bật cờ này thì API từ chối khởi động.
+  - Thiết kế chưa có màn đăng nhập riêng: trang `/login` ghép từ khung thẻ và nút Google của landing.
 
 **Skill:** `/implement-feature F-04`, `fastapi-backend` (tham khảo `auth-google-cookie.md`), `date-timezone-rules`, `privacy-check`.
 
@@ -175,6 +182,8 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
   vượt 429 khi đăng nhập dồn dập, và người dùng A không đọc được `/me` của B.
 
 **Bạn cần:** Google OAuth client và secret (bước 0).
+
+**Kết quả (21/10/2026):** đăng nhập Google thật trên localhost thành công; 59 test backend và 48 test web xanh.
 
 ---
 
@@ -280,6 +289,11 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Endpoint:** `GET /entries?cursor=&limit=`.
 
+> **Đổi theo thiết kế B8 (21/10/2026):** Dòng thời gian xem **theo tháng**, gộp danh sách trang, nhịp điểm, lịch và
+> thống kê tháng vào một trang (`/timeline?m=YYYY-MM`); danh sách hiện 7 trang rồi "Xem thêm", không cuộn vô hạn.
+> Khi làm bước này cùng Bước 9, cân nhắc thêm `GET /entries?month=YYYY-MM` (tóm tắt trang trong tháng) thay cho con trỏ.
+> Giao diện đã dựng trên dữ liệu mẫu ở `features/timeline/`.
+
 **Phạm vi:**
 - Phân trang theo con trỏ, 10–20 bài mỗi lần, mới nhất trước, cuộn để tải thêm.
 - Hiện ảnh thu nhỏ có kích thước cố định để CLS dưới 0,1.
@@ -342,6 +356,26 @@ p95 dưới 500 ms với dữ liệu mẫu.
 
 ---
 
+## Bước 11b – Chia sẻ một trang (F-10)
+
+Thêm ngày 21/10/2026 (ADR 0005). Giao diện theo thiết kế B8: hộp thoại Chia sẻ trong trang một ngày, trang người
+nhận xem `/s/:token`, "Trang đang chia sẻ" trong Hồ sơ, màn "Trang này không mở được".
+
+**Đã làm sớm (21/10/2026):** giao diện trên dữ liệu mẫu (chỉ chạy ở dev) và backend phần link: collection
+`share_links`, endpoint chủ sở hữu và endpoint công khai, kèm test.
+
+**Còn lại, làm sau Bước 5 và 7:**
+- Nối giao diện với API thật; đưa các route chia sẻ vào bản build.
+- Ảnh trong trang công khai: link ký có hạn, chỉ ảnh được chọn.
+- Xuất dữ liệu (Bước 12) có danh sách link đang bật; xóa tài khoản xóa luôn `share_links`.
+
+**Skill:** `privacy-check`, `securitymaxxing:authz`, `securitymaxxing:api`.
+
+**Hoàn thành khi:** người nhận chỉ thấy đúng phần được chọn; tắt link, xóa mềm trang hoặc xóa tài khoản thì link trả
+màn chung; có test truy cập chéo và test rate limit cho trang công khai.
+
+---
+
 ## Bước 12 – Xuất dữ liệu, xóa tài khoản, góp ý (F-07 – F-09)
 
 **Endpoint:** `GET /export`, `DELETE /me`, `POST /feedback`.
@@ -350,7 +384,7 @@ p95 dưới 500 ms với dữ liệu mẫu.
 - **Xuất dữ liệu:** toàn bộ nhật ký ra JSON, gồm cả link ảnh có thời hạn.
 - **Xóa tài khoản:**
   - xác nhận hai lần;
-  - xóa phiên, nhật ký, từ khóa;
+  - xóa phiên, nhật ký, từ khóa, link chia sẻ (`share_links`);
   - xóa ảnh theo tiền tố `user_id/` bằng tác vụ nền.
 - **Góp ý:** form ngắn, có rate limit.
 
@@ -367,7 +401,7 @@ p95 dưới 500 ms với dữ liệu mẫu.
 - Sentry cho frontend và backend, có `before_send` lọc nội dung nhật ký.
 - PostHog hoặc Umami với 7 sự kiện ở mục 4.7, không gửi nội dung.
 - Tác vụ định kỳ:
-  - dọn bài xóa mềm sau 30 ngày, kèm ảnh;
+  - dọn bài xóa mềm sau 30 ngày, kèm ảnh và link chia sẻ của bài đó;
   - sao lưu DB lúc 00:00, 08:00, 16:00 giờ Việt Nam, giữ 7 ngày (sao lưu của gói hosting, hoặc tác vụ `mongodump`);
   - sao chép ảnh sang kho khác.
 - Rà lại và tinh chỉnh toàn bộ rate limit.
@@ -411,6 +445,6 @@ p95 dưới 500 ms với dữ liệu mẫu.
 
 ## Ngoài phạm vi MVP
 
-Theo mục 2.2 của đặc tả: chia sẻ nhật ký, đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
+Theo mục 2.2 của đặc tả: nhật ký chung và bình luận (chia sẻ một trang qua link đã vào MVP ở Bước 11b), đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
 ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (mục 6.2) chỉ được chuẩn bị qua dữ liệu
 (`user_items`, `account_tier`, `joined_at`), không xây giao diện.

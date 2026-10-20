@@ -64,11 +64,11 @@ Mục tiêu cụ thể:
 - Trải nghiệm **cá nhân**: một người dùng, nhật ký riêng.
 - Nền tảng: **web app**, ưu tiên trình duyệt trên máy tính (Chrome, Edge); giao diện responsive để dùng được trên điện thoại. Luồng "ghi nhanh" (chọn biểu tượng, thêm ảnh) phải mượt trên điện thoại.
 - Đăng nhập bằng tài khoản Google.
+- Chia sẻ **một trang** qua link chỉ xem, người viết chọn phần được hiện (F-10, ADR 0005, chốt 21/10/2026).
 
 ### 2.2. Ngoài phạm vi MVP
 
-- Tính năng nhiều người dùng: chia sẻ nhật ký, nhật ký chung, bình luận. (Giao diện MVP hiện nút "Chia sẻ" ở trạng thái khóa,
-  ghi "Sắp có".)
+- Tính năng nhiều người dùng: nhật ký chung, bình luận, theo dõi người khác. (Chia sẻ một trang qua link đã vào MVP, xem F-10.)
 - Đăng nhập Facebook và các nhà cung cấp khác.
 - Đổi chủ đề, theme, trang trí, sticker.
 - AI, video tổng kết, thông báo đẩy.
@@ -92,6 +92,7 @@ Ký hiệu mức ưu tiên: **P0** bắt buộc · **P1** nên có nếu kịp �
 | F-07 | Xóa tài khoản và toàn bộ dữ liệu           | P1 (đề xuất) |
 | F-08 | Xuất dữ liệu (JSON)                        | P1 (đề xuất) |
 | F-09 | Nút góp ý trong app                        | P1 (đề xuất) |
+| F-10 | Chia sẻ một trang qua link chỉ xem         | P1           |
 
 ### F-01. Viết nhật ký trong ngày
 
@@ -125,6 +126,8 @@ Quy tắc:
 - **Danh sách bài gần đây**: 10–20 bài mỗi lần tải, cuộn để tải thêm, mới nhất ở trên.
 - **Lịch tháng**: mỗi ngày hiển thị main icon và sub icon thu nhỏ. Dữ liệu cả tháng lấy trong **1 request**, chỉ gồm ngày, điểm, sub icon, màu cờ (bộ icon lấy từ hồ sơ, áp cho mọi ngày); không tải nội dung bài viết.
 - **Thống kê tháng**: số ngày đã ghi / tổng số ngày; điểm trung bình; phân bố điểm 1–5; tổng số ảnh; chuỗi ngày ghi liên tiếp dài nhất; biểu đồ điểm theo ngày.
+- **Ghi bù** (thiết kế B9, 21/10/2026): trang tạo sau khi ngày đó đã qua (`created_at` rơi vào ngày sau `entry_date`
+  theo múi giờ người dùng) vẫn tô màu trong lịch tháng và Year in Pixels, nhưng **không nối lại chuỗi ngày liên tiếp**.
 - Thời gian tải lịch + thống kê: dưới 1 giây.
 
 ### F-03. Year in Pixels
@@ -175,6 +178,21 @@ Quy tắc:
 - **Xuất dữ liệu**: tải về toàn bộ nhật ký dạng JSON. Cam kết luôn miễn phí.
 - **Góp ý**: form ngắn trong app, lưu vào collection `feedback`.
 
+### F-10. Chia sẻ một trang (ADR 0005, thiết kế B8)
+
+- Từ trang chi tiết một ngày, người viết bật **link chia sẻ**. Mỗi ngày tối đa một link đang bật; người nhận chỉ xem,
+  không sửa, không cần đăng nhập.
+- Người viết chọn từng phần được hiện: tên của mình, điểm & icon chính, sub icon, màu cờ, tiêu đề, nội dung, từ khóa,
+  từng ảnh. **Ngày viết luôn hiện.** Phải bật ít nhất một phần ngoài ngày viết thì mới sao chép được link.
+  Thay đổi lưu ngay; người nhận thấy bản mới khi mở lại link.
+- **Tắt link** là thu hồi: link cũ không mở được nữa; bật lại tạo link mới. Màn "Trang đang chia sẻ" (từ Hồ sơ) liệt kê
+  các link đang bật, cho sao chép, chỉnh phần chia sẻ, tắt link.
+- Trang bị xóa mềm, link đã tắt, token sai hoặc tài khoản đã xóa: người nhận thấy cùng một màn "Trang này không mở
+  được", không phân biệt lý do.
+- Trang công khai: rate limit theo IP (`shared/limits.json`), không cho lập chỉ mục (`noindex`), không lưu cache,
+  không gửi Referer; không lộ email, `user_id` hay id nội bộ. Ảnh dùng link ký có hạn như trong app (Bước 7).
+- Token không ghi vào log, Sentry, analytics.
+
 ---
 
 ## 4. Yêu cầu phi tính năng
@@ -224,6 +242,7 @@ Quy tắc:
 | Tạo/xóa nhật ký     | 10 request/phút/người          |
 | Tải ảnh lên         | 10 lần/phút, 50 lần/ngày/người |
 | Đăng nhập           | 5 lần/phút/IP                  |
+| Mở trang chia sẻ công khai (F-10) | 60 lần/phút/IP   |
 
 Các con số là mức trần chống lạm dụng, không phải mức sử dụng dự kiến. Điều chỉnh sau tuần thử nghiệm đầu tiên dựa trên log.
 
@@ -340,6 +359,7 @@ users
   avatar_url        string | null
   timezone          string                -- IANA, vd Asia/Ho_Chi_Minh
   icon_set_id       string                -- id trong shared/icons.json; bộ icon vẽ cho mọi ngày
+  onboarded_at      date | null           -- xong 3 bước lần đầu; null thì đăng nhập xong vào /onboarding
   account_tier      "beta" | "free" | "premium"
   joined_at         date
   deleted_at        date | null
@@ -372,6 +392,19 @@ entries                                   -- 1 document = nhật ký của 1 ng�
   INDEX  (user_id, photos.id)                   -- thao tác theo id ảnh
   INDEX  (deleted_at), chỉ bài đã xóa mềm       -- tác vụ dọn sau 30 ngày (không dùng TTL vì phải xóa ảnh trước)
 
+share_links                               -- link chia sẻ một trang (F-10); tắt link = xóa document
+  _id               uuid
+  user_id           uuid
+  entry_date        string "YYYY-MM-DD"
+  token             string                -- token_urlsafe(16); lưu gốc vì chủ trang cần xem lại link
+                                          -- (lý do trong m0003_share_links.py); không ghi vào log
+  show_name, show_score, show_sub_icon, show_flag, show_title, show_content, show_keywords   bool
+  photo_ids         [uuid]                -- ảnh được chọn, phải thuộc trang đó
+  created_at        date
+  updated_at        date
+  UNIQUE (user_id, entry_date)            -- mỗi ngày tối đa một link đang bật
+  UNIQUE (token)
+
 user_items                                -- chuẩn bị cho giai đoạn 2–3
   _id, user_id, item_id, source ("beta" | "free" | "purchase" | "reward"), acquired_at
   UNIQUE (user_id, item_id)
@@ -384,7 +417,8 @@ Nguyên tắc:
 - Cơ sở dữ liệu chỉ lưu **mã** biểu tượng, chủ đề; hình biểu tượng là file tĩnh của frontend.
 - Ảnh không lưu trong cơ sở dữ liệu; chỉ lưu đường dẫn trong kho ảnh.
 - Đường dẫn ảnh đặt theo `user_id` để dễ phân quyền, tính dung lượng và xóa khi người dùng xóa tài khoản.
-- Mọi truy vấn tới `entries`, `user_items`, `feedback` có điều kiện `user_id`; bộ lọc và lệnh cập nhật luôn được
+- Mọi truy vấn tới `entries`, `share_links`, `user_items`, `feedback` có điều kiện `user_id` (riêng trang chia sẻ
+  công khai tìm theo `token` rồi đọc entry theo `user_id` của link); bộ lọc và lệnh cập nhật luôn được
   dựng từ trường đã kiểm tra kiểu, không bao giờ đưa nguyên dict từ request vào (tránh chèn toán tử `$...`).
 
 ### 5.5. Danh sách API (MVP)
@@ -410,6 +444,11 @@ Nguyên tắc:
 | GET         | `/pixels/{year}`                    | Dữ liệu Year in Pixels                                                 |
 | GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05); `q` gửi trong query string của request nhưng không ghi log |
 | GET         | `/keywords/top`                     | 6 từ khóa dùng nhiều nhất của người dùng                               |
+| GET         | `/entries/{date}/share`             | Link chia sẻ của một ngày (`null` nếu chưa bật) (F-10)                 |
+| PUT         | `/entries/{date}/share`             | Bật link hoặc đổi phần hiển thị; lần đầu tạo token                     |
+| DELETE      | `/entries/{date}/share`             | Tắt link (thu hồi vĩnh viễn)                                           |
+| GET         | `/shares`                           | Các trang đang chia sẻ                                                 |
+| GET         | `/public/shares/{token}`            | Trang chia sẻ công khai, không cần đăng nhập; chỉ trả phần được chọn; mọi lỗi là 404 chung |
 | GET         | `/export`                           | Xuất toàn bộ dữ liệu dạng JSON                                         |
 | POST        | `/feedback`                         | Gửi góp ý                                                              |
 

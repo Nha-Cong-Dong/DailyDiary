@@ -1,6 +1,19 @@
 {
   "components": {
     "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
       "HealthOut": {
         "properties": {
           "db": {
@@ -18,6 +31,551 @@
         ],
         "title": "HealthOut",
         "type": "object"
+      },
+      "MeOut": {
+        "description": "GET/PATCH /me. Không trả google_sub hay id nội bộ.",
+        "properties": {
+          "account_tier": {
+            "enum": [
+              "beta",
+              "free",
+              "premium"
+            ],
+            "title": "Account Tier",
+            "type": "string"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "icon_set_id": {
+            "title": "Icon Set Id",
+            "type": "string"
+          },
+          "joined_at": {
+            "format": "date-time",
+            "title": "Joined At",
+            "type": "string"
+          },
+          "onboarded": {
+            "title": "Onboarded",
+            "type": "boolean"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "display_name",
+          "avatar_url",
+          "timezone",
+          "icon_set_id",
+          "account_tier",
+          "joined_at",
+          "onboarded"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      },
+      "MeUpdate": {
+        "additionalProperties": false,
+        "description": "PATCH /me: chỉ các trường dưới đây, trường khác bị từ chối.\n\nĐộ dài tên kiểm ở service, theo limits.json của cấp tài khoản.",
+        "properties": {
+          "avatar_url": {
+            "title": "Avatar Url",
+            "type": "null"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "icon_set_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Set Id"
+          },
+          "onboarded": {
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onboarded"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "MeUpdate",
+        "type": "object"
+      },
+      "PublicShareOut": {
+        "description": "GET /public/shares/{token}. Chỉ có các trường chủ trang đã chọn; trường không chọn vắng mặt trong JSON.\n\nKhông có id nội bộ, email hay user_id.",
+        "properties": {
+          "author_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Name"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "entry_date": {
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "icon_set_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Set Id"
+          },
+          "keywords": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keywords"
+          },
+          "photo_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Count"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "entry_date"
+        ],
+        "title": "PublicShareOut",
+        "type": "object"
+      },
+      "ShareOut": {
+        "description": "Link của một ngày, chỉ chủ trang thấy.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "photo_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Photo Ids",
+            "type": "array"
+          },
+          "show_content": {
+            "title": "Show Content",
+            "type": "boolean"
+          },
+          "show_flag": {
+            "title": "Show Flag",
+            "type": "boolean"
+          },
+          "show_keywords": {
+            "title": "Show Keywords",
+            "type": "boolean"
+          },
+          "show_name": {
+            "title": "Show Name",
+            "type": "boolean"
+          },
+          "show_score": {
+            "title": "Show Score",
+            "type": "boolean"
+          },
+          "show_sub_icon": {
+            "title": "Show Sub Icon",
+            "type": "boolean"
+          },
+          "show_title": {
+            "title": "Show Title",
+            "type": "boolean"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "show_name",
+          "show_score",
+          "show_sub_icon",
+          "show_flag",
+          "show_title",
+          "show_content",
+          "show_keywords",
+          "photo_ids",
+          "entry_date",
+          "token",
+          "url",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ShareOut",
+        "type": "object"
+      },
+      "ShareUpdate": {
+        "additionalProperties": false,
+        "description": "PUT /entries/{date}/share: bật link (lần đầu tạo token) hoặc đổi phần hiển thị.",
+        "properties": {
+          "photo_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Photo Ids",
+            "type": "array"
+          },
+          "show_content": {
+            "title": "Show Content",
+            "type": "boolean"
+          },
+          "show_flag": {
+            "title": "Show Flag",
+            "type": "boolean"
+          },
+          "show_keywords": {
+            "title": "Show Keywords",
+            "type": "boolean"
+          },
+          "show_name": {
+            "title": "Show Name",
+            "type": "boolean"
+          },
+          "show_score": {
+            "title": "Show Score",
+            "type": "boolean"
+          },
+          "show_sub_icon": {
+            "title": "Show Sub Icon",
+            "type": "boolean"
+          },
+          "show_title": {
+            "title": "Show Title",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "show_name",
+          "show_score",
+          "show_sub_icon",
+          "show_flag",
+          "show_title",
+          "show_content",
+          "show_keywords",
+          "photo_ids"
+        ],
+        "title": "ShareUpdate",
+        "type": "object"
+      },
+      "SharedEntryOut": {
+        "description": "Một dòng ở màn \"Trang đang chia sẻ\": link kèm tóm tắt trang (của chính chủ).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "has_content": {
+            "title": "Has Content",
+            "type": "boolean"
+          },
+          "keyword_count": {
+            "title": "Keyword Count",
+            "type": "integer"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "photo_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Photo Ids",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "show_content": {
+            "title": "Show Content",
+            "type": "boolean"
+          },
+          "show_flag": {
+            "title": "Show Flag",
+            "type": "boolean"
+          },
+          "show_keywords": {
+            "title": "Show Keywords",
+            "type": "boolean"
+          },
+          "show_name": {
+            "title": "Show Name",
+            "type": "boolean"
+          },
+          "show_score": {
+            "title": "Show Score",
+            "type": "boolean"
+          },
+          "show_sub_icon": {
+            "title": "Show Sub Icon",
+            "type": "boolean"
+          },
+          "show_title": {
+            "title": "Show Title",
+            "type": "boolean"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "show_name",
+          "show_score",
+          "show_sub_icon",
+          "show_flag",
+          "show_title",
+          "show_content",
+          "show_keywords",
+          "photo_ids",
+          "entry_date",
+          "token",
+          "url",
+          "created_at",
+          "updated_at",
+          "title",
+          "score",
+          "sub_icon",
+          "flag_color",
+          "photo_count",
+          "has_content",
+          "keyword_count"
+        ],
+        "title": "SharedEntryOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
       }
     }
   },
@@ -27,6 +585,303 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/auth/google/callback": {
+      "get": {
+        "description": "Google chuyển về đây; trả redirect (không phải JSON) vì trình duyệt tới từ Google.",
+        "operationId": "google_callback_auth_google_callback_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Google Callback",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/google/login": {
+      "get": {
+        "description": "Bắt đầu đăng nhập. Frontend mở trang này trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng.",
+        "operationId": "google_login_auth_google_login_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tz",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tz"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Google Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "logout_auth_logout_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/entries/{day}/share": {
+      "delete": {
+        "description": "Tắt link. Link cũ không mở được nữa; bật lại sẽ có link mới.",
+        "operationId": "delete_share_entries__day__share_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Share",
+        "tags": [
+          "shares"
+        ]
+      },
+      "get": {
+        "description": "Link chia sẻ của một ngày; `null` khi chưa bật.",
+        "operationId": "read_share_entries__day__share_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ShareOut"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Read Share Entries  Day  Share Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Share",
+        "tags": [
+          "shares"
+        ]
+      },
+      "put": {
+        "description": "Bật link hoặc đổi phần người nhận được xem. Lần đầu bật sinh token mới.",
+        "operationId": "upsert_share_entries__day__share_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Share",
+        "tags": [
+          "shares"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "operationId": "health_health_get",
@@ -45,6 +900,210 @@
         "summary": "Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "read_me_me_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Me",
+        "tags": [
+          "me"
+        ]
+      },
+      "patch": {
+        "description": "Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, gỡ ảnh đại diện, đánh dấu xong lần đầu.",
+        "operationId": "update_me_me_patch",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Me",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/public/shares/{token}": {
+      "get": {
+        "description": "Trang người nhận xem, không cần đăng nhập. Mọi lý do không mở được đều trả cùng một 404.",
+        "operationId": "read_public_share_public_shares__token__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicShareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Public Share",
+        "tags": [
+          "shares"
+        ]
+      }
+    },
+    "/shares": {
+      "get": {
+        "description": "Các trang đang chia sẻ, mới nhất trước.",
+        "operationId": "list_shares_shares_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SharedEntryOut"
+                  },
+                  "title": "Response List Shares Shares Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Shares",
+        "tags": [
+          "shares"
         ]
       }
     }

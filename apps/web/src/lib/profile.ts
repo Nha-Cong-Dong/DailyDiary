@@ -1,47 +1,77 @@
-import { useSyncExternalStore } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { api, toApiError } from '@/api/client'
+import type { components } from '@/api/schema'
 import { defaultIconSetId } from './catalog'
 import { browserTimeZone } from './date'
 
 /**
- * Hồ sơ tạm trong bộ nhớ trình duyệt, để các màn thiết kế B6 (Lần đầu, Hôm nay) chạy được khi chưa có
- * GET/PATCH /me (Bước 3). Chỉ sống trong phiên tab, không lưu đi đâu. Bước 3 thay bằng dữ liệu thật từ API.
+ * Hồ sơ người dùng đang đăng nhập (GET /me, key ['me']). Dùng chung cho mọi màn trong app,
+ * nên đặt ở lib/ thay vì một feature.
  */
+export type Me = components['schemas']['MeOut']
+export type MeUpdate = components['schemas']['MeUpdate']
+
 export type Profile = {
   displayName: string
-  /** Email Google; không sửa được trong app. */
   email: string
-  /** Ảnh đại diện; null thì hiện chữ viết tắt. Ảnh chọn ở Hồ sơ chỉ là URL xem trước trong trình duyệt. */
   avatarUrl: string | null
   /** Bộ icon vẽ cho mọi ngày (users.icon_set_id). */
   iconSetId: string
   timeZone: string
+  onboarded: boolean
 }
 
-let profile: Profile = {
+export const ME_KEY = ['me'] as const
+
+/** Giá trị tạm khi chưa có /me (đang tải, trang dev không cần đăng nhập, test). */
+const FALLBACK: Profile = {
   displayName: 'Bạn',
-  email: 'ban@gmail.com',
+  email: '',
   avatarUrl: null,
   iconSetId: defaultIconSetId,
   timeZone: browserTimeZone(),
-}
-const listeners = new Set<() => void>()
-
-export function getProfile(): Profile {
-  return profile
+  onboarded: false,
 }
 
-export function updateProfile(patch: Partial<Profile>) {
-  profile = { ...profile, ...patch }
-  listeners.forEach((l) => l())
+export function toProfile(me: Me): Profile {
+  return {
+    displayName: me.display_name,
+    email: me.email,
+    avatarUrl: me.avatar_url,
+    iconSetId: me.icon_set_id,
+    timeZone: me.timezone,
+    onboarded: me.onboarded,
+  }
 }
 
-function subscribe(listener: () => void) {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
+async function fetchMe(): Promise<Me> {
+  const { data, error, response } = await api.GET('/me')
+  if (error || !data) throw toApiError(response, error)
+  return data
 }
 
+export function useMe() {
+  return useQuery({ queryKey: ME_KEY, queryFn: fetchMe, retry: false, staleTime: 5 * 60_000 })
+}
+
+/** Hồ sơ hiện tại; trong vùng đã đăng nhập (RequireAuth) luôn có dữ liệu thật. */
 export function useProfile(): Profile {
-  return useSyncExternalStore(subscribe, getProfile, getProfile)
+  const { data } = useMe()
+  return data ? toProfile(data) : FALLBACK
+}
+
+/** PATCH /me; thành công thì ghi thẳng kết quả vào cache ['me'] (không tải lại). */
+export function useUpdateProfile() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: MeUpdate) => {
+      // openapi-fetch coi trường chỉ nhận null (avatar_url: gỡ ảnh) là never; kiểu MeUpdate sinh từ OpenAPI đã đúng.
+      const { data, error, response } = await api.PATCH('/me', { body: body as never })
+      if (error || !data) throw toApiError(response, error)
+      return data
+    },
+    onSuccess: (me) => client.setQueryData(ME_KEY, me),
+  })
 }
 
 /** "Minh An" → "MA"; một chữ → chữ cái đầu. */

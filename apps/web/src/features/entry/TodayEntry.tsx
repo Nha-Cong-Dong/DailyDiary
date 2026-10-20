@@ -10,8 +10,8 @@ import type { Score } from '@/lib/catalog'
 import { longDateLabel, timeIn, todayIn, useNow } from '@/lib/date'
 import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
-import { KeywordEditor } from './KeywordEditor'
-import { RecentDays } from './RecentDays'
+import { KeywordEditor } from './components/KeywordEditor'
+import { RecentDays } from './components/RecentDays'
 
 /**
  * Màn "Hôm nay" (thiết kế B6): chấm điểm trước, các trường khác mở ra sau và đều không bắt buộc.

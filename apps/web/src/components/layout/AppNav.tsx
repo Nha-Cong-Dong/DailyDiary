@@ -7,7 +7,7 @@ import { Avatar } from './Avatar'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
 
-// Khung app theo thiết kế B6. /timeline, /pixels, /profile được dựng ở các bước 8, 10, 3; trước đó dẫn tới trang 404.
+// Khung app theo thiết kế B6. Ở bản build (chưa có API), /timeline và /pixels chỉ có khi chạy dev; bản build dẫn tới 404.
 const ITEMS = [
   { to: '/today', label: 'Hôm nay', short: 'Hôm nay', icon: Pencil },
   { to: '/timeline', label: 'Dòng thời gian', short: 'Dòng thời gian', icon: List },

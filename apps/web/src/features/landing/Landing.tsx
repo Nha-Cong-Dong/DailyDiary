@@ -1,20 +1,23 @@
 import { Download, Image, Lock, Search, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { googleLoginUrl } from '@/api/client'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { Logo } from '@/components/layout/Logo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { flagColors, flagHex } from '@/lib/catalog'
 import { tierLimits } from '@/lib/limits'
+import { browserTimeZone } from '@/lib/date'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { DEMO_ICON_SET } from './demoData'
 import { MonthPreview } from './MonthPreview'
 import { OneTapDemo } from './OneTapDemo'
 import { YearPreview } from './YearPreview'
+import { GoogleMark } from '@/components/layout/GoogleMark'
 
-// Đăng nhập Google làm ở Bước 3; tới lúc đó nút chỉ dẫn vào app.
+// "Bắt đầu viết" vào app (chưa đăng nhập thì RequireAuth đưa sang /login).
 const START_HREF = '/today'
 
 const wrap = 'mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,40px)]'
@@ -23,15 +26,12 @@ const sectionPad = 'py-[clamp(80px,10vw,128px)]'
 const sectionTitle = 'font-heading text-[clamp(26px,2.6vw,30px)] leading-[1.3] font-bold text-balance'
 const card = 'rounded-[20px] border-[1.5px] border-line bg-card'
 
-/** Ô vuông nét đứt giữ chỗ cho logo Google (lấy từ bộ tài nguyên chính thức ở Bước 3). */
-function GoogleMarkPlaceholder({ className }: { className?: string }) {
-  return <span aria-hidden="true" className={cn('size-5 rounded-[4px] border-[1.5px] border-dashed', className)} />
-}
 
 function GoogleButton({ inverted }: { inverted?: boolean }) {
   return (
-    <Link
-      to={START_HREF}
+    // Điều hướng thẳng tới API (không fetch) để cookie dd_oauth của luồng OAuth đi trọn vòng.
+    <a
+      href={googleLoginUrl(browserTimeZone())}
       className={cn(
         'inline-flex h-12 items-center gap-2.5 rounded-md border-[1.5px] pr-5 pl-4 text-base font-semibold focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
         inverted
@@ -39,9 +39,9 @@ function GoogleButton({ inverted }: { inverted?: boolean }) {
           : 'lift border-line bg-card shadow-ink-sm',
       )}
     >
-      <GoogleMarkPlaceholder className={inverted ? 'border-primary' : 'border-muted-foreground'} />
+      <GoogleMark />
       Tiếp tục với Google
-    </Link>
+    </a>
   )
 }
 

@@ -2,11 +2,11 @@ import { ChevronLeft, ChevronRight, Image, X } from 'lucide-react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { PHOTO_TINTS } from './photoTints'
 
 export type PhotoItem = { id: string; label: string }
 
 // Ảnh thật có ở Bước 7 (link xem có thời hạn). Trước đó ô ảnh là khung giữ chỗ cùng tông màu nhẹ.
-const TINTS = ['bg-[#E7DCEB]', 'bg-[#F6E3D6]', 'bg-[#DCE6D5]']
 
 /** Ô ảnh thu nhỏ 4:3 trong trang ngày; bấm để mở trình xem. */
 export function PhotoTile({ photo, index, total, onOpen }: { photo: PhotoItem; index: number; total: number; onOpen: () => void }) {
@@ -17,7 +17,7 @@ export function PhotoTile({ photo, index, total, onOpen }: { photo: PhotoItem; i
       onClick={onOpen}
       className={cn(
         'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-[cubic-bezier(.3,1.4,.5,1)] hover:[transform:rotate(-1.5deg)_translateY(-3px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
-        TINTS[index % TINTS.length],
+        PHOTO_TINTS[index % PHOTO_TINTS.length],
       )}
     >
       <Image className="size-6" aria-hidden="true" />
@@ -77,7 +77,7 @@ export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) 
                 key={index}
                 className={cn(
                   'col-span-2 row-start-1 flex aspect-[4/3] min-w-0 animate-rise flex-col items-center justify-center gap-2 rounded-[18px] border-[1.5px] border-[#FEF7EC] text-[#6A6255] sm:col-span-1 sm:col-start-2',
-                  TINTS[index % TINTS.length],
+                  PHOTO_TINTS[index % PHOTO_TINTS.length],
                 )}
               >
                 <Image className="size-10" aria-hidden="true" />

@@ -1,9 +1,11 @@
 """Log request: chỉ ghi user, method, đường dẫn (không query string), mã trạng thái, thời gian xử lý.
 
 Không ghi body, query string (có thể chứa từ khóa tìm kiếm), header hay thông điệp của exception.
+Token chia sẻ trong đường dẫn công khai được che (ai có token là xem được trang).
 """
 
 import logging
+import re
 import time
 import traceback
 
@@ -12,6 +14,12 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from app.core.errors import INTERNAL_ERROR, error_response
 
 logger = logging.getLogger("dailydiary.request")
+
+_SHARE_TOKEN = re.compile(r"^(/public/shares/)[^/]+")
+
+
+def redact_path(path: str) -> str:
+    return _SHARE_TOKEN.sub(lambda m: m.group(1) + "***", path)
 
 
 def configure_logging(level: int = logging.INFO) -> None:
@@ -53,4 +61,5 @@ class RequestLogMiddleware:
         finally:
             user_id = (scope.get("state") or {}).get("user_id", "-")
             ms = (time.perf_counter() - start) * 1000
-            logger.info("user=%s %s %s %d %.1fms", user_id, scope["method"], scope["path"], status, ms)
+            path = redact_path(scope["path"])
+            logger.info("user=%s %s %s %d %.1fms", user_id, scope["method"], path, status, ms)

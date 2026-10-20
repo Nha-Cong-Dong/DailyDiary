@@ -4,6 +4,91 @@
  */
 
 export interface paths {
+    "/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Google Callback
+         * @description Google chuyển về đây; trả redirect (không phải JSON) vì trình duyệt tới từ Google.
+         */
+        get: operations["google_callback_auth_google_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/google/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Google Login
+         * @description Bắt đầu đăng nhập. Frontend mở trang này trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng.
+         */
+        get: operations["google_login_auth_google_login_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout */
+        post: operations["logout_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{day}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Share
+         * @description Link chia sẻ của một ngày; `null` khi chưa bật.
+         */
+        get: operations["read_share_entries__day__share_get"];
+        /**
+         * Upsert Share
+         * @description Bật link hoặc đổi phần người nhận được xem. Lần đầu bật sinh token mới.
+         */
+        put: operations["upsert_share_entries__day__share_put"];
+        post?: never;
+        /**
+         * Delete Share
+         * @description Tắt link. Link cũ không mở được nữa; bật lại sẽ có link mới.
+         */
+        delete: operations["delete_share_entries__day__share_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -21,16 +106,281 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Me */
+        get: operations["read_me_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Me
+         * @description Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, gỡ ảnh đại diện, đánh dấu xong lần đầu.
+         */
+        patch: operations["update_me_me_patch"];
+        trace?: never;
+    };
+    "/public/shares/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Public Share
+         * @description Trang người nhận xem, không cần đăng nhập. Mọi lý do không mở được đều trả cùng một 404.
+         */
+        get: operations["read_public_share_public_shares__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Shares
+         * @description Các trang đang chia sẻ, mới nhất trước.
+         */
+        get: operations["list_shares_shares_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** HealthOut */
         HealthOut: {
             /** Db */
             db: string;
             /** Status */
             status: string;
+        };
+        /**
+         * MeOut
+         * @description GET/PATCH /me. Không trả google_sub hay id nội bộ.
+         */
+        MeOut: {
+            /**
+             * Account Tier
+             * @enum {string}
+             */
+            account_tier: "beta" | "free" | "premium";
+            /** Avatar Url */
+            avatar_url: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Icon Set Id */
+            icon_set_id: string;
+            /**
+             * Joined At
+             * Format: date-time
+             */
+            joined_at: string;
+            /** Onboarded */
+            onboarded: boolean;
+            /** Timezone */
+            timezone: string;
+        };
+        /**
+         * MeUpdate
+         * @description PATCH /me: chỉ các trường dưới đây, trường khác bị từ chối.
+         *
+         *     Độ dài tên kiểm ở service, theo limits.json của cấp tài khoản.
+         */
+        MeUpdate: {
+            /** Avatar Url */
+            avatar_url?: null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Icon Set Id */
+            icon_set_id?: string | null;
+            /** Onboarded */
+            onboarded?: true | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
+        /**
+         * PublicShareOut
+         * @description GET /public/shares/{token}. Chỉ có các trường chủ trang đã chọn; trường không chọn vắng mặt trong JSON.
+         *
+         *     Không có id nội bộ, email hay user_id.
+         */
+        PublicShareOut: {
+            /** Author Name */
+            author_name?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Entry Date */
+            entry_date: string;
+            /** Flag Color */
+            flag_color?: string | null;
+            /** Icon Set Id */
+            icon_set_id?: string | null;
+            /** Keywords */
+            keywords?: string[] | null;
+            /** Photo Count */
+            photo_count?: number | null;
+            /** Score */
+            score?: number | null;
+            /** Sub Icon */
+            sub_icon?: string | null;
+            /** Title */
+            title?: string | null;
+        };
+        /**
+         * ShareOut
+         * @description Link của một ngày, chỉ chủ trang thấy.
+         */
+        ShareOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Entry Date */
+            entry_date: string;
+            /** Photo Ids */
+            photo_ids: string[];
+            /** Show Content */
+            show_content: boolean;
+            /** Show Flag */
+            show_flag: boolean;
+            /** Show Keywords */
+            show_keywords: boolean;
+            /** Show Name */
+            show_name: boolean;
+            /** Show Score */
+            show_score: boolean;
+            /** Show Sub Icon */
+            show_sub_icon: boolean;
+            /** Show Title */
+            show_title: boolean;
+            /** Token */
+            token: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+        };
+        /**
+         * ShareUpdate
+         * @description PUT /entries/{date}/share: bật link (lần đầu tạo token) hoặc đổi phần hiển thị.
+         */
+        ShareUpdate: {
+            /** Photo Ids */
+            photo_ids: string[];
+            /** Show Content */
+            show_content: boolean;
+            /** Show Flag */
+            show_flag: boolean;
+            /** Show Keywords */
+            show_keywords: boolean;
+            /** Show Name */
+            show_name: boolean;
+            /** Show Score */
+            show_score: boolean;
+            /** Show Sub Icon */
+            show_sub_icon: boolean;
+            /** Show Title */
+            show_title: boolean;
+        };
+        /**
+         * SharedEntryOut
+         * @description Một dòng ở màn "Trang đang chia sẻ": link kèm tóm tắt trang (của chính chủ).
+         */
+        SharedEntryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Entry Date */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Has Content */
+            has_content: boolean;
+            /** Keyword Count */
+            keyword_count: number;
+            /** Photo Count */
+            photo_count: number;
+            /** Photo Ids */
+            photo_ids: string[];
+            /** Score */
+            score: number;
+            /** Show Content */
+            show_content: boolean;
+            /** Show Flag */
+            show_flag: boolean;
+            /** Show Keywords */
+            show_keywords: boolean;
+            /** Show Name */
+            show_name: boolean;
+            /** Show Score */
+            show_score: boolean;
+            /** Show Sub Icon */
+            show_sub_icon: boolean;
+            /** Show Title */
+            show_title: boolean;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /** Token */
+            token: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
         };
     };
     responses: never;
@@ -41,6 +391,187 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    google_callback_auth_google_callback_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    google_login_auth_google_login_get: {
+        parameters: {
+            query?: {
+                tz?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_share_entries__day__share_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareOut"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upsert_share_entries__day__share_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_share_entries__day__share_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -57,6 +588,134 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthOut"];
+                };
+            };
+        };
+    };
+    read_me_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_me_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_public_share_public_shares__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicShareOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_shares_shares_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedEntryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { MoodMark } from '@/components/diary/MoodMark'
@@ -11,6 +11,7 @@ import { longDateLabel, todayIn, useNow, type DateString } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
 import { cn } from '@/lib/utils'
 import { useDayPreview, usePixels } from './usePixels'
+import { YearEmpty } from './YearEmpty'
 import { YearGrid } from './YearGrid'
 import { decimal, yearStats } from './yearStats'
 
@@ -64,6 +65,15 @@ function SelectedDay({ date, iconSetId, today }: { date: DateString | null; icon
           <div className="flex flex-col gap-1 rounded-[14px] border-[1.5px] border-dashed border-border bg-muted p-5">
             <p className="text-[13px] leading-5 text-muted-foreground">{longDateLabel(date)}</p>
             <p className="text-[15px] leading-6 font-medium">{date > today ? 'Ngày này chưa tới.' : 'Ngày này chưa được ghi.'}</p>
+            {date <= today ? (
+              <Link
+                to={date === today ? '/today' : `/day/${date}/backfill`}
+                className="press mt-2 inline-flex h-9 items-center gap-1.5 self-start rounded-[10px] border-[1.5px] border-line px-3 text-[13px] font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                {date === today ? null : <RotateCcw className="size-3.5" aria-hidden="true" />}
+                {date === today ? 'Viết trang hôm nay' : 'Ghi bù ngày này'}
+              </Link>
+            ) : null}
           </div>
         )}
       </div>
@@ -80,7 +90,7 @@ export function YearPixels() {
   const [selected, setSelected] = useState<DateString | null>(today)
   const [filter, setFilter] = useState<PixelFilter | null>(null)
   const [highlight, setHighlight] = useState<PixelFilter | null>(null)
-  const { data, isPending, isError } = usePixels(year)
+  const { data, isPending, isError } = usePixels(year, today)
 
   if (isPending) return <p role="status" className="text-muted-foreground">Đang tải Year in Pixels…</p>
   if (isError)
@@ -91,6 +101,9 @@ export function YearPixels() {
     )
 
   const s = yearStats(year, data.days, today, data.joined)
+  // Người dùng mới, chưa chấm điểm ngày nào: màn trống B9.
+  if (data.years.length === 0 && year === Number(today.slice(0, 4)))
+    return <YearEmpty year={year} grid={s.grid} today={today} iconSetId={iconSetId} />
   const years = data.years.includes(year) ? data.years : [...data.years, year].sort()
   const at = years.indexOf(year)
   const prevYear = at > 0 ? years[at - 1] : null
@@ -179,7 +192,7 @@ export function YearPixels() {
             style={delay(0.04 + i * 0.05)}
           >
             <dt className="text-[13px] leading-5 text-muted-foreground">{st.label}</dt>
-            <dd className="inline-flex items-center gap-2.5 font-heading text-[22px] leading-9 font-bold whitespace-nowrap tabular-nums lg:text-[28px]">
+            <dd className="inline-flex items-center gap-2.5 font-heading text-[22px] leading-9 font-bold whitespace-nowrap lg:text-[28px]">
               {st.swatch ? <span aria-hidden="true" className={cn('size-3.5 shrink-0 rounded-[4px] border border-line', SCORE_BG[st.swatch])} /> : null}
               {st.value}
             </dd>

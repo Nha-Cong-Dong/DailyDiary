@@ -214,9 +214,10 @@ MCP Context7 chưa được nạp trong phiên tạo skill.
 | Pydantic / pydantic-settings | 2.14.1 / 2.16.0 | `/pydantic/pydantic`, `/pydantic/pydantic-settings` |
 | PyMongo (API async `AsyncMongoClient`) | 4.19.0 | `/mongodb/docs-pymongo` |
 | MongoDB server (local, CI) | 8.0.34 | - |
-| Authlib | 1.9.1 (+ itsdangerous 2.2.0 cho SessionMiddleware) | `/authlib/authlib` |
+| Authlib | 1.8.0 (+ itsdangerous 2.2.0 cho SessionMiddleware; httpx là phụ thuộc chạy, không chỉ để test) | `/authlib/authlib` |
 | slowapi | 0.1.10 | `/laurents/slowapi` |
 | boto3 | 1.43.114 | `/boto/boto3` |
 | httpx / anyio | 0.28.1 / 4.15.1 | `/websites/fastapi_tiangolo` (mục testing) |
+| tzdata | ≥ 2026.5 (dữ liệu múi giờ IANA cho `zoneinfo` trên Windows) | - |
 
 Khi nâng phiên bản lớn, tra lại Context7 và cập nhật bảng này.

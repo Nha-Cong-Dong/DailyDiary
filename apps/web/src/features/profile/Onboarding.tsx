@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { tierLimits } from '@/lib/limits'
-import { getProfile, updateProfile } from '@/lib/profile'
+import { useProfile, useUpdateProfile } from '@/lib/profile'
 import { IconSetPicker } from './components/IconSetPicker'
 import { OnboardingFrame, StepHeading } from './components/OnboardingFrame'
 import { StepName } from './components/StepName'
@@ -11,11 +11,12 @@ import { TimeZoneField } from './components/TimeZoneField'
 
 /**
  * Ba bước sau lần đăng nhập Google đầu tiên (thiết kế B6): tên → bộ icon → múi giờ.
- * Chưa có PATCH /me (Bước 3) nên kết quả chỉ ghi vào hồ sơ tạm trong trang (lib/profile.ts).
+ * Xong bước 3 thì PATCH /me một lần (tên, bộ icon, múi giờ, onboarded) rồi vào màn Hôm nay.
  */
 export function Onboarding() {
   const navigate = useNavigate()
-  const start = getProfile()
+  const start = useProfile()
+  const save = useUpdateProfile()
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [name, setName] = useState(start.displayName)
   const [nameError, setNameError] = useState<string | null>(null)
@@ -33,8 +34,10 @@ export function Onboarding() {
     } else if (step === 2) {
       setStep(3)
     } else {
-      updateProfile({ displayName: name, iconSetId, timeZone })
-      navigate('/today')
+      save.mutate(
+        { display_name: name, icon_set_id: iconSetId, timezone: timeZone, onboarded: true },
+        { onSuccess: () => navigate('/today', { replace: true }) },
+      )
     }
   }
 
@@ -54,7 +57,12 @@ export function Onboarding() {
       footer={
         <>
           {back}
-          <Button size="lg" className="press" onClick={next}>
+          {save.isError ? (
+            <span role="alert" className="text-[13px] text-destructive">
+              Chưa lưu được. Thử lại nhé.
+            </span>
+          ) : null}
+          <Button size="lg" className="press" onClick={next} disabled={save.isPending}>
             {step === 3 ? (
               <>
                 Bắt đầu viết <Pencil aria-hidden="true" />

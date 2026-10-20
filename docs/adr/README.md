@@ -23,3 +23,4 @@ Mẫu:
 | [0002](0002-session-in-db.md) | Phiên đăng nhập lưu trong DB, cookie HttpOnly + CSRF double-submit | Chấp nhận |
 | [0003](0003-vendor-shadcn-css.md) | Không cài CLI shadcn, chép CSS vào dự án | Chấp nhận |
 | [0004](0004-project-structure.md) | Một cây dự án chuẩn ở `docs/Project_Structure.md` | Chấp nhận |
+| [0005](0005-share-in-mvp.md) | Đưa "Chia sẻ một trang" qua link chỉ xem vào MVP | Chấp nhận |

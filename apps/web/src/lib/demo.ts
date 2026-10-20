@@ -156,11 +156,45 @@ export const DEMO_ENTRIES: DemoEntry[] = build()
 
 const BY_DATE = new Map(DEMO_ENTRIES.map((e) => [e.entry_date, e]))
 
+/**
+ * Chế độ dữ liệu mẫu: `full` (mặc định) hoặc `empty` (người dùng mới, chưa có trang nào, thiết kế B9 · màn trống).
+ * Bật bằng `?demo=empty` trên bất kỳ trang nào của app, tắt bằng `?demo=full`; giữ trong sessionStorage của tab.
+ */
+export type DemoMode = 'full' | 'empty'
+const MODE_KEY = 'jotly:demo'
+
+export function demoMode(): DemoMode {
+  try {
+    const fromUrl = new URLSearchParams(window.location.search).get('demo')
+    if (fromUrl === 'empty' || fromUrl === 'full') sessionStorage.setItem(MODE_KEY, fromUrl)
+    return sessionStorage.getItem(MODE_KEY) === 'empty' ? 'empty' : 'full'
+  } catch {
+    return 'full'
+  }
+}
+
+/** Các trang mẫu theo chế độ hiện tại (rỗng khi `?demo=empty`). */
+export function demoEntries(): DemoEntry[] {
+  return demoMode() === 'empty' ? [] : DEMO_ENTRIES
+}
+
+/** Ngày bắt đầu dùng Jotly; người dùng mới thì là hôm nay. */
+export function demoJoined(today: DateString): DateString {
+  return demoMode() === 'empty' ? today : DEMO_JOINED
+}
+
 export function demoEntry(date: DateString): DemoEntry | null {
-  return BY_DATE.get(date) ?? null
+  return demoMode() === 'empty' ? null : (BY_DATE.get(date) ?? null)
 }
 
 /** Các năm có dữ liệu (Year in Pixels chỉ cho chọn những năm này). */
 export function demoYears(): number[] {
-  return [...new Set(DEMO_ENTRIES.map((e) => Number(e.entry_date.slice(0, 4))))].sort()
+  return [...new Set(demoEntries().map((e) => Number(e.entry_date.slice(0, 4))))].sort()
+}
+
+/** Các trang mẫu của một tháng ("YYYY-MM"), mới nhất trước. */
+export function demoMonth(month: string): DemoEntry[] {
+  return demoEntries()
+    .filter((e) => e.entry_date.startsWith(`${month}-`))
+    .reverse()
 }

@@ -1,11 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router'
+import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { renderWithMe } from '@/test/withMe'
 import { TodayEntry } from './TodayEntry'
 
 function renderToday() {
-  const router = createMemoryRouter([{ path: '/', Component: TodayEntry }])
-  return render(<RouterProvider router={router} />)
+  return renderWithMe([{ path: '/', Component: TodayEntry }], '/')
 }
 
 describe('TodayEntry', () => {

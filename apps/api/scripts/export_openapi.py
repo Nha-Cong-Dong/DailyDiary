@@ -27,4 +27,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    # Console Windows mặc định cp1252: in tiếng Việt sẽ lỗi, làm npm run gen:api dừng giữa chừng.
+    sys.stdout.reconfigure(encoding="utf-8")
     main()
