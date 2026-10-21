@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/api/client'
 import { ErrorPage } from './ErrorPage'
 import { NotFoundPage } from './NotFoundPage'
+import { makeMe, renderWithMe } from '@/test/withMe'
 
 function renderThrowing(thrown: unknown) {
   const Boom = () => {
@@ -38,11 +39,21 @@ describe('ErrorPage', () => {
 })
 
 describe('NotFoundPage', () => {
-  it('có lối về Hôm nay và Dòng thời gian', () => {
-    const router = createMemoryRouter([{ path: '/', Component: NotFoundPage }])
-    render(<RouterProvider router={router} />)
+  it('đã đăng nhập: nằm trong khung app, có lối về Hôm nay và Dòng thời gian', () => {
+    renderWithMe([{ path: '*', Component: NotFoundPage }], '/khong-co', makeMe())
     expect(screen.getByText('LỖI 404')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Về Hôm nay' })).toHaveAttribute('href', '/today')
     expect(screen.getByRole('link', { name: 'Mở Dòng thời gian' })).toHaveAttribute('href', '/timeline')
+    expect(screen.getByRole('link', { name: 'Hồ sơ của Minh An' })).toBeInTheDocument()
+  })
+
+  it('chưa đăng nhập: khung công khai, không có avatar hay thanh điều hướng app', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'UNAUTHENTICATED', message: 'x' } }), { status: 401 }),
+    )
+    renderWithMe([{ path: '*', Component: NotFoundPage }], '/khong-co', null)
+    expect(await screen.findByText('LỖI 404')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Jotly, trang chủ' })).toHaveAttribute('href', '/')
+    expect(screen.queryByRole('link', { name: /Hồ sơ của/ })).not.toBeInTheDocument()
   })
 })

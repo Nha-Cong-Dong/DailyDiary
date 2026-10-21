@@ -12,7 +12,7 @@ import { browserTimeZone } from '@/lib/date'
 import { useMe } from '@/lib/profile'
 import { useDevLogin } from '@/lib/session'
 import { cn } from '@/lib/utils'
-import { LOGIN_ERRORS, loginErrorMessage, type LoginState } from './loginState'
+import { loginErrorMessage, type LoginState } from './loginState'
 import { GoogleMark } from '@/components/layout/GoogleMark'
 
 /** Icon mầm cây trôi quanh thẻ (thiết kế B9 · Đăng nhập): vị trí, cỡ, góc nghiêng, độ trễ. */
@@ -25,9 +25,6 @@ const FLOATS: { score: Score; size: number; className: string; rotate: number; d
   { score: 5, size: 40, className: 'right-[27%] bottom-[6%]', rotate: -14, delay: 2.4 },
 ]
 
-/** Lỗi do người dùng/Google (thử lại là được), khác với lỗi phía tài khoản hoặc máy chủ. */
-const RETRYABLE = new Set(['oauth'])
-
 type Mode = 'idle' | 'redirecting' | 'error' | 'expired'
 
 const COPY: Record<Mode, { title: string; text: string; button: string }> = {
@@ -37,7 +34,8 @@ const COPY: Record<Mode, { title: string; text: string; button: string }> = {
     button: 'Tiếp tục với Google',
   },
   redirecting: { title: 'Đang đăng nhập', text: 'Đang chuyển sang trang đăng nhập của Google.', button: '' },
-  error: { title: 'Chưa đăng nhập được', text: 'Không sao, bạn thử lại là được.', button: 'Thử lại với Google' },
+  // Lỗi không có câu phụ: khung lỗi bên dưới đã nói chuyện gì xảy ra và cần làm gì.
+  error: { title: 'Chưa đăng nhập được', text: '', button: 'Thử lại với Google' },
   expired: {
     title: 'Phiên đăng nhập đã hết hạn',
     text: 'Đăng nhập lại để tiếp tục.',
@@ -74,7 +72,7 @@ export function Login() {
 
   const mode: Mode = redirecting ? 'redirecting' : errorCode ? 'error' : expired ? 'expired' : 'idle'
   const copy = COPY[mode]
-  const text = mode === 'error' && !RETRYABLE.has(errorCode!) && errorCode! in LOGIN_ERRORS ? 'Lần này chưa vào được Jotly.' : copy.text
+  const text = copy.text
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -107,7 +105,7 @@ export function Login() {
 
           <div aria-live="polite" className="flex flex-col gap-2">
             <h1 className="text-[26px] leading-[34px] font-bold">{copy.title}</h1>
-            <p className="text-[15px] leading-6 text-muted-foreground">{text}</p>
+            {text ? <p className="text-[15px] leading-6 text-muted-foreground">{text}</p> : null}
           </div>
 
           {mode === 'error' ? (
@@ -165,7 +163,7 @@ export function Login() {
               <a
                 href={googleLoginUrl(browserTimeZone())}
                 onClick={() => setRedirecting(true)}
-                className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line bg-card pr-5 pl-4 text-base font-semibold shadow-ink-sm transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--cta-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--cta-shadow)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
+                className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line bg-card pr-5 pl-4 text-base font-semibold shadow-[3px_3px_0_var(--score-3)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--score-3)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--score-3)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
               >
                 <GoogleMark />
                 {copy.button}

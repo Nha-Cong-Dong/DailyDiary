@@ -5,22 +5,13 @@ import { KeywordChip } from '@/components/diary/KeywordChip'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { PhotoTile, PhotoViewer } from '@/components/diary/PhotoViewer'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { flagHex, scoreLabel } from '@/lib/catalog'
 import { addDays, dayOfMonth, editedOnTheDay, isValidDate, longDateLabel, shortDateLabel, timeIn, todayIn, useNow } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
+import { ConfirmDialog, PhoneBar, phoneIconButton } from './components/EntryFormParts'
 import { useDay } from './useDay'
 
 const pill = 'inline-flex h-10 items-center gap-1.5 rounded-[12px] px-3 text-sm font-medium'
@@ -92,10 +83,35 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
   const future = date > today
   const prev = addDays(date, -1)
   const next = addDays(date, 1)
+  const hasEntry = !!entry && !deleted && !isPending && !isError && !future
+  const editTo = date === today ? '/today' : `/day/${date}/edit`
 
   return (
     <div className="mx-auto flex w-full max-w-[680px] flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Điện thoại (B10 · Chi tiết ngày): thanh trên riêng — về Dòng thời gian, ngày, Chia sẻ và Sửa. */}
+      <PhoneBar
+        start={
+          <Link to="/timeline" aria-label="Về Dòng thời gian" className={phoneIconButton}>
+            <ArrowLeft className="size-[22px]" aria-hidden="true" />
+          </Link>
+        }
+        title={`${dayOfMonth(date)}/${Number(date.slice(5, 7))}/${date.slice(0, 4)}`}
+        end={
+          hasEntry ? (
+            <>
+              {share ? (
+                <button type="button" aria-label="Chia sẻ trang này" aria-haspopup="dialog" onClick={share.open} className={phoneIconButton}>
+                  <Share2 className="size-[21px]" aria-hidden="true" />
+                </button>
+              ) : null}
+              <Link to={editTo} aria-label="Sửa trang này" className={phoneIconButton}>
+                <Pencil className="size-[21px]" aria-hidden="true" />
+              </Link>
+            </>
+          ) : null
+        }
+      />
+      <div className="flex flex-wrap items-center justify-between gap-3 max-md:hidden">
         {back}
         <nav aria-label="Ngày bên cạnh" className="flex gap-2">
           <DayStep date={prev} dir="prev" disabled={false} />
@@ -139,22 +155,24 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
           )}
         </section>
       ) : (
-        <article className="animate-rise overflow-hidden rounded-[24px] border-[1.5px] border-line bg-card shadow-[5px_5px_0_var(--ink-shadow)]">
+        // Điện thoại: không có khung thẻ, dải cờ tràn hết bề ngang ngay dưới thanh trên.
+        <article className="animate-rise overflow-hidden max-md:-mx-4 max-md:-mt-4 md:rounded-[24px] md:border-[1.5px] md:border-line md:bg-card md:shadow-[5px_5px_0_var(--ink-shadow)]">
           <div
-            className="h-[120px] border-b-[1.5px] border-line bg-secondary"
+            className="h-24 border-b-[1.5px] border-line bg-secondary md:h-[120px]"
             style={entry.flag_color ? { backgroundColor: flagHex(entry.flag_color, dark) } : undefined}
           />
-          <div className="flex flex-col gap-[18px] px-[clamp(20px,4vw,40px)] pb-10">
-            <div className="-mt-[52px] flex flex-wrap items-end justify-between gap-4">
-              <span className="flex size-[104px] items-center justify-center rounded-full border-[1.5px] border-line bg-card">
-                <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={76} />
+          <div className="flex flex-col gap-4 px-4 pb-2 md:gap-[18px] md:px-[clamp(20px,4vw,40px)] md:pb-10">
+            <div className="-mt-11 flex flex-wrap items-end justify-between gap-4 md:-mt-[52px]">
+              <span className="flex size-[88px] items-center justify-center rounded-full border-[1.5px] border-line bg-card md:size-[104px]">
+                <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={64} className="md:hidden" />
+                <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={76} className="max-md:hidden" />
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 max-md:hidden">
                 <Button
                   variant="secondary"
                   size="sm"
                   className="h-10 px-3"
-                  onClick={() => navigate(date === today ? '/today' : `/day/${date}/edit`)}
+                  onClick={() => navigate(editTo)}
                 >
                   <Pencil aria-hidden="true" /> Sửa
                 </Button>
@@ -181,9 +199,9 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1 md:gap-1.5">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                <p className="text-sm leading-[22px] text-muted-foreground">
+                <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
                   {longDateLabel(date)} · Điểm {entry.score} · {scoreLabel(iconSetId, entry.score)}
                 </p>
                 {share?.active ? (
@@ -198,8 +216,10 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
                   </button>
                 ) : null}
               </div>
-              {entry.title ? <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">{entry.title}</h1> : null}
-              <p className="inline-flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground tabular-nums">
+              {entry.title ? (
+                <h1 className="text-[25px] leading-8 font-bold md:text-[clamp(26px,3vw,32px)] md:leading-[1.25]">{entry.title}</h1>
+              ) : null}
+              <p className="inline-flex items-center gap-1.5 text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
                 <Clock className="size-3.5" aria-hidden="true" />
                 Tạo {timeIn(timeZone, new Date(entry.created_at))} · Sửa lần cuối {timeIn(timeZone, new Date(entry.updated_at))},{' '}
                 {editedOnTheDay(date, entry.updated_at, timeZone) ? 'ghi đúng ngày' : 'cập nhật muộn'}
@@ -207,7 +227,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
             </div>
 
             {entry.content ? (
-              <div className="ruled flex flex-col gap-8 text-reading leading-8">
+              <div className="ruled flex flex-col gap-[30px] text-[17px] leading-[30px] md:gap-8 md:text-reading md:leading-8">
                 {entry.content.split(/\n{2,}/).map((para, i) => (
                   <p key={i}>{para}</p>
                 ))}
@@ -234,42 +254,53 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
             ) : null}
 
             {entry.photos.length ? (
-              <section aria-labelledby="day-photos" className="flex flex-col gap-2.5">
-                <h2 id="day-photos" className="font-sans text-sm leading-[22px] font-semibold">
+              <section aria-labelledby="day-photos" className="flex flex-col gap-2 md:gap-2.5">
+                <h2 id="day-photos" className="font-sans text-sm leading-5 font-semibold md:leading-[22px]">
                   Ảnh · {entry.photos.length}
                 </h2>
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(180px,100%),1fr))] gap-3">
+                {/* Điện thoại: 2 cột, ảnh đầu rộng hết hàng 16:9, các ảnh sau vuông (B10). */}
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-[repeat(auto-fill,minmax(min(180px,100%),1fr))] md:gap-3">
                   {entry.photos.map((p, i) => (
-                    <PhotoTile key={p.id} photo={p} index={i} total={entry.photos.length} onOpen={() => setPhoto(i)} />
+                    <PhotoTile
+                      key={p.id}
+                      photo={p}
+                      index={i}
+                      total={entry.photos.length}
+                      onOpen={() => setPhoto(i)}
+                      className={cn(i === 0 ? 'max-md:col-span-2 max-md:aspect-video' : 'max-md:aspect-square', 'max-md:gap-1')}
+                    />
                   ))}
                 </div>
               </section>
             ) : null}
+
+            {/* Điện thoại: Xóa nằm cuối trang thay cho nút thùng rác trên hàng nút. */}
+            <Button
+              variant="outline"
+              onClick={() => setConfirming(true)}
+              className="mt-2 h-11 rounded-[12px] border-destructive text-sm font-semibold text-destructive hover:bg-destructive-soft md:hidden"
+            >
+              <Trash2 className="size-[18px]" aria-hidden="true" />
+              Xóa trang này
+            </Button>
           </div>
         </article>
       )}
 
       {entry ? <PhotoViewer photos={entry.photos} index={photo} onIndexChange={setPhoto} /> : null}
 
-      <AlertDialog open={confirming} onOpenChange={setConfirming}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Xóa nhật ký ngày {dayOfMonth(date)}/{Number(date.slice(5, 7))}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Điểm, nội dung{entry?.photos.length ? ` và ${entry.photos.length} ảnh` : ''} của ngày này sẽ được chuyển vào
-              thùng rác. Khôi phục được trong 30 ngày.{share?.active ? ' Link chia sẻ của trang này sẽ tắt.' : ''}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Giữ lại</AlertDialogCancel>
-            <AlertDialogAction variant="destructive-solid" onClick={() => setDeleted(true)}>
-              Xóa nhật ký
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title={`Xóa nhật ký ngày ${dayOfMonth(date)}/${Number(date.slice(5, 7))}?`}
+        description={`Điểm, nội dung${entry?.photos.length ? ` và ${entry.photos.length} ảnh` : ''} của ngày này sẽ được chuyển vào thùng rác. Khôi phục được trong 30 ngày.${share?.active ? ' Link chia sẻ của trang này sẽ tắt.' : ''}`}
+        cancelLabel="Giữ lại"
+        actionLabel="Xóa nhật ký"
+        onAction={() => {
+          setDeleted(true)
+          setConfirming(false)
+        }}
+      />
     </div>
   )
 }

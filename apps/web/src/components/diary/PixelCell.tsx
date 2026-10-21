@@ -67,7 +67,7 @@ export function PixelLegend({ className, active = null, onToggle, onHighlight, h
             score={item.score}
             state={item.state}
             label={item.label}
-            className="size-3.5 transition-transform duration-250 ease-[cubic-bezier(.3,1.6,.5,1)] group-hover/leg:[transform:scale(1.35)_rotate(-10deg)]"
+            className="size-3.5"
           />
         )
         return (

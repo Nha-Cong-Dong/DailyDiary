@@ -1,6 +1,8 @@
 import { ArrowRight, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
+import { BottomSheet } from '@/components/diary/BottomSheet'
+import { DayPeek } from '@/components/diary/DayPeek'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { PixelLegend } from '@/components/diary/PixelCell'
 import type { PixelFilter } from '@/components/diary/pixelFilter'
@@ -25,6 +27,26 @@ const SCORE_BG: Record<Score, string> = {
 }
 const FILTER_NAME = (k: PixelFilter) => (typeof k === 'number' ? `điểm ${k}` : k === 'missing' ? 'chưa ghi' : 'chưa tới')
 const delay = (s: number) => ({ animationDelay: `${s.toFixed(2)}s` }) as CSSProperties
+/** Điện thoại (dưới 768 px, thiết kế B10): chạm một ô mở bảng xem nhanh thay vì khung "Ngày đã chọn". */
+const isPhone = () => !(window.matchMedia?.('(min-width: 768px)').matches ?? true)
+
+/** Bảng trượt xem nhanh một ngày trên điện thoại. */
+function DaySheet({ date, iconSetId, today, onClose }: { date: DateString | null; iconSetId: string; today: DateString; onClose: () => void }) {
+  const { data: entry } = useDayPreview(date)
+  return (
+    <BottomSheet open={date !== null} onOpenChange={(o) => !o && onClose()} title={date ? longDateLabel(date) : ''}>
+      {date ? (
+        <DayPeek
+          date={date}
+          entry={entry ?? null}
+          iconSetId={iconSetId}
+          state={date > today ? 'future' : date === today ? 'today' : 'past'}
+          onNavigate={onClose}
+        />
+      ) : null}
+    </BottomSheet>
+  )
+}
 
 function SelectedDay({ date, iconSetId, today }: { date: DateString | null; iconSetId: string; today: DateString }) {
   const { data: entry, isPending } = useDayPreview(date)
@@ -90,6 +112,7 @@ export function YearPixels() {
   const [selected, setSelected] = useState<DateString | null>(today)
   const [filter, setFilter] = useState<PixelFilter | null>(null)
   const [highlight, setHighlight] = useState<PixelFilter | null>(null)
+  const [sheet, setSheet] = useState<DateString | null>(null)
   const { data, isPending, isError } = usePixels(year, today)
 
   if (isPending) return <p role="status" className="text-muted-foreground">Đang tải Year in Pixels…</p>
@@ -123,6 +146,12 @@ export function YearPixels() {
     setFilter(null)
     setHighlight(null)
     setSelected(y === Number(today.slice(0, 4)) ? today : null)
+    setSheet(null)
+  }
+
+  function pick(date: DateString) {
+    setSelected(date)
+    if (isPhone()) setSheet(date)
   }
 
   const stats: { label: string; value: string; sub: string; swatch?: Score }[] = [
@@ -148,10 +177,10 @@ export function YearPixels() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex animate-rise flex-wrap items-end justify-between gap-4">
+      <div className="flex animate-rise flex-wrap items-center justify-between gap-2 md:items-end md:gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Year in Pixels</h1>
-          <p className="text-[15px] leading-6 text-muted-foreground">
+          <h1 className="text-2xl leading-8 font-bold md:text-[clamp(26px,3vw,32px)] md:leading-[1.25]">Year in Pixels</h1>
+          <p className="text-[15px] leading-6 text-muted-foreground max-md:hidden">
             {joinedThisYear
               ? `Bạn bắt đầu dùng Jotly từ ${Number(data.joined.slice(8))}/${Number(data.joined.slice(5, 7))}/${year}.`
               : 'Mỗi ô là một ngày, mỗi màu là một mức điểm.'}
@@ -168,7 +197,7 @@ export function YearPixels() {
           >
             <ChevronLeft aria-hidden="true" />
           </Button>
-          <span aria-live="polite" className="min-w-[72px] text-center font-heading text-title-3 font-bold tabular-nums">
+          <span aria-live="polite" className="min-w-[52px] text-center font-heading text-lg leading-6 font-bold tabular-nums md:min-w-[72px] md:text-title-3">
             {year}
           </span>
           <Button
@@ -184,33 +213,54 @@ export function YearPixels() {
         </div>
       </div>
 
-      <dl className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-2.5 md:gap-4 lg:grid-cols-4">
         {stats.map((st, i) => (
           <div
             key={st.label}
-            className="flex animate-rise flex-col gap-1 rounded-[18px] border-[1.5px] border-line bg-card px-5 py-[18px] shadow-ink-sm"
+            className="flex animate-rise flex-col rounded-[16px] border-[1.5px] border-line bg-card px-3 py-2.5 shadow-[2px_2px_0_var(--ink-shadow)] md:gap-1 md:rounded-[18px] md:px-5 md:py-[18px] md:shadow-ink-sm"
             style={delay(0.04 + i * 0.05)}
           >
-            <dt className="text-[13px] leading-5 text-muted-foreground">{st.label}</dt>
-            <dd className="inline-flex items-center gap-2.5 font-heading text-[22px] leading-9 font-bold whitespace-nowrap lg:text-[28px]">
+            <dt className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5">{st.label}</dt>
+            <dd className="inline-flex items-center gap-1.5 font-heading text-xl leading-7 font-bold whitespace-nowrap md:gap-2.5 md:text-[22px] md:leading-9 lg:text-[28px]">
               {st.swatch ? <span aria-hidden="true" className={cn('size-3.5 shrink-0 rounded-[4px] border border-line', SCORE_BG[st.swatch])} /> : null}
               {st.value}
             </dd>
-            <dd className="text-[13px] leading-5 text-muted-foreground">{st.sub}</dd>
+            <dd className="text-[11px] leading-4 text-muted-foreground md:text-[13px] md:leading-5">{st.sub}</dd>
           </div>
         ))}
       </dl>
 
-      <section aria-label="Bảng điểm cả năm" className={cn(panel, 'flex animate-rise flex-col gap-[18px] p-4 sm:p-6')} style={delay(0.1)}>
+      <div className="flex flex-col gap-2 md:hidden">
+        <PixelLegend
+          className="-mx-4 flex-nowrap overflow-x-auto pl-4 [scrollbar-width:none] after:block after:w-3 after:shrink-0 after:content-[''] [&::-webkit-scrollbar]:hidden [&_button]:h-9 [&_button]:border-border [&_button]:whitespace-nowrap [&_button[aria-pressed=true]]:border-line [&_button[aria-pressed=true]]:bg-secondary"
+          active={filter}
+          onToggle={(k) => setFilter((f) => (f === k ? null : k))}
+          hide={pastYear ? ['future'] : []}
+        />
+        {filter !== null ? (
+          <p role="status" className="flex animate-in items-center justify-between gap-2 text-[13px] leading-5 text-muted-foreground fade-in-0">
+            Đang xem {FILTER_NAME(filter)} · {filterCount} ngày
+            <button type="button" onClick={() => setFilter(null)} className="link-underline cursor-pointer py-1 font-semibold text-foreground">
+              Bỏ lọc
+            </button>
+          </p>
+        ) : null}
+      </div>
+
+      <section
+        aria-label="Bảng điểm cả năm"
+        className={cn(panel, 'flex animate-rise flex-col gap-[18px] rounded-[18px] p-3 shadow-[3px_3px_0_var(--ink-shadow)] md:rounded-[22px] md:p-6 md:shadow-ink')}
+        style={delay(0.1)}
+      >
         <YearGrid
           grid={s.grid}
           monthAverages={s.monthAverages}
           today={today}
           selected={selected}
-          onSelect={setSelected}
+          onSelect={pick}
           focus={highlight ?? filter}
         />
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-border pt-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-border pt-3.5 max-md:hidden">
           <PixelLegend
             active={filter}
             onToggle={(k) => setFilter((f) => (f === k ? null : k))}
@@ -230,7 +280,11 @@ export function YearPixels() {
         </div>
       </section>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(360px,100%),1fr))] gap-6">
+      <p className="-mt-2 text-xs leading-[18px] text-muted-foreground md:hidden">
+        Mỗi cột là một tháng, mỗi hàng là một ngày. Chạm một ô để xem nhanh.
+      </p>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(360px,100%),1fr))] gap-6 max-md:hidden">
         <SelectedDay date={selected} iconSetId={iconSetId} today={today} />
         <section aria-labelledby="dist-h" className={cn(panel, 'flex animate-rise flex-col gap-4')} style={delay(0.26)}>
           <h2 id="dist-h" className="font-sans text-sm leading-[22px] font-semibold text-muted-foreground">
@@ -254,6 +308,7 @@ export function YearPixels() {
           </ul>
         </section>
       </div>
+      <DaySheet date={sheet} iconSetId={iconSetId} today={today} onClose={() => setSheet(null)} />
     </div>
   )
 }

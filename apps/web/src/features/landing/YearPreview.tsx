@@ -35,7 +35,7 @@ export function YearPreview() {
                   score={px.score}
                   state={state}
                   label={`${px.day}/${px.month}${px.future ? '' : px.score ? ` · điểm ${px.score}` : ' · chưa ghi'}`}
-                  className="paint-on-scroll transition-[transform,filter,box-shadow] duration-150 hover:relative hover:z-[2] hover:shadow-[0_0_0_1.5px_var(--icon-ink)] hover:[transform:scale(1.8)] active:[transform:scale(1.4)]"
+                  className="paint-on-scroll transition-[transform,filter,box-shadow] duration-150 hover:relative hover:z-[2] hover:shadow-[0_0_0_1.5px_var(--icon-ink)] hover:[transform:scale(1.35)] active:[transform:scale(1.2)]"
                   style={{
                     animationRange: `cover ${start.toFixed(1)}% cover ${(start + 10).toFixed(1)}%`,
                     filter: dimmed ? 'grayscale(1) opacity(.25)' : undefined,

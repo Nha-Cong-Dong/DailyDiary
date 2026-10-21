@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkPhoto, megabytesLabel, photoAccept, photoFormatsLabel } from './image'
+import { checkPhoto, isHeic, megabytesLabel, photoAccept, photoFormatsLabel } from './image'
 import { tierLimits } from './limits'
 
 const max = tierLimits().photos.source_max_bytes
@@ -12,9 +12,17 @@ describe('checkPhoto', () => {
     expect(checkPhoto(file('a.webp', 'image/webp'))).toEqual({ ok: true })
   })
 
-  it('báo HEIC riêng, kể cả khi trình duyệt để trống type', () => {
-    expect(checkPhoto(file('IMG_1.HEIC', 'image/heic'))).toEqual({ ok: false, reason: 'heic' })
-    expect(checkPhoto(file('IMG_2.heic', ''))).toEqual({ ok: false, reason: 'heic' })
+  it('nhận HEIC/HEIF (thiết kế B9-Upload), kể cả khi trình duyệt để trống type', () => {
+    expect(checkPhoto(file('IMG_1.HEIC', 'image/heic'))).toEqual({ ok: true })
+    expect(checkPhoto(file('IMG_2.heic', ''))).toEqual({ ok: true })
+    expect(checkPhoto(file('IMG_3.HEIF', ''))).toEqual({ ok: true })
+    expect(checkPhoto(file('live.heic', 'image/heic-sequence'))).toEqual({ ok: true })
+    expect(isHeic(file('IMG_2.heic', ''))).toBe(true)
+    expect(isHeic(file('a.jpg', 'image/jpeg'))).toBe(false)
+  })
+
+  it('tệp không có type và đuôi lạ thì bị từ chối', () => {
+    expect(checkPhoto(file('ghichu', ''))).toEqual({ ok: false, reason: 'type' })
   })
 
   it('từ chối định dạng khác và ảnh quá lớn', () => {
@@ -28,8 +36,8 @@ describe('nhãn định dạng', () => {
   it('accept, tên định dạng và MB lấy từ limits', () => {
     expect(photoAccept()).toContain('image/jpeg')
     expect(photoAccept()).toContain('.jpg')
-    expect(photoAccept()).not.toContain('heic')
-    expect(photoFormatsLabel()).toBe('JPG, PNG, WebP')
+    expect(photoAccept()).toContain('.heic')
+    expect(photoFormatsLabel()).toBe('JPG, PNG, HEIC, WebP')
     expect(megabytesLabel(10485760)).toBe('10 MB')
     expect(megabytesLabel(1572864)).toBe('1,5 MB')
   })

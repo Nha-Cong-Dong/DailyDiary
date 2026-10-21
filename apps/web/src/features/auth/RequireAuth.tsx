@@ -24,6 +24,8 @@ export function RequireAuth({ allowNotOnboarded = false }: { allowNotOnboarded?:
       }
       return <Navigate to="/login" replace state={state} />
     }
+    // Lỗi khi tải lại (mất mạng, 429) mà đã có hồ sơ trong cache: giữ màn đang dùng, không thay bằng màn lỗi.
+    if (data) return data.onboarded || allowNotOnboarded ? <Outlet /> : <Navigate to="/onboarding" replace />
     return (
       <div className={cn(bare)}>
         <ServerErrorState status={error instanceof ApiError ? error.status : undefined} onRetry={() => refetch()} />

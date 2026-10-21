@@ -4,11 +4,8 @@ import { RequireAuth } from '@/features/auth/RequireAuth'
 import { HomePage } from './HomePage'
 import { LoginPage } from './LoginPage'
 import { NotFoundPage } from './NotFoundPage'
-import { OnboardingPage } from './OnboardingPage'
-import { ProfilePage } from './ProfilePage'
 import { ErrorPage } from './ErrorPage'
 import { RootLayout, RootLoading } from './RootLayout'
-import { TodayPage } from './TodayPage'
 
 // Các màn chỉ có khi chạy dev, không vào bản build production (tải lười bằng import động trong nhánh DEV):
 // - /dev/ui: xem hệ thiết kế (MVP Bước 2), không cần đăng nhập;
@@ -25,9 +22,9 @@ const devStandaloneRoutes: RouteObject[] = import.meta.env.DEV
 const devAuthedRoutes: RouteObject[] = import.meta.env.DEV
   ? [
       { path: 'timeline', lazy: async () => ({ Component: (await import('./TimelinePage')).TimelinePage }) },
-      { path: 'day/:date/edit', lazy: async () => ({ Component: (await import('./DayEditPage')).DayEditPage }) },
-      { path: 'day/:date/backfill', lazy: async () => ({ Component: (await import('./BackfillPage')).BackfillPage }) },
-      { path: 'day/:date', lazy: async () => ({ Component: (await import('./DayPage')).DayPage }) },
+      { path: 'day/:date/edit', handle: { phoneChrome: 'none' }, lazy: async () => ({ Component: (await import('./DayEditPage')).DayEditPage }) },
+      { path: 'day/:date/backfill', handle: { phoneChrome: 'tabs' }, lazy: async () => ({ Component: (await import('./BackfillPage')).BackfillPage }) },
+      { path: 'day/:date', handle: { phoneChrome: 'tabs' }, lazy: async () => ({ Component: (await import('./DayPage')).DayPage }) },
       { path: 'pixels', lazy: async () => ({ Component: (await import('./PixelsPage')).PixelsPage }) },
       { path: 'search', lazy: async () => ({ Component: (await import('./SearchPage')).SearchPage }) },
       { path: 'profile/shares', lazy: async () => ({ Component: (await import('./SharedListPage')).SharedListPage }) },
@@ -46,7 +43,7 @@ export const router = createBrowserRouter([
       { path: 'login', Component: LoginPage },
       ...devStandaloneRoutes,
       // Lần đầu: cần đăng nhập nhưng chưa xong onboarding vẫn vào được.
-      { element: <RequireAuth allowNotOnboarded />, children: [{ path: 'onboarding', Component: OnboardingPage }] },
+      { element: <RequireAuth allowNotOnboarded />, children: [{ path: 'onboarding', lazy: async () => ({ Component: (await import('./OnboardingPage')).OnboardingPage }) }] },
       {
         Component: AppShell,
         children: [
@@ -55,14 +52,16 @@ export const router = createBrowserRouter([
             Component: RequireAuth,
             children: [
               // /today: lưu nhật ký thật có ở Bước 5; trước đó màn ghi rõ "bản thử, chưa lưu".
-              { path: 'today', Component: TodayPage },
-              { path: 'profile', Component: ProfilePage },
+              // Màn trong app tải lười để trang chủ và /login vẽ nhanh (tiêu đề Landing không phải chờ cả app).
+              { path: 'today', lazy: async () => ({ Component: (await import('./TodayPage')).TodayPage }) },
+              { path: 'profile', lazy: async () => ({ Component: (await import('./ProfilePage')).ProfilePage }) },
               ...devAuthedRoutes,
             ],
           },
-          { path: '*', Component: NotFoundPage },
         ],
       },
+      // 404 tự chọn khung: đã đăng nhập thì khung app, chưa thì khung công khai.
+      { path: '*', Component: NotFoundPage },
     ],
   },
 ])

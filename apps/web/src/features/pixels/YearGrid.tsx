@@ -80,16 +80,26 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
       ref={ref}
       role="group"
       aria-label="Bảng điểm cả năm"
-      className="grid grid-flow-col auto-cols-fr grid-rows-[auto_repeat(31,auto)_auto] gap-[3px] md:grid-flow-row md:grid-cols-[36px_repeat(31,minmax(0,1fr))_52px] md:grid-rows-none md:gap-1"
+      className="grid grid-flow-col grid-cols-[18px_repeat(12,minmax(0,1fr))] grid-rows-[auto_repeat(31,auto)_auto] gap-[3px] md:grid-flow-row md:grid-cols-[36px_repeat(31,minmax(0,1fr))_52px] md:grid-rows-none md:gap-1"
     >
       {/* Nhóm đầu: số ngày (máy tính là hàng trên cùng, điện thoại là cột bên trái). */}
       <span aria-hidden="true" />
       {Array.from({ length: 31 }, (_, i) => (
-        <span key={i} aria-hidden="true" className="text-center text-[10px] leading-[14px] text-muted-foreground tabular-nums">
+        <span
+          key={i}
+          aria-hidden="true"
+          className={cn(
+            'text-right text-[11px] leading-3 text-muted-foreground tabular-nums md:text-center md:leading-[14px]',
+            i !== 0 && (i + 1) % 5 !== 0 && 'max-md:invisible',
+          )}
+        >
           {i + 1}
         </span>
       ))}
-      <span aria-hidden="true" className="text-center text-[11px] leading-[14px] font-semibold text-muted-foreground">
+      <span
+        aria-hidden="true"
+        className="text-[11px] leading-3 font-semibold text-muted-foreground max-md:mt-2 max-md:border-t-[1.5px] max-md:border-dashed max-md:border-border max-md:pt-2 md:text-center md:text-[11px] md:leading-[14px]"
+      >
         TB
       </span>
 
@@ -97,12 +107,15 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
         const avg = monthAverages[m]
         return (
           <Fragment key={m}>
-            <span className="text-center text-label font-semibold text-muted-foreground md:text-left">T{m + 1}</span>
+            <span className="mb-0.5 text-center text-[11px] leading-[14px] font-semibold text-muted-foreground md:mb-0 md:text-left md:text-label">
+              <span className="max-md:hidden">T</span>
+              {m + 1}
+            </span>
             {row.map((c, d) => {
               if (c.kind === 'none') return <span key={d} aria-hidden="true" />
               const dimmed = focus !== null && c.kind !== 'pre' && pixelFilterOf(c.score, c.kind === 'future' ? 'future' : 'past') !== focus
               const look = cn(
-                'aspect-square w-full rounded-[5px] border transition-[transform,filter] duration-200 ease-[cubic-bezier(.3,1.5,.5,1)]',
+                'h-[13px] w-full rounded-[3px] border transition-[transform,filter] duration-150 ease-out md:aspect-square md:h-auto md:rounded-[5px]',
                 c.kind === 'score' && SCORE_BG[c.score!],
                 c.kind === 'missing' && 'border-border bg-muted',
                 c.kind === 'future' && 'border-border',
@@ -125,7 +138,7 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
                   onKeyDown={(e) => move(e, m, d)}
                   className={cn(
                     look,
-                    'cursor-pointer p-0 hover:[transform:scale(1.25)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                    'cursor-pointer p-0 active:[transform:scale(.9)] md:hover:[transform:scale(1.3)] md:active:[transform:scale(1.1)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
                     isSel && 'shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]',
                   )}
                 />
@@ -133,12 +146,12 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
             })}
             <span
               title={avg === null ? `Tháng ${m + 1} · chưa có điểm` : `Tháng ${m + 1} · trung bình ${decimal(avg)}`}
-              className="inline-flex h-6 items-center justify-center gap-[5px] text-[11px] leading-4 font-semibold tabular-nums md:text-xs"
+              className="flex flex-col items-center justify-center gap-0.5 text-[11px] leading-3 font-semibold tabular-nums max-md:mt-2 max-md:border-t-[1.5px] max-md:border-dashed max-md:border-border max-md:pt-2 md:h-6 md:flex-row md:gap-[5px] md:text-xs md:leading-4"
             >
               <span
                 aria-hidden="true"
                 className={cn(
-                  'hidden size-2.5 rounded-[3px] border md:inline-block',
+                  'inline-block size-2.5 rounded-[3px] border',
                   avg === null ? 'border-border' : cn('border-line', SCORE_SWATCH[Math.round(avg) as Score]),
                 )}
               />

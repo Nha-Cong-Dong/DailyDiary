@@ -14,11 +14,12 @@ function keys() {
 
 describe('planAdd', () => {
   it('tệp hợp lệ thành ô đang tải, tệp hỏng thành ô báo lỗi', () => {
-    const heic = new File(['x'], 'IMG.heic', { type: 'image/heic' })
-    const plan = planAdd(done(1), [jpg('a.jpg'), heic], keys())
-    expect(plan.started).toHaveLength(1)
-    expect(plan.tiles.map((t) => t.status)).toEqual(['done', 'uploading', 'rejected'])
-    expect(plan.tiles[2]).toMatchObject({ status: 'rejected', reason: 'heic', name: 'IMG.heic' })
+    const heic = new File(['x'], 'IMG.heic', { type: '' })
+    const gif = new File(['x'], 'a.gif', { type: 'image/gif' })
+    const plan = planAdd(done(1), [jpg('a.jpg'), heic, gif], keys())
+    expect(plan.started).toHaveLength(2)
+    expect(plan.tiles.map((t) => t.status)).toEqual(['done', 'uploading', 'uploading', 'rejected'])
+    expect(plan.tiles[3]).toMatchObject({ status: 'rejected', reason: 'type', name: 'a.gif' })
   })
 
   it(`không vượt ${max} ảnh mỗi trang; ô báo lỗi không tính vào số ảnh`, () => {

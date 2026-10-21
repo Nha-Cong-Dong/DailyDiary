@@ -21,6 +21,7 @@ type MonthRhythmProps = {
 /** "Nhịp tháng": mỗi cột là một ngày, cao theo điểm; nét đứt là điểm trung bình. Bấm cột để cuộn tới trang đó. */
 export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProps) {
   const monthNum = Number(data.month.slice(5))
+  const futureFrom = data.days.findIndex((d) => d.kind === 'future')
   const cols = {
     gridTemplateColumns: `repeat(${data.days.length}, minmax(0, 1fr))`,
   } as CSSProperties
@@ -62,7 +63,9 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
             <div className="absolute inset-0 grid items-end gap-0.5" style={cols}>
               {data.days.map((d) => {
                 const label = `${d.day}/${monthNum}`
-                if (d.kind === 'future' || d.kind === 'pre' || d.kind === 'open') {
+                // Ngày chưa tới nằm trong một vùng tô nhạt chung (dưới), không vẽ vạch từng ngày.
+                if (d.kind === 'future') return null
+                if (d.kind === 'pre') {
                   return (
                     <span key={d.day} aria-hidden="true" className="flex h-full items-end justify-center">
                       <span className="h-0.5 w-full max-w-5 rounded-full bg-border" />
@@ -71,7 +74,9 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
                 }
                 const tip = d.entry
                   ? `${label} · Điểm ${d.entry.score} · ${d.entry.title ?? 'Chỉ chấm điểm'}`
-                  : `${label} · Không ghi`
+                  : d.kind === 'open'
+                    ? `${label} · Hôm nay chưa ghi`
+                    : `${label} · Không ghi`
                 return (
                   <button
                     key={d.day}
@@ -88,13 +93,15 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
                     >
                       <span
                         className={cn(
-                          'absolute inset-x-0 bottom-0 h-full origin-bottom animate-grow rounded-t-[4px] border-[1.5px] border-b-0 transition-[height,filter] duration-200 group-hover:h-[calc(100%+8px)] group-hover:saturate-125 group-focus-visible:h-[calc(100%+8px)]',
-                          d.entry ? cn('border-line', SCORE_BG[d.entry.score]) : 'border-dashed border-muted-foreground',
+                          'absolute inset-x-0 bottom-0 h-full origin-bottom animate-grow rounded-t-[4px] border-[1.5px] border-b-0 transition-[height,filter] duration-200 group-hover:h-[calc(100%+5px)] group-hover:saturate-125 group-focus-visible:h-[calc(100%+5px)]',
+                          d.entry
+                            ? cn('border-line', SCORE_BG[d.entry.score])
+                            : d.kind === 'open'
+                              ? 'animate-pend border-dashed border-line'
+                              : 'border-dashed border-muted-foreground',
                           selected === d.day && 'shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]',
                         )}
-                        style={{
-                          animationDelay: `${(0.15 + d.day * 0.018).toFixed(3)}s`,
-                        }}
+                        style={d.kind === 'open' ? undefined : { animationDelay: `${(0.15 + d.day * 0.018).toFixed(3)}s` }}
                       />
                       <span
                         aria-hidden="true"
@@ -106,6 +113,7 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
                   </button>
                 )
               })}
+              {futureFrom >= 0 ? <FutureBand from={futureFrom} total={data.days.length} /> : null}
             </div>
           </div>
           <div aria-hidden="true" className="grid gap-0.5" style={cols}>
@@ -125,6 +133,79 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
             })}
           </div>
         </div>
+      </div>
+    </section>
+  )
+}
+
+/** Vùng các ngày chưa tới của tháng đang xem: một khối tô nhạt chung, để nửa sau tháng không trông như ngày bỏ trống. */
+function FutureBand({ from, total, compact = false }: { from: number; total: number; compact?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'flex items-center justify-center self-stretch rounded-t-[6px] bg-secondary text-[11px] leading-4 font-medium text-muted-foreground',
+        compact && 'rounded-t-[4px]',
+      )}
+      style={{ gridColumn: `${from + 1} / -1`, gridRow: 1 }}
+    >
+      {/* Chữ chỉ hiện khi vùng đủ rộng (từ 4 ngày), tránh tràn sang cột bên cạnh. */}
+      {total - from >= 4 ? 'Chưa tới' : null}
+    </span>
+  )
+}
+
+/** Nhịp tháng gọn cho điện thoại (thiết kế B10): chỉ các cột điểm, không trục, không bấm. */
+export function MonthRhythmCompact({ data }: { data: MonthTimeline }) {
+  const monthNum = Number(data.month.slice(5))
+  const futureFrom = data.days.findIndex((d) => d.kind === 'future')
+  return (
+    <section
+      aria-label="Nhịp tháng"
+      className="flex flex-col gap-2 rounded-[16px] border-[1.5px] border-line bg-card px-3.5 pt-3 pb-2.5"
+    >
+      <div className="flex justify-between text-[13px] leading-[18px]">
+        <span className="font-semibold">Nhịp tháng</span>
+        {data.average !== null ? (
+          <span className="text-muted-foreground">Trung bình {decimal(data.average)}</span>
+        ) : null}
+      </div>
+      <div
+        className="grid h-14 items-end gap-0.5 border-b-[1.5px] border-line"
+        style={{ gridTemplateColumns: `repeat(${data.days.length}, minmax(0, 1fr))` }}
+      >
+        {data.days.map((d) => {
+          if (d.kind === 'future') return null
+          const label = `${d.day}/${monthNum}`
+          const tip = d.entry
+            ? `${label} · Điểm ${d.entry.score}${d.entry.title ? ` · ${d.entry.title}` : ''}`
+            : d.kind === 'missing'
+              ? `${label} · Không ghi`
+              : d.kind === 'open'
+                ? `${label} · Hôm nay chưa ghi`
+                : label
+          return (
+            <span
+              key={d.day}
+              title={tip}
+              className={cn(
+                'origin-bottom animate-grow rounded-t-[3px] border border-b-0',
+                d.entry
+                  ? cn('border-line', SCORE_BG[d.entry.score])
+                  : d.kind === 'missing'
+                    ? 'border-dashed border-muted-foreground'
+                    : d.kind === 'open'
+                      ? 'animate-pend border-dashed border-line'
+                      : 'border-border bg-border',
+              )}
+              style={{
+                height: d.entry ? `${d.entry.score * 20}%` : d.kind === 'missing' || d.kind === 'open' ? '6px' : '2px',
+                animationDelay: `${(0.1 + d.day * 0.015).toFixed(3)}s`,
+              }}
+            />
+          )
+        })}
+        {futureFrom >= 0 ? <FutureBand from={futureFrom} total={data.days.length} compact /> : null}
       </div>
     </section>
   )

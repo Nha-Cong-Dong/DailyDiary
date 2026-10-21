@@ -10,6 +10,8 @@ type ScorePickerProps = {
   caption?: 'number' | 'label' | 'none'
   /** Class cho icon, ví dụ đổi cỡ theo màn hình (mặc định 40 px). */
   iconClassName?: string
+  /** Class cho từng nút, ví dụ chiều cao riêng trên điện thoại. */
+  itemClassName?: string
   className?: string
 }
 
@@ -20,6 +22,7 @@ export function ScorePicker({
   onChange,
   caption = 'number',
   iconClassName,
+  itemClassName,
   className,
 }: ScorePickerProps) {
   return (
@@ -35,11 +38,12 @@ export function ScorePicker({
             aria-pressed={on}
             onClick={() => onChange(score)}
             className={cn(
-              'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-[1.5px] text-foreground transition-[transform,box-shadow,background-color] duration-150 outline-none hover:[&_svg]:animate-wiggle active:[transform:translate(2px,2px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+              'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-[1.5px] text-foreground transition-[transform,box-shadow,background-color] duration-200 ease-[cubic-bezier(.2,.8,.2,1)] outline-none hover:-translate-y-0.5 active:[transform:translate(2px,2px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
               caption === 'number' ? 'h-[92px]' : caption === 'label' ? 'min-h-20 py-2.5 sm:pt-3.5' : 'h-[72px]',
               on
                 ? 'border-line bg-secondary shadow-ink-sm'
                 : 'border-border bg-transparent hover:border-line hover:bg-card',
+              itemClassName,
             )}
           >
             {/* Icon vừa chọn "đóng dấu" một nhịp; key đổi để animation chạy lại mỗi lần chọn. */}

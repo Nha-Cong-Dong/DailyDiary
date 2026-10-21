@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { DateString } from '@/lib/date'
-import { demoGetShare, demoListShares, demoPublicShare, demoRevokeShare, demoSaveShare } from './demoShares'
+import { clearDemoShares, demoGetShare, demoListShares, demoPublicShare, demoRevokeShare, demoSaveShare } from './demoShares'
 import type { ShareSettings } from './shares'
 
 /**
@@ -46,6 +46,18 @@ export function useRevokeShare() {
       client.invalidateQueries({ queryKey: SHARES_KEY, exact: true })
     },
   })
+}
+
+/**
+ * Tắt mọi link (Hồ sơ: xóa toàn bộ dữ liệu / xóa tài khoản). Bản thử trên dữ liệu mẫu; backend xóa `share_links`
+ * cùng lúc với dữ liệu (Bước 12). Trả về hàm gọi đồng bộ để Hồ sơ gọi ngay khi xóa xong.
+ */
+export function useClearShares(): () => void {
+  const client = useQueryClient()
+  return () => {
+    clearDemoShares()
+    client.invalidateQueries({ queryKey: SHARES_KEY })
+  }
 }
 
 /** Trang người nhận xem; null khi link không tồn tại hoặc đã tắt. Không thử lại khi lỗi. */

@@ -2,6 +2,7 @@ import { ArrowLeft, Check, ChevronLeft, ChevronRight, Copy, Link2, Link2Off, Sli
 import { useId, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { MoodMark } from '@/components/diary/MoodMark'
+import { Toast } from '@/components/diary/Toast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { flagHex, scoreLabel, type Score } from '@/lib/catalog'
@@ -10,8 +11,7 @@ import { useProfile } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { Fold } from './components/Fold'
-import { Toast } from './components/Toast'
-import { displayUrl, numericDate, pageNumbers, PER_PAGE, partSummary, shapeOfListItem, type ShareListItem } from './shares'
+import { displayUrl, numericDate, pageNumbers, PER_PAGE, partSummary, SHOW_ALL_BELOW, shapeOfListItem, type ShareListItem } from './shares'
 import { useCopyLink } from './useCopyLink'
 import { useRevokeShare, useShares } from './useShares'
 
@@ -31,9 +31,11 @@ export function SharedList() {
   const live = [...active, ...goneHere.filter((g) => !active.some((a) => a.entry_date === g.entry_date))].sort((a, b) =>
     a.entry_date < b.entry_date ? 1 : -1,
   )
-  const pages = Math.max(1, Math.ceil(live.length / PER_PAGE))
+  // Ít link thì hiện hết; chỉ phân trang khi danh sách dài.
+  const perPage = live.length < SHOW_ALL_BELOW ? Math.max(live.length, 1) : PER_PAGE
+  const pages = Math.max(1, Math.ceil(live.length / perPage))
   const current = Math.min(page, pages)
-  const slice = live.slice((current - 1) * PER_PAGE, current * PER_PAGE)
+  const slice = live.slice((current - 1) * perPage, current * perPage)
   const gone = new Set(goneHere.map((g) => g.entry_date))
 
   function go(n: number) {
@@ -57,7 +59,7 @@ export function SharedList() {
     <div className="mx-auto flex w-full max-w-[760px] flex-col gap-5">
       <Link
         to="/profile"
-        className={cn('press inline-flex h-10 items-center gap-1.5 self-start rounded-[12px] pr-3 pl-2 text-sm font-medium hover:[&_svg]:-translate-x-1 [&_svg]:transition-transform', focusRing)}
+        className={cn('press inline-flex h-10 items-center gap-1.5 self-start rounded-[12px] pr-3 pl-2 text-sm font-medium hover:[&_svg]:-translate-x-0.5 [&_svg]:transition-transform', focusRing)}
       >
         <ArrowLeft className="size-[18px]" aria-hidden="true" />
         Hồ sơ &amp; cài đặt
@@ -106,10 +108,10 @@ export function SharedList() {
             ))}
           </ul>
           {active.length === 0 ? <EmptyShares /> : null}
-          {active.length > 0 && live.length > PER_PAGE ? (
+          {active.length > 0 && live.length > perPage ? (
             <nav aria-label="Phân trang" className="flex flex-wrap items-center justify-between gap-3 pt-1">
               <span aria-live="polite" className="text-[13px] leading-5 text-muted-foreground tabular-nums">
-                Hiển thị {(current - 1) * PER_PAGE + 1}–{Math.min(current * PER_PAGE, live.length)} trong {live.length} trang · Trang{' '}
+                Hiển thị {(current - 1) * perPage + 1}–{Math.min(current * perPage, live.length)} trong {live.length} trang · Trang{' '}
                 {current}/{pages}
               </span>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -129,9 +131,9 @@ export function SharedList() {
                       aria-current={n === current ? 'page' : undefined}
                       onClick={() => go(n)}
                       className={cn(
-                        'press inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] px-1.5 text-sm tabular-nums',
+                        'inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] px-1.5 text-sm tabular-nums transition-[transform,background-color] duration-180 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 active:scale-[.97]',
                         n === current
-                          ? 'border-primary bg-primary font-bold text-primary-foreground shadow-[2px_2px_0_var(--cta-shadow)]'
+                          ? 'border-primary bg-primary font-bold text-primary-foreground shadow-[2px_2px_0_var(--score-3)]'
                           : 'border-border bg-card font-medium',
                         focusRing,
                       )}
@@ -148,7 +150,7 @@ export function SharedList() {
           ) : null}
         </>
       )}
-      <Toast text={toast} />
+      <Toast>{toast}</Toast>
     </div>
   )
 }
@@ -258,7 +260,7 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
               <Link2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <span className="truncate select-all">{displayUrl(url)}</span>
             </div>
-            <Button size="sm" className="press h-10 rounded-[12px] pr-3.5 pl-3" onClick={onCopy}>
+            <Button variant="outline" size="sm" className="press h-10 rounded-[12px] border-line pr-3.5 pl-3" onClick={onCopy}>
               {copied ? <Check className="size-4 animate-stamp" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
               {copied ? 'Đã chép' : 'Sao chép'}
             </Button>

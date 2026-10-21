@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router'
 import { CalendarCell } from '@/components/diary/CalendarCell'
 import type { Score } from '@/lib/catalog'
 import { dayOfMonth, daysEndingAt, weekdayShort, type DateString } from '@/lib/date'
+import type { RecentDaysData } from '../useRecentDays'
 
 type RecentDaysProps = {
   today: DateString
@@ -9,15 +10,17 @@ type RecentDaysProps = {
   /** Điểm và sub icon của hôm nay (đang chấm trên màn này). */
   todayScore: Score | null
   todaySub: string | null
+  /** 6 ngày trước và tóm tắt tháng (useRecentDays); chưa có thì các ngày hiện "chưa ghi". */
+  recent?: RecentDaysData
 }
 
-/**
- * Dải "7 ngày qua". Chưa có API lịch (Bước 9) nên 6 ngày trước hiện "chưa ghi";
- * khi có dữ liệu thật thì truyền điểm từng ngày vào cùng chỗ này.
- */
-export function RecentDays({ today, iconSetId, todayScore, todaySub }: RecentDaysProps) {
+/** Dải "7 ngày qua" và một dòng tóm tắt tháng, cùng số liệu với Dòng thời gian. */
+export function RecentDays({ today, iconSetId, todayScore, todaySub, recent }: RecentDaysProps) {
   const navigate = useNavigate()
   const days = daysEndingAt(today, 7)
+  const recorded = (recent?.monthRecorded ?? 0) + (todayScore ? 1 : 0)
+  const sum = (recent?.monthScoreSum ?? 0) + (todayScore ?? 0)
+  const average = recorded ? (sum / recorded).toFixed(1).replace('.', ',') : null
   return (
     <section aria-labelledby="recent-days" className="flex flex-col gap-3.5">
       <div className="flex items-baseline justify-between gap-3">
@@ -31,7 +34,8 @@ export function RecentDays({ today, iconSetId, todayScore, todaySub }: RecentDay
       <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
         {days.map((date) => {
           const isToday = date === today
-          const score = isToday ? todayScore : null
+          const past = recent?.days[date]
+          const score = isToday ? todayScore : (past?.score ?? null)
           const day = dayOfMonth(date)
           return (
             <CalendarCell
@@ -39,7 +43,7 @@ export function RecentDays({ today, iconSetId, todayScore, todaySub }: RecentDay
               day={day}
               weekday={weekdayShort(date)}
               score={score}
-              subIcon={isToday ? todaySub : null}
+              subIcon={isToday ? todaySub : (past?.sub_icon ?? null)}
               iconSetId={iconSetId}
               state={isToday ? 'today' : 'past'}
               label={`${day}/${Number(date.slice(5, 7))}${score ? ` · điểm ${score}` : ' · chưa ghi'}`}
@@ -49,6 +53,12 @@ export function RecentDays({ today, iconSetId, todayScore, todaySub }: RecentDay
           )
         })}
       </div>
+      {recent ? (
+        <p className="text-[13px] leading-5 text-muted-foreground tabular-nums">
+          Tháng {Number(today.slice(5, 7))}: đã ghi {recorded}/{dayOfMonth(today)} ngày
+          {average ? ` · trung bình ${average}` : ''}
+        </p>
+      ) : null}
     </section>
   )
 }

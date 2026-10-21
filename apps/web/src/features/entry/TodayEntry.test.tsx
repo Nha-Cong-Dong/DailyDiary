@@ -14,8 +14,7 @@ describe('TodayEntry', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Điểm 4, Hé nở' }))
     expect(screen.getByRole('heading', { name: 'Thêm chút nữa?' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('Đã chấm điểm lúc')
-    expect(screen.getByRole('status')).toHaveTextContent('chưa lưu')
+    expect(screen.getByRole('status')).toHaveTextContent('Đã ghi lại hôm nay lúc')
   })
 
   it('thêm từ khóa bằng Enter và báo trùng không phân biệt dấu', () => {

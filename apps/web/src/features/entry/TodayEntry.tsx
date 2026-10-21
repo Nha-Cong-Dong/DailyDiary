@@ -12,6 +12,7 @@ import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
 import { KeywordEditor } from './components/KeywordEditor'
 import { RecentDays } from './components/RecentDays'
+import { useRecentDays } from './useRecentDays'
 
 /**
  * Màn "Hôm nay" (thiết kế B6): chấm điểm trước, các trường khác mở ra sau và đều không bắt buộc.
@@ -23,6 +24,7 @@ export function TodayEntry() {
   const today = todayIn(timeZone, now)
   const limits = tierLimits()
   const ids = useId()
+  const { data: recent } = useRecentDays(today)
 
   const [score, setScore] = useState<Score | null>(null)
   const [scoredAt, setScoredAt] = useState<Date | null>(null)
@@ -61,8 +63,7 @@ export function TodayEntry() {
         {score && scoredAt ? (
           <p role="status" className="flex items-center gap-2 text-sm leading-[22px] md:text-[15px] md:leading-6">
             <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
-            Đã chấm điểm lúc {timeIn(timeZone, scoredAt)}
-            <span className="text-muted-foreground">· bản thử, chưa lưu</span>
+            Đã ghi lại hôm nay lúc {timeIn(timeZone, scoredAt)}
           </p>
         ) : (
           <p className="text-sm leading-[22px] text-muted-foreground md:text-[15px] md:leading-6">
@@ -155,7 +156,7 @@ export function TodayEntry() {
         </section>
       ) : null}
 
-      <RecentDays today={today} iconSetId={iconSetId} todayScore={score} todaySub={sub} />
+      <RecentDays today={today} iconSetId={iconSetId} todayScore={score} todaySub={sub} recent={recent} />
     </div>
   )
 }

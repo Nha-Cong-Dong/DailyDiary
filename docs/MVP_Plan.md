@@ -35,7 +35,7 @@
 | 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
 | 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
-| 12   | Xuất dữ liệu, xóa tài khoản, góp ý (F-07–F-09)                                                  | 11              | 7         |
+| 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026)              | 11              | 7         |
 | 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
 | 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
 | 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo                             | 14              | 14        |
@@ -47,7 +47,7 @@ Những điểm khác với mục 6.1 và lý do:
   Nếu đợi tới ngày 13 mới phát hiện thì sẽ quá muộn.
 - **Rate limit không gom vào ngày 12.** Endpoint nào được viết thì gắn limit luôn. Bước 13 chỉ còn tinh chỉnh.
 - **Bổ sung các việc đặc tả yêu cầu nhưng mục 6.1 chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
-  sao lưu DB mỗi 8 giờ, sao lưu ảnh, trang chính sách quyền riêng tư, báo lỗi ảnh HEIC, sắp xếp và xóa ảnh.
+  sao lưu DB mỗi 8 giờ, sao lưu ảnh, trang chính sách quyền riêng tư, nhận ảnh HEIC, sắp xếp và xóa ảnh.
 
 ---
 
@@ -263,7 +263,8 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Phạm vi:**
 - **Trình duyệt:**
-  - nhận JPEG, PNG, WebP tối đa 10 MB; báo lỗi rõ ràng với HEIC;
+  - nhận JPEG, PNG, HEIC, WebP tối đa 10 MB; HEIC chuyển sang WebP trên trình duyệt (thư viện giải mã HEIC dạng
+    WebAssembly, tải lười chỉ khi gặp tệp HEIC) — đổi 21/10/2026 theo thiết kế B9;
   - nén về WebP cạnh dài 1920 px, chất lượng khoảng 80%;
   - tạo ảnh thu nhỏ 320 px ngay trên trình duyệt (Q3);
   - upload thẳng lên kho bằng presigned PUT.
@@ -367,7 +368,7 @@ nhận xem `/s/:token`, "Trang đang chia sẻ" trong Hồ sơ, màn "Trang này
 **Còn lại, làm sau Bước 5 và 7:**
 - Nối giao diện với API thật; đưa các route chia sẻ vào bản build.
 - Ảnh trong trang công khai: link ký có hạn, chỉ ảnh được chọn.
-- Xuất dữ liệu (Bước 12) có danh sách link đang bật; xóa tài khoản xóa luôn `share_links`.
+- Xóa toàn bộ dữ liệu và xóa tài khoản (Bước 12) xóa luôn `share_links`.
 
 **Skill:** `privacy-check`, `securitymaxxing:authz`, `securitymaxxing:api`.
 
@@ -376,21 +377,22 @@ màn chung; có test truy cập chéo và test rate limit cho trang công khai.
 
 ---
 
-## Bước 12 – Xuất dữ liệu, xóa tài khoản, góp ý (F-07 – F-09)
+## Bước 12 – Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09)
 
-**Endpoint:** `GET /export`, `DELETE /me`, `POST /feedback`.
+**Endpoint:** `DELETE /entries` (xóa toàn bộ dữ liệu, giữ tài khoản), `DELETE /me`, `POST /feedback`.
+Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21/10/2026.
 
 **Phạm vi:**
-- **Xuất dữ liệu:** toàn bộ nhật ký ra JSON, gồm cả link ảnh có thời hạn.
+- **Xóa toàn bộ dữ liệu:** xóa mọi trang, ảnh, link chia sẻ; giữ tài khoản và cài đặt; xác nhận gõ "XÓA".
 - **Xóa tài khoản:**
-  - xác nhận hai lần;
+  - xác nhận bằng gõ đúng email của tài khoản; xong hiện màn "Tài khoản đã được xóa";
   - xóa phiên, nhật ký, từ khóa, link chia sẻ (`share_links`);
   - xóa ảnh theo tiền tố `user_id/` bằng tác vụ nền.
 - **Góp ý:** form ngắn, có rate limit.
 
 **Skill:** `privacy-check`, `securitymaxxing:authz`.
 
-**Hoàn thành khi:** sau khi xóa tài khoản, DB không còn document nào của user và kho ảnh không còn object nào; file export mở được và đủ dữ liệu.
+**Hoàn thành khi:** sau khi xóa tài khoản, DB không còn document nào của user và kho ảnh không còn object nào; sau khi xóa toàn bộ dữ liệu, tài khoản vẫn đăng nhập được và không còn trang, ảnh, link nào.
 
 ---
 

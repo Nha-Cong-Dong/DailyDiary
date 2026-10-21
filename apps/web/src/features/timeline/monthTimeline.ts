@@ -1,5 +1,5 @@
 import type { Score } from '@/lib/catalog'
-import { daysInMonth, type DateString } from '@/lib/date'
+import { daysInMonth, shortDateLabel, type DateString } from '@/lib/date'
 import type { DemoEntry } from '@/lib/demo'
 
 /** "YYYY-MM". */
@@ -177,6 +177,11 @@ export function cutAfterEntries(items: TimelineItem[], limit: number): { cut: nu
     }
   }
   return { cut: items.length, hidden: 0 }
+}
+
+/** "Chủ nhật, 18/10". */
+export function weekdayDate(date: DateString): string {
+  return shortDateLabel(date).replace(/ (\d+\/\d+)$/, ', $1')
 }
 
 /** Mức điểm gần nhất với điểm trung bình (để tô ô màu bên cạnh). */

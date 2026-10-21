@@ -8,16 +8,29 @@ export type PhotoItem = { id: string; label: string }
 
 // Ảnh thật có ở Bước 7 (link xem có thời hạn). Trước đó ô ảnh là khung giữ chỗ cùng tông màu nhẹ.
 
-/** Ô ảnh thu nhỏ 4:3 trong trang ngày; bấm để mở trình xem. */
-export function PhotoTile({ photo, index, total, onOpen }: { photo: PhotoItem; index: number; total: number; onOpen: () => void }) {
+/** Ô ảnh thu nhỏ 4:3 trong trang ngày; bấm để mở trình xem. `className` đổi tỉ lệ/ô lưới theo màn. */
+export function PhotoTile({
+  photo,
+  index,
+  total,
+  onOpen,
+  className,
+}: {
+  photo: PhotoItem
+  index: number
+  total: number
+  onOpen: () => void
+  className?: string
+}) {
   return (
     <button
       type="button"
       aria-label={`Mở ảnh ${index + 1} trên ${total}`}
       onClick={onOpen}
       className={cn(
-        'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-[cubic-bezier(.3,1.4,.5,1)] hover:[transform:rotate(-1.5deg)_translateY(-3px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+        'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
         PHOTO_TINTS[index % PHOTO_TINTS.length],
+        className,
       )}
     >
       <Image className="size-6" aria-hidden="true" />

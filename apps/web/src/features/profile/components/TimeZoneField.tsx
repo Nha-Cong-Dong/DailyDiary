@@ -25,6 +25,17 @@ const OPTIONS = supportedTimeZones()
   .sort((a, b) => a.offset - b.offset || a.tz.localeCompare(b.tz, 'en'))
 const DETECTED = browserTimeZone()
 
+const byOffset = (a: { offset: number; tz: string }, b: { offset: number; tz: string }) => a.offset - b.offset || a.tz.localeCompare(b.tz, 'en')
+
+/**
+ * Danh sách của trình duyệt có thể thiếu múi giờ đang lưu: Chromium liệt kê "Asia/Saigon" chứ không có
+ * "Asia/Ho_Chi_Minh". Thiếu thì thêm vào để ô chọn hiện đúng, không nhảy về mục đầu tiên.
+ */
+function optionsWith(value: string) {
+  if (!value || OPTIONS.some((o) => o.tz === value)) return OPTIONS
+  return [...OPTIONS, { tz: value, label: timeZoneLabel(value, LOADED_AT), offset: offsetMinutes(value, LOADED_AT) }].sort(byOffset)
+}
+
 type TimeZoneFieldProps = {
   value: string
   onChange: (timeZone: string) => void
@@ -48,7 +59,7 @@ export function TimeZoneField({ value, onChange, saved }: TimeZoneFieldProps) {
         aria-describedby={`${id}-hint`}
         className="h-12 cursor-pointer rounded-md border-[1.5px] border-line bg-background px-3 text-[15px] text-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        {OPTIONS.map((o) => (
+        {optionsWith(value).map((o) => (
           <option key={o.tz} value={o.tz}>
             {o.label}
           </option>

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, toApiError } from '@/api/client'
+import { api, ApiError, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
 import { defaultIconSetId } from './catalog'
 import { browserTimeZone } from './date'
@@ -50,8 +50,18 @@ async function fetchMe(): Promise<Me> {
   return data
 }
 
+/** Chỉ thử lại lỗi tạm thời (mất mạng, 429, 5xx); 401/403 trả ngay để chuyển về /login. */
+export function shouldRetryMe(failureCount: number, error: unknown): boolean {
+  if (failureCount >= 3) return false
+  if (!(error instanceof ApiError)) return true
+  return error.status === 429 || error.status >= 500
+}
+
+export const meRetryDelay = (attempt: number) => Math.min(2000 * 2 ** attempt, 15_000)
+
+// Cách thử lại của /me đặt ở QueryClient của app (lib/query.ts) để test dùng client riêng, không thử lại.
 export function useMe() {
-  return useQuery({ queryKey: ME_KEY, queryFn: fetchMe, retry: false, staleTime: 5 * 60_000 })
+  return useQuery({ queryKey: ME_KEY, queryFn: fetchMe, staleTime: 5 * 60_000 })
 }
 
 /** Hồ sơ hiện tại; trong vùng đã đăng nhập (RequireAuth) luôn có dữ liệu thật. */

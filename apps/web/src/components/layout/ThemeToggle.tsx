@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { setDark, useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
-/** Nút đổi chế độ sáng/tối (vùng chạm 44 px). */
+/** Nút đổi chế độ sáng/tối (vùng chạm 44 px); mặt trăng nghiêng nhẹ khi di chuột, xoay thêm khi bấm. */
 export function ThemeToggle({ className }: { className?: string }) {
   const dark = useDarkMode()
   return (
@@ -13,7 +13,10 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label="Chế độ tối"
       aria-pressed={dark}
       onClick={() => setDark(!dark)}
-      className={cn(className)}
+      className={cn(
+        '[&_svg]:transition-[rotate] [&_svg]:duration-450 [&_svg]:ease-[cubic-bezier(.2,.8,.2,1)] hover:[&_svg]:-rotate-12 active:[&_svg]:-rotate-30',
+        className,
+      )}
     >
       {dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
     </Button>

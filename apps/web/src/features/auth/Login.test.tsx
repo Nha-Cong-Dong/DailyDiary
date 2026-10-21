@@ -33,14 +33,10 @@ describe('Trang đăng nhập', () => {
     expect(screen.getByRole('link', { name: /Thử lại với Google/ })).toBeInTheDocument()
   })
 
-  it('chỉ lỗi phía Google (oauth) mới nói "thử lại là được"', async () => {
+  it('lỗi không kèm câu phụ an ủi; khung lỗi tự nói cần làm gì', async () => {
     renderWithMe(routes, '/login?error=oauth', null)
-    expect(await screen.findByText('Không sao, bạn thử lại là được.')).toBeInTheDocument()
-  })
-
-  it('lỗi phía tài khoản không hứa thử lại là được', async () => {
-    renderWithMe(routes, '/login?error=account_deleted', null)
-    expect(await screen.findByText('Lần này chưa vào được Jotly.')).toBeInTheDocument()
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(screen.queryByText(/Không sao|Lần này chưa vào được/)).not.toBeInTheDocument()
   })
 
   it('mã lỗi lạ thì hiện thông báo chung', async () => {

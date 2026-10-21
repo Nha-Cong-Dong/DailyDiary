@@ -8,7 +8,7 @@ import { LogoMark } from './Logo'
 
 /** Nút chính có bóng hồng của thiết kế (giống dải kêu gọi ở landing). */
 const cta =
-  'inline-flex h-12 items-center gap-2.5 rounded-md border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground shadow-[4px_4px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--cta-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--cta-shadow)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:cursor-wait'
+  'inline-flex h-12 items-center gap-2.5 rounded-md border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground cta focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:cursor-wait'
 
 function Centered({ children, className }: { children: ReactNode; className?: string }) {
   return (

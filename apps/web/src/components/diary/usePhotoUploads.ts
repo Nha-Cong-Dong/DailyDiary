@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { checkPhoto } from '@/lib/image'
+import { checkPhoto, isHeic } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
 import type { PhotoItem } from './PhotoViewer'
 
@@ -10,7 +10,7 @@ export type UploadTile =
   | { key: string; status: 'done'; photo: PhotoItem; previewUrl?: string }
   | { key: string; status: 'uploading'; file: File; previewUrl?: string; progress: number }
   | { key: string; status: 'failed'; file: File; previewUrl?: string }
-  | { key: string; status: 'rejected'; name: string; reason: 'heic' | 'type' | 'size' }
+  | { key: string; status: 'rejected'; name: string; reason: 'type' | 'size' }
 
 /** Ô bị từ chối (sai định dạng, quá lớn) không tính vào số ảnh của trang. */
 export function countsTowardLimit(tile: UploadTile): boolean {
@@ -54,6 +54,8 @@ export function planAdd(
 }
 
 function previewOf(file: File): string | undefined {
+  // HEIC: Chrome/Edge/Firefox không vẽ được trong <img> nên để ô màu kèm tên tệp (bản nén WebP có ở Bước 7).
+  if (isHeic(file)) return undefined
   // jsdom (test) không có createObjectURL.
   return typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : undefined
 }

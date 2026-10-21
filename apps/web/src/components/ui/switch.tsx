@@ -19,7 +19,7 @@ function Switch({
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
-        className="pointer-events-none block size-[21px] translate-x-[3px] rounded-full border-[1.5px] border-line bg-card transition-[translate,scale] duration-300 ease-[cubic-bezier(.3,1.5,.5,1)] group-hover/switch:scale-110 group-active/switch:scale-90 data-checked:translate-x-[22px]"
+        className="pointer-events-none block size-[21px] translate-x-[3px] rounded-full border-[1.5px] border-line bg-card transition-[translate,scale] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] group-hover/switch:scale-[1.04] group-active/switch:scale-[.96] data-checked:translate-x-[22px]"
       />
     </SwitchPrimitive.Root>
   )

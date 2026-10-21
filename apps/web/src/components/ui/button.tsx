@@ -17,6 +17,8 @@ const buttonVariants = cva(
           "border-transparent bg-transparent font-medium text-foreground underline underline-offset-4 hover:bg-secondary active:bg-pressed disabled:bg-transparent disabled:text-disabled-foreground",
         destructive:
           "border-destructive bg-card font-semibold text-destructive shadow-danger-sm hover:-translate-x-px hover:-translate-y-px hover:bg-destructive-soft hover:shadow-danger active:translate-x-[3px] active:translate-y-[3px] active:bg-destructive-soft active:shadow-none disabled:border-dashed disabled:border-disabled-line disabled:bg-transparent disabled:text-disabled-foreground",
+        // Nút chính nổi bật (thiết kế .j-cta): nền mực, bóng hồng score-3 ở cả hai chế độ.
+        cta: "cta border-line bg-primary font-semibold text-primary-foreground disabled:border-disabled disabled:bg-disabled disabled:text-disabled-foreground",
         // Nút xác nhận trong hộp thoại xóa: nền đỏ đặc, cùng một màu ở cả hai chế độ.
         "destructive-solid":
           "border-destructive-fill bg-destructive-fill font-semibold text-[#FFFCF8] hover:brightness-110 active:translate-x-px active:translate-y-px disabled:border-disabled disabled:bg-disabled disabled:text-disabled-foreground",

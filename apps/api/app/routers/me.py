@@ -11,7 +11,8 @@ router = APIRouter(prefix="/me", tags=["me"])
 
 
 @router.get("", response_model=MeOut)
-@limiter.limit(rate_limit("read"))
+# Mỗi lần tải trang đều gọi /me (rẻ: không truy vấn thêm ngoài phiên) nên có hạn mức riêng, cao hơn "read".
+@limiter.limit(rate_limit("me"))
 async def read_me(request: Request, user: CurrentUser) -> MeOut:
     return MeOut.from_user(user)
 

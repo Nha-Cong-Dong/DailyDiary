@@ -26,8 +26,13 @@ describe('Ghi bù ngày đã bỏ trống', () => {
     renderBackfill('2026-10-14')
     expect(await screen.findByRole('heading', { name: 'Ngày này bạn chưa ghi' })).toBeInTheDocument()
     expect(screen.getByText('4 ngày trước')).toBeInTheDocument()
+    // Máy tính: trước khi chấm, phần "Thêm chút nữa?" hiện mờ và không bấm được.
+    expect(screen.getByRole('heading', { name: 'Thêm chút nữa?' })).toBeInTheDocument()
+    expect(screen.getByText('Mở sau khi chấm điểm')).toBeInTheDocument()
+    expect(screen.getByText('Mở sau khi chấm điểm').closest('section')?.querySelector('[inert]')).not.toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Điểm 3, Nụ' }))
+    expect(screen.queryByText('Mở sau khi chấm điểm')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Ghi bù cho ngày 14/10' })).toBeInTheDocument()
     expect(screen.getByText(/Đã ghi bù lúc 21:12, 18\/10/)).toBeInTheDocument()
     expect(screen.getByText('Chỉ chấm điểm')).toBeInTheDocument()

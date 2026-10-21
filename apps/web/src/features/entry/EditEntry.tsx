@@ -5,15 +5,6 @@ import { PhotoUploader } from '@/components/diary/PhotoUploader'
 import { ScorePicker } from '@/components/diary/ScorePicker'
 import { usePhotoUploads } from '@/components/diary/usePhotoUploads'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { flagColors, scoreLabel } from '@/lib/catalog'
 import { isValidDate, longDateLabel, todayIn, useNow, type DateString } from '@/lib/date'
@@ -22,11 +13,22 @@ import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
 import { cn } from '@/lib/utils'
 import { applyDraft, changedFields, dateTimeLabel, dayMonth, daysBetween, draftOf, fieldsLabel, type EntryDraft } from './entryDraft'
-import { BackLink, ExtraFields, Legend, Notice, SavedToast } from './components/EntryFormParts'
-import { KeywordEditor } from './components/KeywordEditor'
+import {
+  BackLink,
+  ConfirmDialog,
+  ExtraFields,
+  fieldLabelClass,
+  Legend,
+  Notice,
+  PhoneBar,
+  phoneIconButton,
+  SavedToast,
+} from './components/EntryFormParts'
+import { InlineKeywordEditor } from './components/KeywordEditor'
 import { useWriteDay } from './localDays'
 import { fakeUploadPhoto } from './uploadPhoto'
 import { useDay } from './useDay'
+import { useFrequentSubIcons } from './useFrequentSubIcons'
 
 const SAGE = flagColors.find((f) => f.id === 'sage')?.hex
 
@@ -52,6 +54,7 @@ function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
   const [toast, setToast] = useState(false)
   const [savedNow, setSavedNow] = useState(false)
   const uploads = usePhotoUploads(base.photos, fakeUploadPhoto)
+  const { data: frequentIcons } = useFrequentSubIcons()
 
   const current: EntryDraft = { ...draft, photos: uploads.photos }
   const changes = changedFields(base, current)
@@ -86,6 +89,7 @@ function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
   }
 
   const ago = daysBetween(date, today)
+  const agoText = ago === 1 ? 'hôm qua' : `${ago} ngày trước`
   const status = uploads.uploading
     ? 'Đang tải ảnh lên…'
     : changes.length
@@ -96,136 +100,174 @@ function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
   const leaving = blocker.state === 'blocked'
   const lost = fieldsLabel(changes.length ? changes : ['photos'])
 
+  const statusDot = (
+    <span
+      aria-hidden="true"
+      className={cn('size-[9px] rounded-full border-[1.5px] border-line md:size-2.5', dirty ? 'animate-[pulse_1.2s_ease-in-out_3] bg-score-5' : !savedNow && 'bg-muted')}
+      style={!dirty && savedNow && SAGE ? { backgroundColor: SAGE } : undefined}
+    />
+  )
+
   return (
-    <div className="mx-auto flex w-full max-w-[680px] flex-col gap-[22px]">
-      <BackLink to={`/day/${date}`}>Trang {dayMonth(date)}</BackLink>
-
-      <div className="flex animate-rise flex-col gap-1.5">
-        <p className="text-sm leading-[22px] text-muted-foreground">{longDateLabel(date)}</p>
-        <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Sửa trang</h1>
-        <p className="inline-flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground tabular-nums">
-          <Clock className="size-3.5 shrink-0" aria-hidden="true" />
-          {metaLine(record, timeZone)}
-        </p>
-      </div>
-
-      {ago > 0 ? (
-        <Notice className="animate-rise [animation-delay:.05s]">
-          Bạn đang sửa trang của {ago === 1 ? 'hôm qua' : `${ago} ngày trước`}. Trang vẫn thuộc ngày {dayMonth(date)}, chỉ dòng{' '}
-          <strong className="font-semibold">Sửa lần cuối</strong> ghi thêm ngày sửa.
-        </Notice>
-      ) : null}
-
-      <section
-        aria-label="Nội dung trang"
-        className="flex animate-rise flex-col gap-7 rounded-lg border-[1.5px] border-line bg-card p-[clamp(20px,4vw,32px)] shadow-ink [animation-delay:.1s]"
-      >
-        <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
-          <Legend>Điểm của ngày</Legend>
-          <ScorePicker iconSetId={iconSetId} value={draft.score} onChange={set('score')} caption="label" className="gap-1.5 sm:gap-2.5" />
-          {draft.score !== base.score ? (
-            <p className="flex animate-pop flex-wrap items-center gap-2 text-[13px] leading-5 text-muted-foreground">
-              Đã đổi từ {base.score} · {scoreLabel(iconSetId, base.score)} sang {draft.score} · {scoreLabel(iconSetId, draft.score)}.
-              <button
-                type="button"
-                onClick={() => set('score')(base.score)}
-                className="link-underline cursor-pointer py-0.5 font-semibold text-foreground focus-visible:outline-3 focus-visible:outline-ring"
-              >
-                Hoàn tác
-              </button>
-            </p>
-          ) : null}
-        </fieldset>
-
-        <ExtraFields
-          sub={draft.sub_icon}
-          onSub={set('sub_icon')}
-          flag={draft.flag_color}
-          onFlag={set('flag_color')}
-          title={draft.title}
-          onTitle={set('title')}
-          content={draft.content}
-          onContent={set('content')}
-          titlePlaceholder="Ngày này thế nào?"
-          contentPlaceholder="Viết vài dòng nếu muốn…"
-        />
-
-        <div role="group" aria-labelledby={`${ids}-kw`} className="flex flex-col gap-2.5">
-          <span id={`${ids}-kw`} className="text-[15px] leading-6 font-semibold">
-            Từ khóa
-          </span>
-          <KeywordEditor keywords={draft.keywords} onChange={set('keywords')} />
-        </div>
-
-        <div className="flex flex-col gap-2.5">
-          <span id={`${ids}-photos`} className="text-[15px] leading-6 font-semibold">
-            Ảnh ·{' '}
-            <span className="tabular-nums">
-              {uploads.tiles.filter((t) => t.status !== 'rejected').length}/{tierLimits().photos.per_day_max}
-            </span>
-          </span>
-          <PhotoUploader uploads={uploads} labelledBy={`${ids}-photos`} />
-        </div>
-      </section>
-
-      {/* Thanh lưu dính đáy; trên điện thoại nằm trên thanh tab dưới. */}
-      <div
-        className={cn(
-          'sticky bottom-[88px] z-20 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border-[1.5px] border-line bg-card py-3 pr-3 pl-5 transition-shadow md:bottom-4',
-          dirty ? 'shadow-[4px_4px_0_var(--score-5)]' : 'shadow-ink',
-        )}
-      >
-        <span role="status" className="inline-flex items-center gap-2.5 text-sm leading-[22px] font-medium">
-          <span
-            aria-hidden="true"
-            className={cn('size-2.5 rounded-full border-[1.5px] border-line', dirty ? 'animate-pulse bg-score-5' : !savedNow && 'bg-muted')}
-            style={!dirty && savedNow && SAGE ? { backgroundColor: SAGE } : undefined}
-          />
-          {status}
-        </span>
-        <div className="flex flex-wrap gap-2">
-          {dirty ? (
-            <Button variant="outline" onClick={() => setConfirmDiscard(true)}>
-              Hủy thay đổi
-            </Button>
-          ) : (
-            <Button asChild variant="outline">
-              <Link to={`/day/${date}`}>Xem trang</Link>
-            </Button>
-          )}
-          <Button onClick={save} disabled={!canSave}>
-            Lưu thay đổi
+    // Điện thoại (B10 · Sửa trang): trình sửa toàn màn, có thanh Hủy / Lưu riêng, không có thanh tab dưới.
+    <div className="max-md:fixed max-md:inset-0 max-md:z-50 max-md:overflow-y-auto max-md:bg-background">
+      <PhoneBar
+        start={
+          // Còn thay đổi chưa lưu thì useBlocker chặn và hỏi "Bỏ và rời trang".
+          <Link to={`/day/${date}`} className={cn(phoneIconButton, 'w-auto px-2.5 text-[15px] font-medium')}>
+            Hủy
+          </Link>
+        }
+        title={`Sửa trang ${dayMonth(date)}`}
+        heading
+        end={
+          <Button onClick={save} disabled={!canSave} className="mr-1.5 h-[38px] rounded-[12px] px-4">
+            Lưu
           </Button>
+        }
+      />
+
+      {/* scroll-mb: ô đang nhập không bị thanh lưu dính đáy (máy tính) che khi được cuộn tới. */}
+      <div className="mx-auto flex w-full max-w-[680px] flex-col gap-[22px] max-md:px-4 max-md:pt-[76px] max-md:pb-10 md:[&_:is(input,textarea,button)]:scroll-mb-24">
+        <BackLink to={`/day/${date}`} className="max-md:hidden">
+          Trang {dayMonth(date)}
+        </BackLink>
+
+        <div className="flex animate-rise flex-col gap-1 md:gap-1.5">
+          <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">{longDateLabel(date)}</p>
+          <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold max-md:hidden">Sửa trang</h1>
+          <p className="inline-flex items-center gap-1.5 text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
+            <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+            {metaLine(record, timeZone)}
+          </p>
+        </div>
+
+        {ago > 0 ? (
+          <Notice className="animate-rise [animation-delay:.05s] max-md:rounded-[12px] max-md:px-3 max-md:py-2.5 max-md:text-[13px] max-md:leading-5">
+            <span className="max-md:hidden">
+              Bạn đang sửa trang của {agoText}. Trang vẫn thuộc ngày {dayMonth(date)}, chỉ dòng{' '}
+              <strong className="font-semibold">Sửa lần cuối</strong> ghi thêm ngày sửa.
+            </span>
+            <span className="md:hidden">
+              Đang sửa trang của {agoText}. Trang vẫn thuộc ngày {dayMonth(date)}.
+            </span>
+          </Notice>
+        ) : null}
+
+        {/* Máy tính: các trường nằm trong một thẻ. Điện thoại: nằm thẳng trên nền trang. */}
+        <section
+          aria-label="Nội dung trang"
+          className="flex animate-rise flex-col gap-[22px] [animation-delay:.1s] md:gap-7 md:rounded-lg md:border-[1.5px] md:border-line md:bg-card md:p-[clamp(20px,4vw,32px)] md:shadow-ink"
+        >
+          <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0 md:gap-3">
+            <Legend>Điểm của ngày</Legend>
+            <ScorePicker
+              iconSetId={iconSetId}
+              value={draft.score}
+              onChange={set('score')}
+              caption="label"
+              className="gap-1.5 sm:gap-2.5"
+              itemClassName="max-md:min-h-[76px] max-md:rounded-[14px]"
+            />
+            {draft.score !== base.score ? (
+              <p className="flex animate-pop flex-wrap items-center gap-1.5 text-xs leading-[18px] text-muted-foreground md:gap-2 md:text-[13px] md:leading-5">
+                Đã đổi từ {base.score} · {scoreLabel(iconSetId, base.score)} sang {draft.score} · {scoreLabel(iconSetId, draft.score)}.
+                <button
+                  type="button"
+                  onClick={() => set('score')(base.score)}
+                  className="link-underline cursor-pointer py-0.5 font-semibold text-foreground focus-visible:outline-3 focus-visible:outline-ring"
+                >
+                  Hoàn tác
+                </button>
+              </p>
+            ) : null}
+          </fieldset>
+
+          <ExtraFields
+            sub={draft.sub_icon}
+            onSub={set('sub_icon')}
+            flag={draft.flag_color}
+            onFlag={set('flag_color')}
+            title={draft.title}
+            onTitle={set('title')}
+            content={draft.content}
+            onContent={set('content')}
+            titlePlaceholder="Ngày này thế nào?"
+            contentPlaceholder="Viết vài dòng nếu muốn…"
+            contentRows={5}
+            flatOnPhone
+            frequentIcons={frequentIcons}
+          />
+
+          <div className="flex flex-col gap-2 md:gap-2.5">
+            <label htmlFor={`${ids}-kw`} className={fieldLabelClass}>
+              Từ khóa
+            </label>
+            <InlineKeywordEditor keywords={draft.keywords} onChange={set('keywords')} inputId={`${ids}-kw`} />
+          </div>
+
+          <div className="flex flex-col gap-2 md:gap-2.5">
+            <span id={`${ids}-photos`} className={fieldLabelClass}>
+              Ảnh ·{' '}
+              <span className="tabular-nums">
+                {uploads.tiles.filter((t) => t.status !== 'rejected').length}/{tierLimits().photos.per_day_max}
+              </span>
+            </span>
+            <PhotoUploader uploads={uploads} labelledBy={`${ids}-photos`} />
+          </div>
+        </section>
+
+        {/* Máy tính: thanh lưu dính đáy. Điện thoại: chỉ còn dòng trạng thái cuối trang (nút Lưu ở thanh trên). */}
+        <div
+          className={cn(
+            'flex flex-wrap items-center justify-between gap-3 transition-shadow max-md:-mt-1.5 md:sticky md:bottom-4 md:z-20 md:rounded-[18px] md:border-[1.5px] md:border-line md:bg-card md:py-3 md:pr-3 md:pl-5',
+            dirty ? 'md:shadow-[4px_4px_0_var(--score-5)]' : 'md:shadow-ink',
+          )}
+        >
+          <span
+            role="status"
+            className="inline-flex items-center gap-2 text-[13px] leading-5 text-muted-foreground md:gap-2.5 md:text-sm md:leading-[22px] md:font-medium md:text-foreground"
+          >
+            {statusDot}
+            {status}
+          </span>
+          <div className="flex flex-wrap gap-2 max-md:hidden">
+            {dirty ? (
+              <Button variant="outline" onClick={() => setConfirmDiscard(true)}>
+                Hủy thay đổi
+              </Button>
+            ) : (
+              <Button asChild variant="outline">
+                <Link to={`/day/${date}`}>Xem trang</Link>
+              </Button>
+            )}
+            <Button onClick={save} disabled={!canSave}>
+              Lưu thay đổi
+            </Button>
+          </div>
         </div>
       </div>
 
-      <AlertDialog
+      <ConfirmDialog
         open={confirmDiscard || leaving}
         onOpenChange={(open) => {
           if (open) return
           setConfirmDiscard(false)
           if (blocker.state === 'blocked') blocker.reset()
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Bỏ các thay đổi?</AlertDialogTitle>
-            <AlertDialogDescription>Thay đổi ở {lost} chưa được lưu và sẽ mất.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="default">Tiếp tục sửa</AlertDialogCancel>
-            <Button
-              variant="destructive"
-              className="shadow-none"
-              onClick={() => (leaving ? blocker.proceed?.() : discard())}
-            >
-              {leaving ? 'Bỏ và rời trang' : 'Bỏ thay đổi'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Bỏ các thay đổi?"
+        description={`Thay đổi ở ${lost} chưa được lưu và sẽ mất.`}
+        cancelLabel="Tiếp tục sửa"
+        cancelIsPrimary
+        actionLabel={leaving ? 'Bỏ và rời trang' : 'Bỏ thay đổi'}
+        onAction={() => (leaving ? blocker.proceed?.() : discard())}
+      />
 
-      {toast ? <SavedToast onDone={hideToast}>Đã lưu thay đổi cho trang {dayMonth(date)}</SavedToast> : null}
+      {toast ? (
+        <SavedToast onDone={hideToast} className="max-md:bottom-6">
+          Đã lưu thay đổi cho trang {dayMonth(date)}
+        </SavedToast>
+      ) : null}
     </div>
   )
 }

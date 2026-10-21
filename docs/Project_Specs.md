@@ -89,8 +89,8 @@ Ký hiệu mức ưu tiên: **P0** bắt buộc · **P1** nên có nếu kịp �
 | F-04 | Đăng nhập Google, hồ sơ người dùng         | P0           |
 | F-05 | Tìm kiếm theo từ khóa                      | P0           |
 | F-06 | Tự động lưu, trạng thái đồng bộ            | P0           |
-| F-07 | Xóa tài khoản và toàn bộ dữ liệu           | P1 (đề xuất) |
-| F-08 | Xuất dữ liệu (JSON)                        | P1 (đề xuất) |
+| F-07 | Xóa toàn bộ dữ liệu, xóa tài khoản         | P1 (đề xuất) |
+| F-08 | ~~Xuất dữ liệu (JSON)~~ bỏ (21/10/2026)    | –            |
 | F-09 | Nút góp ý trong app                        | P1 (đề xuất) |
 | F-10 | Chia sẻ một trang qua link chỉ xem         | P1           |
 
@@ -116,7 +116,8 @@ Quy tắc:
 - **Hiển thị biểu tượng**: sub icon hiển thị nhỏ cạnh main icon, tỉ lệ kích thước sub/main khoảng 0,5–0,6 (đặt thành biến giao diện để dễ điều chỉnh).
 
 Ảnh:
-- Định dạng nhận vào: JPEG, PNG, WebP; tối đa 10 MB/ảnh gốc. Ảnh HEIC báo lỗi rõ ràng.
+- Định dạng nhận vào: JPEG, PNG, HEIC, WebP; tối đa 10 MB/ảnh gốc (chốt theo thiết kế B9, 21/10/2026). HEIC được
+  chuyển sang WebP ngay trên trình duyệt trước khi nén (thư viện giải mã HEIC chạy WebAssembly, Bước 7).
 - Nén trên trình duyệt trước khi tải lên: cạnh dài tối đa 1920 px, WebP chất lượng khoảng 80% (khoảng 300–500 KB).
 - Tạo ảnh thu nhỏ cạnh dài khoảng 320 px cho dòng thời gian và lịch.
 - Không lưu ảnh gốc ở MVP; thông báo cho người dùng biết ảnh gốc vẫn nằm trên máy của họ.
@@ -174,8 +175,11 @@ Quy tắc:
 
 ### F-07 – F-09. Tính năng đề xuất bổ sung
 
-- **Xóa tài khoản**: xóa toàn bộ nhật ký và ảnh của người dùng.
-- **Xuất dữ liệu**: tải về toàn bộ nhật ký dạng JSON. Cam kết luôn miễn phí.
+- **Xóa toàn bộ dữ liệu** (thiết kế B7/B10-Profile): xóa vĩnh viễn mọi trang, điểm, ảnh và link chia sẻ; giữ tài khoản,
+  hồ sơ và cài đặt để viết tiếp. Xác nhận bằng gõ "XÓA".
+- **Xóa tài khoản**: xóa toàn bộ nhật ký, ảnh, link chia sẻ, hồ sơ và phiên đăng nhập; đăng xuất ngay. Xác nhận bằng
+  gõ đúng email của tài khoản. Tài khoản Google không bị ảnh hưởng.
+- ~~**Xuất dữ liệu**~~: bỏ khỏi sản phẩm theo thiết kế (21/10/2026); Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu".
 - **Góp ý**: form ngắn trong app, lưu vào collection `feedback`.
 
 ### F-10. Chia sẻ một trang (ADR 0005, thiết kế B8)
@@ -242,6 +246,7 @@ Quy tắc:
 | Tạo/xóa nhật ký     | 10 request/phút/người          |
 | Tải ảnh lên         | 10 lần/phút, 50 lần/ngày/người |
 | Đăng nhập           | 5 lần/phút/IP                  |
+| Đọc hồ sơ (`GET /me`) | 120 request/phút/người       |
 | Mở trang chia sẻ công khai (F-10) | 60 lần/phút/IP   |
 
 Các con số là mức trần chống lạm dụng, không phải mức sử dụng dự kiến. Điều chỉnh sau tuần thử nghiệm đầu tiên dựa trên log.
@@ -449,7 +454,7 @@ Nguyên tắc:
 | DELETE      | `/entries/{date}/share`             | Tắt link (thu hồi vĩnh viễn)                                           |
 | GET         | `/shares`                           | Các trang đang chia sẻ                                                 |
 | GET         | `/public/shares/{token}`            | Trang chia sẻ công khai, không cần đăng nhập; chỉ trả phần được chọn; mọi lỗi là 404 chung |
-| GET         | `/export`                           | Xuất toàn bộ dữ liệu dạng JSON                                         |
+| DELETE      | `/entries`                          | Xóa toàn bộ dữ liệu (mọi trang, ảnh, link chia sẻ), giữ tài khoản      |
 | POST        | `/feedback`                         | Gửi góp ý                                                              |
 
 ### 5.6. Các luồng chính
@@ -512,7 +517,7 @@ Nguyên tắc:
 | 6–7  | Tải ảnh (nén, presigned URL, ảnh thu nhỏ); dòng thời gian                                       |
 | 8–9  | Lịch tháng + thống kê tháng                                                                     |
 | 10   | Year in Pixels                                                                                  |
-| 11   | Tìm kiếm; xuất dữ liệu; xóa tài khoản; góp ý                                                    |
+| 11   | Tìm kiếm; xóa dữ liệu, xóa tài khoản; góp ý                                                    |
 | 12   | Rate limit, hạn mức dung lượng, log, Sentry, phân tích sự kiện                                  |
 | 13   | Hoàn thiện giao diện, kiểm tra trên điện thoại, nạp dữ liệu mẫu, triển khai production          |
 | 14   | Kiểm thử phân quyền, thử khôi phục sao lưu, sửa lỗi, chuẩn bị demo                              |
@@ -555,7 +560,8 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 
 ### 7.1. Nguyên tắc cam kết từ giai đoạn 1
 
-- **Dữ liệu thuộc về người dùng**: viết, xem lại, tìm kiếm, xuất nhật ký luôn miễn phí.
+- **Dữ liệu thuộc về người dùng**: viết, xem lại, tìm kiếm, xóa nhật ký luôn miễn phí. (Xuất nhật ký đã bỏ khỏi
+  sản phẩm ngày 21/10/2026, xem F-08; cần xem lại nếu luật bảo vệ dữ liệu áp dụng yêu cầu quyền nhận bản sao dữ liệu.)
 - **Không lấy lại những gì đã có**: ảnh đã tải lên luôn xem được; vật phẩm đã nhận luôn giữ.
 - **Thu tiền cho cái mới, không thu tiền cho cái cũ.**
 - **Minh bạch**: ghi rõ bản beta, giới hạn có thể thay đổi, công bố trước những gì miễn phí vĩnh viễn.

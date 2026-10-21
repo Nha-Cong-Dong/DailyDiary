@@ -158,6 +158,8 @@ export function displayUrl(url: string): string {
 
 /** Mỗi trang danh sách 5 link (thiết kế B8 · các trang đang chia sẻ). */
 export const PER_PAGE = 5
+/** Dưới ngưỡng này hiện hết một trang, không phân trang (báo cáo rà thiết kế 21/10/2026). */
+export const SHOW_ALL_BELOW = 20
 
 /** "18/10/2026". */
 export function numericDate(date: string): string {

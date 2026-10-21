@@ -1,22 +1,39 @@
 import { CalendarCell } from '@/components/diary/CalendarCell'
+import type { Score } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 import { DEMO_ICON_SET, DEMO_TODAY, OCTOBER, WEEKDAYS } from './demoData'
 
-// 1/10/2026 là thứ Năm: 3 ô trống đầu tuần (T2–T4).
-const LEADING_BLANKS = 3
+/** Một tháng để vẽ: mặc định là tháng 10/2026 mẫu; trang chủ đã đăng nhập truyền tháng hiện tại của người dùng. */
+export type PreviewMonth = {
+  year: number
+  /** 1–12 */
+  month: number
+  /** Ngày hôm nay trong tháng (ngày sau đó là "chưa tới"). */
+  today: number
+  days: Record<number, { score: Score; sub?: string | null }>
+  iconSetId: string
+}
 
-/** Lịch tháng 10 thu nhỏ trong hero. Thẻ rơi xuống khi vào trang, thẳng lại khi di chuột. */
-export function MonthPreview({ className }: { className?: string }) {
-  const recorded = Object.keys(OCTOBER).length
+const DEMO_MONTH: PreviewMonth = { year: 2026, month: 10, today: DEMO_TODAY, days: OCTOBER, iconSetId: DEMO_ICON_SET }
+
+/** Lịch tháng thu nhỏ trong hero. Thẻ rơi xuống khi vào trang, thẳng lại khi di chuột. */
+export function MonthPreview({ className, month = DEMO_MONTH }: { className?: string; month?: PreviewMonth }) {
+  const { year, month: m, today, days, iconSetId } = month
+  const recorded = Object.keys(days).length
+  const length = new Date(Date.UTC(year, m, 0)).getUTCDate()
+  // Số ô trống đầu tuần (tuần bắt đầu từ thứ Hai).
+  const leadingBlanks = (new Date(Date.UTC(year, m - 1, 1)).getUTCDay() + 6) % 7
   return (
     <div
       className={cn('tilt animate-drop-right rounded-[20px] border-[1.5px] border-line bg-card p-4 shadow-ink', className)}
       style={{ animationDelay: '.15s' }}
     >
       <div className="mb-2.5 flex items-baseline justify-between">
-        <span className="font-heading text-base leading-6 font-semibold">Tháng 10, 2026</span>
+        <span className="font-heading text-base leading-6 font-semibold">
+          Tháng {m}, {year}
+        </span>
         <span className="text-xs leading-[18px] text-muted-foreground">
-          {recorded}/{DEMO_TODAY} ngày
+          {recorded}/{today} ngày
         </span>
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -25,25 +42,25 @@ export function MonthPreview({ className }: { className?: string }) {
             {w}
           </span>
         ))}
-        {Array.from({ length: LEADING_BLANKS }, (_, i) => (
+        {Array.from({ length: leadingBlanks }, (_, i) => (
           <span key={`blank-${i}`} />
         ))}
-        {Array.from({ length: 31 }, (_, i) => {
+        {Array.from({ length }, (_, i) => {
           const day = i + 1
-          const entry = OCTOBER[day]
-          const state = day === DEMO_TODAY ? 'today' : day < DEMO_TODAY ? 'past' : 'future'
+          const entry = days[day]
+          const state = day === today ? 'today' : day < today ? 'past' : 'future'
           return (
             <CalendarCell
               key={day}
               day={day}
               size="sm"
-              iconSetId={DEMO_ICON_SET}
+              iconSetId={iconSetId}
               score={entry?.score ?? null}
               subIcon={entry?.sub}
               state={state}
-              label={`${day}/10${entry ? `, điểm ${entry.score}` : state === 'past' ? ', chưa ghi' : ''}`}
+              label={`${day}/${m}${entry ? `, điểm ${entry.score}` : state === 'past' ? ', chưa ghi' : ''}`}
               className={cn(
-                'transition-transform duration-200 ease-[cubic-bezier(.3,1.5,.5,1)] hover:[transform:translateY(-3px)_scale(1.14)] active:[transform:scale(.94)]',
+                'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:[transform:translateY(-2px)_scale(1.04)] active:[transform:scale(.97)]',
                 state === 'today' && 'shadow-none',
               )}
               // Icon từng ngày lần lượt bật ra sau khi thẻ lịch rơi xuống.

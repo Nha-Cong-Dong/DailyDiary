@@ -73,7 +73,7 @@ export function YearEmpty({
           </div>
           <Link
             to="/today"
-            className="group inline-flex h-12 items-center gap-2 rounded-[14px] border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground shadow-[4px_4px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--cta-shadow)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--cta-shadow)]"
+            className="group inline-flex h-12 items-center gap-2 rounded-[14px] cta border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
           >
             Chấm điểm hôm nay
             <ArrowRight className="size-[18px] transition-transform group-hover:translate-x-[3px]" aria-hidden="true" />

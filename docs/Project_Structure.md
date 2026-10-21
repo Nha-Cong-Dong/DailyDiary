@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 8 (21/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 10 (21/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -102,7 +102,8 @@ dailydiary/
             │   ├── openapi.json      # [sinh tự động] từ scripts/export_openapi.py
             │   └── schema.d.ts       # [sinh tự động] npm run gen:api
             ├── routes/               # router.tsx, RootLayout.tsx (+ RootLoading), ErrorPage.tsx (lỗi route), <Tên>Page.tsx
-            │                         # (mỏng, ghép từ features; ghép feature với nhau ở đây, vd. DayPage = entry + share);
+            │                         # (mỏng, ghép từ features; ghép feature với nhau ở đây, vd. DayPage = entry + share, HomePage = landing + share);
+            │                         # route có khung riêng trên điện thoại khai báo handle.phoneChrome ('tabs' | 'none');
             │                         # LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage có trong bản build;
             │                         # chỉ có khi chạy dev (tải lười, không vào bản build): DevUiPage, TimelinePage,
             │                         # DayPage (/day/:date), DayEditPage (/day/:date/edit), BackfillPage (/day/:date/backfill),
@@ -110,14 +111,18 @@ dailydiary/
             │                         # cho tới khi có API ở các bước 5–11b
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
-            │   ├── landing/          # trang giới thiệu cho người chưa đăng nhập (trang chủ /)
+            │   ├── landing/          # trang chủ /: bản giới thiệu cho người chưa đăng nhập và bản đã đăng nhập (menu tài khoản,
+            │   │                     # tóm tắt tháng; thiết kế B5-Landing-Signed)
             │   ├── auth/             # trang đăng nhập + trạng thái lỗi (loginState.ts), RequireAuth (bảo vệ route)
             │   ├── profile/          # 3 bước lần đầu, Hồ sơ & cài đặt (giao diện; components/ vì ≥ 6 component);
-            │   │                     # PATCH /me; (B12) xuất dữ liệu, xóa tài khoản
+            │   │                     # PATCH /me; xóa toàn bộ dữ liệu, xóa tài khoản (confirm.ts, useJournalData.ts;
+            │   │                     # bản thử, API ở B12)
             │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù (giao diện, lưu tạm trong tab:
-            │   │                     # localDays.ts, uploadPhoto.ts giả lập); components/ vì ≥ 6 component;
+            │   │                     # localDays.ts ghi qua demoWrite, uploadPhoto.ts giả lập); bản điện thoại B10; useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts (sub icon hay dùng);
+            │   │                     # components/ vì ≥ 6 component;
             │   │                     # (B5–B7) lưu nhật ký, ảnh, tự động lưu
-            │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng (thiết kế B8,
+            │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
+            │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10,
             │   │                     # dữ liệu mẫu); (B8–B9) GET /entries, /calendar
             │   ├── calendar/         # (B9) dự phòng; lịch tháng hiện nằm trong timeline/ theo thiết kế B8
             │   ├── pixels/           # Year in Pixels cả năm (giao diện, dữ liệu mẫu); (B10) GET /pixels/{year}
@@ -127,15 +132,18 @@ dailydiary/
             │   └── feedback/         # (B12) góp ý
             ├── components/
             │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên> (đã chỉnh theo hệ thiết kế;
-            │   │                     # có dialog, alert-dialog, switch)
+            │   │                     # có dialog, alert-dialog, switch, dropdown-menu; button có biến thể cta)
             │   ├── diary/            # thành phần nhật ký dùng chung: main/sub icon, chọn điểm, cờ hiệu,
-            │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh, tải ảnh (PhotoUploader)
+            │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh, tải ảnh (PhotoUploader),
+            │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung),
+            │   │                     # xem nhanh một ngày (DayPeek)
             │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang,
-            │                         # thanh ngoại tuyến (OfflineBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark)
+            │                         # thanh ngoại tuyến (OfflineBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark),
+            │                         # khung công khai (PlainFrame: 404/lỗi khi chưa đăng nhập)
             ├── lib/                  # query.ts, limits.ts, utils.ts, catalog.ts (icons/cờ từ shared/),
             │                         # theme.ts (sáng/tối), date.ts (ngày theo múi giờ hồ sơ),
             │                         # profile.ts (GET/PATCH /me), session.ts (đăng xuất, đăng nhập thử), text.ts (bỏ dấu, tô sáng),
-            │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống),
+            │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
             │                         # image.ts (kiểm tra loại/kích thước ảnh), online.ts (trạng thái mạng);
             │                         # (B6) autosave.ts, storage.ts (IndexedDB)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn)
@@ -181,3 +189,5 @@ dailydiary/
 | 6 | 20/10/2026 | Thiết kế B7: `features/pixels/`, `features/search/` (bỏ `.gitkeep`), chi tiết ngày trong `features/entry/`, Hồ sơ trong `features/profile/` (tách `components/`), `lib/text.ts`, `lib/demo.ts`, `components/ui/dialog`, `alert-dialog`, `components/layout/Avatar.tsx`, `components/diary/PhotoViewer.tsx`; route dev tải lười |
 | 7 | 20/10/2026 | Bước 3 (đăng nhập Google, hồ sơ): `core/security.py`, `core/oauth.py`, `core/catalog.py`, `routers/auth.py`, `routers/me.py`, `schemas/users.py`, `services/users.py`, migration `m0002`, `features/auth/`, `routes/LoginPage.tsx`, `lib/session.ts`, `src/test/withMe.tsx`, `e2e/session.ts`; bỏ nhãn (B3); các trang Lần đầu, Hôm nay, Hồ sơ vào bản build |
 | 8 | 21/10/2026 | Thiết kế B8–B9 + Chia sẻ (ADR 0005): `features/timeline/` (bỏ `.gitkeep`), `features/share/`, Sửa/Ghi bù trong `features/entry/` (tách `components/`), `PhotoUploader`, `lib/image.ts` (bỏ nhãn (B7)), `lib/online.ts`, `OfflineBanner`, `PageStates`, `GoogleMark` (thay ô giữ chỗ logo Google), `routes/ErrorPage.tsx` và các trang dev mới; backend `shares` (router, service, schema, migration `m0003`); `core/logging.py` che token; `scripts/export_openapi.py` sửa lỗi in trên console Windows |
+| 9 | 21/10/2026 | Thiết kế B10 (điện thoại), B5-Landing-Signed, B8-Timeline-Today, chuyển động dịu lại: `components/diary/BottomSheet.tsx`, `DayPeek.tsx`, `components/layout/PlainFrame.tsx`, `components/ui/dropdown-menu.tsx`, `features/landing/AccountMenu.tsx`, `useHomeSummary.ts`, `features/timeline/TodayPrompt.tsx`, `WritingNotebook.tsx`, `useQuickScore.ts`, `features/entry/useIsPhone.ts`, `features/profile/components/sheet.ts` (hai file sau đã bỏ ở phiên bản 10); route `*` ra ngoài AppShell; `handle.phoneChrome` cho các route có khung điện thoại riêng |
+| 10 | 21/10/2026 | Làm theo báo cáo rà thiết kế: `components/diary/Toast.tsx` mới, `BottomSheet` dùng chung cả app; bỏ `features/profile/components/sheet.ts`, `features/share/components/Toast.tsx`, `features/entry/useIsPhone.ts`; thêm `features/profile/confirm.ts`, `useJournalData.ts`, `features/entry/useRecentDays.ts`, `useFrequentSubIcons.ts`, `features/search/Search.test.tsx`; route trong app tải lười |

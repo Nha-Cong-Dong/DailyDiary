@@ -1,14 +1,16 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { BottomSheet } from '@/components/diary/BottomSheet'
+import { DayPeek } from '@/components/diary/DayPeek'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { scoreLabel, type Score } from '@/lib/catalog'
-import { todayIn, useNow } from '@/lib/date'
+import { timeIn, todayIn, useNow } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
 import { cn } from '@/lib/utils'
 import { MonthCalendar } from './MonthCalendar'
-import { MonthRhythm } from './MonthRhythm'
+import { MonthRhythm, MonthRhythmCompact } from './MonthRhythm'
 import {
   addMonths,
   buildMonth,
@@ -18,11 +20,13 @@ import {
   monthLabel,
   monthOf,
   nearestScore,
+  weekdayDate,
   type MonthString,
 } from './monthTimeline'
 import { TimelineEmpty } from './TimelineEmpty'
 import { TimelineList } from './TimelineList'
 import { useMonth } from './useMonth'
+import { useQuickScore } from './useQuickScore'
 
 /** Số trang hiện trước khi bấm "Xem thêm". */
 const LIMIT = 7
@@ -35,6 +39,9 @@ const SCORE_BG: Record<Score, string> = {
 }
 const delay = (s: number) => ({ animationDelay: `${s.toFixed(2)}s` }) as CSSProperties
 const isMonth = (m: string | null): m is MonthString => !!m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m)
+/** Điện thoại (dưới 768 px, thiết kế B10): bấm một ngày mở bảng xem nhanh thay vì cuộn tới trang. */
+const isPhone = () => !(window.matchMedia?.('(min-width: 768px)').matches ?? true)
+const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
 
 /** Dòng thời gian theo tháng (thiết kế B8): thống kê, nhịp tháng, danh sách trang, lịch và từ khóa trong tháng. */
 export function Timeline() {
@@ -48,6 +55,10 @@ export function Timeline() {
   const [selected, setSelected] = useState<number | null>(null)
   const [flash, setFlash] = useState<number | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const [view, setView] = useState<'list' | 'cal'>('list')
+  const [peek, setPeek] = useState<number | null>(null)
+  const [justScored, setJustScored] = useState(false)
+  const quick = useQuickScore()
   const timer = useRef<number | undefined>(undefined)
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
@@ -81,6 +92,7 @@ export function Timeline() {
   const monthNum = Number(month.slice(5))
 
   function go(m: MonthString) {
+    setPeek(null)
     setSelected(null)
     setFlash(null)
     setExpanded(false)
@@ -93,6 +105,10 @@ export function Timeline() {
   }
 
   function select(day: number) {
+    if (isPhone()) {
+      setPeek(day)
+      return
+    }
     const at = t.anchorOf.get(day)
     if (at === undefined) return
     const anchor = t.items[at].day
@@ -111,46 +127,102 @@ export function Timeline() {
   }
 
   const avgLevel = t.average === null ? null : nearestScore(t.average)
-  const stats: { label: string; value: string; sub: string; swatch?: Score }[] = [
+  // Hôm nay chưa ghi (thiết kế B8 · hôm nay chưa viết): không tính là ngày trống, nhắc viết để nối chuỗi.
+  const pending = current && t.days.some((d) => d.kind === 'open')
+  const stats: { label: string; short: string; value: string; sub: string; phoneSub: string; swatch?: Score }[] = [
     {
       label: 'Ngày đã ghi',
+      short: 'Ngày đã ghi',
       value: `${t.recorded}/${t.countable}`,
-      sub: t.missed ? `${t.missed} ngày bỏ trống` : 'Không bỏ ngày nào',
+      sub: pending
+        ? `Hôm nay chưa ghi${t.missed ? ` · ${t.missed} ngày trống` : ''}`
+        : t.missed
+          ? `${t.missed} ngày bỏ trống`
+          : 'Không bỏ ngày nào',
+      phoneSub: pending ? 'Hôm nay chưa ghi' : t.missed ? `${t.missed} ngày trống` : 'Không bỏ ngày nào',
     },
     {
       label: 'Điểm trung bình',
+      short: 'Điểm TB',
       value: t.average === null ? '–' : decimal(t.average),
       sub: avgLevel ? `Gần mức ${scoreLabel(iconSetId, avgLevel)}` : 'Chưa có điểm',
+      phoneSub: avgLevel ? `Gần mức ${scoreLabel(iconSetId, avgLevel)}` : 'Chưa có điểm',
       swatch: avgLevel ?? undefined,
     },
-    current
+    current && t.currentStreak > 0
       ? {
           label: 'Chuỗi hiện tại',
+          short: 'Chuỗi hiện tại',
           value: `${t.currentStreak} ngày`,
-          sub: `Dài nhất tháng: ${t.longestStreak} ngày`,
+          sub: pending ? `Viết hôm nay để lên ${t.currentStreak + 1} ngày` : `Dài nhất tháng: ${t.longestStreak} ngày`,
+          phoneSub: pending ? `Viết hôm nay để lên ${t.currentStreak + 1}` : `Dài nhất: ${t.longestStreak} ngày`,
         }
-      : {
-          label: 'Chuỗi dài nhất',
-          value: `${t.longestStreak} ngày`,
-          sub: 'Liền mạch trong tháng',
-        },
+      : current
+        ? // Chuỗi đang là 0: lấy chuỗi dài nhất làm số chính, không nhấn vào điều chưa làm.
+          {
+            label: 'Chuỗi dài nhất',
+            short: 'Chuỗi dài nhất',
+            value: `${t.longestStreak} ngày`,
+            sub: pending ? 'Viết hôm nay để bắt đầu chuỗi mới' : 'Chuỗi hiện tại chưa bắt đầu',
+            phoneSub: pending ? 'Viết hôm nay để bắt đầu' : 'Chưa có chuỗi mới',
+          }
+        : {
+            label: 'Chuỗi dài nhất',
+            short: 'Chuỗi dài nhất',
+            value: `${t.longestStreak} ngày`,
+            sub: 'Liền mạch trong tháng',
+            phoneSub: 'Liền mạch trong tháng',
+          },
     {
       label: 'Ảnh',
+      short: 'Ảnh',
       value: String(t.photos),
       sub: `trong ${t.photoDays} ngày`,
+      phoneSub: 'trong tháng',
     },
     {
       label: 'Sub icon hay dùng',
+      short: 'Sub icon hay dùng',
       value: t.topSubIcon?.icon ?? '–',
       sub: t.topSubIcon ? `${t.topSubIcon.count} lần` : 'Chưa dùng',
+      phoneSub: '',
     },
   ]
+  const peekDay = peek === null ? null : (t.days[peek - 1] ?? null)
 
   const navButton = 'size-10 rounded-[12px] disabled:border-dashed disabled:border-border'
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex animate-rise flex-wrap items-end justify-between gap-4">
+      <div className="flex items-center justify-between gap-2 md:hidden">
+        <h1 aria-live="polite" className="text-2xl leading-8 font-bold">
+          {monthLabel(month)}
+        </h1>
+        <div role="group" aria-label="Chọn tháng" className="flex gap-1.5">
+          <Button
+            variant="outline"
+            size="icon"
+            className={navButton}
+            aria-label={prev ? `Tháng trước, ${monthLabel(prev)}` : 'Không có tháng trước'}
+            disabled={!prev}
+            onClick={() => prev && go(prev)}
+          >
+            <ChevronLeft aria-hidden="true" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className={navButton}
+            aria-label={next ? `Tháng sau, ${monthLabel(next)}` : 'Không có tháng sau'}
+            disabled={!next}
+            onClick={() => next && go(next)}
+          >
+            <ChevronRight aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex animate-rise flex-wrap items-end justify-between gap-4 max-md:hidden">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Dòng thời gian</h1>
           <p className="text-[15px] leading-6 text-muted-foreground">Mỗi trang là một ngày, mới nhất ở trên.</p>
@@ -187,13 +259,23 @@ export function Timeline() {
         </div>
       </div>
 
-      <dl key={month} className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] sm:gap-3.5">
+      {/* Điện thoại: lưới 2×2 như Year in Pixels, không cuộn ngang để không thẻ nào bị cắt hay nằm ngoài màn. */}
+      <dl key={`p${month}`} className="grid grid-cols-2 gap-2.5 md:hidden">
+        {stats.slice(0, 4).map((st) => (
+          <div key={st.label} className="flex min-w-0 flex-col rounded-[16px] border-[1.5px] border-line bg-card px-3.5 py-2.5">
+            <dt className="text-xs leading-[18px] text-muted-foreground">{st.short}</dt>
+            <dd className="font-heading text-[22px] leading-[30px] font-bold whitespace-nowrap">{st.value}</dd>
+            <dd className="text-[11px] leading-4 text-muted-foreground">{st.phoneSub}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <dl key={month} className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5 max-md:hidden">
         {stats.map((st, i) => (
           <div
             key={st.label}
             className={cn(
-              'group flex animate-pop flex-col gap-0.5 rounded-[18px] border-[1.5px] border-line bg-card px-[18px] py-4 shadow-ink-sm transition-transform hover:-translate-y-0.5',
-              i === stats.length - 1 && 'col-span-2 sm:col-span-1',
+              'group flex animate-pop flex-col gap-0.5 rounded-[18px] border-[1.5px] border-line bg-card px-[18px] py-4 transition-transform hover:-translate-y-0.5',
             )}
             style={delay(0.05 + i * 0.06)}
           >
@@ -212,11 +294,47 @@ export function Timeline() {
         ))}
       </dl>
 
-      <MonthRhythm key={`r${month}`} data={t} today={todayNum} selected={selected} onSelect={select} />
+      <div className="max-md:hidden">
+        <MonthRhythm key={`r${month}`} data={t} today={todayNum} selected={selected} onSelect={select} />
+      </div>
+      <div className="md:hidden">
+        <MonthRhythmCompact key={`rc${month}`} data={t} />
+      </div>
+
+      <div
+        role="radiogroup"
+        aria-label="Cách xem"
+        className="grid grid-cols-2 gap-0.5 rounded-[14px] border-[1.5px] border-line bg-card p-[3px] md:hidden"
+      >
+        {(
+          [
+            ['list', 'Danh sách'],
+            ['cal', 'Lịch'],
+          ] as const
+        ).map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            role="radio"
+            aria-checked={view === k}
+            onClick={() => setView(k)}
+            className={cn(
+              'h-[38px] cursor-pointer rounded-[11px] text-sm transition-colors duration-200',
+              view === k ? 'bg-foreground font-semibold text-background' : 'font-medium',
+              focusRing,
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <div className="flex flex-wrap items-start gap-8">
-        <section aria-labelledby="list-h" className="flex min-w-0 flex-[1_1_520px] flex-col gap-4">
-          <div className="flex items-baseline justify-between gap-3">
+        <section
+          aria-labelledby="list-h"
+          className={cn('flex min-w-0 flex-[1_1_520px] flex-col gap-3 md:gap-4', view === 'cal' && 'max-md:hidden')}
+        >
+          <div className="flex items-baseline justify-between gap-3 max-md:sr-only">
             <h2 id="list-h" className="scroll-mt-24 text-xl leading-7 font-semibold">
               Các trang trong tháng
             </h2>
@@ -242,6 +360,16 @@ export function Timeline() {
                 document.getElementById('list-h')?.scrollIntoView?.({ block: 'start' })
               }}
               endText={`Đầu ${monthLabel(month).toLowerCase()}`}
+              todayDate={current ? today : null}
+              justScored={justScored}
+              onQuickScore={(score) => {
+                quick.save(today, score)
+                setJustScored(true)
+              }}
+              onUndoQuick={() => {
+                quick.undo(today)
+                setJustScored(false)
+              }}
             />
           ) : (
             <p className="rounded-[14px] border-[1.5px] border-dashed border-border p-5 text-[15px] leading-6 text-muted-foreground">
@@ -252,7 +380,10 @@ export function Timeline() {
 
         <aside
           aria-label="Lịch tháng"
-          className="order-first flex min-w-[min(100%,300px)] flex-[0_1_360px] flex-col gap-4 min-[900px]:sticky min-[900px]:top-24 min-[900px]:order-none"
+          className={cn(
+            'flex min-w-[min(100%,300px)] flex-[0_1_360px] flex-col gap-4 min-[900px]:sticky min-[900px]:top-24',
+            view === 'list' && 'max-md:hidden',
+          )}
         >
           <MonthCalendar
             key={`c${month}`}
@@ -264,10 +395,10 @@ export function Timeline() {
           />
           {t.keywords.length ? (
             <div
-              className="flex animate-rise flex-col gap-2.5 rounded-[20px] border-[1.5px] border-line bg-card p-[18px] shadow-ink"
+              className="flex animate-rise flex-col gap-2 md:gap-2.5 md:rounded-[20px] md:border-[1.5px] md:border-line md:bg-card md:p-[18px]"
               style={delay(0.22)}
             >
-              <h2 className="font-sans text-[15px] leading-[22px] font-semibold">Từ khóa trong tháng</h2>
+              <h2 className="font-sans text-sm leading-5 font-semibold md:text-[15px] md:leading-[22px]">Từ khóa trong tháng</h2>
               <ul className="flex flex-wrap gap-1.5">
                 {t.keywords.map((k) => (
                   <li key={k.label}>
@@ -290,6 +421,22 @@ export function Timeline() {
           ) : null}
         </aside>
       </div>
+      <BottomSheet
+        open={peekDay !== null}
+        onOpenChange={(o) => !o && setPeek(null)}
+        title={peekDay ? weekdayDate(peekDay.date) : ''}
+      >
+        {peekDay ? (
+          <DayPeek
+            date={peekDay.date}
+            entry={peekDay.entry}
+            iconSetId={iconSetId}
+            meta={peekDay.entry ? `Viết lúc ${timeIn(timeZone, new Date(peekDay.entry.created_at))}` : undefined}
+            state={peekDay.kind === 'open' ? 'today' : peekDay.kind === 'missing' ? 'past' : 'future'}
+            onNavigate={() => setPeek(null)}
+          />
+        ) : null}
+      </BottomSheet>
     </div>
   )
 }

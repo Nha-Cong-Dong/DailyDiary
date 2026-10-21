@@ -65,10 +65,10 @@ export function ShareOff() {
           <div className="mt-3 flex animate-rise flex-wrap items-center justify-center gap-x-[22px] gap-y-3.5 [animation-delay:.7s]">
             <Link
               to="/"
-              className={`lift inline-flex h-12 items-center gap-2 rounded-[14px] border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground shadow-ink-sm ${focusRing}`}
+              className={`group/cta cta inline-flex h-12 items-center gap-2 rounded-[14px] border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground ${focusRing}`}
             >
               Tìm hiểu về Jotly
-              <ArrowRight className="size-[18px]" aria-hidden="true" />
+              <ArrowRight className="size-[18px] transition-transform duration-200 group-hover/cta:translate-x-0.5" aria-hidden="true" />
             </Link>
             <Link to="/login" className={`link-underline text-[15px] font-medium ${focusRing}`}>
               Viết nhật ký của bạn

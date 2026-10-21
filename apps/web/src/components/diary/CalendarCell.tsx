@@ -21,6 +21,8 @@ type CalendarCellProps = {
   /** Class/style cho vùng icon (ví dụ icon lần lượt hiện ra trên landing). */
   iconClassName?: string
   iconStyle?: CSSProperties
+  /** Vị trí số ngày: 'bottom' (mặc định, landing, 7 ngày qua) hoặc 'top' (lịch tháng ở Dòng thời gian, thiết kế B8/B10). */
+  numberPosition?: 'top' | 'bottom'
 }
 
 /** Một ô ngày trong lịch tháng: main icon + sub icon, hoặc vòng nét đứt nếu ngày đã qua mà chưa ghi. */
@@ -37,6 +39,7 @@ export function CalendarCell({
   className,
   iconClassName,
   iconStyle,
+  numberPosition = 'bottom',
 }: CalendarCellProps) {
   const icon = size === 'md' ? 32 : 24
   const classes = cn(
@@ -49,9 +52,22 @@ export function CalendarCell({
     onClick && 'cursor-pointer hover:border-line focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
     className,
   )
+  const number = (
+    <span
+      className={cn(
+        'tabular-nums',
+        size === 'md' ? 'text-[13px] leading-[18px]' : 'text-label leading-3',
+        state === 'today' ? 'font-bold' : 'font-medium',
+        state === 'future' ? 'text-faint' : 'text-foreground',
+      )}
+    >
+      {day}
+    </span>
+  )
   const content = (
     <>
       {weekday ? <span className="text-label font-semibold text-muted-foreground">{weekday}</span> : null}
+      {numberPosition === 'top' ? number : null}
       <span className={cn('flex items-center justify-center', iconClassName)} style={{ width: icon, height: icon, ...iconStyle }}>
         {score ? (
           <MoodMark iconSetId={iconSetId} score={score} subIcon={subIcon} size={icon} variant="plain" />
@@ -63,16 +79,7 @@ export function CalendarCell({
           />
         )}
       </span>
-      <span
-        className={cn(
-          'tabular-nums',
-          size === 'md' ? 'text-[13px] leading-[18px]' : 'text-label leading-3',
-          state === 'today' ? 'font-bold' : 'font-medium',
-          state === 'future' ? 'text-faint' : 'text-foreground',
-        )}
-      >
-        {day}
-      </span>
+      {numberPosition === 'bottom' ? number : null}
     </>
   )
   if (onClick) {

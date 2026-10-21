@@ -22,7 +22,7 @@
         "main_max_edge_px": 1920,
         "thumb_max_edge_px": 320,
         "webp_quality": 0.8,
-        "allowed_types": ["image/jpeg", "image/png", "image/webp"]
+        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
       },
       "storage": {
         "quota_bytes": 524288000,
@@ -42,6 +42,7 @@
       },
       "rate_limits": {
         "read": "30/minute",
+        "me": "120/minute",
         "autosave": "20/minute",
         "write": "10/minute",
         "photo_upload": "10/minute;50/day",
@@ -64,7 +65,7 @@
         "main_max_edge_px": 1920,
         "thumb_max_edge_px": 320,
         "webp_quality": 0.8,
-        "allowed_types": ["image/jpeg", "image/png", "image/webp"]
+        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
       },
       "storage": {
         "quota_bytes": 524288000,
@@ -84,6 +85,7 @@
       },
       "rate_limits": {
         "read": "30/minute",
+        "me": "120/minute",
         "autosave": "20/minute",
         "write": "10/minute",
         "photo_upload": "10/minute;50/day",
@@ -106,7 +108,7 @@
         "main_max_edge_px": 1920,
         "thumb_max_edge_px": 320,
         "webp_quality": 0.8,
-        "allowed_types": ["image/jpeg", "image/png", "image/webp"]
+        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
       },
       "storage": {
         "quota_bytes": 524288000,
@@ -126,6 +128,7 @@
       },
       "rate_limits": {
         "read": "30/minute",
+        "me": "120/minute",
         "autosave": "20/minute",
         "write": "10/minute",
         "photo_upload": "10/minute;50/day",

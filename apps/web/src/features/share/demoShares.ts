@@ -54,6 +54,11 @@ export function resetDemoShares() {
   store = initial()
 }
 
+/** Tắt mọi link (bản thử của "Xóa toàn bộ dữ liệu" / "Xóa tài khoản" ở Hồ sơ). */
+export function clearDemoShares() {
+  store = new Map()
+}
+
 function newToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16))
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')

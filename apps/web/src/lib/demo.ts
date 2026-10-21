@@ -173,9 +173,45 @@ export function demoMode(): DemoMode {
   }
 }
 
-/** Các trang mẫu theo chế độ hiện tại (rỗng khi `?demo=empty`). */
+/**
+ * BẢN THỬ: trang vừa ghi trong tab này (vd. chấm điểm nhanh ở Dòng thời gian), đè lên dữ liệu mẫu; `null` là đã bỏ.
+ * Mất khi tải lại trang. Khi có PUT /entries/{date} (Bước 5) thì bỏ, ghi qua API.
+ */
+const written = new Map<DateString, DemoEntry | null>()
+
+/** Ghi (hoặc bỏ, với `null`) trang của một ngày trong bộ nhớ tab. */
+export function demoWrite(date: DateString, entry: DemoEntry | null) {
+  written.set(date, entry)
+}
+
+/** Dùng trong test để mỗi test bắt đầu từ dữ liệu mẫu gốc. */
+export function clearDemoWrites() {
+  written.clear()
+}
+
+/**
+ * BẢN THỬ của "Xóa toàn bộ dữ liệu" (Hồ sơ): chuyển tab sang chế độ trống và bỏ các trang vừa ghi.
+ * Tải lại với `?demo=full` để có lại dữ liệu mẫu. Bước 12 thay bằng API xóa thật.
+ */
+export function wipeDemoData() {
+  written.clear()
+  try {
+    sessionStorage.setItem(MODE_KEY, 'empty')
+  } catch {
+    // sessionStorage bị chặn: dữ liệu mẫu vẫn hiện, chỉ là bản thử.
+  }
+}
+
+/** Các trang mẫu theo chế độ hiện tại (rỗng khi `?demo=empty`), kèm các trang vừa ghi trong tab. */
 export function demoEntries(): DemoEntry[] {
-  return demoMode() === 'empty' ? [] : DEMO_ENTRIES
+  const base = demoMode() === 'empty' ? [] : DEMO_ENTRIES
+  if (!written.size) return base
+  const byDate = new Map(base.map((e) => [e.entry_date, e]))
+  for (const [date, e] of written) {
+    if (e) byDate.set(date, e)
+    else byDate.delete(date)
+  }
+  return [...byDate.values()].sort((a, b) => a.entry_date.localeCompare(b.entry_date))
 }
 
 /** Ngày bắt đầu dùng Jotly; người dùng mới thì là hôm nay. */
@@ -184,6 +220,7 @@ export function demoJoined(today: DateString): DateString {
 }
 
 export function demoEntry(date: DateString): DemoEntry | null {
+  if (written.has(date)) return written.get(date)!
   return demoMode() === 'empty' ? null : (BY_DATE.get(date) ?? null)
 }
 

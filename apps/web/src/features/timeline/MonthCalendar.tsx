@@ -21,18 +21,18 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
   const tail = (7 - ((lead + data.days.length) % 7)) % 7
   return (
     <div
-      className="flex animate-rise flex-col gap-3 rounded-[20px] border-[1.5px] border-line bg-card p-[18px] shadow-ink"
+      className="flex animate-rise flex-col gap-2.5 rounded-[18px] border-[1.5px] border-line bg-card p-3 md:gap-3 md:rounded-[20px] md:p-[18px]"
       style={{ animationDelay: '.15s' }}
     >
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-baseline justify-between max-md:hidden">
         <span className="font-heading text-[17px] leading-6 font-semibold">{monthLabel(data.month)}</span>
         <span className="text-xs leading-[18px] text-muted-foreground tabular-nums">
           {data.recorded}/{data.countable} ngày
         </span>
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-[3px] md:gap-1">
         {DOWS.map((w) => (
-          <span key={w} aria-hidden="true" className="text-center text-[10px] leading-[14px] font-semibold text-muted-foreground">
+          <span key={w} aria-hidden="true" className="text-center text-[11px] leading-[14px] font-semibold text-muted-foreground">
             {w}
           </span>
         ))}
@@ -45,7 +45,8 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
               <span
                 key={d.day}
                 aria-hidden="true"
-                className="flex h-[60px] justify-center pt-1 text-[10px] leading-3 text-faint tabular-nums"
+                // Không đặt chiều cao: hàng toàn ngày chưa tới thu gọn, hàng lẫn với ngày đã qua tự giãn theo ô bên cạnh.
+                className="flex min-h-7 justify-center pt-1 text-[11px] leading-3 text-faint tabular-nums"
               >
                 {d.day}
               </span>
@@ -64,10 +65,12 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
               iconSetId={iconSetId}
               state={isToday ? 'today' : 'past'}
               label={label}
+              numberPosition="top"
               onClick={() => onSelect(d.day)}
               className={cn(
-                'min-h-[60px] pt-1 transition-transform duration-200 ease-[cubic-bezier(.3,1.5,.5,1)] hover:[transform:translateY(-3px)_scale(1.1)] active:[transform:scale(.94)]',
+                'min-h-[54px] pt-1 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:[transform:translateY(-2px)_scale(1.04)] active:[transform:scale(.97)] md:min-h-[60px]',
                 selected === d.day && 'shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]',
+                d.kind === 'open' && 'animate-pend',
               )}
               iconClassName="animate-pop"
               iconStyle={{
@@ -80,7 +83,8 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
           <span key={`t${i}`} aria-hidden="true" />
         ))}
       </div>
-      <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs leading-[18px] text-muted-foreground">
+      <p className="text-xs leading-[18px] text-muted-foreground md:hidden">Chạm một ngày để xem nhanh.</p>
+      <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs leading-[18px] text-muted-foreground max-md:hidden">
         <span className="inline-flex items-center gap-1.5">
           <span aria-hidden="true" className="size-3 rounded-full border-[1.5px] border-dashed border-muted-foreground" />
           Không ghi

@@ -31,6 +31,16 @@ describe('Hộp thoại Chia sẻ', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`${window.location.origin}/s/${SEEDED}`)
   })
 
+  it('điện thoại: xem trước gập lại, bấm để mở và ẩn', async () => {
+    renderWithMe([{ path: '/day/:date', Component: DayPage }], '/day/2026-10-18')
+    fireEvent.click(await screen.findByRole('button', { name: 'Đang chia sẻ' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Chia sẻ trang 18/10/2026' })
+    const toggle = within(dialog).getByRole('button', { name: 'Xem trước' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    expect(within(dialog).getByRole('button', { name: 'Ẩn xem trước' })).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('bỏ hết thì không sao chép được; tắt link rồi bật lại tạo link mới', async () => {
     renderWithMe([{ path: '/day/:date', Component: DayPage }], '/day/2026-10-18')
     fireEvent.click(await screen.findByRole('button', { name: 'Chia sẻ' }))
@@ -76,11 +86,11 @@ describe('Trang người nhận xem', () => {
 })
 
 describe('Trang đang chia sẻ', () => {
-  it('5 link mỗi trang; tắt link cần xác nhận rồi báo đã tắt', async () => {
+  it('dưới 20 link thì hiện hết, không phân trang; tắt link cần xác nhận rồi báo đã tắt', async () => {
     renderWithMe([{ path: '/profile/shares', Component: SharedListPage }], '/profile/shares')
     expect(await screen.findByText('7 trang đang mở link.')).toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(5)
-    expect(screen.getByText(/Hiển thị 1–5 trong 7 trang/)).toBeInTheDocument()
+    expect(screen.getAllByRole('article')).toHaveLength(7)
+    expect(screen.queryByRole('navigation', { name: 'Phân trang' })).not.toBeInTheDocument()
 
     const first = screen.getAllByRole('article')[0]
     expect(within(first).getByText('Đang ẩn: Từ khóa')).toBeInTheDocument()
@@ -89,8 +99,5 @@ describe('Trang đang chia sẻ', () => {
     fireEvent.click(within(alert).getByRole('button', { name: 'Tắt link' }))
     expect(await screen.findByText('Đã tắt link trang 18/10/2026')).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText('6 trang đang mở link.')).toBeInTheDocument())
-
-    fireEvent.click(screen.getByRole('button', { name: 'Trang 2' }))
-    expect(await screen.findByText(/Hiển thị 6–6 trong 6 trang/)).toBeInTheDocument()
   })
 })

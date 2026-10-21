@@ -56,7 +56,7 @@ describe('Year in Pixels cả năm', () => {
 })
 
 describe('Hồ sơ & cài đặt', () => {
-  it('lưu tên và múi giờ qua PATCH /me, đổi chế độ màu, xóa tài khoản cần gõ XÓA', async () => {
+  it('lưu tên và múi giờ qua PATCH /me, đổi chế độ màu, xóa dữ liệu gõ XÓA, xóa tài khoản gõ email', async () => {
     const me = makeMe()
     const calls = mockApi(me)
     renderWithMe([{ path: '/profile', Component: ProfilePage }], '/profile', me)
@@ -75,11 +75,25 @@ describe('Hồ sơ & cài đặt', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Theo hệ thống' }))
     expect(getThemePreference()).toBe('system')
 
-    fireEvent.click(screen.getByRole('button', { name: /Xóa tài khoản/ }))
-    const dialog = await screen.findByRole('alertdialog')
-    const confirm = within(dialog).getByRole('button', { name: 'Xóa vĩnh viễn' })
-    expect(confirm).toBeDisabled()
-    fireEvent.change(within(dialog).getByLabelText(/để xác nhận/), { target: { value: 'xóa' } })
-    expect(confirm).toBeEnabled()
+    // Không còn xuất dữ liệu (canvas, quyết định 21/10/2026).
+    expect(screen.queryByText('Tải dữ liệu về')).not.toBeInTheDocument()
+
+    // Có hai nút: dòng trên điện thoại và nút trên máy tính (CSS ẩn một trong hai; jsdom không áp CSS).
+    fireEvent.click(screen.getAllByRole('button', { name: /Xóa dữ liệu|Xóa toàn bộ dữ liệu/ })[0])
+    const wipe = await screen.findByRole('alertdialog', { name: 'Xóa toàn bộ dữ liệu?' })
+    const confirmWipe = within(wipe).getByRole('button', { name: 'Xóa vĩnh viễn' })
+    expect(confirmWipe).toBeDisabled()
+    fireEvent.change(within(wipe).getByLabelText(/để xác nhận/), { target: { value: 'xoa' } })
+    expect(confirmWipe).toBeEnabled()
+    fireEvent.click(within(wipe).getByRole('button', { name: 'Giữ lại' }))
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Xóa tài khoản/ })[0])
+    const account = await screen.findByRole('alertdialog', { name: 'Xóa tài khoản Jotly?' })
+    const confirmAccount = within(account).getByRole('button', { name: 'Xóa tài khoản' })
+    fireEvent.change(within(account).getByLabelText(/để xác nhận/), { target: { value: 'XÓA' } })
+    expect(confirmAccount).toBeDisabled()
+    fireEvent.change(within(account).getByLabelText(/để xác nhận/), { target: { value: ` ${me.email.toUpperCase()} ` } })
+    expect(confirmAccount).toBeEnabled()
   })
 })

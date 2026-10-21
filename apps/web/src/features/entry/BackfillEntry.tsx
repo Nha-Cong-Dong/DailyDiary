@@ -1,4 +1,4 @@
-import { CircleCheck, History } from 'lucide-react'
+import { ArrowLeft, CircleCheck, History } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { MoodMark } from '@/components/diary/MoodMark'
@@ -12,9 +12,10 @@ import { useProfile } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { applyDraft, dateTimeLabel, dayMonth, daysBetween, draftOf } from './entryDraft'
-import { BackLink, ExtraFields, Notice } from './components/EntryFormParts'
+import { BackLink, ExtraFields, Notice, PhoneBar, phoneIconButton } from './components/EntryFormParts'
 import { useWriteDay } from './localDays'
 import { useDay } from './useDay'
+import { useFrequentSubIcons } from './useFrequentSubIcons'
 
 type Extras = { sub_icon: string | null; flag_color: string | null; title: string; content: string }
 const NO_EXTRAS: Extras = { sub_icon: null, flag_color: null, title: '', content: '' }
@@ -80,6 +81,7 @@ function TimelinePreview({ record, extras }: { record: DemoEntry; extras: Extras
 function BackfillForm({ date, today }: { date: DateString; today: DateString }) {
   const { timeZone, iconSetId } = useProfile()
   const writeDay = useWriteDay()
+  const { data: frequentIcons } = useFrequentSubIcons()
   const [record, setRecord] = useState<DemoEntry | null>(null)
   const [saved, setSaved] = useState<Extras>(NO_EXTRAS)
   const [extras, setExtras] = useState<Extras>(NO_EXTRAS)
@@ -133,31 +135,50 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
   }
 
   const ago = daysBetween(date, today)
+  const heading = record ? `Ghi bù cho ngày ${dayMonth(date)}` : 'Ngày này bạn chưa ghi'
   return (
-    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-6">
-      <BackLink to="/timeline">Dòng thời gian</BackLink>
-      <section aria-labelledby="bf-h" className="flex flex-col gap-[18px]">
-        <div className="flex animate-rise flex-col gap-1.5">
-          <p className="flex flex-wrap items-center gap-2 text-sm leading-[22px] text-muted-foreground">
+    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 md:gap-6">
+      {/* Điện thoại (B10 · Ghi bù): thanh trên riêng có nút về Dòng thời gian. */}
+      <PhoneBar
+        start={
+          <Link to="/timeline" aria-label="Về Dòng thời gian" className={phoneIconButton}>
+            <ArrowLeft className="size-[22px]" aria-hidden="true" />
+          </Link>
+        }
+        title={`Ghi bù ${dayMonth(date)}`}
+      />
+      <BackLink to="/timeline" className="max-md:hidden">
+        Dòng thời gian
+      </BackLink>
+      <section aria-labelledby="bf-h" className="flex flex-col gap-5 md:gap-[18px]">
+        <div className="flex animate-rise flex-col gap-1 md:gap-1.5">
+          <p className="flex flex-wrap items-center gap-2 text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
             {longDateLabel(date)}
-            <span className="rounded-full border-[1.5px] border-dashed border-border px-2 text-xs leading-[18px] font-semibold">
+            <span className="rounded-full border-[1.5px] border-dashed border-border px-2 text-[11px] leading-[18px] font-semibold md:text-xs">
               {ago === 1 ? 'Hôm qua' : `${ago} ngày trước`}
             </span>
           </p>
-          <h1 id="bf-h" className="text-[clamp(28px,3vw,34px)] leading-[1.25] font-bold">
-            {record ? `Ghi bù cho ngày ${dayMonth(date)}` : 'Ngày này bạn chưa ghi'}
+          <h1 id="bf-h" className="text-[25px] leading-8 font-bold md:text-[clamp(28px,3vw,34px)] md:leading-[1.25]">
+            {heading}
           </h1>
         </div>
         <fieldset className="m-0 min-w-0 animate-rise border-0 p-0 [animation-delay:.06s]">
           <legend className="sr-only">Điểm của ngày {dayMonth(date)}</legend>
-          <ScorePicker iconSetId={iconSetId} value={record?.score ?? null} onChange={pick} caption="label" className="gap-1.5 sm:gap-2.5" />
+          <ScorePicker
+            iconSetId={iconSetId}
+            value={record?.score ?? null}
+            onChange={pick}
+            caption="label"
+            className="gap-1.5 sm:gap-2.5"
+            itemClassName="max-md:min-h-[76px] max-md:rounded-[14px]"
+          />
         </fieldset>
         {record ? (
-          <p role="status" className="flex flex-wrap items-center gap-x-2.5 gap-y-2 text-[15px] leading-6">
+          <p role="status" className="-mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm leading-[22px] md:mt-0 md:gap-x-2.5 md:gap-y-2 md:text-[15px] md:leading-6">
             <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
             Đã ghi bù lúc {dateTimeLabel(timeZone, record.created_at, false)}
             <BackfillChip />
-            <span className="text-muted-foreground">· bản thử, chưa lưu lên máy chủ</span>
+            <span className="text-muted-foreground max-md:hidden">· bản thử, chưa lưu lên máy chủ</span>
             <button
               type="button"
               onClick={undo}
@@ -167,10 +188,13 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
             </button>
           </p>
         ) : (
-          <p className="text-[15px] leading-6 text-muted-foreground">Chấm điểm là ghi bù xong. Viết thêm hay không tùy bạn.</p>
+          <p className="-mt-1.5 text-sm leading-[22px] text-muted-foreground md:mt-0 md:text-[15px] md:leading-6">
+            Chấm điểm là ghi bù xong. Viết thêm hay không tùy bạn.
+          </p>
         )}
-        <Notice className="animate-rise [animation-delay:.1s]">
-          Ngày ghi bù vẫn được tô màu trong Year in Pixels và lịch tháng, nhưng không nối lại chuỗi ngày liên tiếp.
+        <Notice className="animate-rise [animation-delay:.1s] max-md:rounded-[12px] max-md:px-3 max-md:py-2.5 max-md:text-[13px] max-md:leading-5">
+          Ngày ghi bù vẫn được tô màu<span className="max-md:hidden"> trong Year in Pixels và lịch tháng</span>, nhưng không nối lại
+          chuỗi ngày liên tiếp.
         </Notice>
       </section>
 
@@ -178,13 +202,13 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
         <>
           <section
             aria-labelledby="bf-more"
-            className="flex animate-rise flex-col gap-6 rounded-lg border-[1.5px] border-line bg-card p-[clamp(20px,4vw,28px)] shadow-ink"
+            className="flex animate-rise flex-col gap-[18px] rounded-[18px] border-[1.5px] border-line bg-card p-4 shadow-ink-sm md:gap-6 md:rounded-lg md:p-[clamp(20px,4vw,28px)] md:shadow-ink"
           >
             <div className="flex items-baseline justify-between gap-3">
-              <h2 id="bf-more" className="text-xl leading-7 font-semibold">
+              <h2 id="bf-more" className="text-lg leading-[26px] font-semibold md:text-xl md:leading-7">
                 Thêm chút nữa?
               </h2>
-              <span className="text-[13px] leading-5 text-muted-foreground">Không bắt buộc</span>
+              <span className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5">Không bắt buộc</span>
             </div>
             <ExtraFields
               sub={extras.sub_icon}
@@ -198,25 +222,60 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
               titlePlaceholder={`Ngày ${dayMonth(date)} thế nào?`}
               contentPlaceholder="Bạn còn nhớ gì về ngày này?"
               contentRows={3}
+              frequentIcons={frequentIcons}
             />
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-border pt-4">
-              <span role="status" className="text-[13px] leading-5 text-muted-foreground">
+            {/* Điện thoại: trạng thái ở trên, nút Lưu rộng hết thẻ ở dưới (B10). */}
+            <div className="flex flex-col gap-2.5 border-t-[1.5px] border-dashed border-border pt-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3 md:pt-4">
+              <span role="status" className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5">
                 {dirty
                   ? 'Có thay đổi chưa lưu'
                   : savedAt
                     ? `Đã lưu lúc ${dateTimeLabel(timeZone, savedAt, false)}`
-                    : 'Điểm đã được ghi. Phần này lưu khi bấm Lưu.'}
+                    : 'Điểm đã được lưu. Phần này lưu khi bấm Lưu.'}
               </span>
               {dirty ? (
-                <Button className="animate-pop" onClick={save}>
+                <Button className="animate-pop max-md:h-12 max-md:rounded-[14px]" onClick={save}>
                   Lưu
                 </Button>
               ) : null}
             </div>
           </section>
-          <TimelinePreview record={record} extras={extras} />
+          {/* Thẻ xem trước chỉ có ở bản máy tính (B9). */}
+          <div className="max-md:hidden">
+            <TimelinePreview record={record} extras={extras} />
+          </div>
         </>
-      ) : null}
+      ) : (
+        // Máy tính: chưa chấm điểm thì vẫn cho thấy phần sẽ mở ra (mờ, chưa bấm được), để màn không trống quá nửa.
+        // Điện thoại giữ đúng B10: phần này chỉ hiện sau khi chấm.
+        <section
+          aria-labelledby="bf-more-locked"
+          className="flex flex-col gap-6 rounded-lg border-[1.5px] border-dashed border-border p-[clamp(20px,4vw,28px)] max-md:hidden"
+        >
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="bf-more-locked" className="text-xl leading-7 font-semibold text-muted-foreground">
+              Thêm chút nữa?
+            </h2>
+            <span className="text-[13px] leading-5 text-muted-foreground">Mở sau khi chấm điểm</span>
+          </div>
+          <div inert aria-hidden="true" className="flex flex-col gap-6 opacity-45 select-none">
+            <ExtraFields
+              sub={null}
+              onSub={() => {}}
+              flag={null}
+              onFlag={() => {}}
+              title=""
+              onTitle={() => {}}
+              content=""
+              onContent={() => {}}
+              titlePlaceholder={`Ngày ${dayMonth(date)} thế nào?`}
+              contentPlaceholder="Bạn còn nhớ gì về ngày này?"
+              contentRows={3}
+              frequentIcons={frequentIcons}
+            />
+          </div>
+        </section>
+      )}
     </div>
   )
 }

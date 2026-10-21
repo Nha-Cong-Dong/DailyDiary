@@ -44,6 +44,16 @@ describe('Sửa một trang cũ', () => {
     expect(screen.getByText('Chưa có thay đổi')).toBeInTheDocument()
   })
 
+  it('sub icon trên máy tính: một hàng hay dùng, bấm Thêm mới mở đủ bộ', async () => {
+    renderEdit()
+    await screen.findByRole('heading', { name: 'Sửa trang' })
+    const more = await screen.findByRole('button', { name: /^Thêm \d+$/ })
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText('Hay dùng nhất trong nhật ký của bạn.')).toBeInTheDocument()
+    fireEvent.click(more)
+    expect(screen.getByRole('button', { name: 'Thu gọn' })).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('Hủy thay đổi hỏi lại, nêu đúng trường sẽ mất, rồi đưa về bản đã lưu', async () => {
     renderEdit()
     fireEvent.change(await screen.findByLabelText('Tiêu đề'), { target: { value: 'Tối nấu ăn' } })
@@ -77,20 +87,46 @@ describe('Sửa một trang cũ', () => {
     expect(await screen.findByRole('heading', { name: 'Trang ngày' })).toBeInTheDocument()
   })
 
-  it('ảnh HEIC và ảnh quá lớn hiện ô báo lỗi, không tính vào số ảnh', async () => {
+  it('từ khóa: Enter để thêm; gõ trùng thì báo ngay và không cho thêm', async () => {
+    renderEdit()
+    const input = await screen.findByLabelText('Từ khóa')
+    fireEvent.change(input, { target: { value: 'nấu ăn' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(screen.getByRole('button', { name: 'Bỏ từ khóa nấu ăn' })).toBeInTheDocument()
+    expect(input).toHaveValue('')
+
+    fireEvent.change(input, { target: { value: 'Nấu  Ăn' } })
+    expect(screen.getByText('Từ khóa “nấu ăn” đã có trong trang này.')).toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.queryByRole('button', { name: 'Thêm' })).not.toBeInTheDocument()
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(screen.getAllByRole('button', { name: /^Bỏ từ khóa/ })).toHaveLength(1)
+  })
+
+  it('cờ hiệu có ô "Không cờ" để bỏ cờ', async () => {
+    renderEdit()
+    await screen.findByRole('heading', { name: 'Sửa trang' })
+    expect(screen.getByRole('button', { name: 'Không cờ' })).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(screen.getByRole('button', { name: 'Không cờ' }))
+    expect(screen.getByRole('button', { name: 'Không cờ' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Cờ hiệu · Không cờ')).toBeInTheDocument()
+    expect(screen.getByText('1 thay đổi chưa lưu')).toBeInTheDocument()
+  })
+
+  it('ảnh sai định dạng và ảnh quá lớn hiện ô báo lỗi, không tính vào số ảnh', async () => {
     const { container } = renderEdit()
     await screen.findByRole('heading', { name: 'Sửa trang' })
     expect(screen.getByText('2/10')).toBeInTheDocument()
     const input = container.querySelector<HTMLInputElement>('input[type="file"]')!
-    const heic = new File(['x'], 'IMG.heic', { type: 'image/heic' })
+    const gif = new File(['x'], 'IMG.gif', { type: 'image/gif' })
     const big = new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'to.jpg', { type: 'image/jpeg' })
     await act(async () => {
-      fireEvent.change(input, { target: { files: [heic, big] } })
+      fireEvent.change(input, { target: { files: [gif, big] } })
     })
-    expect(screen.getByText('Ảnh HEIC')).toBeInTheDocument()
+    expect(screen.getByText('Sai định dạng')).toBeInTheDocument()
     expect(screen.getByText('Ảnh quá lớn')).toBeInTheDocument()
     expect(screen.getByText('2/10')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Bỏ ảnh IMG.heic' }))
-    expect(screen.queryByText('Ảnh HEIC')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Bỏ ảnh IMG.gif' }))
+    expect(screen.queryByText('Sai định dạng')).not.toBeInTheDocument()
   })
 })

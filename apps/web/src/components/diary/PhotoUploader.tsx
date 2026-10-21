@@ -6,8 +6,9 @@ import { cn } from '@/lib/utils'
 import { PHOTO_TINTS } from './photoTints'
 import { countsTowardLimit, type PhotoUploads, type UploadTile } from './usePhotoUploads'
 
+// Điện thoại: ô vuông theo lưới 4 cột (B10). Máy tính: ô 96px xếp hàng (B9).
 const tileBase =
-  'group relative flex size-24 shrink-0 flex-col items-center justify-center gap-1 rounded-[14px] border-[1.5px] text-center'
+  'group relative flex aspect-square w-full shrink-0 flex-col items-center justify-center gap-0.5 rounded-[12px] border-[1.5px] text-center md:size-24 md:gap-1 md:rounded-[14px]'
 const caption = 'text-xs leading-[18px]'
 
 /** Vòng tiến độ quanh biểu tượng ảnh (thiết kế B9 · Tải ảnh lên). */
@@ -30,10 +31,10 @@ function ProgressRing({ progress }: { progress: number }) {
   )
 }
 
-function RejectedText({ reason }: { reason: 'heic' | 'type' | 'size' }) {
+function RejectedText({ reason }: { reason: 'type' | 'size' }) {
   const max = megabytesLabel(tierLimits().photos.source_max_bytes)
   const [title, detail] =
-    reason === 'size' ? ['Ảnh quá lớn', `Quá ${max}`] : reason === 'heic' ? ['Ảnh HEIC', 'Chưa hỗ trợ'] : ['Sai định dạng', 'Không hỗ trợ']
+    reason === 'size' ? ['Ảnh quá lớn', `Quá ${max}`] : ['Sai định dạng', 'Không hỗ trợ']
   return (
     <>
       <ImageOff className="size-5 text-destructive" aria-hidden="true" />
@@ -51,7 +52,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
     <li
       className={cn(
         tileBase,
-        'animate-pop overflow-hidden transition-transform duration-200 ease-[cubic-bezier(.3,1.4,.5,1)] hover:[transform:rotate(-2deg)_translateY(-3px)]',
+        'animate-pop transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5',
         tile.status === 'rejected'
           ? 'border-dashed border-destructive bg-destructive-soft p-1.5'
           : tile.status === 'failed'
@@ -59,7 +60,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
             : cn('border-line text-[#6A6255]', !preview && tint),
       )}
     >
-      {preview ? <img src={preview} alt={name} className="absolute inset-0 size-full object-cover" /> : null}
+      {preview ? <img src={preview} alt={name} className="absolute inset-0 size-full rounded-[10.5px] object-cover md:rounded-[12.5px]" /> : null}
       {tile.status === 'done' && !preview ? (
         <>
           <Image className="size-6" aria-hidden="true" />
@@ -94,7 +95,8 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
         onClick={onRemove}
         aria-label={`Bỏ ảnh ${name}`}
         className={cn(
-          'absolute top-1 right-1 flex size-7 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-line bg-card text-foreground transition-[opacity,transform] hover:scale-110 focus-visible:opacity-100 focus-visible:outline-3 focus-visible:outline-ring',
+          // Nút bỏ nằm chờm ra ngoài góc ô (B9, B10).
+          'absolute -top-2 -right-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-line bg-card text-foreground transition-[opacity,transform] hover:scale-105 focus-visible:opacity-100 focus-visible:outline-3 focus-visible:outline-ring md:-top-[9px] md:-right-[9px] md:size-[26px]',
           // Ô lỗi luôn hiện nút bỏ; ô ảnh chỉ hiện khi rê chuột (máy cảm ứng thì luôn hiện).
           tile.status === 'rejected' || tile.status === 'failed'
             ? 'opacity-100'
@@ -164,7 +166,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
             : 'border-transparent',
         )}
       >
-        <ul className="flex flex-wrap gap-3">
+        <ul className="grid grid-cols-4 gap-2.5 pt-1.5 md:flex md:flex-wrap md:gap-3 md:pt-0">
           {uploads.tiles.map((tile, i) => (
             <Tile key={tile.key} tile={tile} index={i} onRemove={() => uploads.remove(tile.key)} onRetry={() => uploads.retry(tile.key)} />
           ))}
@@ -197,12 +199,12 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
                   onClick={() => inputRef.current?.click()}
                   className={cn(
                     tileBase,
-                    'cursor-pointer border-dashed border-line bg-transparent transition-transform duration-200 hover:-translate-y-[3px] hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+                    'cursor-pointer border-dashed border-line bg-transparent transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
                     dragging && 'border-solid bg-card',
                   )}
                 >
-                  <ImagePlus className="size-6" aria-hidden="true" />
-                  <span className="text-[13px] leading-[18px] font-medium">{dragging ? 'Thả ảnh vào đây' : 'Thêm ảnh'}</span>
+                  <ImagePlus className="size-5 md:size-6" aria-hidden="true" />
+                  <span className="text-[11px] leading-4 font-medium md:text-[13px] md:leading-[18px]">{dragging ? 'Thả ảnh vào đây' : 'Thêm ảnh'}</span>
                 </button>
               </>
             )}
