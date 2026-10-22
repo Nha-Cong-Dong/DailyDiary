@@ -1,0 +1,124 @@
+import unicodedata
+from datetime import datetime
+from typing import Literal
+from uuid import UUID
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from pydantic import BaseModel, ConfigDict, field_validator
+
+from app.core.catalog import get_icons
+
+AccountTier = Literal["beta", "free", "premium"]
+
+
+def valid_timezone(value: str) -> str:
+    """Múi giờ IANA có thật (vd Asia/Ho_Chi_Minh, kể cả tên cũ Asia/Saigon mà Chromium trả về)."""
+    try:
+        ZoneInfo(value)
+    except (ZoneInfoNotFoundError, ValueError) as exc:  # ValueError: chuỗi như "../x"
+        raise ValueError("múi giờ không hợp lệ") from exc
+    return value
+
+
+class User(BaseModel):
+    """Người dùng hiện tại (đọc từ DB, dùng trong backend)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    id: UUID
+    email: str
+    display_name: str
+    avatar_url: str | None
+    timezone: str
+    icon_set_id: str
+    account_tier: AccountTier
+    joined_at: datetime
+    onboarded_at: datetime | None
+
+    @classmethod
+    def from_doc(cls, doc: dict) -> "User":
+        return cls(
+            id=doc["_id"],
+            email=doc["email"],
+            display_name=doc["display_name"],
+            avatar_url=doc.get("avatar_url"),
+            timezone=doc["timezone"],
+            icon_set_id=doc.get("icon_set_id") or get_icons().default_icon_set,
+            account_tier=doc["account_tier"],
+            joined_at=doc["joined_at"],
+            onboarded_at=doc.get("onboarded_at"),
+        )
+
+
+class MeOut(BaseModel):
+    """GET/PATCH /me. Không trả google_sub hay id nội bộ."""
+
+    email: str
+    display_name: str
+    avatar_url: str | None
+    timezone: str
+    icon_set_id: str
+    account_tier: AccountTier
+    joined_at: datetime
+    onboarded: bool
+
+    @classmethod
+    def from_user(cls, user: User) -> "MeOut":
+        return cls(
+            email=user.email,
+            display_name=user.display_name,
+            avatar_url=user.avatar_url,
+            timezone=user.timezone,
+            icon_set_id=user.icon_set_id,
+            account_tier=user.account_tier,
+            joined_at=user.joined_at,
+            onboarded=user.onboarded_at is not None,
+        )
+
+
+class MeUpdate(BaseModel):
+    """PATCH /me: chỉ các trường dưới đây, trường khác bị từ chối.
+
+    Độ dài tên kiểm ở service, theo limits.json của cấp tài khoản.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    display_name: str | None = None
+    timezone: str | None = None
+    icon_set_id: str | None = None
+    # Chỉ cho gỡ ảnh (null). Đổi ảnh tải lên ở Bước 7; không bao giờ nhận URL tùy ý từ client.
+    avatar_url: None = None
+    # Hoàn tất 3 bước lần đầu (chỉ đặt được, không gỡ).
+    onboarded: Literal[True] | None = None
+
+    @field_validator("display_name")
+    @classmethod
+    def _name(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        v = " ".join(unicodedata.normalize("NFC", v).split())
+        if not v:
+            raise ValueError("tên không được để trống")
+        return v
+
+    @field_validator("timezone")
+    @classmethod
+    def _tz(cls, v: str | None) -> str | None:
+        return None if v is None else valid_timezone(v)
+
+    @field_validator("icon_set_id")
+    @classmethod
+    def _icon_set(cls, v: str | None) -> str | None:
+        if v is not None and v not in get_icons().icon_set_ids:
+            raise ValueError("bộ icon không tồn tại")
+        return v
+
+
+class DevLoginIn(BaseModel):
+    """POST /auth/dev-login (chỉ local/test)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = "dev@example.com"
+    display_name: str | None = None

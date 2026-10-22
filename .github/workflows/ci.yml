@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      mongo:
+        image: mongo:8.0.34
+        env:
+          MONGO_INITDB_ROOT_USERNAME: dd
+          MONGO_INITDB_ROOT_PASSWORD: dd
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      ENV: test
+      MONGODB_URI: mongodb://dd:dd@localhost:27017/?authSource=admin
+      MONGODB_DB: dailydiary_ci
+      MONGODB_TEST_DB: dailydiary_test
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --locked
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Migration chạy được và chạy lại không đổi gì
+        run: |
+          uv run python -m app.db.migrate
+          uv run python -m app.db.migrate | grep -q "Không có migration mới"
+      - name: Test
+        run: uv run pytest -q
+      - name: OpenAPI đã commit khớp với code backend (chạy npm run gen:api nếu lệch)
+        run: |
+          uv run python scripts/export_openapi.py "$RUNNER_TEMP/openapi.json"
+          diff -u ../web/src/api/openapi.json "$RUNNER_TEMP/openapi.json"
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - name: schema.d.ts khớp với openapi.json (chạy npm run gen:api nếu lệch)
+        run: |
+          npx openapi-typescript src/api/openapi.json -o src/api/schema.d.ts
+          git diff --exit-code -- src/api/schema.d.ts
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [api, web]
+    services:
+      mongo:
+        image: mongo:8.0.34
+        env:
+          MONGO_INITDB_ROOT_USERNAME: dd
+          MONGO_INITDB_ROOT_PASSWORD: dd
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      MONGODB_URI: mongodb://dd:dd@localhost:27017/?authSource=admin
+      MONGODB_DB: dailydiary_e2e
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: uv python install 3.12 && uv sync --locked && uv run python -m app.db.migrate
+        working-directory: apps/api
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run test:e2e
+        working-directory: apps/web
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/test-results/

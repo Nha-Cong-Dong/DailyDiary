@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "_note": "8 màu cờ hiệu theo thiết kế Jotly (Bước 2). Nhật ký lưu `hex` (bản nền sáng); giao diện tối đổi sang `hex_dark` qua bảng này.",
+  "colors": [
+    {
+      "id": "blush",
+      "name": "Hồng phấn",
+      "hex": "#E3A4A8",
+      "hex_dark": "#C98B8F"
+    },
+    {
+      "id": "peach",
+      "name": "Đào",
+      "hex": "#DEAB8A",
+      "hex_dark": "#C39271"
+    },
+    {
+      "id": "butter",
+      "name": "Vàng bơ",
+      "hex": "#DFCE8D",
+      "hex_dark": "#C2B171"
+    },
+    {
+      "id": "sage",
+      "name": "Sage",
+      "hex": "#A3C392",
+      "hex_dark": "#8AA97A"
+    },
+    {
+      "id": "mint",
+      "name": "Bạc hà",
+      "hex": "#83C8B5",
+      "hex_dark": "#6AAE9C"
+    },
+    {
+      "id": "sky",
+      "name": "Xanh trời",
+      "hex": "#84C1DE",
+      "hex_dark": "#6CA8C4"
+    },
+    {
+      "id": "periwinkle",
+      "name": "Dừa cạn",
+      "hex": "#ADB3E7",
+      "hex_dark": "#959ACD"
+    },
+    {
+      "id": "lavender",
+      "name": "Oải hương",
+      "hex": "#D3A6CE",
+      "hex_dark": "#BA8EB5"
+    }
+  ]
+}

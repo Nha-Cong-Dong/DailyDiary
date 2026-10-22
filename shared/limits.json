@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "default_tier": "beta",
+  "ip_rate_limits": {
+    "login": "5/minute",
+    "share_view": "60/minute"
+  },
+  "tiers": {
+    "beta": {
+      "entry": {
+        "title_max": 100,
+        "content_max": 20000,
+        "keywords_max": 10,
+        "keyword_len_min": 1,
+        "keyword_len_max": 30
+      },
+      "photos": {
+        "per_day_max": 10,
+        "source_max_bytes": 10485760,
+        "main_max_bytes": 1572864,
+        "thumb_max_bytes": 204800,
+        "main_max_edge_px": 1920,
+        "thumb_max_edge_px": 320,
+        "webp_quality": 0.8,
+        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
+      },
+      "storage": {
+        "quota_bytes": 524288000,
+        "warn_ratio": 0.8
+      },
+      "profile": {
+        "display_name_max": 50,
+        "avatar_max_bytes": 2097152,
+        "avatar_edge_px": 256
+      },
+      "pagination": {
+        "entries_page_size": 20,
+        "search_page_size": 30
+      },
+      "feedback": {
+        "message_max": 2000
+      },
+      "rate_limits": {
+        "read": "30/minute",
+        "me": "120/minute",
+        "autosave": "20/minute",
+        "write": "10/minute",
+        "photo_upload": "10/minute;50/day",
+        "feedback": "5/minute"
+      }
+    },
+    "free": {
+      "entry": {
+        "title_max": 100,
+        "content_max": 20000,
+        "keywords_max": 10,
+        "keyword_len_min": 1,
+        "keyword_len_max": 30
+      },
+      "photos": {
+        "per_day_max": 10,
+        "source_max_bytes": 10485760,
+        "main_max_bytes": 1572864,
+        "thumb_max_bytes": 204800,
+        "main_max_edge_px": 1920,
+        "thumb_max_edge_px": 320,
+        "webp_quality": 0.8,
+        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
+      },
+      "storage": {
+        "quota_bytes": 524288000,
+        "warn_ratio": 0.8
+      },
+      "profile": {
+        "display_name_max": 50,
+        "avatar_max_bytes": 2097152,
+        "avatar_edge_px": 256
+      },
+      "pagination": {
+        "entries_page_size": 20,
+        "search_page_size": 30
+      },
+      "feedback": {
+        "message_max": 2000
+      },
+      "rate_limits": {
+        "read": "30/minute",
+        "me": "120/minute",
+        "autosave": "20/minute",
+        "write": "10/minute",
+        "photo_upload": "10/minute;50/day",
+        "feedback": "5/minute"
+      }
+    },
+    "premium": {
+      "entry": {
+        "title_max": 100,
+        "content_max": 20000,
+        "keywords_max": 10,
+        "keyword_len_min": 1,
+        "keyword_len_max": 30
+      },
+      "photos": {
+        "per_day_max": 10,
+        "source_max_bytes": 10485760,
+        "main_max_bytes": 1572864,
+        "thumb_max_bytes": 204800,
+        "main_max_edge_px": 1920,
+        "thumb_max_edge_px": 320,
+        "webp_quality": 0.8,
+        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
+      },
+      "storage": {
+        "quota_bytes": 524288000,
+        "warn_ratio": 0.8
+      },
+      "profile": {
+        "display_name_max": 50,
+        "avatar_max_bytes": 2097152,
+        "avatar_edge_px": 256
+      },
+      "pagination": {
+        "entries_page_size": 20,
+        "search_page_size": 30
+      },
+      "feedback": {
+        "message_max": 2000
+      },
+      "rate_limits": {
+        "read": "30/minute",
+        "me": "120/minute",
+        "autosave": "20/minute",
+        "write": "10/minute",
+        "photo_upload": "10/minute;50/day",
+        "feedback": "5/minute"
+      }
+    }
+  }
+}

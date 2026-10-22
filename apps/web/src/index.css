@@ -1,0 +1,279 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./styles/shadcn-tailwind.css";
+@import "./styles/motion.css";
+@import "@fontsource/be-vietnam-pro/vietnamese-400.css";
+@import "@fontsource/be-vietnam-pro/vietnamese-500.css";
+@import "@fontsource/be-vietnam-pro/vietnamese-600.css";
+@import "@fontsource/be-vietnam-pro/vietnamese-700.css";
+@import "@fontsource/be-vietnam-pro/latin-400.css";
+@import "@fontsource/be-vietnam-pro/latin-500.css";
+@import "@fontsource/be-vietnam-pro/latin-600.css";
+@import "@fontsource/be-vietnam-pro/latin-700.css";
+@import "@fontsource/lora/vietnamese-600.css";
+@import "@fontsource/lora/vietnamese-700.css";
+@import "@fontsource/lora/latin-600.css";
+@import "@fontsource/lora/latin-700.css";
+/* Young Serif chỉ dùng cho chữ "Jotly" trong logo, không có bộ tiếng Việt. */
+@import "@fontsource/young-serif/latin-400.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Hệ thiết kế Jotly: màu "Mực & giấy", chữ "Sổ tay", nền tảng "Sổ dán" (viền mực + bóng cứng). */
+@theme inline {
+    --font-sans: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
+    --font-heading: 'Lora', Georgia, serif;
+    --font-brand: 'Young Serif', Georgia, serif;
+
+    /* Thang cỡ chữ T1 · Sổ tay */
+    --text-display: 56px;
+    --text-display--line-height: 68px;
+    --text-title-1: 40px;
+    --text-title-1--line-height: 50px;
+    --text-title-2: 30px;
+    --text-title-2--line-height: 40px;
+    --text-title-3: 22px;
+    --text-title-3--line-height: 30px;
+    --text-reading: 18px;
+    --text-reading--line-height: 30px;
+    --text-label: 12px;
+    --text-label--line-height: 16px;
+
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* Màu riêng của Jotly */
+    --color-line: var(--line);
+    --color-band: var(--band);
+    --color-pressed: var(--pressed);
+    --color-primary-hover: var(--primary-hover);
+    --color-destructive-soft: var(--destructive-soft);
+    --color-destructive-fill: var(--destructive-fill);
+    --color-highlight: var(--highlight);
+    --color-disabled: var(--disabled);
+    --color-disabled-foreground: var(--disabled-foreground);
+    --color-disabled-line: var(--disabled-line);
+    --color-faint: var(--faint);
+    --color-rule: var(--rule);
+    --color-score-1: var(--score-1);
+    --color-score-2: var(--score-2);
+    --color-score-3: var(--score-3);
+    --color-score-4: var(--score-4);
+    --color-score-5: var(--score-5);
+
+    /* Bo góc N3: sm ô lịch, md nút/ô nhập, lg thẻ/menu, xl hộp thoại/hero */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-xl: 32px;
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+
+    /* Độ nổi N3: bóng cứng, không nhòe */
+    --shadow-ink-sm: 3px 3px 0 var(--ink-shadow);
+    --shadow-ink: 4px 4px 0 var(--ink-shadow);
+    --shadow-ink-lg: 6px 6px 0 var(--ink-shadow);
+    --shadow-danger-sm: 3px 3px 0 var(--destructive);
+    --shadow-danger: 4px 4px 0 var(--destructive);
+}
+
+:root {
+    --background: #FEF7EC;
+    --foreground: #272218;
+    --card: #FFFCF8;
+    --card-foreground: #272218;
+    --popover: #FFFCF8;
+    --popover-foreground: #272218;
+    --primary: #272218;
+    --primary-foreground: #FEF7EC;
+    --secondary: #EFE7D9;
+    --secondary-foreground: #272218;
+    --muted: #F6EDE0;
+    --muted-foreground: #6A6255;
+    --accent: #EFE7D9;
+    --accent-foreground: #272218;
+    --destructive: #A43C33;
+    --border: #DFD6C8;
+    --input: #272218;
+    --ring: #266EA4;
+    --radius: 14px;
+
+    --line: #272218;
+    --ink-shadow: #272218;
+    --band: #F3EBDD;
+    --pressed: #E7DDCC;
+    --primary-hover: #3D372C;
+    --destructive-soft: #FFE7E3;
+    --destructive-fill: #A43C33;
+    --highlight: #F8DFA8;
+    --disabled: #EFE7D9;
+    --disabled-foreground: #8D8579;
+    --disabled-line: #C9C0B2;
+    --faint: #B5AC9E;
+    --rule: #C0D4E3;
+    --cta-shadow: #D59BB0;
+
+    /* Thang điểm 1–5 (Year in Pixels, lịch, main icon) */
+    --score-1: #746D9E;
+    --score-2: #A783AF;
+    --score-3: #D59BB0;
+    --score-4: #EFAA99;
+    --score-5: #FAC787;
+
+    /* Màu vẽ bên trong các bộ main icon */
+    --icon-ink: #272218;
+    --icon-face: #272218;
+    --icon-soil: #EFE7D9;
+    --icon-moon: #EDE7DD;
+    --icon-sakura-1: #BCA59D;
+    --icon-sakura-2: #E0BDC1;
+    --icon-sakura-3: #FACCDC;
+    --icon-sakura-4: #FAB2CD;
+    --icon-sakura-5: #F589B6;
+    --icon-sakura-wilt: #856B5D;
+    --icon-sakura-core: #F2CC7A;
+    --icon-sun-1: #C6BEA1;
+    --icon-sun-2: #E0CD91;
+    --icon-sun-3: #F8D376;
+    --icon-sun-4: #FFBE4D;
+    --icon-sun-5: #FFA33E;
+    --icon-cloud: #D3D8DE;
+    --icon-cloud-dark: #A4ACB4;
+    --icon-rain: #6FA5CB;
+    --icon-blush: #E58A8F;
+    --icon-tear: #98CCEB;
+
+    /* Tỉ lệ sub icon so với main icon (Project_Specs: 0,5–0,6) */
+    --sub-icon-ratio: 0.55;
+
+    --chart-1: var(--score-1);
+    --chart-2: var(--score-2);
+    --chart-3: var(--score-3);
+    --chart-4: var(--score-4);
+    --chart-5: var(--score-5);
+    --sidebar: #FFFCF8;
+    --sidebar-foreground: #272218;
+    --sidebar-primary: #272218;
+    --sidebar-primary-foreground: #FEF7EC;
+    --sidebar-accent: #EFE7D9;
+    --sidebar-accent-foreground: #272218;
+    --sidebar-border: #DFD6C8;
+    --sidebar-ring: #266EA4;
+}
+
+.dark {
+    --background: #14110D;
+    --foreground: #FEF7EC;
+    --card: #1D1A15;
+    --card-foreground: #FEF7EC;
+    --popover: #1D1A15;
+    --popover-foreground: #FEF7EC;
+    --primary: #FEF7EC;
+    --primary-foreground: #272218;
+    --secondary: #2C2822;
+    --secondary-foreground: #FEF7EC;
+    --muted: #0E0C08;
+    --muted-foreground: #B2AA9D;
+    --accent: #2C2822;
+    --accent-foreground: #FEF7EC;
+    --destructive: #E6867A;
+    --border: #34302A;
+    --input: #BDB4A5;
+    --ring: #80B7E7;
+
+    --line: #BDB4A5;
+    --ink-shadow: #4F493F;
+    --band: #1A1712;
+    --pressed: #36322C;
+    --primary-hover: #E5DDD0;
+    --destructive-soft: #3A211E;
+    --destructive-fill: #A43C33;
+    --highlight: #5A4A24;
+    --disabled: #2C2822;
+    --disabled-foreground: #68625A;
+    --disabled-line: #3F3A33;
+    --faint: #5C564D;
+    --rule: #252F37;
+    --cta-shadow: #4F493F;
+
+    --score-1: #635C8B;
+    --score-2: #9B78A3;
+    --score-3: #CB91A7;
+    --score-4: #ECA796;
+    --score-5: #FAC787;
+
+    --icon-ink: #EDE5D8;
+    --icon-soil: #2C2822;
+    --icon-moon: #2B2823;
+    --icon-cloud: #81878D;
+    --icon-cloud-dark: #5D646C;
+
+    --sidebar: #1D1A15;
+    --sidebar-foreground: #FEF7EC;
+    --sidebar-primary: #FEF7EC;
+    --sidebar-primary-foreground: #272218;
+    --sidebar-accent: #2C2822;
+    --sidebar-accent-foreground: #FEF7EC;
+    --sidebar-border: #34302A;
+    --sidebar-ring: #80B7E7;
+}
+
+/* Dòng kẻ vở theo đúng chiều cao dòng của chữ bên trong */
+@utility ruled {
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(1lh - 1px),
+        var(--rule) calc(1lh - 1px),
+        var(--rule) 1lh
+    );
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+    }
+  html.dark {
+    color-scheme: dark;
+    }
+  h1, h2, h3 {
+    @apply font-heading;
+    }
+}

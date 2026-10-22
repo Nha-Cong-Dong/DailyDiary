@@ -14,17 +14,17 @@ class Settings(BaseSettings):
 
     env: str = "local"  # local | staging | production
 
-    # DB, ví dụ postgresql+asyncpg://dd:dd@localhost:5432/dailydiary
-    database_url: str
-    test_database_url: str | None = None
-    db_behind_pgbouncer: bool = False
+    # MongoDB. Local: Docker Compose; production: chuỗi mongodb+srv:// của Atlas (đặt trong biến môi trường).
+    mongodb_uri: str = "mongodb://dd:dd@localhost:27017/?authSource=admin"
+    mongodb_db: str = "dailydiary"
+    mongodb_test_db: str = "dailydiary_test"  # test XÓA SẠCH DB này; tên bắt buộc kết thúc bằng "_test"
 
     # Frontend / cookie
     frontend_url: str = "http://localhost:5173"
     frontend_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
-    cookie_domain: str | None = None        # production: ".dailydiary.xxx"
-    cookie_secure: bool = True              # local http có thể đặt False
-    session_secret: str                     # ký cookie dd_oauth của SessionMiddleware
+    cookie_domain: str | None = None  # production: ".dailydiary.xxx"
+    cookie_secure: bool = True  # local http có thể đặt False
+    session_secret: str  # ký cookie dd_oauth của SessionMiddleware
     session_ttl_days: int = 30
 
     # Google OAuth
@@ -36,9 +36,9 @@ class Settings(BaseSettings):
     rate_limit_storage_uri: str = "memory://"
 
     # S3 / MinIO / R2
-    s3_endpoint_url: str                    # backend gọi kho: http://minio:9000 hoặc http://localhost:9000
-    s3_public_endpoint_url: str             # trình duyệt dùng: http://localhost:9000
-    s3_region: str = "us-east-1"            # R2: "auto"
+    s3_endpoint_url: str  # backend gọi kho: http://minio:9000 hoặc http://localhost:9000
+    s3_public_endpoint_url: str  # trình duyệt dùng: http://localhost:9000
+    s3_region: str = "us-east-1"  # R2: "auto"
     s3_bucket: str = "dailydiary-photos"
     s3_access_key: str
     s3_secret_key: str
@@ -66,35 +66,34 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
-from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import settings
-from app.core.db import make_engine
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.core.security import verify_csrf
 from app.core.storage import make_s3_client
+from app.db.client import make_client
 from app.routers import auth, entries, me, photos
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    engine = make_engine(settings.database_url)
-    app.state.engine = engine
-    app.state.sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    client = make_client(settings.mongodb_uri)
+    app.state.mongo = client
+    app.state.db = client[settings.mongodb_db]
     app.state.s3 = make_s3_client(settings.s3_endpoint_url)
     app.state.s3_presign = make_s3_client(settings.s3_public_endpoint_url)
     try:
         yield
     finally:
-        await engine.dispose()
+        await client.close()
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
         title="DailyDiary API",
         lifespan=lifespan,
-        dependencies=[Depends(verify_csrf)],   # chỉ chặn POST/PUT/PATCH/DELETE
+        dependencies=[Depends(verify_csrf)],  # chỉ chặn POST/PUT/PATCH/DELETE
         docs_url="/docs" if settings.env != "production" else None,
         redoc_url=None,
     )

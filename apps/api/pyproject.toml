@@ -1,0 +1,43 @@
+[project]
+name = "dailydiary-api"
+version = "0.1.0"
+description = "Backend FastAPI cho DailyDiary"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.143,<0.144",
+    "uvicorn[standard]>=0.54",
+    "pydantic>=2.14",
+    "pydantic-settings>=2.16",
+    "pymongo>=4.19,<5",
+    "slowapi>=0.1.10",
+    "authlib==1.8.0",
+    "itsdangerous==2.2.0",
+    "httpx>=0.28",
+    "tzdata>=2026.5",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1",
+    "ruff>=0.17",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = [".claude"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "S", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # cho phép chữ tiếng Việt trong chuỗi/comment
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]

@@ -2,7 +2,7 @@
 
 |                |                                                                                     |
 | -------------- | ----------------------------------------------------------------------------------- |
-| **Trạng thái** | Bản nháp; đã chốt Q1–Q3 ngày 16/10/2026, chờ duyệt phần còn lại                     |
+| **Trạng thái** | Đã duyệt; chốt Q1–Q3 (16/10/2026), Q11–Q13 (17/10/2026); xong bước 3 (21/10/2026) |
 | **Ngày lập**   | 16/10/2026                                                                          |
 | **Căn cứ**     | `docs/Project_Specs.md` v0.1 (mục 3–6), skill trong `.claude/` và `apps/*/.claude/` |
 
@@ -34,7 +34,8 @@
 | 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
 | 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
-| 12   | Xuất dữ liệu, xóa tài khoản, góp ý (F-07–F-09)                                                  | 11              | 7         |
+| 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
+| 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026)              | 11              | 7         |
 | 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
 | 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
 | 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo                             | 14              | 14        |
@@ -46,7 +47,7 @@ Những điểm khác với mục 6.1 và lý do:
   Nếu đợi tới ngày 13 mới phát hiện thì sẽ quá muộn.
 - **Rate limit không gom vào ngày 12.** Endpoint nào được viết thì gắn limit luôn. Bước 13 chỉ còn tinh chỉnh.
 - **Bổ sung các việc đặc tả yêu cầu nhưng mục 6.1 chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
-  sao lưu DB mỗi 8 giờ, sao lưu ảnh, trang chính sách quyền riêng tư, báo lỗi ảnh HEIC, sắp xếp và xóa ảnh.
+  sao lưu DB mỗi 8 giờ, sao lưu ảnh, trang chính sách quyền riêng tư, nhận ảnh HEIC, sắp xếp và xóa ảnh.
 
 ---
 
@@ -56,40 +57,42 @@ Bước này không viết code. Mục tiêu là chốt các quyết định ả
 
 **Môi trường hiện tại trên máy (đã kiểm tra 16/10/2026):**
 
-| Công cụ          | Đang có                        | Cần                                                                                           |
-| ---------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
-| Python           | 3.13.12, 3.14 (không có 3.12)  | 3.12 theo đặc tả → `uv python install 3.12`, dự án dùng `uv` (Q1)                             |
-| uv               | 0.12.5                         | ok                                                                                            |
-| Node / npm       | 24.14.1 / 11.11.0              | ok                                                                                            |
-| Docker / Compose | 29.8.1 / v5.5.1                | ok                                                                                            |
-| WSL2             | chỉ có distro `docker-desktop` | không cần: phát triển thẳng trên Windows (Q1)                                                  |
+| Công cụ          | Đang có                        | Cần                                                               |
+| ---------------- | ------------------------------ | ----------------------------------------------------------------- |
+| Python           | 3.13.12, 3.14 (không có 3.12)  | 3.12 theo đặc tả → `uv python install 3.12`, dự án dùng `uv` (Q1) |
+| uv               | 0.12.5                         | ok                                                                |
+| Node / npm       | 24.14.1 / 11.11.0              | ok                                                                |
+| Docker / Compose | 29.8.1 / v5.5.1                | ok                                                                |
+| WSL2             | chỉ có distro `docker-desktop` | không cần: phát triển thẳng trên Windows (Q1)                     |
 
 **Đã chốt (16/10/2026):**
 
-| Mã | Quyết định | Ảnh hưởng tới kế hoạch |
-| -- | ---------- | ---------------------- |
-| Q1 | Phát triển trực tiếp trên Windows; cài Python 3.12 bằng `uv` | Bước 1 dùng `uv python install 3.12`, `uv sync`, `uv run`; Docker Desktop chạy Postgres + MinIO cho local |
-| Q2 | Cơ sở dữ liệu là PostgreSQL. DB thật và các khóa (OAuth, kho ảnh, hosting) bạn đưa khi bước cần tới; Claude sẽ hỏi trước | Local dùng Postgres trong Docker Compose; mọi thông tin kết nối đọc từ biến môi trường. Nhà cung cấp kho ảnh và hosting chốt sau (trước bước 4 hoặc bước 7). Upload ảnh dùng presigned PUT nên chạy được với mọi kho tương thích S3 |
-| Q3 | Ảnh thu nhỏ tạo ở trình duyệt | Frontend upload hai file: ảnh 1920 px và ảnh nhỏ 320 px. `POST /entries/{date}/photos` chỉ xác nhận hai file, không tạo ảnh thu nhỏ, nên MVP chưa cần Pillow. Đã sửa mục 5.2 và 5.5 của đặc tả cho khớp |
+| Mã  | Quyết định                                                                                                               | Ảnh hưởng tới kế hoạch                                                                                                                                                                                                              |
+| --- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1  | Phát triển trực tiếp trên Windows; cài Python 3.12 bằng `uv`                                                             | Bước 1 dùng `uv python install 3.12`, `uv sync`, `uv run`; Docker Desktop chạy MongoDB + MinIO cho local                                                                                                                           |
+| Q2  | ~~Cơ sở dữ liệu là PostgreSQL~~ (thay bằng Q11). DB thật và các khóa (OAuth, kho ảnh, hosting) bạn đưa khi bước cần tới; Claude sẽ hỏi trước | Local dùng DB trong Docker Compose; mọi thông tin kết nối đọc từ biến môi trường. Nhà cung cấp kho ảnh và hosting chốt sau (trước bước 4 hoặc bước 7). Upload ảnh dùng presigned PUT nên chạy được với mọi kho tương thích S3 |
+| Q3  | Ảnh thu nhỏ tạo ở trình duyệt                                                                                            | Frontend upload hai file: ảnh 1920 px và ảnh nhỏ 320 px. `POST /entries/{date}/photos` chỉ xác nhận hai file, không tạo ảnh thu nhỏ, nên MVP chưa cần Pillow. Mục 5.2 và 5.5 của đặc tả cần sửa cho khớp                            |
+| Q11 | (17/10/2026) Đổi cơ sở dữ liệu sang **MongoDB** | Driver PyMongo async; nhật ký là một document, từ khóa và ảnh nhúng bên trong; migration tự viết (`python -m app.db.migrate`, chỉ tiến). Mô hình dữ liệu: đặc tả mục 5.4. Gói hosting phải có sao lưu tự động, nếu không thì bước 13 thêm tác vụ `mongodump` |
+| Q12 | (17/10/2026) Cố định cây khung dự án | Cây chuẩn duy nhất ở `docs/Project_Structure.md` (ADR 0004); file mới phải đặt đúng chỗ, đổi cấu trúc thì sửa file đó cùng commit |
+| Q13 | (17/10/2026) Gỡ CLI `shadcn` khỏi dự án (lỗ hổng `braces` không có bản vá) | CSS của shadcn được chép vào `src/styles/shadcn-tailwind.css`; thêm component bằng `npx shadcn@4.22.0 add <tên>`; không chạy `npm audit fix --force` |
 
 **Quyết định còn mở** (★ là chặn bước 1):
 
-| Mã   | Câu hỏi                                                                                                                                             | Đề xuất                                                                                                                                                                |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q4 ★ | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đồng ý cả bốn, rồi bổ sung vào đặc tả mục 5.4 và `api-conventions`                                                                                                     |
-| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9)                                                                                                  | 1 bộ cho MVP, khoảng 40 emoji gợi ý; dùng dữ liệu tạm ở bước 1, chốt trước bước 5                                                                                      |
-| Q6   | Bảng màu cờ hiệu 8 hay 12 màu                                                                                                                       | 8 màu, chốt trước bước 5                                                                                                                                               |
-| Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Không, chỉ dùng ảnh Google (bớt một luồng upload)                                                                                                                      |
-| Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Dùng bước 2                                                                                                                                                            |
-| Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Thay bằng skill `run` (chạy app, chụp màn hình) cộng một bộ smoke test Playwright tạo ở bước 1                                                                         |
-| Q10  | Làm bước 4 (triển khai thử sớm) không? Nếu có thì cần chốt hosting và kho ảnh trước bước 4                                                          | Có                                                                                                                                                                     |
+| Mã   | Câu hỏi                                                                                                                                             | Đề xuất                                                                                        |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Q4 ★ | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đồng ý cả bốn, rồi bổ sung vào đặc tả mục 5.4 và `api-conventions`                             |
+| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9)                                                                                                  | Đã chốt ở bước 2: 6 bộ (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`); sub icon vẫn là danh sách tạm khoảng 40 emoji, chốt trước bước 5 |
+| Q6   | Bảng màu cờ hiệu 8 hay 12 màu                                                                                                                       | Đã chốt ở bước 2: 8 màu pastel (`blush`…`lavender`), mỗi màu có `hex` và `hex_dark`; nhật ký lưu `hex`, giao diện tối tra `hex_dark` |
+| Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Không, chỉ dùng ảnh Google (bớt một luồng upload)                                              |
+| Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Dùng bước 2                                                                                    |
+| Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Thay bằng skill `run` (chạy app, chụp màn hình) cộng một bộ smoke test Playwright tạo ở bước 1 |
+| Q10  | Làm bước 4 (triển khai thử sớm) không? Nếu có thì cần chốt hosting và kho ảnh trước bước 4                                                          | Có                                                                                             |
 
 **Bạn cần chuẩn bị:**
 - Google Cloud: OAuth client (Web), redirect URI `http://localhost:8000/auth/google/callback`, consent screen
   ở chế độ Testing, và danh sách email người dùng thử. *(Cần trước bước 3.)*
-- DB PostgreSQL thật, tài khoản hosting và kho ảnh, kèm các khóa (Q2; Claude sẽ hỏi khi tới bước). *(Cần trước bước 4.)*
+- MongoDB thật (vd. MongoDB Atlas, khu vực Singapore), tài khoản hosting và kho ảnh, kèm các khóa (Q2; Claude sẽ hỏi khi tới bước). *(Cần trước bước 4.)*
 - Tài khoản Sentry, PostHog hoặc Umami. *(Cần trước bước 13.)*
-- Các file đang staged (skill trong `.claude/`) chưa được commit. Commit chúng trước khi bắt đầu, để mỗi bước sau là một thay đổi sạch.
 
 ---
 
@@ -98,30 +101,30 @@ Bước này không viết code. Mục tiêu là chốt các quyết định ả
 **Mục tiêu:** `docker compose up -d` + chạy API + chạy web. Trang web gọi được `/health`, CI chạy xanh.
 
 **Phạm vi:**
-- Cấu trúc monorepo theo mục 5.3, `.gitignore`, `.env.example`, `.editorconfig`.
-- `docker-compose.yml`: PostgreSQL 16 (có `unaccent`), MinIO, job tạo bucket riêng tư, DB `dailydiary_test`.
+- Cây khung monorepo theo `docs/Project_Structure.md` (Q12), `.gitignore`, `.env.example`, `.editorconfig`.
+- `docker-compose.yml`: MongoDB 8.0 (có xác thực), MinIO, job tạo bucket riêng tư.
 - `shared/limits.json`, gồm cấp tài khoản `beta | free | premium`; mỗi cấp có rate limit (mục 4.4),
   số ảnh/ngày, kích thước ảnh, độ dài trường (F-01), hạn mức 500 MB và ngưỡng cảnh báo 80%.
   Kèm `icons.json` và `flag_colors.json` dạng tạm.
 - **API:**
-  - `core/config.py`, `core/db.py`, `core/limits.py`.
+  - `core/config.py`, `core/limits.py`, `db/client.py` (AsyncMongoClient).
   - `core/errors.py`: định dạng lỗi chuẩn.
   - `core/rate_limit.py` cùng handler 429.
   - Middleware log gồm user, đường dẫn, mã trạng thái, thời gian; không log body.
   - `main.py` với lifespan, `/health`.
-- **Alembic async:** migration đầu tạo đủ các bảng mục 5.4, thêm `user_sessions` (nếu Q4 đồng ý)
-  và extension `unaccent`. Có `pytest` + `conftest.py` (DB thật, rollback theo từng test) và `ruff`.
+- **Migration MongoDB** (`python -m app.db.migrate`): tạo đủ các collection ở mục 5.4 kèm validator và index.
+  Có `pytest` + `conftest.py` (MongoDB thật, DB `*_test` dọn sau mỗi test) và `ruff`.
 - **Web:**
-  - Vite + React + TS, Tailwind, shadcn/ui, React Router, TanStack Query.
+  - Vite + React + TS, Tailwind, shadcn/ui (không cài CLI, Q13), React Router, TanStack Query.
   - Phông Be Vietnam Pro.
-  - Script `gen:api` (openapi-typescript), `typecheck`, `test` (Vitest), `lint`.
+  - Script `gen:api` (xuất OpenAPI bằng `apps/api/scripts/export_openapi.py`, không cần chạy server), `typecheck`, `test` (Vitest), `lint`; CI báo lỗi nếu kiểu API lệch với backend.
   - Playwright smoke test.
-- **GitHub Actions:** ruff + pytest (service Postgres), typecheck + test + build cho web.
+- **GitHub Actions:** ruff + migration + pytest (service MongoDB), lint + typecheck + test + build cho web, e2e.
 
-**Skill:** `fastapi-backend`, `api-conventions`, `web-conventions`, `add-db-change` (quy trình migration).
+**Skill:** `fastapi-backend`, `api-conventions`, `web-conventions`, `add-db-change` (quy trình migration), `privacy-check`.
 
 **Hoàn thành khi:**
-- `alembic upgrade head`, `downgrade base`, `upgrade head` chạy không lỗi.
+- `python -m app.db.migrate` chạy được; chạy lần hai báo không có migration mới.
 - `pytest` xanh.
 - `npm run typecheck && npm run test && npm run build` xanh.
 - CI xanh trên nhánh.
@@ -156,13 +159,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
   - CSRF (kiểm tra `Origin`, `X-CSRF-Token`);
   - lấy múi giờ từ trình duyệt ở lần đăng nhập đầu;
   - `email_verified`.
-- `PATCH /me`: tên 1–50 ký tự; múi giờ IANA hợp lệ, chỉ áp dụng cho các ngày sau đó.
+- `PATCH /me`: tên 1–50 ký tự; múi giờ IANA hợp lệ, chỉ áp dụng cho các ngày sau đó; `icon_set_id` phải có
+  trong `shared/icons.json` (mặc định `default_icon_set`), áp dụng cho mọi ngày. Cần migration thêm trường vào validator `users`.
 - Rate limit đăng nhập 5/phút/IP.
 - **Web:**
   - trang đăng nhập;
   - route yêu cầu đăng nhập: gặp 401 thì chuyển về `/login`;
   - trang hồ sơ;
   - `lib/date.ts`: "hôm nay" theo múi giờ hồ sơ.
+- **Đã chốt khi làm (20/10/2026):**
+  - `users.onboarded_at` (migration `m0002`): người mới đăng nhập vào `/onboarding`, người cũ vào `/today`;
+    `PATCH /me` nhận `onboarded: true` (chỉ bật, không tắt).
+  - `POST /auth/dev-login` để test và e2e không cần Google: chỉ có khi `ENV` là local/test và `DEV_LOGIN=true`,
+    không có trong OpenAPI; ở production bật cờ này thì API từ chối khởi động.
+  - Thiết kế chưa có màn đăng nhập riêng: trang `/login` ghép từ khung thẻ và nút Google của landing.
 
 **Skill:** `/implement-feature F-04`, `fastapi-backend` (tham khảo `auth-google-cookie.md`), `date-timezone-rules`, `privacy-check`.
 
@@ -173,6 +183,8 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Bạn cần:** Google OAuth client và secret (bước 0).
 
+**Kết quả (21/10/2026):** đăng nhập Google thật trên localhost thành công; 59 test backend và 48 test web xanh.
+
 ---
 
 ## Bước 4 – Triển khai thử bản khung (tùy chọn, khuyên làm)
@@ -180,9 +192,9 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 **Mục tiêu:** đăng nhập chạy được trên môi trường beta thật, chung tên miền gốc (`app.` và `api.`), có HTTPS và HSTS.
 
 **Phạm vi:**
-- Kết nối DB PostgreSQL và kho ảnh thật do bạn cung cấp (ưu tiên khu vực Singapore).
-- Biến môi trường trên hosting.
-- Bước `alembic upgrade head` trong pipeline triển khai.
+- Kết nối MongoDB và kho ảnh thật do bạn cung cấp (ưu tiên khu vực Singapore).
+- `apps/api/Dockerfile` (build từ gốc repo để mang theo `shared/`); biến môi trường trên hosting.
+- Bước `python -m app.db.migrate` trong pipeline triển khai.
 - Tự động triển khai khi merge vào `main`.
 - Thêm redirect URI production vào Google Console.
 - Kiểm tra cookie và CORS giữa hai subdomain.
@@ -206,9 +218,10 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Từ khóa: 0–10 từ, không trùng, kèm `keyword_norm`.
 - Cờ hiệu lấy từ `flag_colors.json`; sub icon lấy từ `icons.json`.
 - Không cho chọn ngày tương lai theo múi giờ người dùng.
+- Bộ icon lấy theo hồ sơ cho mọi ngày: migration bỏ `icon_set_id` khỏi danh sách bắt buộc của `entries` (m0001 đang bắt buộc).
 - Nhãn "ghi đúng ngày" / "cập nhật muộn".
 - Khôi phục được trong 30 ngày.
-- Xử lý `updated_at` không bị lệch mili giây (xem `db-session.md`).
+- `updated_at` để phát hiện xung đột: BSON date lưu tới mili giây; frontend gửi lại đúng chuỗi nhận từ API.
 - Rate limit: đọc 30/phút; tạo và xóa 10/phút.
 - Web: màn hình ghi nhanh (chọn điểm trước, các trường khác tùy chọn), form đầy đủ, xác nhận khi xóa, hoàn tác.
 
@@ -250,16 +263,18 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Phạm vi:**
 - **Trình duyệt:**
-  - nhận JPEG, PNG, WebP tối đa 10 MB; báo lỗi rõ ràng với HEIC;
+  - nhận JPEG, PNG, HEIC, WebP tối đa 10 MB; HEIC chuyển sang WebP trên trình duyệt (thư viện giải mã HEIC dạng
+    WebAssembly, tải lười chỉ khi gặp tệp HEIC) — đổi 21/10/2026 theo thiết kế B9;
   - nén về WebP cạnh dài 1920 px, chất lượng khoảng 80%;
   - tạo ảnh thu nhỏ 320 px ngay trên trình duyệt (Q3);
   - upload thẳng lên kho bằng presigned PUT.
 - **Backend:**
   - kiểm tra số ảnh/ngày (10), hạn mức dung lượng, rate limit 10/phút và 50/ngày;
-  - xác nhận **cả hai** file (ảnh chính và ảnh nhỏ): tồn tại, đúng magic bytes, đúng kích thước; server không xử lý ảnh;
+  - xác nhận file: tồn tại, đúng magic bytes, đúng kích thước;
   - link xem ảnh hết hạn sau khoảng 1 giờ;
   - đường dẫn bắt đầu bằng `user_id/`.
 - Thông báo cho người dùng rằng ảnh gốc không được lưu.
+- Ảnh đại diện (F-04): đổi/gỡ, tối đa `profile.avatar_max_bytes`, cắt vuông `profile.avatar_edge_px`, `PATCH /me`.
 - Bật CORS cho bucket.
 
 **Skill:** `fastapi-backend` (tham khảo `s3-presigned.md`), `privacy-check`, `securitymaxxing:api` (tùy chọn, phần upload).
@@ -274,6 +289,11 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 ## Bước 8 – Dòng thời gian (F-02, phần danh sách)
 
 **Endpoint:** `GET /entries?cursor=&limit=`.
+
+> **Đổi theo thiết kế B8 (21/10/2026):** Dòng thời gian xem **theo tháng**, gộp danh sách trang, nhịp điểm, lịch và
+> thống kê tháng vào một trang (`/timeline?m=YYYY-MM`); danh sách hiện 7 trang rồi "Xem thêm", không cuộn vô hạn.
+> Khi làm bước này cùng Bước 9, cân nhắc thêm `GET /entries?month=YYYY-MM` (tóm tắt trang trong tháng) thay cho con trỏ.
+> Giao diện đã dựng trên dữ liệu mẫu ở `features/timeline/`.
 
 **Phạm vi:**
 - Phân trang theo con trỏ, 10–20 bài mỗi lần, mới nhất trước, cuộn để tải thêm.
@@ -318,34 +338,61 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 ---
 
-## Bước 11 – Tìm kiếm theo từ khóa (F-05)
+## Bước 11 – Tìm kiếm (F-05)
 
-**Endpoint:** `GET /search?q=&cursor=`.
+**Endpoint:** `GET /search?q=&score=&period=&has_photo=&cursor=`, `GET /keywords/top`.
 
 **Phạm vi:**
-- Chỉ tìm trong từ khóa.
-- Không phân biệt hoa thường và dấu (`da lat` khớp `Đà Lạt`), khớp theo đầu từ (`keyword_norm LIKE 'q%'` có index phù hợp).
-- 20–50 kết quả mỗi trang, mới nhất trước.
+- Tìm trong tiêu đề, nội dung và từ khóa (theo thiết kế B7).
+- Khớp chuỗi con, không phân biệt hoa thường; `q` không dấu thì so trên `title_norm`, `content_norm`, `keywords.norm`;
+  `q` có dấu thì so đúng dấu. Thoát ký tự đặc biệt của regex trước khi tìm.
+- Migration thêm `title_norm`, `content_norm` (điền lại cho bài cũ); luôn lọc `user_id` trước.
+- Bộ lọc điểm, khoảng thời gian (tháng này / 3 tháng / năm nay / mọi lúc), chỉ ngày có ảnh. 20–50 kết quả mỗi trang, mới nhất trước.
+- Không ghi `q` vào log, Sentry, analytics; frontend không đưa từ khóa lên URL của trang.
 
-**Hoàn thành khi:** có test tiếng Việt có dấu, test đầu từ, test truy cập chéo tài khoản; p95 dưới 500 ms với dữ liệu mẫu.
+**Skill:** `privacy-check`, `date-timezone-rules` (khoảng thời gian theo múi giờ người dùng).
+
+**Hoàn thành khi:** có test tiếng Việt có dấu và không dấu, test chuỗi con, test ký tự regex, test truy cập chéo tài khoản;
+p95 dưới 500 ms với dữ liệu mẫu.
 
 ---
 
-## Bước 12 – Xuất dữ liệu, xóa tài khoản, góp ý (F-07 – F-09)
+## Bước 11b – Chia sẻ một trang (F-10)
 
-**Endpoint:** `GET /export`, `DELETE /me`, `POST /feedback`.
+Thêm ngày 21/10/2026 (ADR 0005). Giao diện theo thiết kế B8: hộp thoại Chia sẻ trong trang một ngày, trang người
+nhận xem `/s/:token`, "Trang đang chia sẻ" trong Hồ sơ, màn "Trang này không mở được".
+
+**Đã làm sớm (21/10/2026):** giao diện trên dữ liệu mẫu (chỉ chạy ở dev) và backend phần link: collection
+`share_links`, endpoint chủ sở hữu và endpoint công khai, kèm test.
+
+**Còn lại, làm sau Bước 5 và 7:**
+- Nối giao diện với API thật; đưa các route chia sẻ vào bản build.
+- Ảnh trong trang công khai: link ký có hạn, chỉ ảnh được chọn.
+- Xóa toàn bộ dữ liệu và xóa tài khoản (Bước 12) xóa luôn `share_links`.
+
+**Skill:** `privacy-check`, `securitymaxxing:authz`, `securitymaxxing:api`.
+
+**Hoàn thành khi:** người nhận chỉ thấy đúng phần được chọn; tắt link, xóa mềm trang hoặc xóa tài khoản thì link trả
+màn chung; có test truy cập chéo và test rate limit cho trang công khai.
+
+---
+
+## Bước 12 – Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09)
+
+**Endpoint:** `DELETE /entries` (xóa toàn bộ dữ liệu, giữ tài khoản), `DELETE /me`, `POST /feedback`.
+Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21/10/2026.
 
 **Phạm vi:**
-- **Xuất dữ liệu:** toàn bộ nhật ký ra JSON, gồm cả link ảnh có thời hạn.
+- **Xóa toàn bộ dữ liệu:** xóa mọi trang, ảnh, link chia sẻ; giữ tài khoản và cài đặt; xác nhận gõ "XÓA".
 - **Xóa tài khoản:**
-  - xác nhận hai lần;
-  - xóa phiên, nhật ký, từ khóa;
+  - xác nhận bằng gõ đúng email của tài khoản; xong hiện màn "Tài khoản đã được xóa";
+  - xóa phiên, nhật ký, từ khóa, link chia sẻ (`share_links`);
   - xóa ảnh theo tiền tố `user_id/` bằng tác vụ nền.
 - **Góp ý:** form ngắn, có rate limit.
 
 **Skill:** `privacy-check`, `securitymaxxing:authz`.
 
-**Hoàn thành khi:** sau khi xóa tài khoản, DB không còn dòng nào của user và kho ảnh không còn object nào; file export mở được và đủ dữ liệu.
+**Hoàn thành khi:** sau khi xóa tài khoản, DB không còn document nào của user và kho ảnh không còn object nào; sau khi xóa toàn bộ dữ liệu, tài khoản vẫn đăng nhập được và không còn trang, ảnh, link nào.
 
 ---
 
@@ -356,8 +403,8 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Sentry cho frontend và backend, có `before_send` lọc nội dung nhật ký.
 - PostHog hoặc Umami với 7 sự kiện ở mục 4.7, không gửi nội dung.
 - Tác vụ định kỳ:
-  - dọn bài xóa mềm sau 30 ngày, kèm ảnh;
-  - sao lưu DB lúc 00:00, 08:00, 16:00 giờ Việt Nam, giữ 7 ngày;
+  - dọn bài xóa mềm sau 30 ngày, kèm ảnh và link chia sẻ của bài đó;
+  - sao lưu DB lúc 00:00, 08:00, 16:00 giờ Việt Nam, giữ 7 ngày (sao lưu của gói hosting, hoặc tác vụ `mongodump`);
   - sao chép ảnh sang kho khác.
 - Rà lại và tinh chỉnh toàn bộ rate limit.
 
@@ -378,7 +425,7 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Dữ liệu mẫu 3 tháng.
 - Triển khai production beta.
 
-**Skill:** `/seed-demo-data 3`, `/deploy`, `securitymaxxing:ship-check`.
+**Skill:** `/seed-demo-data 3` (script ở `apps/api/scripts/seed_demo.py`), `/deploy`, `securitymaxxing:ship-check`.
 
 **Hoàn thành khi:** Lighthouse đạt chỉ tiêu; checklist `/deploy` qua hết; không còn lỗi chặn từ `ship-check`.
 
@@ -400,6 +447,6 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 ## Ngoài phạm vi MVP
 
-Theo mục 2.2 của đặc tả: chia sẻ nhật ký, đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
+Theo mục 2.2 của đặc tả: nhật ký chung và bình luận (chia sẻ một trang qua link đã vào MVP ở Bước 11b), đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
 ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (mục 6.2) chỉ được chuẩn bị qua dữ liệu
 (`user_items`, `account_tier`, `joined_at`), không xây giao diện.

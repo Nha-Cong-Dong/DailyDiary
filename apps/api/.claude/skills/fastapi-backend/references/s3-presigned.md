@@ -21,7 +21,7 @@ def make_s3_client(endpoint_url: str):
         region_name=settings.s3_region,
         config=Config(
             signature_version="s3v4",
-            s3={"addressing_style": "path"},      # MinIO, Supabase cần path-style; R2 hỗ trợ cả hai kiểu
+            s3={"addressing_style": "path"},  # MinIO, Supabase cần path-style; R2 hỗ trợ cả hai kiểu
             retries={"max_attempts": 3, "mode": "standard"},
             connect_timeout=3,
             read_timeout=10,
@@ -31,8 +31,8 @@ def make_s3_client(endpoint_url: str):
 
 class Storage:
     def __init__(self, client, presign_client, bucket: str):
-        self.client = client                  # gọi kho từ backend
-        self.presign = presign_client         # chỉ để ký URL cho trình duyệt
+        self.client = client  # gọi kho từ backend
+        self.presign = presign_client  # chỉ để ký URL cho trình duyệt
         self.bucket = bucket
 
 
@@ -58,8 +58,8 @@ import anyio
 from botocore.exceptions import ClientError
 
 EXT = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
-UPLOAD_EXPIRES = 300          # 5 phút đủ để upload một ảnh đã nén
-VIEW_EXPIRES = 3600           # đặc tả: link xem ảnh khoảng 1 giờ
+UPLOAD_EXPIRES = 300  # 5 phút đủ để upload một ảnh đã nén
+VIEW_EXPIRES = 3600  # đặc tả: link xem ảnh khoảng 1 giờ
 
 
 def photo_key(user_id: UUID, day: date, photo_id: UUID, ext: str, thumb: bool = False) -> str:
@@ -84,7 +84,7 @@ def create_upload_urls(s3: Storage, user_id: UUID, day: date, content_type: str)
         "photo_id": photo_id,
         "upload_url": sign(photo_key(user_id, day, photo_id, ext)),
         "thumb_upload_url": sign(photo_key(user_id, day, photo_id, ext, thumb=True)),
-        "headers": {"Content-Type": content_type},   # frontend phải gửi đúng header này khi PUT
+        "headers": {"Content-Type": content_type},  # frontend phải gửi đúng header này khi PUT
         "expires_in": UPLOAD_EXPIRES,
     }
 ```
@@ -131,6 +131,7 @@ async def _first_bytes(s3: Storage, key: str) -> bytes:
     def read() -> bytes:
         obj = s3.client.get_object(Bucket=s3.bucket, Key=key, Range="bytes=0-15")
         return obj["Body"].read()
+
     return await anyio.to_thread.run_sync(read)
 
 
@@ -153,8 +154,9 @@ async def verify_uploaded(s3: Storage, key: str, content_type: str, max_bytes: i
     return size
 ```
 
-Sau khi kiểm tra cả ảnh chính và ảnh thu nhỏ, tạo bản ghi `entry_photos` và `commit()`. Nếu tạo bản ghi
-lỗi, xóa hai object vừa upload để không còn file mồ côi tính vào dung lượng của người dùng.
+Sau khi kiểm tra cả ảnh chính và ảnh thu nhỏ, thêm ảnh vào mảng `photos` của nhật ký bằng lệnh có điều kiện
+giới hạn số ảnh (xem `mongodb.md` mục 5). Nếu lệnh không thêm được (đủ ảnh, bài không tồn tại), xóa hai object vừa
+upload để không còn file mồ côi tính vào dung lượng của người dùng.
 
 Mọi lệnh boto3 có I/O mạng (`head_object`, `get_object`, `delete_object(s)`, `list_objects_v2`) đều
 chặn thread, nên phải bọc bằng `anyio.to_thread.run_sync`. Nếu gọi thẳng trong `async def`, mọi request
@@ -169,7 +171,7 @@ def view_url(s3: Storage, key: str) -> str:
     )
 ```
 
-Chỉ ký cho key lấy từ bản ghi `entry_photos` đã lọc theo `user_id`; không ký key do client gửi lên.
+Chỉ ký cho key lấy từ mảng `photos` của nhật ký đã lọc theo `user_id`; không ký key do client gửi lên.
 
 ## Xóa tài khoản
 

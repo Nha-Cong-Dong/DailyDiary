@@ -7,7 +7,7 @@ description: Rà soát quyền riêng tư và phân quyền dữ liệu của Da
 
 Rà từng mục trên các file thay đổi (`git diff`), báo cáo dạng: mục – đạt/không đạt – vị trí – cách sửa.
 
-1. **Lọc theo người dùng**: mọi truy vấn tới `entries`, `entry_photos`, `entry_keywords`, `user_items` đều có điều kiện `user_id` lấy từ phiên đăng nhập, không lấy từ tham số request.
+1. **Lọc theo người dùng**: mọi truy vấn MongoDB tới `entries` (gồm ảnh và từ khóa nhúng bên trong), `user_items`, `feedback`, `user_sessions` đều có điều kiện `user_id` lấy từ phiên đăng nhập, không lấy từ tham số request. Bộ lọc và lệnh cập nhật không nhận nguyên dict từ request (chặn chèn toán tử `$ne`, `$where`...).
 2. **Không lộ qua ID**: endpoint nhận `id` ảnh/nhật ký phải kiểm tra quyền sở hữu, trả 404 (không phải 403) khi không thuộc người dùng.
 3. **Ảnh**: kho ảnh riêng tư; chỉ trả link có thời hạn (khoảng 1 giờ); đường dẫn bắt đầu bằng `user_id/`.
 4. **Log và Sentry**: không ghi tiêu đề, nội dung, từ khóa, tên file ảnh; không log toàn bộ request body.

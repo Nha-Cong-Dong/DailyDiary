@@ -1,0 +1,212 @@
+{
+  "version": 2,
+  "_note": "6 bộ main icon theo thiết kế Jotly (Bước 2). Hình vẽ ở apps/web/src/components/diary/ScoreIcon.tsx. Sub icon: danh sách gốc khoảng 40 emoji cộng các emoji dùng trong thiết kế (🌸 🍀 🧊 😌 🎧 ✨ 💤); chốt lại trước bước 5.",
+  "default_icon_set": "sprout",
+  "icon_sets": [
+    {
+      "id": "sprout",
+      "name": "Mầm → hoa nở",
+      "levels": [
+        {
+          "score": 1,
+          "label": "Hạt"
+        },
+        {
+          "score": 2,
+          "label": "Mầm"
+        },
+        {
+          "score": 3,
+          "label": "Nụ"
+        },
+        {
+          "score": 4,
+          "label": "Hé nở"
+        },
+        {
+          "score": 5,
+          "label": "Nở rộ"
+        }
+      ]
+    },
+    {
+      "id": "face",
+      "name": "Gương mặt cảm xúc",
+      "levels": [
+        {
+          "score": 1,
+          "label": "Tệ"
+        },
+        {
+          "score": 2,
+          "label": "Hơi buồn"
+        },
+        {
+          "score": 3,
+          "label": "Bình thường"
+        },
+        {
+          "score": 4,
+          "label": "Vui"
+        },
+        {
+          "score": 5,
+          "label": "Tuyệt vời"
+        }
+      ]
+    },
+    {
+      "id": "moon",
+      "name": "Pha mặt trăng",
+      "levels": [
+        {
+          "score": 1,
+          "label": "Trăng non"
+        },
+        {
+          "score": 2,
+          "label": "Lưỡi liềm"
+        },
+        {
+          "score": 3,
+          "label": "Bán nguyệt"
+        },
+        {
+          "score": 4,
+          "label": "Gần tròn"
+        },
+        {
+          "score": 5,
+          "label": "Trăng tròn"
+        }
+      ]
+    },
+    {
+      "id": "sakura",
+      "name": "Hoa anh đào",
+      "levels": [
+        {
+          "score": 1,
+          "label": "Rụng"
+        },
+        {
+          "score": 2,
+          "label": "Héo"
+        },
+        {
+          "score": 3,
+          "label": "Chớm nở"
+        },
+        {
+          "score": 4,
+          "label": "Nở"
+        },
+        {
+          "score": 5,
+          "label": "Rực rỡ"
+        }
+      ]
+    },
+    {
+      "id": "sun",
+      "name": "Ông mặt trời",
+      "levels": [
+        {
+          "score": 1,
+          "label": "Mưa dông"
+        },
+        {
+          "score": 2,
+          "label": "Nhiều mây"
+        },
+        {
+          "score": 3,
+          "label": "Ít mây"
+        },
+        {
+          "score": 4,
+          "label": "Nắng đẹp"
+        },
+        {
+          "score": 5,
+          "label": "Rạng rỡ"
+        }
+      ]
+    },
+    {
+      "id": "bean",
+      "name": "Hạt đậu",
+      "levels": [
+        {
+          "score": 1,
+          "label": "Khóc"
+        },
+        {
+          "score": 2,
+          "label": "Buồn"
+        },
+        {
+          "score": 3,
+          "label": "Bình thường"
+        },
+        {
+          "score": 4,
+          "label": "Vui"
+        },
+        {
+          "score": 5,
+          "label": "Hớn hở"
+        }
+      ]
+    }
+  ],
+  "sub_icons": [
+    "☀️",
+    "🌧️",
+    "🌈",
+    "❄️",
+    "🌙",
+    "⭐",
+    "🔥",
+    "💧",
+    "📚",
+    "✏️",
+    "💻",
+    "🎓",
+    "💼",
+    "🧠",
+    "🎯",
+    "🏆",
+    "🏃",
+    "🧘",
+    "🏋️",
+    "🚴",
+    "🥗",
+    "☕",
+    "🍜",
+    "🍰",
+    "❤️",
+    "👨‍👩‍👧",
+    "👫",
+    "🐶",
+    "🎉",
+    "🎁",
+    "🎵",
+    "🎮",
+    "✈️",
+    "🏖️",
+    "⛰️",
+    "🚗",
+    "🛌",
+    "🤒",
+    "😴",
+    "🌱",
+    "🌸",
+    "🍀",
+    "🧊",
+    "😌",
+    "🎧",
+    "✨",
+    "💤"
+  ]
+}

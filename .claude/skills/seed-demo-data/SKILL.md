@@ -5,7 +5,7 @@ disable-model-invocation: true
 argument-hint: "[số tháng]"
 ---
 
-Sinh dữ liệu mẫu cho số tháng gần nhất sau: $ARGUMENTS (nếu không có, dùng 3 tháng). Ghi script vào `seed/` và nạp vào DB local.
+Sinh dữ liệu mẫu cho số tháng gần nhất sau: $ARGUMENTS (nếu không có, dùng 3 tháng). Ghi script vào `apps/api/scripts/seed_demo.py` (dùng `app.db.client.make_client` và cấu hình của api) và nạp vào DB local bằng `cd apps/api && uv run python scripts/seed_demo.py`. Chỉ ghi vào DB `dailydiary` local; từ chối chạy nếu `MONGODB_URI` không trỏ tới `localhost`.
 
 Yêu cầu dữ liệu:
 - Một người dùng demo, múi giờ `Asia/Ho_Chi_Minh`.

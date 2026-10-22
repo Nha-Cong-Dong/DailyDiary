@@ -6,10 +6,11 @@ description: Quy ước code backend FastAPI của DailyDiary. Dùng khi viết 
 # Quy ước backend
 
 ## Cấu trúc
+Cây thư mục chuẩn: `docs/Project_Structure.md` (không tạo thư mục ngoài cây đó; đổi cấu trúc thì sửa file đó cùng lúc).
 - `routers/`: chỉ nhận request, gọi service, trả response. Không chứa truy vấn DB.
-- `services/`: logic nghiệp vụ và truy vấn. Mọi hàm nhận `user_id` làm tham số đầu tiên.
+- `services/`: logic nghiệp vụ và truy vấn MongoDB. Mọi hàm nhận `user_id` làm tham số đầu tiên.
 - `schemas/`: Pydantic v2; tách `XxxCreate`, `XxxUpdate`, `XxxOut`.
-- `core/`: cấu hình, bảo mật, rate limit, logging.
+- `db/`: client MongoDB, tên collection, migration. `core/`: cấu hình, bảo mật, rate limit, logging.
 
 ## Bắt buộc
 - Lấy người dùng bằng dependency `current_user = Depends(get_current_user)`; không đọc `user_id` từ body hay query.
@@ -23,7 +24,7 @@ Trả dạng thống nhất:
 ```json
 {"error": {"code": "ENTRY_LIMIT_PHOTOS", "message": "Mỗi ngày tối đa 10 ảnh"}}
 ```
-- 401 chưa đăng nhập; 404 khi tài nguyên không tồn tại hoặc không thuộc người dùng; 409 xung đột `updated_at`; 422 dữ liệu sai; 429 vượt rate limit.
+- 401 chưa đăng nhập; 403 `CSRF_FAILED` khi request ghi thiếu/sai CSRF; 404 khi tài nguyên không tồn tại hoặc không thuộc người dùng; 409 xung đột `updated_at`; 422 dữ liệu sai; 429 vượt rate limit.
 
 ## Ảnh
 - Upload qua presigned URL; endpoint xác nhận phải kiểm tra file tồn tại, đúng định dạng (JPEG/PNG/WebP), đúng kích thước, rồi mới tạo bản ghi `entry_photos`.
