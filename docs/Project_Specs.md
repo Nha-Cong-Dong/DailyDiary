@@ -184,7 +184,10 @@ Quy tắc:
 - **Xóa tài khoản**: xóa toàn bộ nhật ký, ảnh, link chia sẻ, hồ sơ và phiên đăng nhập; đăng xuất ngay. Xác nhận bằng
   gõ đúng email của tài khoản. Tài khoản Google không bị ảnh hưởng.
 - ~~**Xuất dữ liệu**~~: bỏ khỏi sản phẩm theo thiết kế (21/10/2026); Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu".
-- **Góp ý**: form ngắn trong app, lưu vào collection `feedback`.
+- **Góp ý** (chốt 23/10/2026): form ngắn mở từ Hồ sơ và menu tài khoản; lưu vào collection `feedback` rồi gửi email
+  về hộp thư của chủ sản phẩm (`FEEDBACK_TO_EMAIL`) qua Gmail SMTP (App Password). Thư kèm tên + email tài khoản người
+  gửi, đặt làm Reply-To; form ghi rõ điều này. Gửi trong nền: lỗi gửi thư không làm hỏng request, góp ý vẫn còn trong DB
+  (`emailed_at` = null). Tối đa `feedback.message_max` ký tự, rate limit `feedback`. Không ghi nội dung vào log.
 
 ### F-10. Chia sẻ một trang (ADR 0005, thiết kế B8)
 
@@ -425,7 +428,7 @@ user_items                                -- chuẩn bị cho giai đoạn 2–3
   UNIQUE (user_id, item_id)
 
 feedback
-  _id, user_id, message, created_at
+  _id, user_id, message, created_at, emailed_at (date | null: đã gửi email về hộp thư Jotly)
 ```
 
 Nguyên tắc:
@@ -467,7 +470,7 @@ Nguyên tắc:
 | GET         | `/shares`                           | Các trang đang chia sẻ                                                 |
 | GET         | `/public/shares/{token}`            | Trang chia sẻ công khai, không cần đăng nhập; chỉ trả phần được chọn; mọi lỗi là 404 chung |
 | DELETE      | `/entries`                          | Xóa toàn bộ dữ liệu (mọi trang, ảnh, link chia sẻ), giữ tài khoản      |
-| POST        | `/feedback`                         | Gửi góp ý                                                              |
+| POST        | `/feedback`                         | Gửi góp ý: lưu rồi gửi email (Reply-To = người gửi) trong nền          |
 
 ### 5.6. Các luồng chính
 

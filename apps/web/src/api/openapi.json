@@ -560,6 +560,33 @@
         "title": "EntryWrite",
         "type": "object"
       },
+      "FeedbackIn": {
+        "additionalProperties": false,
+        "description": "POST /feedback. Độ dài tối đa kiểm ở service theo limits.json (feedback.message_max).",
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "FeedbackIn",
+        "type": "object"
+      },
+      "FeedbackOut": {
+        "description": "Đã nhận góp ý. Email gửi trong nền, nên không báo gửi thư thành công hay chưa.",
+        "properties": {
+          "received": {
+            "default": true,
+            "title": "Received",
+            "type": "boolean"
+          }
+        },
+        "title": "FeedbackOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2454,6 +2481,66 @@
         "summary": "Upsert Share",
         "tags": [
           "shares"
+        ]
+      }
+    },
+    "/feedback": {
+      "post": {
+        "description": "Lưu góp ý rồi gửi email về hộp thư của Jotly trong nền (lỗi gửi thư không làm hỏng request).",
+        "operationId": "send_feedback_feedback_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Feedback",
+        "tags": [
+          "feedback"
         ]
       }
     },

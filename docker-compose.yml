@@ -53,6 +53,14 @@ services:
       "
     restart: "no"
 
+  # Bắt mọi email gửi ra khi chạy local (góp ý, Bước 12): SMTP ở :1025, xem thư ở http://localhost:8025.
+  # Không gửi ra Internet; môi trường thật dùng Gmail SMTP (apps/api/.env.example).
+  mailpit:
+    image: axllent/mailpit:v1.29.4
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
 volumes:
   mongodata:
   miniodata:
