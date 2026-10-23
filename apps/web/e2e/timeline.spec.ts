@@ -25,6 +25,9 @@ test('trang vừa ghi hiện trong tháng; xóa trang thì về màn trống c�
   expect(body.month).toBe(today.slice(0, 7))
   expect(body.entries[0].excerpt.length).toBeLessThanOrEqual(300) // không tải cả nội dung
   await expect(page.getByRole('link', { name: /Đi bộ buổi sáng/ }).first()).toHaveAttribute('href', `/day/${today}`)
+  // Viết trong chính hôm nay = ghi đúng ngày: chuỗi hiện tại 1 ngày (GET /calendar).
+  await expect(page.getByText('Chuỗi hiện tại').filter({ visible: true }).first()).toBeVisible()
+  await expect(page.getByText('1 ngày', { exact: true }).filter({ visible: true }).first()).toBeVisible()
 
   expect((await page.request.delete(`${API}/entries/${today}`, { headers })).ok()).toBe(true)
   await page.reload()

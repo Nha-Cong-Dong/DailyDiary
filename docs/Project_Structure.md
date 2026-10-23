@@ -72,10 +72,10 @@ dailydiary/
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
     │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, shares.py)
-    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, shares.py)
-    │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, shares (F-10: chủ trang + /public/shares);
-│   │   │                         # (B9) calendar;
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, shares.py)
+    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, shares.py)
+    │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, calendar,
+    │   │   │                         # shares (F-10: chủ trang + /public/shares);
     │   │   │                         # (B10) pixels; (B11) search; (B12) export, feedback
     │   │   └── jobs/                 # (B12–B13) dọn bài xóa mềm, hoàn tất xóa tài khoản, sao lưu
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
@@ -123,9 +123,9 @@ dailydiary/
             │   │                     # components/ vì ≥ 6 component;
             │   │                     # (B5–B7) lưu nhật ký, ảnh, tự động lưu
             │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
-            │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10,
-            │   │                     # dữ liệu mẫu); (B8–B9) GET /entries, /calendar
-            │   ├── calendar/         # (B9) dự phòng; lịch tháng hiện nằm trong timeline/ theo thiết kế B8
+            │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10);
+            │   │                     # GET /entries?month (danh sách), GET /calendar/{y}/{m} (lịch + chuỗi ngày)
+            │   ├── calendar/         # dự phòng, chưa dùng: lịch tháng nằm trong timeline/ theo thiết kế B8
             │   ├── pixels/           # Year in Pixels cả năm (giao diện, dữ liệu mẫu); (B10) GET /pixels/{year}
             │   ├── search/           # tìm theo từ khóa + bộ lọc (giao diện, dữ liệu mẫu); (B11) GET /search
             │   ├── share/            # Chia sẻ một trang (F-10, thiết kế B8): hộp thoại, trang người nhận, trang đang chia sẻ,
@@ -199,3 +199,4 @@ dailydiary/
 | 14 | 23/10/2026 | Màu cờ tùy chỉnh (Q6): migration `m0005_user_custom_flag_colors.py`, `features/profile/components/CustomFlagColors.tsx`, `components/diary/FlagPicker.test.tsx` |
 | 15 | 23/10/2026 | Bước 7 (ảnh): `core/storage.py`, `routers/photos.py`, `schemas/photos.py`, `services/photos.py`, `tests/fakes.py` (bỏ nhãn (B7)), migration `m0006_user_avatar_key.py`, `tests/api/test_photos.py`; web: `features/entry/uploadPhoto.ts` (thay hàm giả), `uploadPhoto.test.ts`, `e2e/photos.spec.ts`; thư viện `boto3`, `browser-image-compression`, `heic-to` (tải lười) |
 | 16 | 23/10/2026 | Bước 8 (dòng thời gian): `GET /entries?month` trong `routers|services|schemas/entries.py`; web `features/timeline/useMonth.ts`, `useQuickScore.ts` dùng API thật, `TimelinePage` vào bản build; `e2e/timeline.spec.ts` |
+| 17 | 23/10/2026 | Bước 9 (lịch + thống kê tháng): `routers|schemas|services/calendar.py` (bỏ nhãn (B9)), `tests/api/test_calendar.py`; web `features/timeline/useCalendar.ts`; dải 7 ngày ở Hôm nay đọc `/calendar` |

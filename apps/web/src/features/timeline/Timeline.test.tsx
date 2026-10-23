@@ -43,6 +43,8 @@ describe('Dòng thời gian', () => {
     expect(screen.getAllByText('Tháng 10, 2026', { selector: '[aria-live]' }).length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: /Chiều mưa đọc sách/ })).toHaveAttribute('href', '/day/2026-10-18')
     expect(screen.getByRole('link', { name: 'Ghi bù ngày 14/10' })).toHaveAttribute('href', '/day/2026-10-14/backfill')
+    // Danh sách và lịch/thống kê là hai request song song: tóm tắt trang + lịch tháng (chuỗi ngày tính ở backend).
+    expect(calls.map((c) => c.path)).toEqual(expect.arrayContaining(['/entries', '/calendar/2026/10']))
 
     const more = screen.getByRole('button', { name: /Xem thêm \d+ trang cũ hơn/ })
     expect(screen.queryByRole('link', { name: /Cà phê đầu tháng/ })).not.toBeInTheDocument()

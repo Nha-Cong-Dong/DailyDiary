@@ -454,7 +454,7 @@ Nguyên tắc:
 | POST        | `/entries/{date}/photos`            | Xác nhận ảnh chính và ảnh thu nhỏ đã tải (do trình duyệt tạo), lưu thông tin |
 | PATCH       | `/entries/{date}/photos/order`      | Sắp xếp lại ảnh                                                        |
 | DELETE      | `/photos/{id}`                      | Xóa ảnh                                                                |
-| GET         | `/calendar/{year}/{month}`          | Dữ liệu lịch tháng + thống kê tháng                                    |
+| GET         | `/calendar/{year}/{month}`          | Lịch tháng (ngày, điểm, sub icon, cờ, số ảnh, ghi bù) + thống kê, chuỗi ngày; không có tiêu đề/nội dung |
 | GET         | `/pixels/{year}`                    | Dữ liệu Year in Pixels                                                 |
 | GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05); `q` gửi trong query string của request nhưng không ghi log |
 | GET         | `/keywords/top`                     | 6 từ khóa dùng nhiều nhất của người dùng                               |

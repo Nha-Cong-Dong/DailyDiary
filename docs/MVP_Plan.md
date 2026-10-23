@@ -31,7 +31,7 @@
 | 6    | Tự động lưu và trạng thái đồng bộ (F-06) — xong 21/10/2026                                     | 4–5             | 5         |
 | 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
 | 8    | Dòng thời gian (F-02, phần danh sách) — xong 23/10/2026                                        | 6–7             | 5, 7      |
-| 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
+| 9    | Lịch tháng và thống kê tháng (F-02) — xong 23/10/2026                                          | 8–9             | 5         |
 | 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
 | 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
@@ -381,7 +381,7 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Lighthouse trên bản build (`vite preview`), tài khoản 23 trang: **máy tính LCP 1,1 s, CLS 0,005 — đạt**. Cấu hình di
   động mô phỏng (CPU ×4, 4G chậm): LCP 4,7 s; màn Hôm nay 4,6 s và Hồ sơ 4,7 s cũng vậy, nên đây là phần khởi động của
   cả app (JS chính ~186 KB, chuỗi tải nối tiếp JS → /me → trang → API, 5 tệp phông), chưa tối ưu ở bước này.
-- Để lại cho Bước 9: chuỗi ngày chưa áp quy tắc ghi bù (trang tạo sau ngày đó không nối chuỗi) và chuỗi vắt qua tháng.
+- Để lại cho Bước 9 (đã làm, xem Bước 9): chuỗi ngày chưa áp quy tắc ghi bù và chuỗi vắt qua tháng.
 
 ---
 
@@ -401,6 +401,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Lịch và thống kê tải dưới 1 giây.
 - Test chuỗi liên tiếp kéo qua ranh giới tháng, test tháng 2 năm nhuận.
 - Payload không chứa `content` hay `title`.
+
+**Kết quả (23/10/2026):**
+- `GET /calendar/{year}/{month}` (`routers|schemas|services/calendar.py`): ngày, điểm, sub icon, cờ, số ảnh, `backfilled`
+  + thống kê (số ngày đã ghi, trung bình, phân bố 1–5, ảnh, chuỗi dài nhất trong tháng, chuỗi hiện tại). Không có
+  tiêu đề, nội dung, từ khóa. Rate limit `read`; tháng/năm sai → 422.
+- Ghi bù = `created_at` theo múi giờ hồ sơ rơi sau `entry_date`: vẫn tô màu, không nối chuỗi. Chuỗi hiện tại tính lùi từ
+  hôm nay (chưa ghi thì từ hôm qua), vắt qua tháng, đọc lần lượt và dừng ở chỗ đứt đầu tiên. Chốt: "dài nhất" tính
+  trong tháng đang xem (thiết kế ghi "Dài nhất tháng").
+- Hai truy vấn đều dùng index `uq_user_date`, không sắp xếp trong bộ nhớ (đã `explain`). Thời gian xử lý ~18 ms với
+  tháng 23 trang.
+- Web: Dòng thời gian lấy chuỗi từ `/calendar` (song song với `/entries?month`); dải "7 ngày qua" ở Hôm nay đọc
+  `/calendar` (nhẹ hơn, không có đoạn nội dung). Biểu đồ "Nhịp tháng" vẽ tay theo thiết kế B8, không dùng Recharts.
+- Test: 17 test lịch (chuỗi vắt tháng, 29/2/2024, ghi bù, 23:59 / 00:01 / 06:00 giờ Việt Nam, Los Angeles, hôm nay
+  chưa ghi, xóa mềm, truy cập chéo, payload không có tiêu đề/nội dung); backend 200; Vitest 166; e2e 43/43.
 
 ---
 
