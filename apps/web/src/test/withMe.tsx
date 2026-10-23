@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-rout
 import { vi } from 'vitest'
 import type { components } from '@/api/schema'
 import { ME_KEY, type Me } from '@/lib/profile'
+import { matches } from '@/lib/text'
 
 type EntryOut = components['schemas']['EntryOut']
 
@@ -43,7 +44,8 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
 /**
  * Giả lập API: GET /me trả `me`, PATCH /me gộp body vào `me`, POST /auth/logout trả 204.
  * Nhật ký (`entries`, theo ngày) làm giống backend: 404 khi chưa có, 409 khi `updated_at` lệch hoặc tạo trùng,
- * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}), Year in Pixels (GET /pixels/{year}). Ảnh: xóa và sắp xếp lại.
+ * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}), Year in Pixels (GET /pixels/{year}),
+ * tìm kiếm (GET /search, GET /keywords/top). Ảnh: xóa và sắp xếp lại.
  * Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
@@ -65,6 +67,25 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
       return json(me)
     }
     if (path === '/auth/logout') return new Response(null, { status: 204 })
+    if (path === '/search' && request.method === 'GET') {
+      // Bản gọn của backend: khớp chuỗi con (lib/text, cùng quy tắc có dấu/không dấu), lọc điểm, có ảnh; một trang.
+      const params = new URL(request.url).searchParams
+      const q = params.get('q') ?? ''
+      const scores = params.getAll('score').map(Number)
+      const hit = Object.values(entries)
+        .filter((e) => [e.title ?? '', e.content ?? '', ...e.keywords].some((t) => matches(t, q)))
+        .sort((a, b) => b.entry_date.localeCompare(a.entry_date))
+      const results = hit
+        .filter((e) => (!scores.length || scores.includes(e.score)) && (params.get('has_photo') !== 'true' || e.photos.length))
+        .map(({ content, photos, updated_at: _u, created_at: _c, ...e }) => ({ ...e, excerpt: content, photo_count: photos.length }))
+      return json({ results, matched: hit.length, total: results.length, next_cursor: null })
+    }
+    if (path === '/keywords/top') {
+      const count = new Map<string, number>()
+      for (const e of Object.values(entries)) for (const k of e.keywords) count.set(k, (count.get(k) ?? 0) + 1)
+      const keywords = [...count.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'vi')).slice(0, 6).map(([k]) => k)
+      return json({ keywords })
+    }
     const pixels = path.match(/^\/pixels\/(\d{4})$/)
     if (pixels && request.method === 'GET') {
       const year = Number(pixels[1])

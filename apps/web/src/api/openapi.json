@@ -1079,6 +1079,127 @@
         "title": "PublicShareOut",
         "type": "object"
       },
+      "SearchHitOut": {
+        "description": "Một trang khớp: tiêu đề, đoạn trích quanh chỗ khớp (không phải cả nội dung), từ khóa.",
+        "properties": {
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "excerpt",
+          "keywords",
+          "sub_icon",
+          "flag_color",
+          "photo_count"
+        ],
+        "title": "SearchHitOut",
+        "type": "object"
+      },
+      "SearchOut": {
+        "description": "GET /search. `matched`: số trang khớp từ khóa trước khi áp bộ lọc (để báo trang bị bộ lọc ẩn).",
+        "properties": {
+          "matched": {
+            "title": "Matched",
+            "type": "integer"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHitOut"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "results",
+          "matched",
+          "total",
+          "next_cursor"
+        ],
+        "title": "SearchOut",
+        "type": "object"
+      },
       "ShareOut": {
         "description": "Link của một ngày, chỉ chủ trang thấy.",
         "properties": {
@@ -1347,6 +1468,23 @@
           "keyword_count"
         ],
         "title": "SharedEntryOut",
+        "type": "object"
+      },
+      "TopKeywordsOut": {
+        "description": "GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu).",
+        "properties": {
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          }
+        },
+        "required": [
+          "keywords"
+        ],
+        "title": "TopKeywordsOut",
         "type": "object"
       },
       "ValidationError": {
@@ -2305,6 +2443,56 @@
         ]
       }
     },
+    "/keywords/top": {
+      "get": {
+        "description": "6 từ khóa dùng nhiều nhất của chính người dùng.",
+        "operationId": "top_keywords_keywords_top_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopKeywordsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Top Keywords",
+        "tags": [
+          "search"
+        ]
+      }
+    },
     "/me": {
       "get": {
         "operationId": "read_me_me_get",
@@ -2626,6 +2814,134 @@
         "summary": "Read Public Share",
         "tags": [
           "shares"
+        ]
+      }
+    },
+    "/search": {
+      "get": {
+        "description": "Tìm trong tiêu đề, nội dung, từ khóa; lọc điểm (nhiều mức), khoảng thời gian, chỉ ngày có ảnh.\n\nMới nhất trước, `pagination.search_page_size` kết quả mỗi trang; `cursor` = `next_cursor` của lần trước.",
+        "operationId": "search_search_get",
+        "parameters": [
+          {
+            "description": "Từ khóa (không ghi log)",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Từ khóa (không ghi log)",
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "\\S",
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "score",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maximum": 5,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Score"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "month",
+                "3m",
+                "year",
+                "all"
+              ],
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_photo",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Photo",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
+        "tags": [
+          "search"
         ]
       }
     },

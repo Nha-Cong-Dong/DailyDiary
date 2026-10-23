@@ -23,8 +23,8 @@ Cây thư mục chuẩn **duy nhất**: `docs/Project_Structure.md`. Mọi việ
 - Local: `docker compose up -d` (MongoDB + MinIO). Mô hình dữ liệu: `docs/Project_Specs.md` mục 5.4.
 
 ## Quy tắc luôn áp dụng
-- Luôn có một bản tóm tắt những nội dung đã thêm vào, sửa đổi
-- Luôn có đề xuất các hướng đi tiếp theo
+- Tao một bản tóm tắt những nội dung đã thêm vào, sửa đổi
+- Đề xuất các hướng đi tiếp theo
 - Gợi ý về version control nhưng không tự động thao tác về version control.
 - Đề xuất nội dung commit sau mỗi lần chỉnh sửa bằng cả tiếng Anh lẫn tiếng Việt. Sử dụng git conventions. 
 - Mọi truy vấn dữ liệu người dùng phải lọc theo `user_id` lấy từ phiên đăng nhập.

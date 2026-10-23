@@ -39,6 +39,9 @@ describe('Chi tiết một ngày', () => {
 
 describe('Tìm kiếm', () => {
   it('nhận từ khóa qua state của router (không qua URL) và tô sáng kết quả', async () => {
+    mockApi(makeMe(), {
+      '2026-10-11': makeEntry('2026-10-11', { title: 'Cà phê với Linh', content: 'Linh kể chuyện Đà Lạt.', keywords: ['Linh'] }),
+    })
     renderAt([{ path: '/search', Component: SearchPage }], { pathname: '/search', state: { q: 'Linh' } })
     expect(await screen.findByText(/kết quả cho “Linh”/)).toBeInTheDocument()
     expect(screen.getAllByText('Linh', { selector: 'mark' }).length).toBeGreaterThan(0)

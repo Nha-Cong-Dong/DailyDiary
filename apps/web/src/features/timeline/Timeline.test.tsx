@@ -86,9 +86,8 @@ describe('Hôm nay chưa viết (thiết kế B8)', () => {
   })
 })
 
-describe('Người dùng mới (?demo=empty)', () => {
+describe('Người dùng mới (chưa có trang nào)', () => {
   it('Dòng thời gian, Year in Pixels và Tìm kiếm hiện màn trống mời viết trang đầu tiên', async () => {
-    sessionStorage.setItem('jotly:demo', 'empty') // Year in Pixels, Tìm kiếm còn đọc dữ liệu mẫu (Bước 10–11)
     const me = makeMe({ joined_at: new Date().toISOString() })
     mockApi(me, {})
     const routes = [

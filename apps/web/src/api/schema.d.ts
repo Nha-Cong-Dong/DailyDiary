@@ -258,6 +258,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/keywords/top": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Top Keywords
+         * @description 6 từ khóa dùng nhiều nhất của chính người dùng.
+         */
+        get: operations["top_keywords_keywords_top_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -352,6 +372,28 @@ export interface paths {
          * @description Trang người nhận xem, không cần đăng nhập. Mọi lý do không mở được đều trả cùng một 404.
          */
         get: operations["read_public_share_public_shares__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search
+         * @description Tìm trong tiêu đề, nội dung, từ khóa; lọc điểm (nhiều mức), khoảng thời gian, chỉ ngày có ảnh.
+         *
+         *     Mới nhất trước, `pagination.search_page_size` kết quả mỗi trang; `cursor` = `next_cursor` của lần trước.
+         */
+        get: operations["search_search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -802,6 +844,45 @@ export interface components {
             title?: string | null;
         };
         /**
+         * SearchHitOut
+         * @description Một trang khớp: tiêu đề, đoạn trích quanh chỗ khớp (không phải cả nội dung), từ khóa.
+         */
+        SearchHitOut: {
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Excerpt */
+            excerpt: string | null;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+        };
+        /**
+         * SearchOut
+         * @description GET /search. `matched`: số trang khớp từ khóa trước khi áp bộ lọc (để báo trang bị bộ lọc ẩn).
+         */
+        SearchOut: {
+            /** Matched */
+            matched: number;
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Results */
+            results: components["schemas"]["SearchHitOut"][];
+            /** Total */
+            total: number;
+        };
+        /**
          * ShareOut
          * @description Link của một ngày, chỉ chủ trang thấy.
          */
@@ -912,6 +993,14 @@ export interface components {
             updated_at: string;
             /** Url */
             url: string;
+        };
+        /**
+         * TopKeywordsOut
+         * @description GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu).
+         */
+        TopKeywordsOut: {
+            /** Keywords */
+            keywords: string[];
         };
         /** ValidationError */
         ValidationError: {
@@ -1451,6 +1540,37 @@ export interface operations {
             };
         };
     };
+    top_keywords_keywords_top_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopKeywordsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_me_me_get: {
         parameters: {
             query?: never;
@@ -1634,6 +1754,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicShareOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_search_get: {
+        parameters: {
+            query: {
+                /** @description Từ khóa (không ghi log) */
+                q: string;
+                score?: number[] | null;
+                period?: "month" | "3m" | "year" | "all";
+                has_photo?: boolean;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
                 };
             };
             /** @description Validation Error */

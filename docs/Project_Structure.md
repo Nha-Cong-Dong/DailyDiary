@@ -71,12 +71,12 @@ dailydiary/
     │   │   │   ├── client.py         # AsyncMongoClient, dependency Db
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
-    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, shares.py)
-    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, shares.py)
+    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_entries_norm_backfill.py, m0008_<mo_ta>.py ...
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py)
+    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py)
     │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, calendar, pixels,
-    │   │   │                         # shares (F-10: chủ trang + /public/shares);
-    │   │   │                         # (B11) search; (B12) feedback
+    │   │   │                         # search (/search, /keywords/top), shares (F-10: chủ trang + /public/shares);
+    │   │   │                         # (B12) feedback
     │   │   └── jobs/                 # (B12–B13) dọn bài xóa mềm, hoàn tất xóa tài khoản, sao lưu
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
     │   │   ├── export_openapi.py     # xuất OpenAPI cho web (npm run gen:api, CI kiểm tra lệch)
@@ -106,8 +106,8 @@ dailydiary/
             │                         # route có khung riêng trên điện thoại khai báo handle.phoneChrome ('tabs' | 'none');
             │                         # trong bản build: LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage,
             │                         # DayPage (/day/:date), DayEditPage (/day/:date/edit), BackfillPage (/day/:date/backfill),
-            │                         # SharePage (/s/:token), SharedListPage (/profile/shares), TimelinePage (/timeline), PixelsPage (/pixels);
-            │                         # chỉ có khi chạy dev (dữ liệu mẫu tới khi có API ở Bước 11): DevUiPage, SearchPage
+            │                         # SharePage (/s/:token), SharedListPage (/profile/shares), TimelinePage (/timeline), PixelsPage (/pixels),
+            │                         # SearchPage (/search); chỉ có khi chạy dev: DevUiPage (/dev/ui)
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
             │   ├── landing/          # trang chủ /: bản giới thiệu cho người chưa đăng nhập và bản đã đăng nhập (menu tài khoản,
@@ -126,7 +126,7 @@ dailydiary/
             │   │                     # GET /entries?month (danh sách), GET /calendar/{y}/{m} (lịch + chuỗi ngày)
             │   ├── calendar/         # dự phòng, chưa dùng: lịch tháng nằm trong timeline/ theo thiết kế B8
             │   ├── pixels/           # Year in Pixels cả năm; GET /pixels/{year} (dạng gọn), xem nhanh ngày qua GET /entries/{day}
-            │   ├── search/           # tìm theo từ khóa + bộ lọc (giao diện, dữ liệu mẫu); (B11) GET /search
+            │   ├── search/           # tìm theo từ khóa + bộ lọc; GET /search (chờ ngừng gõ 300 ms, Xem thêm theo cursor), /keywords/top
             │   ├── share/            # Chia sẻ một trang (F-10, thiết kế B8): hộp thoại, trang người nhận, trang đang chia sẻ,
             │   │                     # link đã tắt; kiểu lấy từ schema.d.ts, dữ liệu mẫu demoShares.ts; components/
             │   └── feedback/         # (B12) góp ý
@@ -201,3 +201,4 @@ dailydiary/
 | 17 | 23/10/2026 | Bước 9 (lịch + thống kê tháng): `routers|schemas|services/calendar.py` (bỏ nhãn (B9)), `tests/api/test_calendar.py`; web `features/timeline/useCalendar.ts`; dải 7 ngày ở Hôm nay đọc `/calendar` |
 | 18 | 23/10/2026 | Bước 10 (Year in Pixels): `routers|schemas|services/pixels.py` (bỏ nhãn (B10)), `tests/api/test_pixels.py`; web `features/pixels/usePixels.ts` dùng API, `PixelsPage` vào bản build; `e2e/pixels.spec.ts` |
 | 19 | 23/10/2026 | Year in Pixels tô theo màu cờ (tùy chọn): `features/pixels/ColorByFlag.tsx`, `useColorBy.ts` |
+| 20 | 23/10/2026 | Bước 11 (tìm kiếm): `routers|schemas|services/search.py` (bỏ nhãn (B11)), migration `m0007_entries_norm_backfill.py`, `tests/api/test_search.py`; web `features/search/useSearch.ts` dùng API, bỏ `searchEntries.test.ts` (tìm ở backend), `SearchPage` vào bản build (không còn route dev nào ngoài /dev/ui); `e2e/search.spec.ts` |

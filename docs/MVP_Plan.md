@@ -33,7 +33,7 @@
 | 8    | Dòng thời gian (F-02, phần danh sách) — xong 23/10/2026                                        | 6–7             | 5, 7      |
 | 9    | Lịch tháng và thống kê tháng (F-02) — xong 23/10/2026                                          | 8–9             | 5         |
 | 10   | Year in Pixels (F-03) — xong 23/10/2026                                                         | 10              | 9         |
-| 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
+| 11   | Tìm kiếm theo từ khóa (F-05) — xong 23/10/2026                                                  | 11              | 5         |
 | 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
 | 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026)              | 11              | 7         |
 | 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
@@ -462,6 +462,23 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Hoàn thành khi:** có test tiếng Việt có dấu và không dấu, test chuỗi con, test ký tự regex, test truy cập chéo tài khoản;
 p95 dưới 500 ms với dữ liệu mẫu.
+
+**Kết quả (23/10/2026):**
+- `GET /search` + `GET /keywords/top` (`routers|schemas|services/search.py`). Có dấu → regex `i` trên `title`, `content`,
+  `keywords.keyword` (đã thử: MongoDB gập hoa/thường đúng cho chữ có dấu); không dấu → `title_norm`, `content_norm`,
+  `keywords.norm`. `q` qua `re.escape`, bộ lọc luôn có `user_id` của phiên. Trả `excerpt` 240 ký tự quanh chỗ khớp (không trả
+  cả nội dung), `matched` (trước bộ lọc), `total` (sau bộ lọc), `next_cursor`; 30 kết quả/trang. Khoảng thời gian theo
+  "hôm nay" của người dùng. Rate limit mới `search` 60/phút (limits.json).
+- Migration `m0007`: điền `title_norm`/`content_norm` cho trang còn thiếu (chạy lại không đổi gì).
+- **Quyền riêng tư:** phát hiện log DEBUG của PyMongo ghi nguyên câu lệnh và kết quả (từ khóa, tiêu đề) → `configure_logging`
+  luôn để logger `pymongo` ở WARNING; có test bật DEBUG mà log không chứa từ khóa hay tiêu đề. Đã kiểm tra log thật của API sau
+  e2e: có dòng `GET /search`, không có từ khóa. Frontend giữ từ khóa trong state, không lên URL.
+- Web: `useSearch` (useInfiniteQuery, chờ ngừng gõ 300 ms, "Xem thêm N kết quả cũ hơn"), từ khóa hay dùng, trang gần đây,
+  màn trống người mới đều đọc API; `/search` vào bản build. Bỏ hàm tìm phía trình duyệt (`searchEntries.ts` chỉ còn bộ lọc).
+- Test: 26 test tìm kiếm (có dấu/không dấu, hoa thường, chuỗi con, 7 chuỗi ký tự regex, đoạn trích, bộ lọc, phân trang 35
+  trang không trùng không sót, xóa mềm, truy cập chéo, log, tham số sai, từ khóa hay dùng, m0007); backend 235; Vitest 164;
+  e2e 47/47.
+- Hiệu năng: 365 trang (~620 ký tự/trang), 55 lần tìm trộn từ khóa và bộ lọc: **p50 33 ms, p95 61 ms**; `/keywords/top` 46 ms.
 
 ---
 

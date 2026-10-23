@@ -166,7 +166,8 @@ Quy tắc:
 - Kết quả hiện tiêu đề và một đoạn trích quanh chỗ khớp, tô sáng phần khớp; kèm "Từ khóa hay dùng" (6 từ khóa
   dùng nhiều nhất của chính người dùng).
 - Từ khóa tìm kiếm không đưa lên URL, không ghi log, không gửi Sentry (là nội dung nhật ký).
-- 20–50 kết quả/trang, mới nhất trước. Thời gian phản hồi dưới 500 ms.
+- 20–50 kết quả/trang (`pagination.search_page_size` = 30), mới nhất trước, "Xem thêm" theo con trỏ. Thời gian phản hồi
+  dưới 500 ms. Rate limit riêng `search` (60/phút) vì tìm theo lần ngừng gõ.
 
 ### F-06. Tự động lưu
 
@@ -457,7 +458,7 @@ Nguyên tắc:
 | DELETE      | `/photos/{id}`                      | Xóa ảnh                                                                |
 | GET         | `/calendar/{year}/{month}`          | Lịch tháng (ngày, điểm, sub icon, cờ, số ảnh, ghi bù) + thống kê, chuỗi ngày; không có tiêu đề/nội dung |
 | GET         | `/pixels/{year}`                    | Year in Pixels dạng gọn: chuỗi điểm 365/366 ký tự, cờ, ngày ghi bù, chuỗi ngày, các năm có dữ liệu |
-| GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05); `q` gửi trong query string của request nhưng không ghi log |
+| GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05): kết quả có đoạn trích quanh chỗ khớp, `matched` (trước bộ lọc), `total`, `next_cursor`; `q` gửi trong query string nhưng không ghi log |
 | GET         | `/keywords/top`                     | 6 từ khóa dùng nhiều nhất của người dùng                               |
 | GET         | `/entries/{date}/share`             | Link chia sẻ của một ngày (`null` nếu chưa bật) (F-10)                 |
 | PUT         | `/entries/{date}/share`             | Bật link hoặc đổi phần hiển thị; lần đầu tạo token                     |

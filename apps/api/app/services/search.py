@@ -82,14 +82,15 @@ async def search(
     start = period_start(period, user_today(user.timezone))
     if start:
         dates["$gte"] = start.isoformat()
-    if cursor:
-        dates["$lt"] = cursor.isoformat()
     if dates:
         conditions["entry_date"] = dates
     if scores:
         conditions["score"] = {"$in": sorted(set(scores))}
     if has_photo:
         conditions["photos.0"] = {"$exists": True}
+    total = await db[c.ENTRIES].count_documents(conditions)
+    if cursor:
+        conditions["entry_date"] = {**dates, "$lt": cursor.isoformat()}
 
     rows = await (
         await db[c.ENTRIES].aggregate(
@@ -129,7 +130,7 @@ async def search(
         for r in rows
     ]
     next_cursor = results[-1].entry_date if more and results else None
-    return SearchOut(results=results, matched=matched, next_cursor=next_cursor)
+    return SearchOut(results=results, matched=matched, total=total, next_cursor=next_cursor)
 
 
 async def top_keywords(db: AsyncDatabase, user: User) -> list[str]:

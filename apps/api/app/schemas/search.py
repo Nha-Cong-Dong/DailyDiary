@@ -22,6 +22,8 @@ class SearchOut(BaseModel):
 
     results: list[SearchHitOut]
     matched: int
+    # Số trang khớp cả từ khóa lẫn bộ lọc (mọi trang kết quả, không chỉ trang này).
+    total: int
     # Có thêm trang cũ hơn: gửi lại làm `cursor` để lấy trang kế tiếp (null = hết).
     next_cursor: date | None
 
