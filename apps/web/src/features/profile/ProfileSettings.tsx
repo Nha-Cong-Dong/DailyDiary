@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { AvatarField } from './components/AvatarField'
 import { AccountDeletedDialog, DeleteAccountDialog, DeleteDataDialog } from './components/DeleteAccountDialog'
 import { IconSetPicker } from './components/IconSetPicker'
+import { CustomFlagColors } from './components/CustomFlagColors'
 import { TimeZoneField } from './components/TimeZoneField'
 import { usePageCount, useWipeJournal } from './useJournalData'
 
@@ -257,6 +258,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
             className="max-sm:flex max-sm:gap-3 max-sm:overflow-x-auto max-sm:px-4 max-sm:pt-3.5 max-sm:pb-2.5 max-sm:[scrollbar-width:none] max-sm:[&>button]:w-[176px] max-sm:[&>button]:flex-none"
           />
         </div>
+        <CustomFlagColors />
         <div className="max-sm:px-4 max-sm:pt-3.5 max-sm:pb-4">
           <TimeZoneField
             value={timeZone}

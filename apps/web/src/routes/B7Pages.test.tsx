@@ -6,7 +6,7 @@ import { PixelsPage } from '@/routes/PixelsPage'
 import { ProfilePage } from '@/routes/ProfilePage'
 import { SearchPage } from '@/routes/SearchPage'
 import { getThemePreference } from '@/lib/theme'
-import { makeMe, mockApi, renderWithMe } from '@/test/withMe'
+import { makeEntry, makeMe, mockApi, renderWithMe } from '@/test/withMe'
 
 // Các màn thiết kế B7; "hôm nay" theo múi giờ trong hồ sơ (để Việt Nam cho cố định).
 function renderAt(routes: RouteObject[], entry: string | { pathname: string; state?: unknown }) {
@@ -19,7 +19,8 @@ describe('Chi tiết một ngày', () => {
     expect(await screen.findByRole('heading', { name: 'Ngày không hợp lệ' })).toBeInTheDocument()
   })
 
-  it('hiện trang mẫu; xóa cần xác nhận, báo khôi phục được 30 ngày và có Hoàn tác', async () => {
+  it('hiện trang; xóa cần xác nhận, báo khôi phục được 30 ngày và có Hoàn tác', async () => {
+    mockApi(makeMe(), { '2026-10-18': makeEntry('2026-10-18', { title: 'Chiều mưa đọc sách' }) })
     renderAt([{ path: '/day/:date', Component: DayPage }], '/day/2026-10-18')
     expect(await screen.findByRole('heading', { name: 'Chiều mưa đọc sách' })).toBeInTheDocument()
     expect(screen.getByText(/ghi đúng ngày/)).toBeInTheDocument()

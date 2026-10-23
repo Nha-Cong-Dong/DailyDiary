@@ -8,11 +8,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { flagColors, scoreLabel } from '@/lib/catalog'
 import { isValidDate, longDateLabel, todayIn, useNow, type DateString } from '@/lib/date'
-import type { DemoEntry } from '@/lib/demo'
 import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
+import type { DraftFields } from '@/lib/storage'
 import { cn } from '@/lib/utils'
-import { applyDraft, changedFields, dateTimeLabel, dayMonth, daysBetween, draftOf, fieldsLabel, type EntryDraft } from './entryDraft'
+import type { DayEntry } from './entries'
+import { changedFields, dateTimeLabel, dayMonth, daysBetween, draftOf, fieldsLabel, type EntryDraft } from './entryDraft'
 import {
   BackLink,
   ConfirmDialog,
@@ -24,16 +25,17 @@ import {
   phoneIconButton,
   SavedToast,
 } from './components/EntryFormParts'
+import { ConflictDialog } from './components/ConflictDialog'
 import { InlineKeywordEditor } from './components/KeywordEditor'
-import { useWriteDay } from './localDays'
 import { fakeUploadPhoto } from './uploadPhoto'
+import { useAutosave } from './useAutosave'
 import { useDay } from './useDay'
 import { useFrequentSubIcons } from './useFrequentSubIcons'
 
 const SAGE = flagColors.find((f) => f.id === 'sage')?.hex
 
 /** "Viết lúc 21:20, 16/10/2026 · Sửa lần cuối 21:15, 18/10, 2 ngày sau". */
-function metaLine(entry: DemoEntry, timeZone: string): string {
+function metaLine(entry: DayEntry, timeZone: string): string {
   const written = `Viết lúc ${dateTimeLabel(timeZone, entry.created_at)}`
   if (entry.updated_at === entry.created_at) return written
   const editedDay = todayIn(timeZone, new Date(entry.updated_at))
@@ -42,9 +44,8 @@ function metaLine(entry: DemoEntry, timeZone: string): string {
   return `${written} · Sửa lần cuối ${when}`
 }
 
-function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
+function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
   const { timeZone, iconSetId } = useProfile()
-  const writeDay = useWriteDay()
   const ids = useId()
   const date = entry.entry_date
   const [record, setRecord] = useState(entry)
@@ -55,11 +56,35 @@ function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
   const [savedNow, setSavedNow] = useState(false)
   const uploads = usePhotoUploads(base.photos, fakeUploadPhoto)
   const { data: frequentIcons } = useFrequentSubIcons()
+  // Sửa trang cũ: chỉ ghi nháp vào trình duyệt (F5 không mất chữ); lên máy chủ khi bấm "Lưu thay đổi" (F-06).
+  const autosave = useAutosave({
+    date,
+    record: entry,
+    mode: 'draft',
+    onLoad: (f) => setDraft((d) => ({ ...d, ...f, score: f.score as EntryDraft['score'] })),
+    onSaved: (next) => {
+      adopt(next)
+      setSavedNow(true)
+      setToast(true)
+    },
+  })
+  const draftFields: DraftFields = {
+    score: draft.score,
+    sub_icon: draft.sub_icon,
+    flag_color: draft.flag_color,
+    title: draft.title,
+    content: draft.content,
+    keywords: draft.keywords,
+  }
+  const draftKey = JSON.stringify(draftFields)
+  const { change } = autosave
+  useEffect(() => change(JSON.parse(draftKey) as DraftFields), [change, draftKey])
 
   const current: EntryDraft = { ...draft, photos: uploads.photos }
   const changes = changedFields(base, current)
   const dirty = changes.length > 0 || uploads.uploading
-  const canSave = changes.length > 0 && !uploads.uploading
+  const saving = autosave.status.kind === 'saving'
+  const canSave = changes.length > 0 && !uploads.uploading && !saving
   const set = <K extends keyof EntryDraft>(key: K) => (value: EntryDraft[K]) => setDraft((d) => ({ ...d, [key]: value }))
 
   // Rời trang khi còn thay đổi chưa lưu: trong app hỏi bằng hộp thoại, đóng tab thì trình duyệt tự hỏi.
@@ -72,25 +97,40 @@ function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
   }, [dirty])
   const hideToast = useCallback(() => setToast(false), [])
 
-  function save() {
-    const next = applyDraft(record, current)
-    writeDay(date, next)
+  function adopt(next: DayEntry) {
     setRecord(next)
     setBase(draftOf(next))
     setDraft(draftOf(next))
-    setSavedNow(true)
-    setToast(true)
+    uploads.reset(next.photos)
+  }
+
+  function save() {
+    void autosave.flush()
+  }
+
+  /** "Dùng bản vừa sửa" khi xung đột: bản máy chủ thành bản gốc lẫn bản đang sửa. */
+  function takeTheirs() {
+    const theirs = autosave.conflict?.theirs
+    autosave.takeTheirs()
+    if (theirs) adopt(theirs)
   }
 
   function discard() {
     setDraft(base)
     uploads.reset(base.photos)
+    autosave.discard()
     setConfirmDiscard(false)
   }
 
   const ago = daysBetween(date, today)
   const agoText = ago === 1 ? 'hôm qua' : `${ago} ngày trước`
-  const status = uploads.uploading
+  const status = saving
+    ? 'Đang lưu…'
+    : autosave.status.kind === 'error'
+      ? autosave.status.message
+      : autosave.status.kind === 'unsynced'
+        ? 'Chưa lưu được — kiểm tra kết nối rồi bấm Lưu lại'
+    : uploads.uploading
     ? 'Đang tải ảnh lên…'
     : changes.length
       ? `${changes.length} thay đổi chưa lưu`
@@ -214,8 +254,17 @@ function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
               </span>
             </span>
             <PhotoUploader uploads={uploads} labelledBy={`${ids}-photos`} />
+            {/* TODO(Bước 7): gửi ảnh qua presigned URL. Tới lúc đó ảnh thêm ở đây chưa được lưu. */}
+            <p className="text-xs leading-[18px] text-muted-foreground">Lưu ảnh có ở bản sau; hiện chỉ lưu chữ, điểm, icon và cờ.</p>
           </div>
         </section>
+
+        {autosave.restored ? (
+          <Alert role="status">
+            <AlertDescription>Đã khôi phục phần bạn sửa dở lần trước (chưa lưu). Bấm Lưu thay đổi để lưu, hoặc Hủy thay đổi để bỏ.</AlertDescription>
+          </Alert>
+        ) : null}
+        <ConflictDialog conflict={autosave.conflict} onKeepMine={autosave.keepMine} onTakeTheirs={takeTheirs} />
 
         {/* Máy tính: thanh lưu dính đáy. Điện thoại: chỉ còn dòng trạng thái cuối trang (nút Lưu ở thanh trên). */}
         <div
@@ -272,7 +321,7 @@ function EditForm({ entry, today }: { entry: DemoEntry; today: DateString }) {
   )
 }
 
-/** Màn sửa một trang cũ (thiết kế B9 · Sửa một trang cũ). Bản thử: lưu trong bộ nhớ tab tới khi có API ở Bước 5. */
+/** Màn sửa một trang cũ (thiết kế B9 · Sửa một trang cũ), lưu bằng PUT /entries/{day}. */
 export function EditEntry({ date }: { date: string }) {
   const { timeZone } = useProfile()
   const now = useNow()

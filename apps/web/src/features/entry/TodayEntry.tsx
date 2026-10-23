@@ -1,43 +1,93 @@
 import { CircleCheck, Image } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { FlagPicker } from '@/components/diary/FlagPicker'
 import { ScorePicker } from '@/components/diary/ScorePicker'
 import { SubIconPicker } from '@/components/diary/SubIconPicker'
+import { SyncStatus } from '@/components/diary/SyncStatus'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { Score } from '@/lib/catalog'
+import type { DraftFields } from '@/lib/storage'
 import { longDateLabel, timeIn, todayIn, useNow } from '@/lib/date'
 import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
+import { ConflictDialog } from './components/ConflictDialog'
 import { KeywordEditor } from './components/KeywordEditor'
 import { RecentDays } from './components/RecentDays'
+import type { DayEntry } from './entries'
+import { useAutosave } from './useAutosave'
+import { useDay } from './useDay'
 import { useRecentDays } from './useRecentDays'
 
 /**
  * Màn "Hôm nay" (thiết kế B6): chấm điểm trước, các trường khác mở ra sau và đều không bắt buộc.
- * Chưa có API nhật ký (Bước 5) nên mọi thứ chỉ nằm trong bộ nhớ của trang, tải lại là mất.
+ * Chấm điểm là lưu ngay (PUT /entries/{hôm nay}); các trường khác tự lưu (nháp sau 1 s, máy chủ sau 4 s, F-06);
+ * nút Lưu chỉ để lưu ngay.
  */
 export function TodayEntry() {
-  const { timeZone, iconSetId } = useProfile()
+  const { timeZone } = useProfile()
   const now = useNow()
   const today = todayIn(timeZone, now)
+  const { data: entry, isPending, isError } = useDay(today)
+  if (isPending) {
+    return (
+      <p role="status" className="mx-auto w-full max-w-[640px] text-muted-foreground">
+        Đang mở trang hôm nay…
+      </p>
+    )
+  }
+  if (isError) {
+    return (
+      <Alert variant="destructive" className="mx-auto w-full max-w-[640px]">
+        <AlertDescription>Không mở được trang hôm nay. Thử tải lại.</AlertDescription>
+      </Alert>
+    )
+  }
+  // key theo ngày: qua nửa đêm thì form bắt đầu lại cho ngày mới.
+  return <TodayForm key={today} today={today} initial={entry ?? null} />
+}
+
+function TodayForm({ today, initial }: { today: string; initial: DayEntry | null }) {
+  const { timeZone, iconSetId } = useProfile()
   const limits = tierLimits()
   const ids = useId()
   const { data: recent } = useRecentDays(today)
 
-  const [score, setScore] = useState<Score | null>(null)
-  const [scoredAt, setScoredAt] = useState<Date | null>(null)
-  const [sub, setSub] = useState<string | null>(null)
-  const [flag, setFlag] = useState<string | null>(null)
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [keywords, setKeywords] = useState<string[]>([])
-  const [saveNotice, setSaveNotice] = useState(false)
+  const [record, setRecord] = useState<DayEntry | null>(initial)
+  const [score, setScore] = useState<Score | null>(initial?.score ?? null)
+  const [sub, setSub] = useState<string | null>(initial?.sub_icon ?? null)
+  const [flag, setFlag] = useState<string | null>(initial?.flag_color ?? null)
+  const [title, setTitle] = useState(initial?.title ?? '')
+  const [content, setContent] = useState(initial?.content ?? '')
+  const [keywords, setKeywords] = useState<string[]>(initial?.keywords ?? [])
+  const scoredAt = record ? new Date(record.created_at) : null
 
+  const autosave = useAutosave({
+    date: today,
+    record: initial,
+    mode: 'auto',
+    onLoad: (f) => {
+      setScore(f.score as Score)
+      setSub(f.sub_icon)
+      setFlag(f.flag_color)
+      setTitle(f.title)
+      setContent(f.content)
+      setKeywords(f.keywords)
+    },
+    onSaved: setRecord,
+  })
+  const fields: DraftFields | null = score ? { score, sub_icon: sub, flag_color: flag, title, content, keywords } : null
+  const fieldsKey = JSON.stringify(fields)
+  const { change } = autosave
+  // Mỗi lần gõ: hẹn ghi nháp và đồng bộ (bộ máy tự bỏ qua khi không có gì đổi).
+  useEffect(() => change(fieldsKey === 'null' ? null : (JSON.parse(fieldsKey) as DraftFields)), [change, fieldsKey])
+
+  // Chấm (hoặc đổi) điểm: lưu ngay, cùng các trường đang có.
   function pick(next: Score) {
     setScore(next)
-    if (!scoredAt) setScoredAt(new Date())
+    void autosave.saveNow({ score: next, sub_icon: sub, flag_color: flag, title, content, keywords })
   }
 
   return (
@@ -60,16 +110,25 @@ export function TodayEntry() {
           className="gap-1.5 sm:gap-3"
           iconClassName="size-10 md:size-[52px]"
         />
-        {score && scoredAt ? (
-          <p role="status" className="flex items-center gap-2 text-sm leading-[22px] md:text-[15px] md:leading-6">
-            <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
-            Đã ghi lại hôm nay lúc {timeIn(timeZone, scoredAt)}
-          </p>
-        ) : (
-          <p className="text-sm leading-[22px] text-muted-foreground md:text-[15px] md:leading-6">
-            Chỉ cần chấm điểm là hôm nay đã được ghi lại.
-          </p>
-        )}
+        <SyncStatus
+          // Lần lưu đầu (vừa chấm điểm) đọc là "Đã ghi lại hôm nay lúc…"; các lần sau mới là "Đã lưu lúc…".
+          status={autosave.status.kind === 'saved' && record?.updated_at === record?.created_at ? { kind: 'idle' } : autosave.status}
+          timeZone={timeZone}
+          onRetry={autosave.retry}
+          fallback={
+            record && scoredAt ? (
+              <>
+                <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
+                Đã ghi lại hôm nay lúc {timeIn(timeZone, scoredAt)}
+              </>
+            ) : (
+              <span className="text-muted-foreground">Chỉ cần chấm điểm là hôm nay đã được ghi lại.</span>
+            )
+          }
+        />
+        {autosave.restored ? (
+          <p className="text-[13px] leading-5 text-muted-foreground">Đã khôi phục phần bạn viết dở lần trước.</p>
+        ) : null}
       </section>
 
       {score ? (
@@ -141,20 +200,22 @@ export function TodayEntry() {
           </div>
 
           <div className="flex flex-col gap-3 border-border pt-0 md:flex-row-reverse md:items-center md:justify-between md:border-t-[1.5px] md:border-dashed md:pt-[18px]">
-            <Button onClick={() => setSaveNotice(true)} className="h-12 md:h-11 md:px-[22px]">
-              Lưu
+            <Button
+              onClick={() => void autosave.flush()}
+              disabled={autosave.status.kind === 'saving'}
+              className="h-12 md:h-11 md:px-[22px]"
+            >
+              {autosave.status.kind === 'saving' ? 'Đang lưu…' : 'Lưu'}
             </Button>
             <span className="text-center text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
               {scoredAt ? `Tạo ${timeIn(timeZone, scoredAt)}` : null}
             </span>
           </div>
-          {saveNotice ? (
-            <p role="status" className="text-[13px] leading-5 text-muted-foreground">
-              Bản thử giao diện: chưa lưu lên máy chủ. Lưu nhật ký thật có ở Bước 5.
-            </p>
-          ) : null}
+          <p className="text-[13px] leading-5 text-muted-foreground">Tự động lưu khi bạn ngừng gõ vài giây.</p>
         </section>
       ) : null}
+
+      <ConflictDialog conflict={autosave.conflict} onKeepMine={autosave.keepMine} onTakeTheirs={autosave.takeTheirs} />
 
       <RecentDays today={today} iconSetId={iconSetId} todayScore={score} todaySub={sub} recent={recent} />
     </div>

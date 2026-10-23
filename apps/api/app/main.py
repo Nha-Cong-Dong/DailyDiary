@@ -13,7 +13,7 @@ from app.core.logging import RequestLogMiddleware, configure_logging
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.core.security import verify_csrf
 from app.db.client import make_client
-from app.routers import auth, health, me, shares
+from app.routers import auth, entries, health, me, shares
 
 DEV_ENVS = {"local", "test"}
 
@@ -80,6 +80,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(me.router)
+    app.include_router(entries.router)
     app.include_router(shares.router)
     if settings.dev_login and settings.env in DEV_ENVS:
         app.include_router(auth.dev_router)

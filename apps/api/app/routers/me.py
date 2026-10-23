@@ -20,5 +20,6 @@ async def read_me(request: Request, user: CurrentUser) -> MeOut:
 @router.patch("", response_model=MeOut)
 @limiter.limit(rate_limit("write"))
 async def update_me(request: Request, body: MeUpdate, user: CurrentUser, db: Db) -> MeOut:
-    """Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, gỡ ảnh đại diện, đánh dấu xong lần đầu."""
+    """Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, màu cờ tùy chỉnh, gỡ ảnh đại diện,
+    đánh dấu xong lần đầu."""
     return MeOut.from_user(await user_service.update_me(db, user, body))

@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useProfile } from '@/lib/profile'
+import { clearDraftsFor } from '@/lib/storage'
 
 /**
  * Số trang nhật ký và "Xóa toàn bộ dữ liệu" cho Hồ sơ. BẢN THỬ: chưa có API (Bước 12), nên ở dev đọc và xóa dữ liệu mẫu
@@ -14,9 +16,12 @@ export function usePageCount(): number | undefined {
 
 export function useWipeJournal(onWiped?: () => void) {
   const client = useQueryClient()
+  const { email } = useProfile()
   return useMutation({
     mutationFn: async () => {
       if (import.meta.env.DEV) (await import('@/lib/demo')).wipeDemoData()
+      // Nháp chưa đồng bộ cũng là dữ liệu nhật ký: xóa cùng lúc.
+      await clearDraftsFor(email)
     },
     onSuccess: () => {
       onWiped?.()

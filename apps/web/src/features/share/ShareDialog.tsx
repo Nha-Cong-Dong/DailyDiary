@@ -4,7 +4,7 @@ import { BottomSheet, SheetClose, SheetDescription, SheetTitle } from '@/compone
 import { Toast } from '@/components/diary/Toast'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { flagColors, scoreLabel } from '@/lib/catalog'
+import { flagName, scoreLabel } from '@/lib/catalog'
 import { longDateLabel } from '@/lib/date'
 import type { DemoEntry } from '@/lib/demo'
 import { useProfile } from '@/lib/profile'
@@ -50,7 +50,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
   const { displayName, avatarUrl, iconSetId } = useProfile()
   const ids = useId()
   const save = useSaveShare(entry.entry_date)
-  const revoke = useRevokeShare()
+  const revoke = useRevokeShare(entry.entry_date)
   const { copied, toast, copy } = useCopyLink()
   const shape = shapeOf(entry)
   // Bản đang chỉnh: lấy từ link khi mở hộp thoại; chưa bật link thì giữ cục bộ tới lúc bật.
@@ -345,7 +345,7 @@ function partDesc(key: PartKey, entry: DemoEntry, name: string, iconSetId: strin
     case 'sub_icon':
       return entry.sub_icon ?? ''
     case 'flag':
-      return flagColors.find((f) => f.hex.toLowerCase() === entry.flag_color?.toLowerCase())?.name ?? ''
+      return flagName(entry.flag_color) ?? ''
     case 'title':
       return entry.title ?? ''
     case 'content': {

@@ -1,8 +1,23 @@
-import { act, fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { renderWithMe } from '@/test/withMe'
+import { makeEntry, makeMe, mockApi, renderWithMe } from '@/test/withMe'
 import { EditEntry } from './EditEntry'
-import { clearLocalDays } from './localDays'
+
+const DAY = '2026-10-16'
+const saved = () =>
+  makeEntry(DAY, {
+    score: 5,
+    title: 'Tan làm sớm',
+    content: 'Có thời gian nấu một bữa tối tử tế.',
+    sub_icon: '🌸',
+    flag_color: '#83C8B5',
+    photos: [
+      { id: 'p1', position: 0, width: 1920, height: 1440 },
+      { id: 'p2', position: 1, width: 1920, height: 1440 },
+    ],
+  })
+let calls: ReturnType<typeof mockApi>
+let store: Record<string, ReturnType<typeof makeEntry>>
 
 function Edit() {
   return <EditEntry date="2026-10-16" />
@@ -22,10 +37,11 @@ beforeEach(() => {
   // Chỉ giả Date: "hôm nay" là 18/10/2026 giờ Việt Nam; hẹn giờ vẫn chạy thật.
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-18T14:15:00Z'))
+  store = { [DAY]: saved() }
+  calls = mockApi(makeMe(), store)
 })
 afterEach(() => {
   vi.useRealTimers()
-  clearLocalDays()
 })
 
 // Màn nhiều icon SVG: dành thêm thời gian khi cả bộ test chạy song song.
@@ -69,9 +85,44 @@ describe('Sửa một trang cũ', () => {
     renderEdit()
     fireEvent.change(await screen.findByLabelText('Tiêu đề'), { target: { value: 'Tối nấu ăn' } })
     fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
-    expect(screen.getByText('Đã lưu thay đổi cho trang 16/10')).toBeInTheDocument()
+    expect(await screen.findByText('Đã lưu thay đổi cho trang 16/10')).toBeInTheDocument()
     expect(screen.getByText(/Sửa lần cuối 21:15, 18\/10, 2 ngày sau/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Xem trang' })).toBeInTheDocument()
+    // Sửa thì gửi lại đúng updated_at đã nhận, kèm CSRF.
+    const put = calls.find((c) => c.method === 'PUT')!
+    expect(put.path).toBe(`/entries/${DAY}`)
+    expect(put.body).toMatchObject({ score: 5, title: 'Tối nấu ăn', updated_at: saved().updated_at })
+  })
+
+  it('bản trên máy chủ mới hơn (409): hộp thoại chọn bản, "Dùng bản vừa sửa" nạp bản kia', async () => {
+    renderEdit()
+    fireEvent.change(await screen.findByLabelText('Tiêu đề'), { target: { value: 'Bản ở tab này' } })
+    // Tab khác vừa lưu: updated_at trên máy chủ đổi.
+    store[DAY] = { ...store[DAY], title: 'Bản ở tab khác', updated_at: '2026-10-18T14:00:00.000Z' }
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+    const dialog = await screen.findByRole('alertdialog', { name: 'Trang này vừa được sửa ở nơi khác' })
+    expect(within(dialog).getByText('Bản ở tab này')).toBeInTheDocument()
+    expect(await within(dialog).findByText('Bản ở tab khác')).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Dùng bản vừa sửa' }))
+    expect(await screen.findByDisplayValue('Bản ở tab khác')).toBeInTheDocument()
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+  })
+
+  it('409 rồi "Giữ bản của tôi": gửi lại bản đang sửa dựa trên bản máy chủ mới', async () => {
+    renderEdit()
+    fireEvent.change(await screen.findByLabelText('Tiêu đề'), { target: { value: 'Bản ở tab này' } })
+    store[DAY] = { ...store[DAY], title: 'Bản ở tab khác', updated_at: '2026-10-18T14:00:00.000Z' }
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+    const dialog = await screen.findByRole('alertdialog', { name: 'Trang này vừa được sửa ở nơi khác' })
+    await within(dialog).findByText('Bản ở tab khác')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Giữ bản của tôi' }))
+    await waitFor(() =>
+      expect(calls.filter((c) => c.method === 'PUT').at(-1)?.body).toMatchObject({
+        title: 'Bản ở tab này',
+        updated_at: '2026-10-18T14:00:00.000Z',
+      }),
+    )
+    expect(await screen.findByDisplayValue('Bản ở tab này')).toBeInTheDocument()
   })
 
   it('rời trang khi còn thay đổi thì hỏi trước', async () => {

@@ -61,6 +61,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/entries/{day}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Entry
+         * @description Nhật ký của một ngày. 404 khi chưa ghi hoặc đã xóa.
+         */
+        get: operations["read_entry_entries__day__get"];
+        /**
+         * Save Entry
+         * @description Tạo hoặc cập nhật. Gửi kèm `updated_at` đã nhận để phát hiện xung đột (409).
+         *
+         *     Không cho ghi ngày tương lai theo múi giờ hồ sơ (422).
+         */
+        put: operations["save_entry_entries__day__put"];
+        post?: never;
+        /**
+         * Delete Entry
+         * @description Xóa mềm; khôi phục được tới `restore_until`.
+         */
+        delete: operations["delete_entry_entries__day__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{day}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore Entry
+         * @description Hoàn tác xóa (còn trong hạn khôi phục).
+         */
+        post: operations["restore_entry_entries__day__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/entries/{day}/share": {
         parameters: {
             query?: never;
@@ -122,7 +172,8 @@ export interface paths {
         head?: never;
         /**
          * Update Me
-         * @description Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, gỡ ảnh đại diện, đánh dấu xong lần đầu.
+         * @description Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, màu cờ tùy chỉnh, gỡ ảnh đại diện,
+         *     đánh dấu xong lần đầu.
          */
         patch: operations["update_me_me_patch"];
         trace?: never;
@@ -171,6 +222,98 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * EntryDeletedOut
+         * @description Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.
+         */
+        EntryDeletedOut: {
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /**
+             * Restore Until
+             * Format: date-time
+             */
+            restore_until: string;
+        };
+        /** EntryOut */
+        EntryOut: {
+            /** Content */
+            content: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photos */
+            photos: components["schemas"]["EntryPhotoOut"][];
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * EntryPhotoOut
+         * @description Ảnh của một ngày. Link xem (ký có hạn) có ở Bước 7.
+         */
+        EntryPhotoOut: {
+            /** Height */
+            height: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Position */
+            position: number;
+            /** Width */
+            width: number;
+        };
+        /**
+         * EntryWrite
+         * @description PUT /entries/{date}: tạo hoặc cập nhật nhật ký một ngày (F-01).
+         *
+         *     Giới hạn độ dài và số từ khóa phụ thuộc cấp tài khoản nên kiểm tra ở service (shared/limits.json).
+         */
+        EntryWrite: {
+            /** Content */
+            content?: string | null;
+            /** Flag Color */
+            flag_color?: string | null;
+            /** Keywords */
+            keywords?: string[];
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -195,6 +338,8 @@ export interface components {
             account_tier: "beta" | "free" | "premium";
             /** Avatar Url */
             avatar_url: string | null;
+            /** Custom Flag Colors */
+            custom_flag_colors: string[];
             /** Display Name */
             display_name: string;
             /** Email */
@@ -220,6 +365,8 @@ export interface components {
         MeUpdate: {
             /** Avatar Url */
             avatar_url?: null;
+            /** Custom Flag Colors */
+            custom_flag_colors?: string[] | null;
             /** Display Name */
             display_name?: string | null;
             /** Icon Set Id */
@@ -459,6 +606,142 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_entry_entries__day__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_entry_entries__day__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_entry_entries__day__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryDeletedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_entry_entries__day__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
             };
             /** @description Validation Error */
             422: {

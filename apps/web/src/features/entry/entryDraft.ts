@@ -1,7 +1,7 @@
 import type { PhotoItem } from '@/components/diary/PhotoViewer'
 import type { Score } from '@/lib/catalog'
 import { dayOfMonth, timeIn, todayIn, type DateString } from '@/lib/date'
-import type { DemoEntry } from '@/lib/demo'
+import type { DayEntry, EntryWrite } from './entries'
 
 /** Các trường sửa được của một trang (F-01). */
 export type EntryDraft = {
@@ -27,7 +27,7 @@ const LABEL: Record<DraftField, string> = {
   photos: 'ảnh',
 }
 
-export function draftOf(entry: DemoEntry): EntryDraft {
+export function draftOf(entry: DayEntry): EntryDraft {
   return {
     score: entry.score,
     sub_icon: entry.sub_icon,
@@ -56,8 +56,25 @@ export function fieldsLabel(fields: DraftField[]): string {
   return names.length > 1 ? `${names.slice(0, -1).join(', ')} và ${names.at(-1)}` : (names[0] ?? '')
 }
 
+/**
+ * Thân PUT /entries/{day} từ bản nháp. `updatedAt` = bản đang sửa (null khi tạo mới).
+ * Ảnh chưa gửi: lưu ảnh thật có ở Bước 7 (presigned URL).
+ */
+export function toWrite(draft: Omit<EntryDraft, 'photos'>, updatedAt: string | null): EntryWrite {
+  const text = (s: string) => s.normalize('NFC').trim() || null
+  return {
+    score: draft.score,
+    sub_icon: draft.sub_icon,
+    flag_color: draft.flag_color,
+    title: text(draft.title),
+    content: text(draft.content),
+    keywords: draft.keywords,
+    ...(updatedAt ? { updated_at: updatedAt } : {}),
+  }
+}
+
 /** Ghi các trường của bản nháp vào trang; chuỗi rỗng lưu thành null, nội dung chuẩn hóa NFC. */
-export function applyDraft(entry: DemoEntry, draft: EntryDraft, now = new Date()): DemoEntry {
+export function applyDraft(entry: DayEntry, draft: EntryDraft, now = new Date()): DayEntry {
   const text = (s: string) => s.normalize('NFC').trim() || null
   return {
     ...entry,
@@ -81,7 +98,7 @@ export function daysBetween(date: DateString, today: DateString): number {
  * Trang ghi bù: được tạo sau ngày của chính nó (created_at đổi sang múi giờ người dùng rơi vào ngày sau `entry_date`).
  * Vẫn được tô màu ở lịch và Year in Pixels, nhưng không nối lại chuỗi ngày liên tiếp (thiết kế B9).
  */
-export function isBackfilled(entry: Pick<DemoEntry, 'entry_date' | 'created_at'>, timeZone: string): boolean {
+export function isBackfilled(entry: Pick<DayEntry, 'entry_date' | 'created_at'>, timeZone: string): boolean {
   return todayIn(timeZone, new Date(entry.created_at)) > entry.entry_date
 }
 

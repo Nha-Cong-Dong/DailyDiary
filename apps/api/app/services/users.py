@@ -50,6 +50,7 @@ async def upsert_google_user(
             "account_tier": get_limits().default_tier,
             "joined_at": now,
             "onboarded_at": None,
+            "custom_flag_colors": [],
             "deleted_at": None,
         },
     }
@@ -82,6 +83,11 @@ async def update_me(db: AsyncDatabase, user: User, data: MeUpdate) -> User:
         fields["icon_set_id"] = data.icon_set_id
     if "avatar_url" in data.model_fields_set:
         fields["avatar_url"] = None
+    if data.custom_flag_colors is not None:
+        max_colors = get_limits().tier(user.account_tier).profile.custom_flag_colors_max
+        if len(data.custom_flag_colors) > max_colors:
+            raise ApiError(422, "FLAG_COLORS_LIMIT", f"Tối đa {max_colors} màu cờ tùy chỉnh")
+        fields["custom_flag_colors"] = data.custom_flag_colors
     if data.onboarded and user.onboarded_at is None:
         fields["onboarded_at"] = datetime.now(UTC)
     if not fields:

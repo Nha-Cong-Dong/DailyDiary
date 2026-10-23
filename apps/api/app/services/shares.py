@@ -7,7 +7,7 @@
 """
 
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import UUID, uuid4
 
 from pymongo import ReturnDocument
@@ -18,6 +18,7 @@ from app.core.config import settings
 from app.core.errors import ApiError
 from app.db import collections as c
 from app.schemas.shares import PublicShareOut, SharedEntryOut, ShareOut, ShareUpdate
+from app.services import entries as entry_service
 
 # 16 byte ngẫu nhiên → 22 ký tự base64url (128 bit): không đoán được, đủ ngắn để chép.
 TOKEN_BYTES = 16
@@ -55,10 +56,7 @@ def _share_out(doc: dict) -> ShareOut:
 async def _live_entry(
     db: AsyncDatabase, user_id: UUID, day: str, projection: dict | None = None
 ) -> dict | None:
-    # Đọc thẳng `entries` vì chưa có services/entries.py (Bước 5). Khi có, dùng hàm đọc một ngày ở đó.
-    return await db[c.ENTRIES].find_one(
-        {"user_id": user_id, "entry_date": day, "deleted_at": None}, projection
-    )
+    return await entry_service.find_active(db, user_id, date.fromisoformat(day), projection)
 
 
 async def get_share(db: AsyncDatabase, user_id: UUID, day: str) -> ShareOut | None:

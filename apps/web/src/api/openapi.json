@@ -1,6 +1,238 @@
 {
   "components": {
     "schemas": {
+      "EntryDeletedOut": {
+        "description": "Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.",
+        "properties": {
+          "deleted_at": {
+            "format": "date-time",
+            "title": "Deleted At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "restore_until": {
+            "format": "date-time",
+            "title": "Restore Until",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_date",
+          "deleted_at",
+          "restore_until"
+        ],
+        "title": "EntryDeletedOut",
+        "type": "object"
+      },
+      "EntryOut": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "photos": {
+            "items": {
+              "$ref": "#/components/schemas/EntryPhotoOut"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "content",
+          "sub_icon",
+          "flag_color",
+          "keywords",
+          "photos",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EntryOut",
+        "type": "object"
+      },
+      "EntryPhotoOut": {
+        "description": "Ảnh của một ngày. Link xem (ký có hạn) có ở Bước 7.",
+        "properties": {
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "width",
+          "height"
+        ],
+        "title": "EntryPhotoOut",
+        "type": "object"
+      },
+      "EntryWrite": {
+        "additionalProperties": false,
+        "description": "PUT /entries/{date}: tạo hoặc cập nhật nhật ký một ngày (F-01).\n\nGiới hạn độ dài và số từ khóa phụ thuộc cấp tài khoản nên kiểm tra ở service (shared/limits.json).",
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "score": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "score"
+        ],
+        "title": "EntryWrite",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -55,6 +287,13 @@
             ],
             "title": "Avatar Url"
           },
+          "custom_flag_colors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Custom Flag Colors",
+            "type": "array"
+          },
           "display_name": {
             "title": "Display Name",
             "type": "string"
@@ -89,7 +328,8 @@
           "icon_set_id",
           "account_tier",
           "joined_at",
-          "onboarded"
+          "onboarded",
+          "custom_flag_colors"
         ],
         "title": "MeOut",
         "type": "object"
@@ -101,6 +341,20 @@
           "avatar_url": {
             "title": "Avatar Url",
             "type": "null"
+          },
+          "custom_flag_colors": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Flag Colors"
           },
           "display_name": {
             "anyOf": [
@@ -695,6 +949,252 @@
         ]
       }
     },
+    "/entries/{day}": {
+      "delete": {
+        "description": "Xóa mềm; khôi phục được tới `restore_until`.",
+        "operationId": "delete_entry_entries__day__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryDeletedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Entry",
+        "tags": [
+          "entries"
+        ]
+      },
+      "get": {
+        "description": "Nhật ký của một ngày. 404 khi chưa ghi hoặc đã xóa.",
+        "operationId": "read_entry_entries__day__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Entry",
+        "tags": [
+          "entries"
+        ]
+      },
+      "put": {
+        "description": "Tạo hoặc cập nhật. Gửi kèm `updated_at` đã nhận để phát hiện xung đột (409).\n\nKhông cho ghi ngày tương lai theo múi giờ hồ sơ (422).",
+        "operationId": "save_entry_entries__day__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntryWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Entry",
+        "tags": [
+          "entries"
+        ]
+      }
+    },
+    "/entries/{day}/restore": {
+      "post": {
+        "description": "Hoàn tác xóa (còn trong hạn khôi phục).",
+        "operationId": "restore_entry_entries__day__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restore Entry",
+        "tags": [
+          "entries"
+        ]
+      }
+    },
     "/entries/{day}/share": {
       "delete": {
         "description": "Tắt link. Link cũ không mở được nữa; bật lại sẽ có link mới.",
@@ -952,7 +1452,7 @@
         ]
       },
       "patch": {
-        "description": "Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, gỡ ảnh đại diện, đánh dấu xong lần đầu.",
+        "description": "Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, màu cờ tùy chỉnh, gỡ ảnh đại diện,\nđánh dấu xong lần đầu.",
         "operationId": "update_me_me_patch",
         "parameters": [
           {

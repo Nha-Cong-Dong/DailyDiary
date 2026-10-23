@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from app.core.catalog import get_icons
+from app.core.catalog import get_flag_colors, get_icons, normalize_hex
 
 AccountTier = Literal["beta", "free", "premium"]
 
@@ -34,6 +34,7 @@ class User(BaseModel):
     account_tier: AccountTier
     joined_at: datetime
     onboarded_at: datetime | None
+    custom_flag_colors: tuple[str, ...] = ()
 
     @classmethod
     def from_doc(cls, doc: dict) -> "User":
@@ -47,6 +48,7 @@ class User(BaseModel):
             account_tier=doc["account_tier"],
             joined_at=doc["joined_at"],
             onboarded_at=doc.get("onboarded_at"),
+            custom_flag_colors=tuple(doc.get("custom_flag_colors") or ()),
         )
 
 
@@ -61,6 +63,8 @@ class MeOut(BaseModel):
     account_tier: AccountTier
     joined_at: datetime
     onboarded: bool
+    # Màu cờ người dùng tự thêm (#RRGGBB), xếp theo thứ tự thêm; 8 màu có sẵn ở shared/flag_colors.json.
+    custom_flag_colors: list[str]
 
     @classmethod
     def from_user(cls, user: User) -> "MeOut":
@@ -73,6 +77,7 @@ class MeOut(BaseModel):
             account_tier=user.account_tier,
             joined_at=user.joined_at,
             onboarded=user.onboarded_at is not None,
+            custom_flag_colors=list(user.custom_flag_colors),
         )
 
 
@@ -91,6 +96,8 @@ class MeUpdate(BaseModel):
     avatar_url: None = None
     # Hoàn tất 3 bước lần đầu (chỉ đặt được, không gỡ).
     onboarded: Literal[True] | None = None
+    # Thay cả danh sách màu cờ tùy chỉnh (thêm/gỡ). Số màu tối đa kiểm ở service, theo limits.json.
+    custom_flag_colors: list[str] | None = None
 
     @field_validator("display_name")
     @classmethod
@@ -113,6 +120,18 @@ class MeUpdate(BaseModel):
         if v is not None and v not in get_icons().icon_set_ids:
             raise ValueError("bộ icon không tồn tại")
         return v
+
+    @field_validator("custom_flag_colors")
+    @classmethod
+    def _custom_flags(cls, v: list[str] | None) -> list[str] | None:
+        if v is None:
+            return None
+        hexes = [normalize_hex(h) for h in v]
+        if len(set(hexes)) != len(hexes):
+            raise ValueError("màu cờ bị trùng")
+        if set(hexes) & get_flag_colors().hexes:
+            raise ValueError("màu này đã có trong bảng màu")
+        return hexes
 
 
 class DevLoginIn(BaseModel):
