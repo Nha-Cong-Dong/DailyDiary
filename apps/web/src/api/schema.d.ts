@@ -61,6 +61,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/calendar/{year}/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Month
+         * @description Lịch + thống kê tháng trong một request: ngày, điểm, sub icon, cờ, số ảnh.
+         *
+         *     Không có tiêu đề, nội dung hay từ khóa.
+         */
+        get: operations["read_month_calendar__year___month__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Month
+         * @description Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh.
+         */
+        get: operations["list_month_entries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/entries/{day}": {
         parameters: {
             query?: never;
@@ -355,6 +397,55 @@ export interface components {
             upload_url: string;
         };
         /**
+         * CalendarDayOut
+         * @description Một ngày đã ghi trong lịch tháng: không có tiêu đề, nội dung hay từ khóa.
+         */
+        CalendarDayOut: {
+            /** Backfilled */
+            backfilled: boolean;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+        };
+        /**
+         * CalendarOut
+         * @description GET /calendar/{year}/{month}: một request cho lịch + thống kê tháng (F-02).
+         */
+        CalendarOut: {
+            /** Days */
+            days: components["schemas"]["CalendarDayOut"][];
+            /** Month */
+            month: string;
+            stats: components["schemas"]["CalendarStatsOut"];
+        };
+        /** CalendarStatsOut */
+        CalendarStatsOut: {
+            /** Average */
+            average: number | null;
+            /** Current Streak */
+            current_streak: number;
+            /** Distribution */
+            distribution: number[];
+            /** Longest Streak */
+            longest_streak: number;
+            /** Photo Days */
+            photo_days: number;
+            /** Photos */
+            photos: number;
+            /** Recorded */
+            recorded: number;
+        };
+        /**
          * EntryDeletedOut
          * @description Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.
          */
@@ -374,6 +465,16 @@ export interface components {
              * Format: date-time
              */
             restore_until: string;
+        };
+        /**
+         * EntryMonthOut
+         * @description GET /entries?month=YYYY-MM: mọi trang chưa xóa của tháng, mới nhất trước (tối đa 31).
+         */
+        EntryMonthOut: {
+            /** Entries */
+            entries: components["schemas"]["EntrySummaryOut"][];
+            /** Month */
+            month: string;
         };
         /** EntryOut */
         EntryOut: {
@@ -427,6 +528,41 @@ export interface components {
             url?: string | null;
             /** Width */
             width: number;
+        };
+        /**
+         * EntrySummaryOut
+         * @description Một trang trong Dòng thời gian theo tháng: không có nội dung đầy đủ, chỉ đoạn đầu và số ảnh.
+         */
+        EntrySummaryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Excerpt */
+            excerpt: string | null;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /**
          * EntryWrite
@@ -819,6 +955,74 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_month_calendar__year___month__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+                month: number;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_month_entries_get: {
+        parameters: {
+            query: {
+                /** @description Tháng YYYY-MM */
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryMonthOut"];
+                };
             };
             /** @description Validation Error */
             422: {

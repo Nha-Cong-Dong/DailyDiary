@@ -43,7 +43,8 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
 /**
  * Giả lập API: GET /me trả `me`, PATCH /me gộp body vào `me`, POST /auth/logout trả 204.
  * Nhật ký (`entries`, theo ngày) làm giống backend: 404 khi chưa có, 409 khi `updated_at` lệch hoặc tạo trùng,
- * xóa mềm và khôi phục. Ảnh: xóa (DELETE /photos/{id}) và sắp xếp lại. Chia sẻ: chưa có link nào.
+ * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}). Ảnh: xóa và sắp xếp lại.
+ * Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
 export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
@@ -64,6 +65,49 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
       return json(me)
     }
     if (path === '/auth/logout') return new Response(null, { status: 204 })
+    const calendar = path.match(/^\/calendar\/(\d{4})\/(\d{1,2})$/)
+    if (calendar && request.method === 'GET') {
+      // Bản gọn của backend: chuỗi chỉ đếm ngày liên tiếp (không xét ghi bù), hiện tại tính tới hôm nay/hôm qua.
+      const month = `${calendar[1]}-${calendar[2].padStart(2, '0')}`
+      const all = Object.values(entries).map((e) => e.entry_date)
+      const days = Object.values(entries)
+        .filter((e) => e.entry_date.startsWith(`${month}-`))
+        .sort((a, b) => a.entry_date.localeCompare(b.entry_date))
+        .map((e) => ({ entry_date: e.entry_date, score: e.score, sub_icon: e.sub_icon, flag_color: e.flag_color, photo_count: e.photos.length, backfilled: false }))
+      const shift = (d: string, n: number) => new Date(Date.parse(`${d}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10)
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: me.timezone }).format(new Date())
+      let at = all.includes(today) ? today : shift(today, -1)
+      let current = 0
+      while (all.includes(at)) [current, at] = [current + 1, shift(at, -1)]
+      let longest = 0
+      for (const d of days) {
+        let run = 1
+        while (days.some((x) => x.entry_date === shift(d.entry_date, -run))) run++
+        longest = Math.max(longest, run)
+      }
+      const scores = days.map((d) => d.score)
+      return json({
+        month,
+        days,
+        stats: {
+          recorded: days.length,
+          average: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null,
+          distribution: [1, 2, 3, 4, 5].map((n) => scores.filter((x) => x === n).length),
+          photos: days.reduce((a, d) => a + d.photo_count, 0),
+          photo_days: days.filter((d) => d.photo_count).length,
+          longest_streak: longest,
+          current_streak: current,
+        },
+      })
+    }
+    if (path === '/entries' && request.method === 'GET') {
+      const month = new URL(request.url).searchParams.get('month') ?? ''
+      const rows = Object.values(entries)
+        .filter((e) => e.entry_date.startsWith(`${month}-`))
+        .sort((a, b) => b.entry_date.localeCompare(a.entry_date))
+        .map(({ content, photos, ...e }) => ({ ...e, excerpt: content?.slice(0, 300) ?? null, photo_count: photos.length }))
+      return json({ month, entries: rows })
+    }
     const notFound = () => json({ error: { code: 'ENTRY_NOT_FOUND', message: 'Ngày này chưa có nhật ký' } }, 404)
     const share = path.match(/^\/entries\/(\d{4}-\d{2}-\d{2})\/share$/)
     if (share && request.method === 'GET') return json(null)

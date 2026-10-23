@@ -125,7 +125,8 @@ Quy tắc:
 
 ### F-02. Dòng thời gian, lịch tháng, thống kê tháng
 
-- **Danh sách bài gần đây**: 10–20 bài mỗi lần tải, cuộn để tải thêm, mới nhất ở trên.
+- **Danh sách bài theo tháng** (thiết kế B8, đổi 21/10/2026 thay cho cuộn vô hạn): xem từng tháng, mới nhất ở trên,
+  hiện 7 trang rồi "Xem thêm"; cả tháng lấy trong 1 request, mỗi trang chỉ có đoạn đầu nội dung (300 ký tự) và số ảnh.
 - **Lịch tháng**: mỗi ngày hiển thị main icon và sub icon thu nhỏ. Dữ liệu cả tháng lấy trong **1 request**, chỉ gồm ngày, điểm, sub icon, màu cờ (bộ icon lấy từ hồ sơ, áp cho mọi ngày); không tải nội dung bài viết.
 - **Thống kê tháng**: số ngày đã ghi / tổng số ngày; điểm trung bình; phân bố điểm 1–5; tổng số ảnh; chuỗi ngày ghi liên tiếp dài nhất; biểu đồ điểm theo ngày.
 - **Ghi bù** (thiết kế B9, 21/10/2026): trang tạo sau khi ngày đó đã qua (`created_at` rơi vào ngày sau `entry_date`
@@ -444,7 +445,7 @@ Nguyên tắc:
 | PATCH       | `/me`                               | Sửa tên, ảnh đại diện (xác nhận ảnh vừa tải hoặc gỡ), múi giờ, bộ icon, màu cờ riêng |
 | POST        | `/me/avatar/upload-url`             | Xin presigned URL tải ảnh đại diện (đã cắt vuông, nén trên trình duyệt) |
 | DELETE      | `/me`                               | Xóa tài khoản và toàn bộ dữ liệu                                       |
-| GET         | `/entries?cursor=&limit=`           | Danh sách bài gần đây (phân trang theo con trỏ)                        |
+| GET         | `/entries?month=YYYY-MM`            | Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước; đoạn đầu nội dung + số ảnh |
 | GET         | `/entries/{date}`                   | Nhật ký của một ngày                                                   |
 | PUT         | `/entries/{date}`                   | Tạo hoặc cập nhật (gửi kèm `updated_at` đã biết để phát hiện xung đột) |
 | DELETE      | `/entries/{date}`                   | Xóa mềm                                                                |

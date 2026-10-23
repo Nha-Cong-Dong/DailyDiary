@@ -4,17 +4,16 @@ import { Link } from 'react-router'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { flagHex, scoreLabel, type Score } from '@/lib/catalog'
 import { timeIn, todayIn, weekdayShort } from '@/lib/date'
-import type { DemoEntry } from '@/lib/demo'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
-import { writePath, type TimelineItem } from './monthTimeline'
+import { writePath, type MonthEntry, type TimelineItem } from './monthTimeline'
 import { JustScored, TodayPrompt } from './TodayPrompt'
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring'
 const flashRing = 'outline-3 outline-offset-4 outline-score-5'
 
 /** "Điểm 4 · Hé nở · Viết lúc 21:04, sửa 21:32" (sửa ở ngày khác thì kèm ngày). */
-function metaLine(e: DemoEntry, iconSetId: string, timeZone: string): string {
+function metaLine(e: MonthEntry, iconSetId: string, timeZone: string): string {
   const created = new Date(e.created_at)
   const updated = new Date(e.updated_at)
   let text = `Điểm ${e.score} · ${scoreLabel(iconSetId, e.score)} · Viết lúc ${timeIn(timeZone, created)}`
@@ -27,8 +26,8 @@ function metaLine(e: DemoEntry, iconSetId: string, timeZone: string): string {
 }
 
 /** Bản điện thoại (thiết kế B10): "Điểm 4 · 21:04 · 3 ảnh". */
-function shortMeta(e: DemoEntry, timeZone: string): string {
-  const photos = e.photos.length ? ` · ${e.photos.length} ảnh` : ''
+function shortMeta(e: MonthEntry, timeZone: string): string {
+  const photos = e.photo_count ? ` · ${e.photo_count} ảnh` : ''
   return `Điểm ${e.score} · ${timeIn(timeZone, new Date(e.created_at))}${photos}`
 }
 
@@ -38,7 +37,7 @@ function EntryRow({
   timeZone,
   flash,
 }: {
-  entry: DemoEntry
+  entry: MonthEntry
   iconSetId: string
   timeZone: string
   flash: boolean
@@ -102,10 +101,10 @@ function EntryRow({
           <span className="text-xs leading-[18px] text-muted-foreground tabular-nums md:hidden">{shortMeta(entry, timeZone)}</span>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] leading-5 text-muted-foreground tabular-nums max-md:hidden">
             <span>{meta}</span>
-            {entry.photos.length ? (
+            {entry.photo_count ? (
               <span className="inline-flex items-center gap-1">
                 <Image className="size-3.5" aria-hidden="true" />
-                {entry.photos.length}
+                {entry.photo_count}
                 <span className="sr-only"> ảnh</span>
               </span>
             ) : null}

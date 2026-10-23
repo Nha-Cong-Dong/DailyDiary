@@ -106,8 +106,8 @@ dailydiary/
             │                         # route có khung riêng trên điện thoại khai báo handle.phoneChrome ('tabs' | 'none');
             │                         # trong bản build: LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage,
             │                         # DayPage (/day/:date), DayEditPage (/day/:date/edit), BackfillPage (/day/:date/backfill),
-            │                         # SharePage (/s/:token), SharedListPage (/profile/shares);
-            │                         # chỉ có khi chạy dev (dữ liệu mẫu tới khi có API ở bước 8–11): DevUiPage, TimelinePage,
+            │                         # SharePage (/s/:token), SharedListPage (/profile/shares), TimelinePage (/timeline);
+            │                         # chỉ có khi chạy dev (dữ liệu mẫu tới khi có API ở bước 10–11): DevUiPage,
             │                         # PixelsPage, SearchPage
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
@@ -198,3 +198,4 @@ dailydiary/
 | 13 | 21/10/2026 | Bước 6: `lib/autosave.ts`, `lib/storage.ts` (bỏ nhãn (B6)), `features/entry/useAutosave.ts`, `features/entry/components/ConflictDialog.tsx`, `components/diary/SyncStatus.tsx`, `e2e/autosave.spec.ts`; thư viện `idb`, `fake-indexeddb` (test) |
 | 14 | 23/10/2026 | Màu cờ tùy chỉnh (Q6): migration `m0005_user_custom_flag_colors.py`, `features/profile/components/CustomFlagColors.tsx`, `components/diary/FlagPicker.test.tsx` |
 | 15 | 23/10/2026 | Bước 7 (ảnh): `core/storage.py`, `routers/photos.py`, `schemas/photos.py`, `services/photos.py`, `tests/fakes.py` (bỏ nhãn (B7)), migration `m0006_user_avatar_key.py`, `tests/api/test_photos.py`; web: `features/entry/uploadPhoto.ts` (thay hàm giả), `uploadPhoto.test.ts`, `e2e/photos.spec.ts`; thư viện `boto3`, `browser-image-compression`, `heic-to` (tải lười) |
+| 16 | 23/10/2026 | Bước 8 (dòng thời gian): `GET /entries?month` trong `routers|services|schemas/entries.py`; web `features/timeline/useMonth.ts`, `useQuickScore.ts` dùng API thật, `TimelinePage` vào bản build; `e2e/timeline.spec.ts` |

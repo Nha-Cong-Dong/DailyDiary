@@ -58,6 +58,139 @@
         "title": "AvatarUploadOut",
         "type": "object"
       },
+      "CalendarDayOut": {
+        "description": "Một ngày đã ghi trong lịch tháng: không có tiêu đề, nội dung hay từ khóa.",
+        "properties": {
+          "backfilled": {
+            "title": "Backfilled",
+            "type": "boolean"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "sub_icon",
+          "flag_color",
+          "photo_count",
+          "backfilled"
+        ],
+        "title": "CalendarDayOut",
+        "type": "object"
+      },
+      "CalendarOut": {
+        "description": "GET /calendar/{year}/{month}: một request cho lịch + thống kê tháng (F-02).",
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarDayOut"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/CalendarStatsOut"
+          }
+        },
+        "required": [
+          "month",
+          "days",
+          "stats"
+        ],
+        "title": "CalendarOut",
+        "type": "object"
+      },
+      "CalendarStatsOut": {
+        "properties": {
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "current_streak": {
+            "title": "Current Streak",
+            "type": "integer"
+          },
+          "distribution": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Distribution",
+            "type": "array"
+          },
+          "longest_streak": {
+            "title": "Longest Streak",
+            "type": "integer"
+          },
+          "photo_days": {
+            "title": "Photo Days",
+            "type": "integer"
+          },
+          "photos": {
+            "title": "Photos",
+            "type": "integer"
+          },
+          "recorded": {
+            "title": "Recorded",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "recorded",
+          "average",
+          "distribution",
+          "photos",
+          "photo_days",
+          "longest_streak",
+          "current_streak"
+        ],
+        "title": "CalendarStatsOut",
+        "type": "object"
+      },
       "EntryDeletedOut": {
         "description": "Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.",
         "properties": {
@@ -83,6 +216,28 @@
           "restore_until"
         ],
         "title": "EntryDeletedOut",
+        "type": "object"
+      },
+      "EntryMonthOut": {
+        "description": "GET /entries?month=YYYY-MM: mọi trang chưa xóa của tháng, mới nhất trước (tối đa 31).",
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/EntrySummaryOut"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "entries"
+        ],
+        "title": "EntryMonthOut",
         "type": "object"
       },
       "EntryOut": {
@@ -230,6 +385,99 @@
           "height"
         ],
         "title": "EntryPhotoOut",
+        "type": "object"
+      },
+      "EntrySummaryOut": {
+        "description": "Một trang trong Dòng thời gian theo tháng: không có nội dung đầy đủ, chỉ đoạn đầu và số ảnh.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "excerpt",
+          "sub_icon",
+          "flag_color",
+          "keywords",
+          "photo_count",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EntrySummaryOut",
         "type": "object"
       },
       "EntryWrite": {
@@ -1191,6 +1439,140 @@
         "summary": "Logout",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/calendar/{year}/{month}": {
+      "get": {
+        "description": "Lịch + thống kê tháng trong một request: ngày, điểm, sub icon, cờ, số ảnh.\n\nKhông có tiêu đề, nội dung hay từ khóa.",
+        "operationId": "read_month_calendar__year___month__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Year",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "maximum": 12,
+              "minimum": 1,
+              "title": "Month",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Month",
+        "tags": [
+          "calendar"
+        ]
+      }
+    },
+    "/entries": {
+      "get": {
+        "description": "Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh.",
+        "operationId": "list_month_entries_get",
+        "parameters": [
+          {
+            "description": "Tháng YYYY-MM",
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "description": "Tháng YYYY-MM",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryMonthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Month",
+        "tags": [
+          "entries"
         ]
       }
     },

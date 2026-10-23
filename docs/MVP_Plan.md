@@ -30,7 +30,7 @@
 | 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng) — xong 21/10/2026                        | 4–5             | 3         |
 | 6    | Tự động lưu và trạng thái đồng bộ (F-06) — xong 21/10/2026                                     | 4–5             | 5         |
 | 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
-| 8    | Dòng thời gian (F-02, phần danh sách)                                                           | 6–7             | 5, 7      |
+| 8    | Dòng thời gian (F-02, phần danh sách) — xong 23/10/2026                                        | 6–7             | 5, 7      |
 | 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
 | 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
@@ -368,6 +368,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Có trạng thái đang tải, lỗi, rỗng.
 
 **Hoàn thành khi:** có test phân trang (không trùng, không sót bài, bỏ qua bài đã xóa mềm) và test truy cập chéo tài khoản; Lighthouse cho LCP dưới 2,5 giây.
+
+**Kết quả (23/10/2026):**
+- Làm theo thiết kế B8: `GET /entries?month=YYYY-MM` (thay `?cursor=&limit=`). Một aggregate theo index
+  `(user_id, entry_date)`, mới nhất trước, bỏ bài xóa mềm; không trả nội dung đầy đủ — `excerpt` 300 ký tự cắt ngay trong
+  MongoDB, `photo_count` thay cho mảng ảnh. Rate limit `read`. Tháng sai dạng → 422.
+- Web: `useMonth` đọc API (tháng nhỏ nhất = tháng của `joined_at` theo múi giờ hồ sơ); chấm điểm nhanh trên Dòng thời
+  gian dùng PUT/DELETE thật; dải "7 ngày qua" ở Hôm nay đọc cùng endpoint (thêm tháng trước khi vắt tháng).
+  `/timeline` vào bản build (trước đây chỉ có ở dev). Thẻ trang hiện số ảnh, không hiện ảnh thu nhỏ (theo thiết kế B8).
+- Test: "phân trang" theo tháng — đi qua 36 tháng không trùng, không sót (ngày 29/2, đầu/cuối tháng, cuối năm), bỏ bài
+  xóa mềm, B không thấy tháng của A, tháng sai dạng; backend 183 test; Vitest 166; e2e 43/43 (`--workers=1`).
+- Lighthouse trên bản build (`vite preview`), tài khoản 23 trang: **máy tính LCP 1,1 s, CLS 0,005 — đạt**. Cấu hình di
+  động mô phỏng (CPU ×4, 4G chậm): LCP 4,7 s; màn Hôm nay 4,6 s và Hồ sơ 4,7 s cũng vậy, nên đây là phần khởi động của
+  cả app (JS chính ~186 KB, chuỗi tải nối tiếp JS → /me → trang → API, 5 tệp phông), chưa tối ưu ở bước này.
+- Để lại cho Bước 9: chuỗi ngày chưa áp quy tắc ghi bù (trang tạo sau ngày đó không nối chuỗi) và chuỗi vắt qua tháng.
 
 ---
 
