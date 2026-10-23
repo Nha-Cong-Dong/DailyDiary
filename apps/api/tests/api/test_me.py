@@ -1,8 +1,11 @@
+from uuid import uuid4
+
 import pytest
 
 from app.core.catalog import get_flag_colors
 from app.core.limits import get_limits
 from app.db import collections as c
+from tests.fakes import PNG, WEBP
 
 pytestmark = pytest.mark.anyio
 
@@ -100,3 +103,61 @@ async def test_custom_flag_colors_limit_comes_from_limits_json(alice):
 async def test_bob_cannot_change_alice_flag_colors(alice, bob):
     await bob.patch("/me", json={"custom_flag_colors": ["#ABCDEF"]})
     assert (await alice.get("/me")).json()["custom_flag_colors"] == []
+
+
+async def _avatar_upload(client, s3, body):
+    r = await client.post("/me/avatar/upload-url", json={"content_type": "image/webp"})
+    assert r.status_code == 200, r.text
+    up = r.json()
+    key = up["upload_url"].split("/test-bucket/", 1)[1].split("?", 1)[0]
+    s3.put(key, body)
+    return up, key
+
+
+async def test_avatar_upload_replace_and_remove(alice, s3, db):
+    up, key = await _avatar_upload(alice, s3, WEBP)
+    assert key == f"{alice.user['_id']}/avatar/{up['upload_id']}.webp"
+    upload = {"upload_id": up["upload_id"], "content_type": "image/webp"}
+    r = await alice.patch("/me", json={"avatar_upload": upload})
+    assert r.status_code == 200, r.text
+    assert r.json()["avatar_url"].endswith(f"{key}?signed")
+    assert (await alice.get("/me")).json()["avatar_url"].endswith(f"{key}?signed")
+
+    up2, key2 = await _avatar_upload(alice, s3, WEBP)
+    r = await alice.patch(
+        "/me", json={"avatar_upload": {"upload_id": up2["upload_id"], "content_type": "image/webp"}}
+    )
+    assert r.json()["avatar_url"].endswith(f"{key2}?signed")
+    assert key not in s3.objects  # ảnh cũ bị xóa khỏi kho
+
+    r = await alice.patch("/me", json={"avatar_url": None})
+    assert r.json()["avatar_url"] is None
+    assert key2 not in s3.objects
+    saved = await db[c.USERS].find_one({"_id": alice.user["_id"]})
+    assert saved["avatar_key"] is None
+
+
+@pytest.mark.parametrize(
+    "body", [PNG, b"not an image" * 10, WEBP + b"\x00" * 2_100_000], ids=["png", "garbage", "too-large"]
+)
+async def test_avatar_rejects_fake_or_large_file(alice, s3, body):
+    up, key = await _avatar_upload(alice, s3, body)
+    r = await alice.patch(
+        "/me", json={"avatar_upload": {"upload_id": up["upload_id"], "content_type": "image/webp"}}
+    )
+    assert r.status_code == 422 and r.json()["error"]["code"] == "AVATAR_INVALID"
+    assert key not in s3.objects
+
+
+async def test_avatar_upload_and_remove_together_is_rejected(alice):
+    body = {"avatar_url": None, "avatar_upload": {"upload_id": str(uuid4()), "content_type": "image/webp"}}
+    assert (await alice.patch("/me", json=body)).status_code == 422
+
+
+async def test_bob_cannot_use_alice_avatar_upload(alice, bob, s3):
+    up, key = await _avatar_upload(alice, s3, WEBP)
+    r = await bob.patch(
+        "/me", json={"avatar_upload": {"upload_id": up["upload_id"], "content_type": "image/webp"}}
+    )
+    assert r.status_code == 422  # key dựng từ phiên của Bob, không trỏ tới file của Alice
+    assert key in s3.objects

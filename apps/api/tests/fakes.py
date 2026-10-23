@@ -1,0 +1,34 @@
+"""Kho ảnh giả cho test: object giữ trong bộ nhớ, URL ký là chuỗi đoán trước được."""
+
+from app.core.storage import Storage
+
+WEBP = b"RIFF\x00\x00\x00\x00WEBPVP8 " + b"\x00" * 64
+JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 64
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+
+
+class FakeStorage(Storage):
+    def __init__(self) -> None:
+        super().__init__(client=None, presign_client=None, bucket="test-bucket")
+        self.objects: dict[str, bytes] = {}
+
+    def upload_url(self, key: str, content_type: str) -> str:
+        return f"https://s3.test/{self.bucket}/{key}?put&ct={content_type}"
+
+    def view_url(self, key: str) -> str:
+        return f"https://s3.test/{self.bucket}/{key}?signed"
+
+    def put(self, key: str, body: bytes) -> None:
+        """Giả lập trình duyệt PUT lên presigned URL."""
+        self.objects[key] = body
+
+    async def size(self, key: str) -> int | None:
+        body = self.objects.get(key)
+        return None if body is None else len(body)
+
+    async def first_bytes(self, key: str, n: int = 16) -> bytes:
+        return self.objects[key][:n]
+
+    async def delete(self, *keys: str) -> None:
+        for key in keys:
+            self.objects.pop(key, None)

@@ -13,7 +13,7 @@ export type EntryOut = components['schemas']['EntryOut']
 export type EntryWrite = components['schemas']['EntryWrite']
 export type EntryDeleted = components['schemas']['EntryDeletedOut']
 
-/** Trang một ngày như các màn dùng: ảnh là ô giữ chỗ có nhãn tới khi có link xem ảnh (Bước 7). */
+/** Trang một ngày như các màn dùng; ảnh kèm link xem có hạn ~1 giờ. */
 export type DayEntry = {
   entry_date: DateString
   score: Score
@@ -36,7 +36,14 @@ export function toDayEntry(e: EntryOut): DayEntry {
     title: e.title,
     content: e.content,
     keywords: e.keywords,
-    photos: e.photos.map((p, i) => ({ id: p.id, label: `[Ảnh ${i + 1}]` })),
+    photos: e.photos.map((p, i) => ({
+      id: p.id,
+      label: `[Ảnh ${i + 1}]`,
+      url: p.url,
+      thumbUrl: p.thumb_url,
+      width: p.width,
+      height: p.height,
+    })),
     created_at: e.created_at,
     updated_at: e.updated_at,
   }

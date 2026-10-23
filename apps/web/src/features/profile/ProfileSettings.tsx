@@ -6,7 +6,7 @@ import { Avatar } from '@/components/layout/Avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { tierLimits } from '@/lib/limits'
-import { useProfile, useUpdateProfile } from '@/lib/profile'
+import { useProfile, useUpdateProfile, useUploadAvatar } from '@/lib/profile'
 import { useLogout } from '@/lib/session'
 import { setThemePreference, useThemePreference, type ThemePreference } from '@/lib/theme'
 import { cn } from '@/lib/utils'
@@ -76,7 +76,7 @@ function Row({ title, hint, children, danger }: { title: string; hint: string; c
 
 /**
  * Trang Hồ sơ & cài đặt (thiết kế B7, bản điện thoại B10). Tên, bộ icon, múi giờ, gỡ ảnh lưu qua PATCH /me.
- * Chưa có: tải ảnh mới (Bước 7), xóa dữ liệu và xóa tài khoản thật (Bước 12; ở đây là bản thử trên dữ liệu mẫu).
+ * Ảnh đại diện tải lên kho ảnh (Bước 7). Chưa có: xóa dữ liệu và xóa tài khoản thật (Bước 12; ở đây là bản thử trên dữ liệu mẫu).
  * Mục Tài khoản theo canvas (quyết định 21/10/2026): không có xuất dữ liệu; "Xóa toàn bộ dữ liệu" gõ "XÓA";
  * "Xóa tài khoản" gõ đúng email. English vẫn khóa (giữ như code, cùng quyết định với Landing).
  */
@@ -94,8 +94,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
   const save = useUpdateProfile()
   const logout = useLogout()
   const navigate = useNavigate()
-  // Ảnh vừa chọn chỉ để xem trước trong trình duyệt; undefined = dùng ảnh đang lưu.
-  const [preview, setPreview] = useState<string | null | undefined>(undefined)
+  const avatar = useUploadAvatar()
   const theme = useThemePreference()
   const ids = useId()
   const [name, setName] = useState(profile.displayName)
@@ -114,7 +113,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
   const [editOpen, setEditOpen] = useState(false)
   const maxName = tierLimits().profile.display_name_max
   const dirty = name.trim() !== profile.displayName
-  const avatarSrc = preview !== undefined ? preview : profile.avatarUrl
+  const avatarSrc = profile.avatarUrl
 
   function saveName(onDone?: () => void) {
     const trimmed = name.trim()
@@ -138,10 +137,16 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
     )
   }
 
-  function changeAvatar(src: string | null) {
-    if (src) return setPreview(src)
-    setPreview(undefined)
-    if (profile.avatarUrl) save.mutate({ avatar_url: null })
+  const avatarProps = {
+    name: name || profile.displayName,
+    src: avatarSrc,
+    busy: avatar.isPending,
+    uploadError: avatar.isError ? 'Chưa đổi được ảnh. Kiểm tra kết nối rồi thử lại.' : null,
+    onPick: (file: File) => avatar.mutate(file),
+    onRemove: () => {
+      avatar.reset()
+      if (profile.avatarUrl) save.mutate({ avatar_url: null })
+    },
   }
 
   function openEdit(open: boolean) {
@@ -205,12 +210,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
       </div>
 
       <Section id={`${ids}-profile`} title="Hồ sơ" delay={0.04} className="max-sm:hidden">
-        <AvatarField name={name || profile.displayName} src={avatarSrc} onChange={changeAvatar} />
-        {preview ? (
-          <p role="status" className="-mt-3 text-[13px] leading-5 text-muted-foreground">
-            Đang xem trước. Lưu ảnh mới lên máy chủ có ở Bước 7.
-          </p>
-        ) : null}
+        <AvatarField {...avatarProps} />
         {nameField(`${ids}-name`)}
         <div className="flex flex-col gap-2">
           <span id={`${ids}-mail`} className="text-sm leading-[22px] font-semibold">
@@ -417,7 +417,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
 
       {/* Chỉ mở từ thẻ hồ sơ trên điện thoại (thiết kế B10). */}
       <BottomSheet open={editOpen} onOpenChange={openEdit} title="Sửa hồ sơ">
-        <AvatarField name={name || profile.displayName} src={avatarSrc} onChange={changeAvatar} />
+        <AvatarField {...avatarProps} />
         {nameField(`${ids}-name-sheet`)}
         <div className="grid grid-cols-2 gap-2.5">
           <Button variant="outline" className="press h-[50px] rounded-[14px] text-[15px] font-medium" onClick={() => openEdit(false)}>

@@ -17,6 +17,7 @@ from pymongo.errors import DuplicateKeyError
 
 from app.core.errors import ApiError
 from app.core.limits import EntryLimits, get_limits
+from app.core.storage import Storage
 from app.core.text import keyword_norm
 from app.db import collections as c
 from app.schemas.entries import EntryDeletedOut, EntryOut, EntryPhotoOut, EntryWrite
@@ -44,7 +45,8 @@ def _conflict() -> ApiError:
     return ApiError(409, "ENTRY_CONFLICT", "Trang này vừa được sửa ở nơi khác")
 
 
-def entry_out(doc: dict) -> EntryOut:
+def entry_out(doc: dict, storage: Storage | None = None) -> EntryOut:
+    """Có `storage` thì kèm link xem ảnh (ký cho key lấy từ document đã lọc theo user_id)."""
     return EntryOut(
         entry_date=date.fromisoformat(doc["entry_date"]),
         score=doc["score"],
@@ -54,7 +56,14 @@ def entry_out(doc: dict) -> EntryOut:
         flag_color=doc.get("flag_color"),
         keywords=[k["keyword"] for k in doc.get("keywords", [])],
         photos=[
-            EntryPhotoOut(id=p["id"], position=p["position"], width=p["width"], height=p["height"])
+            EntryPhotoOut(
+                id=p["id"],
+                position=p["position"],
+                width=p["width"],
+                height=p["height"],
+                url=storage.view_url(p["storage_key"]) if storage else None,
+                thumb_url=storage.view_url(p["thumb_key"]) if storage else None,
+            )
             for p in sorted(doc.get("photos", []), key=lambda p: p["position"])
         ],
         created_at=doc["created_at"],
@@ -71,11 +80,11 @@ async def find_active(
     )
 
 
-async def get_entry(db: AsyncDatabase, user_id: UUID, day: date) -> EntryOut:
+async def get_entry(db: AsyncDatabase, user_id: UUID, day: date, storage: Storage | None = None) -> EntryOut:
     doc = await find_active(db, user_id, day)
     if doc is None:
         raise _not_found()
-    return entry_out(doc)
+    return entry_out(doc, storage)
 
 
 def _check_limits(data: EntryWrite, limits: EntryLimits) -> None:
@@ -109,7 +118,9 @@ def _fields(data: EntryWrite, now: datetime) -> dict:
     }
 
 
-async def save_entry(db: AsyncDatabase, user: User, day: date, data: EntryWrite) -> EntryOut:
+async def save_entry(
+    db: AsyncDatabase, user: User, day: date, data: EntryWrite, storage: Storage | None = None
+) -> EntryOut:
     """Tạo (data.updated_at là None) hoặc cập nhật (data.updated_at là bản client đang sửa)."""
     if day > user_today(user.timezone):
         raise ApiError(422, "ENTRY_FUTURE_DATE", "Chưa thể ghi cho ngày chưa tới")
@@ -125,7 +136,7 @@ async def save_entry(db: AsyncDatabase, user: User, day: date, data: EntryWrite)
             return_document=ReturnDocument.AFTER,
         )
         if doc is not None:
-            return entry_out(doc)
+            return entry_out(doc, storage)
         if await find_active(db, user.id, day, {"_id": 1}) is not None:
             raise _conflict()
         raise _not_found()
@@ -137,17 +148,20 @@ async def save_entry(db: AsyncDatabase, user: User, day: date, data: EntryWrite)
     except DuplicateKeyError:
         pass
     # Ngày đó đã có document: còn sống → tab/máy khác vừa tạo (409); đã xóa mềm → viết trang mới đè lên.
-    # Ảnh của bản đã xóa (nếu có) do tác vụ dọn ở Bước 13 xóa khỏi kho; trang mới bắt đầu không có ảnh.
-    revived = await db[c.ENTRIES].find_one_and_update(
+    # Trang mới bắt đầu không có ảnh; ảnh của bản đã xóa không còn cách nào khôi phục nên xóa khỏi kho luôn.
+    old = await db[c.ENTRIES].find_one_and_update(
         {**key, "deleted_at": {"$ne": None}},
         {"$set": {**fields, "photos": [], "created_at": now}},
-        return_document=ReturnDocument.AFTER,
+        return_document=ReturnDocument.BEFORE,
     )
-    if revived is None:
+    if old is None:
         raise _conflict()
+    revived = {**old, **fields, "photos": [], "created_at": now}
+    if storage is not None:
+        await storage.delete(*[k for p in old.get("photos", []) for k in (p["storage_key"], p["thumb_key"])])
     # Link chia sẻ của trang đã xóa phải chết hẳn: không để người giữ link cũ đọc được trang mới viết đè.
     await db[c.SHARE_LINKS].delete_many(key)
-    return entry_out(revived)
+    return entry_out(revived, storage)
 
 
 async def delete_entry(db: AsyncDatabase, user: User, day: date) -> EntryDeletedOut:
@@ -163,7 +177,7 @@ async def delete_entry(db: AsyncDatabase, user: User, day: date) -> EntryDeleted
     return EntryDeletedOut(entry_date=day, deleted_at=now, restore_until=now + timedelta(days=days))
 
 
-async def restore_entry(db: AsyncDatabase, user: User, day: date) -> EntryOut:
+async def restore_entry(db: AsyncDatabase, user: User, day: date, storage: Storage | None = None) -> EntryOut:
     """Khôi phục trang đã xóa mềm còn trong hạn; quá hạn hoặc không có thì 404."""
     now = _now()
     days = get_limits().tier(user.account_tier).entry.restore_days
@@ -178,4 +192,4 @@ async def restore_entry(db: AsyncDatabase, user: User, day: date) -> EntryOut:
     )
     if doc is None:
         raise _not_found()
-    return entry_out(doc)
+    return entry_out(doc, storage)

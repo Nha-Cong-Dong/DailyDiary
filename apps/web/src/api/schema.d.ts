@@ -91,6 +91,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/entries/{day}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Upload
+         * @description Xác nhận ảnh đã tải lên kho: kiểm tra tồn tại, dung lượng, định dạng rồi gắn vào trang.
+         */
+        post: operations["confirm_upload_entries__day__photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{day}/photos/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Reorder Photos
+         * @description Sắp xếp lại: gửi đủ id ảnh của trang theo thứ tự mới.
+         */
+        patch: operations["reorder_photos_entries__day__photos_order_patch"];
+        trace?: never;
+    };
+    "/entries/{day}/photos/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Upload
+         * @description Xin hai presigned PUT (ảnh chính, ảnh thu nhỏ) cho trang đã có. 422 khi đủ ảnh hoặc hết dung lượng.
+         */
+        post: operations["create_upload_entries__day__photos_upload_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/entries/{day}/restore": {
         parameters: {
             query?: never;
@@ -172,10 +232,50 @@ export interface paths {
         head?: never;
         /**
          * Update Me
-         * @description Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, màu cờ tùy chỉnh, gỡ ảnh đại diện,
-         *     đánh dấu xong lần đầu.
+         * @description Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, màu cờ tùy chỉnh,
+         *     đổi hoặc gỡ ảnh đại diện, đánh dấu xong lần đầu.
          */
         patch: operations["update_me_me_patch"];
+        trace?: never;
+    };
+    "/me/avatar/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Avatar Upload
+         * @description Presigned PUT cho ảnh đại diện đã cắt vuông và nén trên trình duyệt; tải xong gửi PATCH /me.
+         */
+        post: operations["create_avatar_upload_me_avatar_upload_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/photos/{photo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Photo
+         * @description Xóa ảnh khỏi trang và khỏi kho.
+         */
+        delete: operations["delete_photo_photos__photo_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/public/shares/{token}": {
@@ -222,6 +322,38 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AvatarUploadIn */
+        AvatarUploadIn: {
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "image/webp" | "image/jpeg";
+            /**
+             * Upload Id
+             * Format: uuid
+             */
+            upload_id: string;
+        };
+        /**
+         * AvatarUploadOut
+         * @description POST /me/avatar/upload-url. Tải xong thì gửi PATCH /me {avatar_upload: {...}} để dùng ảnh.
+         */
+        AvatarUploadOut: {
+            /** Expires In */
+            expires_in: number;
+            /** Headers */
+            headers: {
+                [key: string]: string;
+            };
+            /**
+             * Upload Id
+             * Format: uuid
+             */
+            upload_id: string;
+            /** Upload Url */
+            upload_url: string;
+        };
         /**
          * EntryDeletedOut
          * @description Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.
@@ -277,7 +409,7 @@ export interface components {
         };
         /**
          * EntryPhotoOut
-         * @description Ảnh của một ngày. Link xem (ký có hạn) có ở Bước 7.
+         * @description Ảnh của một ngày. `url`/`thumb_url` là link ký có hạn ~1 giờ (null khi kho ảnh chưa cấu hình).
          */
         EntryPhotoOut: {
             /** Height */
@@ -289,6 +421,10 @@ export interface components {
             id: string;
             /** Position */
             position: number;
+            /** Thumb Url */
+            thumb_url?: string | null;
+            /** Url */
+            url?: string | null;
             /** Width */
             width: number;
         };
@@ -363,6 +499,7 @@ export interface components {
          *     Độ dài tên kiểm ở service, theo limits.json của cấp tài khoản.
          */
         MeUpdate: {
+            avatar_upload?: components["schemas"]["AvatarUploadIn"] | null;
             /** Avatar Url */
             avatar_url?: null;
             /** Custom Flag Colors */
@@ -375,6 +512,80 @@ export interface components {
             onboarded?: true | null;
             /** Timezone */
             timezone?: string | null;
+        };
+        /**
+         * PhotoConfirmIn
+         * @description POST /entries/{date}/photos: xác nhận đã tải xong. Backend tự dựng key từ phiên + ngày + photo_id.
+         */
+        PhotoConfirmIn: {
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "image/webp" | "image/jpeg";
+            /** Height */
+            height: number;
+            /**
+             * Photo Id
+             * Format: uuid
+             */
+            photo_id: string;
+            /** Width */
+            width: number;
+        };
+        /**
+         * PhotoOrderIn
+         * @description PATCH /entries/{date}/photos/order: đủ mọi ảnh của trang, theo thứ tự mới.
+         */
+        PhotoOrderIn: {
+            /** Photo Ids */
+            photo_ids: string[];
+        };
+        /**
+         * PhotoUploadIn
+         * @description POST /entries/{date}/photos/upload-url.
+         */
+        PhotoUploadIn: {
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "image/webp" | "image/jpeg";
+        };
+        /**
+         * PhotoUploadOut
+         * @description Hai presigned PUT (ảnh chính + ảnh thu nhỏ). PUT phải gửi đúng `headers`, không kèm cookie.
+         */
+        PhotoUploadOut: {
+            /** Expires In */
+            expires_in: number;
+            /** Headers */
+            headers: {
+                [key: string]: string;
+            };
+            /**
+             * Photo Id
+             * Format: uuid
+             */
+            photo_id: string;
+            /** Thumb Upload Url */
+            thumb_upload_url: string;
+            /** Upload Url */
+            upload_url: string;
+        };
+        /**
+         * PublicPhotoOut
+         * @description Ảnh trên trang chia sẻ: chỉ link ký và kích thước, không có id hay key trong kho.
+         */
+        PublicPhotoOut: {
+            /** Height */
+            height: number;
+            /** Thumb Url */
+            thumb_url: string;
+            /** Url */
+            url: string;
+            /** Width */
+            width: number;
         };
         /**
          * PublicShareOut
@@ -397,6 +608,8 @@ export interface components {
             keywords?: string[] | null;
             /** Photo Count */
             photo_count?: number | null;
+            /** Photos */
+            photos?: components["schemas"]["PublicPhotoOut"][] | null;
             /** Score */
             score?: number | null;
             /** Sub Icon */
@@ -721,6 +934,117 @@ export interface operations {
             };
         };
     };
+    confirm_upload_entries__day__photos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_photos_entries__day__photos_order_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_upload_entries__day__photos_upload_url_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoUploadIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoUploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     restore_entry_entries__day__restore_post: {
         parameters: {
             query?: never;
@@ -929,6 +1253,72 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MeOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_avatar_upload_me_avatar_upload_url_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoUploadIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvatarUploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_photo_photos__photo_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

@@ -127,7 +127,7 @@ export function partSummary(settings: ShareSettings, shape: EntryShape): { shown
 
 /**
  * Dựng trang người nhận xem từ trang gốc và phần đã chọn, giống GET /public/shares/{token}:
- * phần không chọn (hoặc trang không có) thì vắng mặt; ảnh chỉ có số lượng tới Bước 7.
+ * phần không chọn (hoặc trang không có) thì vắng mặt; dữ liệu mẫu không có link ảnh nên chỉ có số lượng.
  */
 export function publicView(entry: DemoEntry, link: ShareSettings, authorName: string, iconSetId: string): PublicShare {
   const out: PublicShare = { entry_date: entry.entry_date }

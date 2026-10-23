@@ -46,7 +46,7 @@ function RejectedText({ reason }: { reason: 'type' | 'size' }) {
 
 function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: number; onRemove: () => void; onRetry: () => void }) {
   const tint = PHOTO_TINTS[index % PHOTO_TINTS.length]
-  const preview = tile.status !== 'rejected' ? tile.previewUrl : undefined
+  const preview = tile.status === 'rejected' ? undefined : (tile.previewUrl ?? (tile.status === 'done' ? (tile.photo.thumbUrl ?? undefined) : undefined))
   const name = tile.status === 'done' ? tile.photo.label : tile.status === 'rejected' ? tile.name : tile.file.name
   return (
     <li

@@ -26,7 +26,7 @@ import {
 import { useCopyLink } from './useCopyLink'
 import { useRevokeShare, useSaveShare } from './useShares'
 
-// Ô ảnh giữ chỗ cùng tông với PhotoTile (ảnh thật có ở Bước 7).
+// Ô ảnh giữ chỗ cùng tông với PhotoTile, khi trang chưa có link xem ảnh (dữ liệu mẫu).
 const TINTS = ['bg-[#E7DCEB]', 'bg-[#F6E3D6]', 'bg-[#DCE6D5]']
 
 type ShareDialogProps = {
@@ -249,11 +249,16 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                               onClick={() => apply(draft, true, on ? picked.filter((x) => x !== p.id) : [...picked, p.id])}
                               className={cn(
                                 'relative flex h-[54px] w-[72px] cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-line text-[11px] text-[#6A6255] transition-[transform,opacity,box-shadow] duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97]',
+                                'overflow-hidden',
                                 TINTS[i % TINTS.length],
                                 on ? 'shadow-ink-sm' : 'opacity-45',
                               )}
                             >
-                              {p.label}
+                              {p.thumbUrl ? (
+                                <img src={p.thumbUrl} alt="" className="absolute inset-0 size-full rounded-[8.5px] object-cover" />
+                              ) : (
+                                p.label
+                              )}
                               {on ? (
                                 <span aria-hidden="true" className="absolute -top-2 -right-2 flex size-[22px] animate-stamp items-center justify-center rounded-full bg-primary text-primary-foreground">
                                   <Check className="size-3" strokeWidth={3} />

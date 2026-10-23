@@ -43,7 +43,7 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
 /**
  * Giả lập API: GET /me trả `me`, PATCH /me gộp body vào `me`, POST /auth/logout trả 204.
  * Nhật ký (`entries`, theo ngày) làm giống backend: 404 khi chưa có, 409 khi `updated_at` lệch hoặc tạo trùng,
- * xóa mềm và khôi phục. Chia sẻ: chưa có link nào.
+ * xóa mềm và khôi phục. Ảnh: xóa (DELETE /photos/{id}) và sắp xếp lại. Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
 export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
@@ -68,6 +68,25 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
     const share = path.match(/^\/entries\/(\d{4}-\d{2}-\d{2})\/share$/)
     if (share && request.method === 'GET') return json(null)
     if (path === '/shares') return json([])
+    const photo = path.match(/^\/photos\/([^/]+)$/)
+    if (photo && request.method === 'DELETE') {
+      const owner = Object.values(entries).find((e) => e.photos.some((p) => p.id === photo[1]))
+      if (!owner) return json({ error: { code: 'PHOTO_NOT_FOUND', message: 'Không tìm thấy ảnh' } }, 404)
+      owner.photos = owner.photos.filter((p) => p.id !== photo[1]).map((p, i) => ({ ...p, position: i }))
+      return new Response(null, { status: 204 })
+    }
+    const order = path.match(/^\/entries\/(\d{4}-\d{2}-\d{2})\/photos\/order$/)
+    if (order && request.method === 'PATCH') {
+      const current = entries[order[1]]
+      if (!current) return notFound()
+      const ids = (body as { photo_ids: string[] }).photo_ids
+      const byId = new Map(current.photos.map((p) => [p.id, p]))
+      if (ids.length !== byId.size || ids.some((id) => !byId.has(id))) {
+        return json({ error: { code: 'PHOTO_ORDER_INVALID', message: 'Danh sách ảnh không khớp với trang' } }, 422)
+      }
+      current.photos = ids.map((id, i) => ({ ...byId.get(id)!, position: i }))
+      return json(current)
+    }
     const restore = path.match(/^\/entries\/(\d{4}-\d{2}-\d{2})\/restore$/)
     if (restore) {
       const day = restore[1]

@@ -178,3 +178,22 @@ async def test_m0005_backfills_custom_flag_colors_and_validator(db):
             await db[c.USERS].insert_one(
                 {**old, "_id": uuid4(), "google_sub": f"sub-{bad}", "custom_flag_colors": bad}
             )
+
+
+async def test_m0006_avatar_key_validator(db):
+    from app.db.migrations import m0006_user_avatar_key as m6
+
+    await m6.up(db)  # chạy lại không lỗi
+    user = {
+        "_id": uuid4(),
+        "google_sub": "sub-avatar",
+        "email": "avatar@example.com",
+        "display_name": "Avatar",
+        "timezone": "Asia/Ho_Chi_Minh",
+        "account_tier": "beta",
+        "joined_at": datetime.now(UTC),
+        "avatar_key": None,
+    }
+    await db[c.USERS].insert_one(user)
+    with pytest.raises(WriteError):
+        await db[c.USERS].insert_one({**user, "_id": uuid4(), "google_sub": "sub-avatar-2", "avatar_key": 5})

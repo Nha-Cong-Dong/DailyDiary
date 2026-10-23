@@ -58,12 +58,14 @@ class EntryWrite(BaseModel):
 
 
 class EntryPhotoOut(BaseModel):
-    """Ảnh của một ngày. Link xem (ký có hạn) có ở Bước 7."""
+    """Ảnh của một ngày. `url`/`thumb_url` là link ký có hạn ~1 giờ (null khi kho ảnh chưa cấu hình)."""
 
     id: UUID
     position: int
     width: int
     height: int
+    url: str | None = None
+    thumb_url: str | None = None
 
 
 class EntryOut(BaseModel):

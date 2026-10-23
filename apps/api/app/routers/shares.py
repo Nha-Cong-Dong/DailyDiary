@@ -7,6 +7,7 @@ from app.core.errors import ApiError
 from app.core.limits import rate_limit
 from app.core.rate_limit import limiter
 from app.core.security import CurrentUser
+from app.core.storage import OptionalS3
 from app.db.client import Db
 from app.schemas.shares import PublicShareOut, SharedEntryOut, ShareOut, ShareUpdate
 from app.services import shares as share_service
@@ -51,10 +52,12 @@ async def list_shares(request: Request, user: CurrentUser, db: Db) -> list[Share
 
 @router.get("/public/shares/{token}", response_model=PublicShareOut, response_model_exclude_unset=True)
 @limiter.limit(rate_limit("share_view"), key_func=get_remote_address)
-async def read_public_share(request: Request, response: Response, token: str, db: Db) -> PublicShareOut:
+async def read_public_share(
+    request: Request, response: Response, token: str, db: Db, s3: OptionalS3
+) -> PublicShareOut:
     """Trang người nhận xem, không cần đăng nhập. Mọi lý do không mở được đều trả cùng một 404."""
     try:
-        share = await share_service.read_public(db, token)
+        share = await share_service.read_public(db, token, s3)
     except ApiError as exc:
         exc.headers = {**(exc.headers or {}), **PUBLIC_HEADERS}
         raise

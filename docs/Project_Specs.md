@@ -362,7 +362,8 @@ users
   google_sub        string   UNIQUE       -- định danh Google
   email             string
   display_name      string                -- 1..50 ký tự
-  avatar_url        string | null
+  avatar_url        string | null         -- ảnh Google
+  avatar_key        string | null         -- ảnh tự tải lên ("{user_id}/avatar/{id}.webp"); có thì thay avatar_url
   timezone          string                -- IANA, vd Asia/Ho_Chi_Minh
   icon_set_id       string                -- id trong shared/icons.json; bộ icon vẽ cho mọi ngày
   onboarded_at      date | null           -- xong 3 bước lần đầu; null thì đăng nhập xong vào /onboarding
@@ -392,6 +393,8 @@ entries                                   -- 1 document = nhật ký của 1 ng�
   content_norm      string | null         -- nội dung chữ thường, không dấu (tìm kiếm)
   keywords          [ { keyword, norm } ] -- 0..10; norm: chữ thường, không dấu
   photos            [ { id uuid, storage_key, thumb_key, width, height, size_bytes, position 0..9, created_at } ]
+                                          -- key "{user_id}/YYYY/MM/DD/{id}[_thumb].webp|jpg"; size_bytes = ảnh chính +
+                                          -- ảnh thu nhỏ (tính hạn mức); thêm/xóa/sắp xếp ảnh không đổi updated_at
   created_at        date
   updated_at        date
   deleted_at        date | null           -- xóa mềm
@@ -438,7 +441,8 @@ Nguyên tắc:
 | GET         | `/auth/google/callback`             | Nhận kết quả, tạo/cập nhật người dùng, đặt cookie phiên                |
 | POST        | `/auth/logout`                      | Đăng xuất                                                              |
 | GET         | `/me`                               | Lấy hồ sơ                                                              |
-| PATCH       | `/me`                               | Sửa tên, ảnh đại diện, múi giờ, bộ icon                                |
+| PATCH       | `/me`                               | Sửa tên, ảnh đại diện (xác nhận ảnh vừa tải hoặc gỡ), múi giờ, bộ icon, màu cờ riêng |
+| POST        | `/me/avatar/upload-url`             | Xin presigned URL tải ảnh đại diện (đã cắt vuông, nén trên trình duyệt) |
 | DELETE      | `/me`                               | Xóa tài khoản và toàn bộ dữ liệu                                       |
 | GET         | `/entries?cursor=&limit=`           | Danh sách bài gần đây (phân trang theo con trỏ)                        |
 | GET         | `/entries/{date}`                   | Nhật ký của một ngày                                                   |

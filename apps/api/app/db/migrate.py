@@ -22,6 +22,7 @@ from app.db.migrations import (
     m0003_share_links,
     m0004_entries_icon_set_norm,
     m0005_user_custom_flag_colors,
+    m0006_user_avatar_key,
 )
 
 MIGRATIONS = [
@@ -30,6 +31,7 @@ MIGRATIONS = [
     m0003_share_links,
     m0004_entries_icon_set_norm,
     m0005_user_custom_flag_colors,
+    m0006_user_avatar_key,
 ]
 
 

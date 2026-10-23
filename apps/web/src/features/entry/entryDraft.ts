@@ -58,7 +58,7 @@ export function fieldsLabel(fields: DraftField[]): string {
 
 /**
  * Thân PUT /entries/{day} từ bản nháp. `updatedAt` = bản đang sửa (null khi tạo mới).
- * Ảnh chưa gửi: lưu ảnh thật có ở Bước 7 (presigned URL).
+ * Ảnh không đi qua PUT: thêm/xóa/sắp xếp bằng API ảnh riêng (uploadPhoto.ts).
  */
 export function toWrite(draft: Omit<EntryDraft, 'photos'>, updatedAt: string | null): EntryWrite {
   const text = (s: string) => s.normalize('NFC').trim() || null

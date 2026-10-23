@@ -72,6 +72,15 @@ class SharedEntryOut(ShareOut):
     keyword_count: int
 
 
+class PublicPhotoOut(BaseModel):
+    """Ảnh trên trang chia sẻ: chỉ link ký và kích thước, không có id hay key trong kho."""
+
+    url: str
+    thumb_url: str
+    width: int
+    height: int
+
+
 class PublicShareOut(BaseModel):
     """GET /public/shares/{token}. Chỉ có các trường chủ trang đã chọn; trường không chọn vắng mặt trong JSON.
 
@@ -87,6 +96,7 @@ class PublicShareOut(BaseModel):
     title: str | None = None
     content: str | None = None
     keywords: list[str] | None = None
-    # Số ảnh được chia sẻ còn tồn tại.
-    # TODO(Bước 7): thêm `photos` [{thumb_url, url}] là link ký có hạn (~1 giờ).
+    # Số ảnh được chia sẻ còn tồn tại, và link ký có hạn (~1 giờ) cho từng ảnh theo thứ tự trong trang
+    # (`photos` vắng khi kho ảnh chưa cấu hình).
     photo_count: int | None = None
+    photos: list[PublicPhotoOut] | None = None

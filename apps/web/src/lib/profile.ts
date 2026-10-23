@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
 import { defaultIconSetId, presetFlag } from './catalog'
+import { prepareAvatar } from './image'
 import { tierLimits } from './limits'
 import { browserTimeZone } from './date'
 
@@ -81,6 +82,29 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: async (body: MeUpdate) => {
       // openapi-fetch coi trường chỉ nhận null (avatar_url: gỡ ảnh) là never; kiểu MeUpdate sinh từ OpenAPI đã đúng.
+      const { data, error, response } = await api.PATCH('/me', { body: body as never })
+      if (error || !data) throw toApiError(response, error)
+      return data
+    },
+    onSuccess: (me) => client.setQueryData(ME_KEY, me),
+  })
+}
+
+/**
+ * Đổi ảnh đại diện (F-04, Bước 7): cắt vuông + nén trên trình duyệt → presigned PUT lên kho
+ * → PATCH /me {avatar_upload} để backend kiểm tra rồi dùng ảnh (ảnh cũ bị xóa khỏi kho).
+ */
+export function useUploadAvatar() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const { blob, type } = await prepareAvatar(file)
+      const up = await api.POST('/me/avatar/upload-url', { body: { content_type: type } })
+      if (up.error || !up.data) throw toApiError(up.response, up.error)
+      // Không kèm cookie, chỉ đúng header đã ký.
+      const put = await fetch(up.data.upload_url, { method: 'PUT', headers: up.data.headers, body: blob })
+      if (!put.ok) throw new Error(`Kho ảnh trả ${put.status}`)
+      const body = { avatar_upload: { upload_id: up.data.upload_id, content_type: type } }
       const { data, error, response } = await api.PATCH('/me', { body: body as never })
       if (error || !data) throw toApiError(response, error)
       return data

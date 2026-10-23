@@ -16,8 +16,9 @@ from pymongo.errors import DuplicateKeyError
 
 from app.core.config import settings
 from app.core.errors import ApiError
+from app.core.storage import Storage
 from app.db import collections as c
-from app.schemas.shares import PublicShareOut, SharedEntryOut, ShareOut, ShareUpdate
+from app.schemas.shares import PublicPhotoOut, PublicShareOut, SharedEntryOut, ShareOut, ShareUpdate
 from app.services import entries as entry_service
 
 # 16 byte ngẫu nhiên → 22 ký tự base64url (128 bit): không đoán được, đủ ngắn để chép.
@@ -155,7 +156,7 @@ def valid_token(token: str) -> bool:
     return 22 <= len(token) <= 64 and all(ch.isascii() and (ch.isalnum() or ch in "-_") for ch in token)
 
 
-async def read_public(db: AsyncDatabase, token: str) -> PublicShareOut:
+async def read_public(db: AsyncDatabase, token: str, storage: Storage | None = None) -> PublicShareOut:
     """Trang người nhận xem. Chỉ đặt các trường được chọn (router trả với exclude_unset)."""
     if not valid_token(token):
         raise _not_found()
@@ -186,7 +187,20 @@ async def read_public(db: AsyncDatabase, token: str) -> PublicShareOut:
     if link["show_keywords"]:
         fields["keywords"] = [k["keyword"] for k in entry.get("keywords", [])]
     if link["photo_ids"]:
-        # Ảnh đã bị xóa khỏi trang thì bỏ qua. TODO(Bước 7): trả link ký có hạn cho từng ảnh.
+        # Ảnh đã bị xóa khỏi trang thì bỏ qua. Chỉ ký cho key lấy từ trang của chủ link.
         selected = set(link["photo_ids"])
-        fields["photo_count"] = sum(1 for p in entry.get("photos", []) if p["id"] in selected)
+        shared = sorted(
+            (p for p in entry.get("photos", []) if p["id"] in selected), key=lambda p: p["position"]
+        )
+        fields["photo_count"] = len(shared)
+        if storage is not None:
+            fields["photos"] = [
+                PublicPhotoOut(
+                    url=storage.view_url(p["storage_key"]),
+                    thumb_url=storage.view_url(p["thumb_key"]),
+                    width=p["width"],
+                    height=p["height"],
+                )
+                for p in shared
+            ]
     return PublicShareOut(**fields)

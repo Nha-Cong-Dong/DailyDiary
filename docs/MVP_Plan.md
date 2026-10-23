@@ -29,7 +29,7 @@
 | 4    | *(Tùy chọn, khuyên làm)* Triển khai thử bản khung lên beta                                      | sớm hơn ngày 13 | 3         |
 | 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng) — xong 21/10/2026                        | 4–5             | 3         |
 | 6    | Tự động lưu và trạng thái đồng bộ (F-06) — xong 21/10/2026                                     | 4–5             | 5         |
-| 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh)                                | 6–7             | 5         |
+| 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
 | 8    | Dòng thời gian (F-02, phần danh sách)                                                           | 6–7             | 5, 7      |
 | 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
 | 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
@@ -329,6 +329,26 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Upload một ảnh đã nén mất dưới 5 giây.
 - Có test cho: ảnh thứ 11 bị từ chối, file giả định dạng, file quá lớn, B không xác nhận hoặc xóa được ảnh của A.
 - Ảnh không mở được nếu không có link ký.
+
+**Kết quả (23/10/2026):**
+- Backend: `core/storage.py` (boto3, hai client ký/gọi kho, I/O qua `anyio.to_thread`), `routers|schemas|services/photos.py`.
+  Nhận `image/webp` (và `image/jpeg` khi trình duyệt không mã hóa được WebP); key do backend dựng
+  `{user_id}/YYYY/MM/DD/{id}[_thumb].ext`. Xác nhận: tồn tại, ≤ `main_max_bytes`/`thumb_max_bytes`, magic bytes, cạnh
+  ≤ 1920 px; sai thì xóa object. Mảng `photos` đổi bằng khóa lạc quan (so khớp nguyên mảng) nên hai lần xác nhận cùng
+  lúc không vượt 10 ảnh. Hạn mức 500 MB tính cả trang đã xóa mềm. Upload-url và xác nhận dùng `photo_upload`
+  (10/phút; 50/ngày), sắp xếp/xóa dùng `write`. Ảnh không đổi `updated_at` (tự lưu chữ không bị 409). Xóa ảnh bỏ luôn
+  ảnh khỏi link chia sẻ; ghi đè ngày đã xóa mềm xóa ảnh cũ khỏi kho. Trang chia sẻ công khai trả link ký cho ảnh đã chọn.
+- Ảnh đại diện: `POST /me/avatar/upload-url` + `PATCH /me {avatar_upload}`; `users.avatar_key` (migration `m0006`);
+  thay/gỡ thì xóa ảnh cũ khỏi kho.
+- Web: `preparePhoto` (lib/image.ts) — `browser-image-compression` (không dùng worker vì worker tải script từ CDN),
+  HEIC giải mã bằng `heic-to` tải lười (Safari giải mã sẵn); `uploadPhoto.ts` PUT bằng XHR để có tiến độ.
+  Hôm nay: nút Ảnh bật khi trang đã có, thêm/bỏ là lưu ngay, tải song song xong thì chốt lại thứ tự đã chọn.
+  Sửa trang cũ: ảnh mới gắn ngay khi tải xong; bỏ ảnh/thứ tự chốt khi bấm Lưu thay đổi; Hủy/rời trang thì xóa ảnh vừa
+  thêm. Trang ngày, trình xem ảnh, hộp thoại Chia sẻ, trang chia sẻ công khai hiện ảnh thật.
+- Kiểm tra: backend 171 test (ảnh thứ 11 — cả khi xác nhận chen ngang, file giả định dạng, quá lớn, quá rộng, chưa
+  tải, hạn mức, B không xác nhận/xóa/sắp xếp ảnh của A); Vitest 166; e2e 41/41 (`--workers=1`) có ca trên MinIO
+  thật: ảnh 2400 px → 1920 px, tải xong < 5 s, link ký 200, link không ký 403, bỏ ảnh thì kho trả 404.
+- Chưa kiểm tra: tệp HEIC thật từ iPhone (không tạo được trong test) và trên điện thoại thật.
 
 ---
 

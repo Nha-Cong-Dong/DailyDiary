@@ -94,6 +94,30 @@ describe('Sửa một trang cũ', () => {
     expect(put.body).toMatchObject({ score: 5, title: 'Tối nấu ăn', updated_at: saved().updated_at })
   })
 
+  it('bỏ một ảnh rồi Lưu: xóa ảnh trên máy chủ và chốt thứ tự ảnh còn lại', async () => {
+    renderEdit()
+    await screen.findByRole('heading', { name: 'Sửa trang' })
+    fireEvent.click(screen.getByRole('button', { name: 'Bỏ ảnh [Ảnh 1]' }))
+    expect(calls.some((c) => c.method === 'DELETE')).toBe(false) // chưa bấm Lưu thì chưa xóa
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+    expect(await screen.findByText('Đã lưu thay đổi cho trang 16/10')).toBeInTheDocument()
+    expect(calls.find((c) => c.method === 'DELETE')?.path).toBe('/photos/p1')
+    expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ photo_ids: ['p2'] })
+    expect(calls.some((c) => c.method === 'PUT')).toBe(false) // chữ không đổi thì không PUT
+    expect(store[DAY]!.photos.map((p) => p.id)).toEqual(['p2'])
+    expect(screen.getByText('1/10')).toBeInTheDocument()
+  })
+
+  it('bỏ ảnh rồi Hủy thay đổi: không xóa gì trên máy chủ', async () => {
+    renderEdit()
+    await screen.findByRole('heading', { name: 'Sửa trang' })
+    fireEvent.click(screen.getByRole('button', { name: 'Bỏ ảnh [Ảnh 2]' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Hủy thay đổi' }))
+    fireEvent.click(within(await screen.findByRole('alertdialog')).getByRole('button', { name: 'Bỏ thay đổi' }))
+    await waitFor(() => expect(screen.getByText('2/10')).toBeInTheDocument())
+    expect(calls.some((c) => c.method === 'DELETE')).toBe(false)
+  })
+
   it('bản trên máy chủ mới hơn (409): hộp thoại chọn bản, "Dùng bản vừa sửa" nạp bản kia', async () => {
     renderEdit()
     fireEvent.change(await screen.findByLabelText('Tiêu đề'), { target: { value: 'Bản ở tab này' } })

@@ -66,16 +66,16 @@ dailydiary/
     │   │   │   ├── text.py           # chuẩn hóa NFC, norm từ khóa không dấu
     │   │   │   ├── security.py       # cookie phiên, get_current_user, CSRF
     │   │   │   ├── oauth.py          # Authlib Google
-    │   │   │   └── storage.py        # (B7) boto3, presigned URL
+    │   │   │   └── storage.py        # boto3: ký URL PUT/GET, kiểm tra object; dependency S3 / OptionalS3
     │   │   ├── db/
     │   │   │   ├── client.py         # AsyncMongoClient, dependency Db
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
-    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, shares.py)
-    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, shares.py)
-    │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, shares (F-10: chủ trang + /public/shares);
-│   │   │                         # (B7) photos; (B9) calendar;
+    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_<mo_ta>.py ...
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, shares.py)
+    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, shares.py)
+    │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, shares (F-10: chủ trang + /public/shares);
+│   │   │                         # (B9) calendar;
     │   │   │                         # (B10) pixels; (B11) search; (B12) export, feedback
     │   │   └── jobs/                 # (B12–B13) dọn bài xóa mềm, hoàn tất xóa tài khoản, sao lưu
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
@@ -83,7 +83,7 @@ dailydiary/
     │   │   └── seed_demo.py          # (B14) nạp dữ liệu mẫu 3 tháng vào DB local
     │   └── tests/
     │       ├── conftest.py           # DB *_test, client, make_client (phiên đăng nhập), alice/bob
-    │       ├── fakes.py              # (B7) S3 giả
+    │       ├── fakes.py              # kho ảnh giả (FakeStorage) + byte đầu WebP/JPEG/PNG mẫu
     │       ├── unit/                 # hàm thuần, không cần DB
     │       ├── db/                   # migration, index, validator
     │       └── api/                  # test_<router>.py: thành công, dữ liệu sai, truy cập chéo
@@ -197,3 +197,4 @@ dailydiary/
 | 12 | 21/10/2026 | Bước 5 (web): `features/entry/entries.ts`, `src/test/demoApi.ts`; bỏ `features/entry/localDays.ts`; Trang ngày, Sửa, Ghi bù, Chia sẻ vào bản build |
 | 13 | 21/10/2026 | Bước 6: `lib/autosave.ts`, `lib/storage.ts` (bỏ nhãn (B6)), `features/entry/useAutosave.ts`, `features/entry/components/ConflictDialog.tsx`, `components/diary/SyncStatus.tsx`, `e2e/autosave.spec.ts`; thư viện `idb`, `fake-indexeddb` (test) |
 | 14 | 23/10/2026 | Màu cờ tùy chỉnh (Q6): migration `m0005_user_custom_flag_colors.py`, `features/profile/components/CustomFlagColors.tsx`, `components/diary/FlagPicker.test.tsx` |
+| 15 | 23/10/2026 | Bước 7 (ảnh): `core/storage.py`, `routers/photos.py`, `schemas/photos.py`, `services/photos.py`, `tests/fakes.py` (bỏ nhãn (B7)), migration `m0006_user_avatar_key.py`, `tests/api/test_photos.py`; web: `features/entry/uploadPhoto.ts` (thay hàm giả), `uploadPhoto.test.ts`, `e2e/photos.spec.ts`; thư viện `boto3`, `browser-image-compression`, `heic-to` (tải lười) |
