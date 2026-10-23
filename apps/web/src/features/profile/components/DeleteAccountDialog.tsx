@@ -60,7 +60,13 @@ function ConfirmField({
 }
 
 /** Xóa toàn bộ dữ liệu: xóa mọi trang, điểm, ảnh; giữ tài khoản. Gõ "XÓA" để xác nhận. */
-export function DeleteDataDialog({ open, onOpenChange, onConfirm, pageCount }: DialogBase & { pageCount?: number }) {
+export function DeleteDataDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  pageCount,
+  photoCount,
+}: DialogBase & { pageCount?: number; photoCount?: number }) {
   const [text, setText] = useState('')
   const close = (o: boolean) => {
     if (!o) setText('')
@@ -74,7 +80,7 @@ export function DeleteDataDialog({ open, onOpenChange, onConfirm, pageCount }: D
       role="alertdialog"
       danger
       title="Xóa toàn bộ dữ liệu?"
-      description={`${pageCount !== undefined ? `${pageCount} trang` : 'Mọi trang'}, kèm mọi điểm và ảnh, sẽ bị xóa vĩnh viễn. Tài khoản vẫn giữ để bạn viết tiếp.`}
+      description={`${pageCount !== undefined ? `${pageCount} trang` : 'Mọi trang'}, kèm mọi điểm, ${photoCount ? `${photoCount} ảnh` : 'ảnh'} và link chia sẻ, sẽ bị xóa vĩnh viễn (cả trang đang trong thùng rác). Tài khoản, cài đặt và ảnh đại diện vẫn giữ để bạn viết tiếp.`}
       showDescription
       className="md:max-w-[min(460px,calc(100%-2rem))]"
     >
@@ -106,8 +112,9 @@ export function DeleteAccountDialog({
   onConfirm,
   email,
   pageCount,
+  photoCount,
   shareCount = 0,
-}: DialogBase & { email: string; pageCount?: number; shareCount?: number }) {
+}: DialogBase & { email: string; pageCount?: number; photoCount?: number; shareCount?: number }) {
   const [text, setText] = useState('')
   const close = (o: boolean) => {
     if (!o) setText('')
@@ -130,14 +137,15 @@ export function DeleteAccountDialog({
           {pageCount === undefined
             ? 'Mọi trang nhật ký, kèm điểm và ảnh'
             : pageCount
-              ? `${pageCount} trang nhật ký, kèm điểm và ảnh`
+              ? `${pageCount} trang nhật ký, kèm điểm${photoCount ? ` và ${photoCount} ảnh` : ' và ảnh'}`
               : 'Hồ sơ trống, không còn trang nhật ký nào'}
         </li>
         {shareCount ? <li>{shareCount} link chia sẻ, người nhận sẽ không mở được nữa</li> : null}
-        <li>Hồ sơ, bộ icon, múi giờ và cài đặt</li>
+        <li>Hồ sơ, ảnh đại diện, bộ icon, múi giờ và cài đặt</li>
       </ul>
       <p className="text-sm leading-[22px] text-muted-foreground">
-        Tài khoản Google của bạn không bị ảnh hưởng. Đăng nhập lại sau này sẽ bắt đầu một cuốn nhật ký mới.
+        Góp ý bạn từng gửi được giữ lại nhưng không còn tên hay email của bạn. Tài khoản Google của bạn không bị ảnh
+        hưởng; đăng nhập lại sau này sẽ bắt đầu một cuốn nhật ký mới.
       </p>
       <ConfirmField
         label={
@@ -169,10 +177,9 @@ export function AccountDeletedDialog({ open, onHome }: { open: boolean; onHome: 
       layout="responsive"
       role="alertdialog"
       title="Tài khoản đã được xóa"
-      description="Cảm ơn bạn đã viết cùng Jotly. Mọi dữ liệu của bạn đã được xóa khỏi hệ thống."
+      description="Cảm ơn bạn đã viết cùng Jotly. Nhật ký, link chia sẻ và hồ sơ của bạn đã được xóa; ảnh được dọn khỏi kho trong ít phút."
       showDescription
     >
-      <p className="text-[13px] leading-5 text-muted-foreground">Bản thử: tài khoản thật chỉ bị xóa khi có Bước 12.</p>
       <SheetActions>
         <Button variant="cta" onClick={onHome}>
           Về trang chủ

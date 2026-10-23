@@ -522,6 +522,23 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 
 **Hoàn thành khi:** sau khi xóa tài khoản, DB không còn document nào của user và kho ảnh không còn object nào; sau khi xóa toàn bộ dữ liệu, tài khoản vẫn đăng nhập được và không còn trang, ảnh, link nào.
 
+**Kết quả — xóa dữ liệu / tài khoản (24/10/2026, nhánh `feat/account-deletion`):**
+- Chốt với người dùng: đăng nhập lại sau khi xóa → tài khoản mới; xóa tài khoản giữ góp ý nhưng ẩn danh; thêm
+  `GET /me/data-summary`.
+- `DELETE /entries` (`{confirm: "XÓA"}`): xóa mọi trang (cả thùng rác), link chia sẻ; nền: xóa mọi object `{user_id}/`
+  trừ `{user_id}/avatar/` (dọn cả ảnh mồ côi). Giữ tài khoản, phiên, cài đặt, ảnh đại diện, góp ý.
+- `DELETE /me` (`{confirm_email}`): đặt `deleted_at` → xóa mọi phiên, trang, link, `user_items`; góp ý đổi `user_id` sang mã
+  ngẫu nhiên + `anonymized: true` (không đổi validator — tránh đè migration `feedback` của nhánh góp ý); xóa cookie; nền:
+  xóa mọi object `{user_id}/` rồi mới xóa document `users`. Kho lỗi → giữ `deleted_at`, `app/jobs/purge_accounts.py` làm nốt
+  (chạy lại an toàn). `/auth/dev-login` gặp tài khoản đang chờ xóa → 403 `ACCOUNT_DELETED` (trước là 500).
+- `core/storage.py`: `list_keys` (phân trang `list_objects_v2`), `delete` theo lô 1000, `delete_prefix(keep=…)`.
+- Web: hộp thoại báo đúng số trang/ảnh/link (`useDataSummary`), gọi API thật, xóa nháp IndexedDB; xóa tài khoản xong hiện
+  màn "Tài khoản đã được xóa", "Về trang chủ" mới xóa cache. Bỏ chữ "Bản thử".
+- Test: 14 test API (đúng tiêu chí: sau xóa tài khoản mọi collection không còn `user_id`, kho không còn object; sau xóa dữ
+  liệu tài khoản dùng tiếp, ảnh đại diện còn; Bob không bị đụng; xác nhận sai 422; cần đăng nhập + CSRF; chờ xóa chặn đăng
+  nhập rồi job làm nốt, đăng nhập lại là tài khoản mới); 2 test Vitest; e2e trên MinIO thật (link ảnh 404, link chia sẻ
+  404, đăng nhập lại trống). Backend 250; Vitest 168; e2e 49/49.
+
 ---
 
 ## Bước 13 – Vận hành

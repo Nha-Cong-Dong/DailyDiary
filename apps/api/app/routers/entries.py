@@ -1,14 +1,16 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Query, Request
 
 from app.core.limits import rate_limit
 from app.core.rate_limit import limiter
 from app.core.security import CurrentUser
 from app.core.storage import OptionalS3
 from app.db.client import Db
+from app.schemas.account import WipeIn, WipeOut
 from app.schemas.entries import EntryDeletedOut, EntryMonthOut, EntryOut, EntryWrite
+from app.services import account as account_service
 from app.services import entries as entry_service
 
 router = APIRouter(prefix="/entries", tags=["entries"])
@@ -24,6 +26,22 @@ async def list_month(
 ) -> EntryMonthOut:
     """Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh."""
     return await entry_service.list_month(db, user.id, month)
+
+
+@router.delete("", response_model=WipeOut)
+@limiter.limit(rate_limit("write"))
+async def wipe_journal(
+    request: Request, body: WipeIn, user: CurrentUser, db: Db, s3: OptionalS3, background: BackgroundTasks
+) -> WipeOut:
+    """Xóa toàn bộ dữ liệu (F-07): mọi trang (cả thùng rác), link chia sẻ, ảnh nhật ký.
+
+    Giữ tài khoản và cài đặt.
+
+    Gửi `{"confirm": "XÓA"}`. Ảnh trong kho được dọn trong nền ngay sau khi trả lời.
+    """
+    out = await account_service.wipe_journal(db, user)
+    background.add_task(account_service.purge_journal_photos, s3, user.id)
+    return out
 
 
 @router.get("/{day}", response_model=EntryOut)

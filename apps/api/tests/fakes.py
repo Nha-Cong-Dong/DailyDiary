@@ -32,3 +32,6 @@ class FakeStorage(Storage):
     async def delete(self, *keys: str) -> None:
         for key in keys:
             self.objects.pop(key, None)
+
+    async def list_keys(self, prefix: str) -> list[str]:
+        return sorted(k for k in self.objects if k.startswith(prefix))

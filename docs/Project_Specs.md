@@ -180,9 +180,13 @@ Quy tắc:
 ### F-07 – F-09. Tính năng đề xuất bổ sung
 
 - **Xóa toàn bộ dữ liệu** (thiết kế B7/B10-Profile): xóa vĩnh viễn mọi trang, điểm, ảnh và link chia sẻ; giữ tài khoản,
-  hồ sơ và cài đặt để viết tiếp. Xác nhận bằng gõ "XÓA".
-- **Xóa tài khoản**: xóa toàn bộ nhật ký, ảnh, link chia sẻ, hồ sơ và phiên đăng nhập; đăng xuất ngay. Xác nhận bằng
-  gõ đúng email của tài khoản. Tài khoản Google không bị ảnh hưởng.
+  hồ sơ, cài đặt, ảnh đại diện và góp ý để viết tiếp. Xác nhận bằng gõ "XÓA" (backend kiểm tra lại). Xóa cả trang đang
+  trong thùng rác 30 ngày và ảnh tải lên mà chưa xác nhận.
+- **Xóa tài khoản**: xóa toàn bộ nhật ký, ảnh, ảnh đại diện, link chia sẻ, hồ sơ và phiên đăng nhập (mọi thiết bị); đăng
+  xuất ngay. Xác nhận bằng gõ đúng email của tài khoản (backend so lại). Tài khoản Google không bị ảnh hưởng.
+  Chốt 23–24/10/2026: góp ý **giữ nội dung nhưng ẩn danh** (`user_id` thay bằng mã ngẫu nhiên, không còn tên/email);
+  dọn xong thì đăng nhập lại bằng cùng Google tạo **tài khoản mới, trống**; trong lúc đang dọn thì báo "đang chờ xóa".
+  Ảnh trong kho dọn trong nền; dở dang thì `python -m app.jobs.purge_accounts` làm nốt.
 - ~~**Xuất dữ liệu**~~: bỏ khỏi sản phẩm theo thiết kế (21/10/2026); Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu".
 - **Góp ý**: form ngắn trong app, lưu vào collection `feedback`.
 
@@ -426,6 +430,7 @@ user_items                                -- chuẩn bị cho giai đoạn 2–3
 
 feedback
   _id, user_id, message, created_at
+  anonymized        bool (tùy chọn)       -- người gửi đã xóa tài khoản: user_id thay bằng mã ngẫu nhiên, chỉ giữ nội dung
 ```
 
 Nguyên tắc:
@@ -446,7 +451,8 @@ Nguyên tắc:
 | GET         | `/me`                               | Lấy hồ sơ                                                              |
 | PATCH       | `/me`                               | Sửa tên, ảnh đại diện (xác nhận ảnh vừa tải hoặc gỡ), múi giờ, bộ icon, màu cờ riêng |
 | POST        | `/me/avatar/upload-url`             | Xin presigned URL tải ảnh đại diện (đã cắt vuông, nén trên trình duyệt) |
-| DELETE      | `/me`                               | Xóa tài khoản và toàn bộ dữ liệu                                       |
+| DELETE      | `/me`                               | Xóa tài khoản: gửi `{confirm_email}`; đăng xuất mọi thiết bị, dọn kho ảnh trong nền, góp ý giữ ẩn danh |
+| GET         | `/me/data-summary`                  | Số trang, ảnh, link chia sẻ sẽ mất khi xóa                              |
 | GET         | `/entries?month=YYYY-MM`            | Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước; đoạn đầu nội dung + số ảnh |
 | GET         | `/entries/{date}`                   | Nhật ký của một ngày                                                   |
 | PUT         | `/entries/{date}`                   | Tạo hoặc cập nhật (gửi kèm `updated_at` đã biết để phát hiện xung đột) |
@@ -466,7 +472,7 @@ Nguyên tắc:
 | DELETE      | `/entries/{date}/share`             | Tắt link (thu hồi vĩnh viễn)                                           |
 | GET         | `/shares`                           | Các trang đang chia sẻ                                                 |
 | GET         | `/public/shares/{token}`            | Trang chia sẻ công khai, không cần đăng nhập; chỉ trả phần được chọn; mọi lỗi là 404 chung |
-| DELETE      | `/entries`                          | Xóa toàn bộ dữ liệu (mọi trang, ảnh, link chia sẻ), giữ tài khoản      |
+| DELETE      | `/entries`                          | Xóa toàn bộ dữ liệu: gửi `{confirm: "XÓA"}`; mọi trang (cả thùng rác), ảnh, link chia sẻ; giữ tài khoản, cài đặt, ảnh đại diện |
 | POST        | `/feedback`                         | Gửi góp ý                                                              |
 
 ### 5.6. Các luồng chính

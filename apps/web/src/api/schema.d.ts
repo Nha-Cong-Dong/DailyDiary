@@ -97,7 +97,15 @@ export interface paths {
         get: operations["list_month_entries_get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Wipe Journal
+         * @description Xóa toàn bộ dữ liệu (F-07): mọi trang (cả thùng rác), link chia sẻ, ảnh nhật ký.
+         *
+         *     Giữ tài khoản và cài đặt.
+         *
+         *     Gửi `{"confirm": "XÓA"}`. Ảnh trong kho được dọn trong nền ngay sau khi trả lời.
+         */
+        delete: operations["wipe_journal_entries_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -289,7 +297,12 @@ export interface paths {
         get: operations["read_me_me_get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Account
+         * @description Xóa tài khoản (F-07): gửi `{"confirm_email": <email tài khoản>}`. Đăng xuất mọi thiết bị ngay;
+         *     ảnh trong kho và hồ sơ được dọn trong nền. Góp ý giữ nội dung nhưng ẩn danh.
+         */
+        delete: operations["delete_account_me_delete"];
         options?: never;
         head?: never;
         /**
@@ -314,6 +327,26 @@ export interface paths {
          * @description Presigned PUT cho ảnh đại diện đã cắt vuông và nén trên trình duyệt; tải xong gửi PATCH /me.
          */
         post: operations["create_avatar_upload_me_avatar_upload_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/data-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data Summary
+         * @description Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản.
+         */
+        get: operations["data_summary_me_data_summary_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -526,6 +559,26 @@ export interface components {
             photos: number;
             /** Recorded */
             recorded: number;
+        };
+        /**
+         * DataSummaryOut
+         * @description GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số).
+         */
+        DataSummaryOut: {
+            /** Pages */
+            pages: number;
+            /** Photos */
+            photos: number;
+            /** Share Links */
+            share_links: number;
+        };
+        /**
+         * DeleteAccountIn
+         * @description DELETE /me: phải gửi đúng email của tài khoản (so ở service, không phân biệt hoa thường).
+         */
+        DeleteAccountIn: {
+            /** Confirm Email */
+            confirm_email: string;
         };
         /**
          * EntryDeletedOut
@@ -1050,6 +1103,26 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /**
+         * WipeIn
+         * @description DELETE /entries: phải gửi đúng chữ "XÓA" (backend kiểm tra lại, không chỉ dựa vào giao diện).
+         */
+        WipeIn: {
+            /** Confirm */
+            confirm: string;
+        };
+        /**
+         * WipeOut
+         * @description Đã xóa bao nhiêu (ảnh trong kho được dọn trong nền ngay sau đó).
+         */
+        WipeOut: {
+            /** Pages */
+            pages: number;
+            /** Photos */
+            photos: number;
+            /** Share Links */
+            share_links: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -1194,6 +1267,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EntryMonthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    wipe_journal_entries_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WipeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WipeOut"];
                 };
             };
             /** @description Validation Error */
@@ -1637,6 +1745,39 @@ export interface operations {
             };
         };
     };
+    delete_account_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_me_me_patch: {
         parameters: {
             query?: never;
@@ -1694,6 +1835,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AvatarUploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_summary_me_data_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataSummaryOut"];
                 };
             };
             /** @description Validation Error */

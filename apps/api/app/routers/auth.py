@@ -6,6 +6,7 @@ from fastapi.responses import RedirectResponse
 from slowapi.util import get_remote_address
 
 from app.core.config import settings
+from app.core.errors import ApiError
 from app.core.limits import rate_limit
 from app.core.oauth import google_configured, oauth
 from app.core.rate_limit import limiter
@@ -93,14 +94,17 @@ dev_router = APIRouter(prefix="/auth", tags=["auth"], include_in_schema=False)
 # Không rate limit: route chỉ có ở local/test, e2e đăng nhập thử nhiều lần mỗi phút.
 async def dev_login(request: Request, response: Response, db: Db, body: DevLoginIn | None = None) -> dict:
     body = body or DevLoginIn()
-    user = await user_service.upsert_google_user(
-        db,
-        google_sub=f"dev:{body.email}",
-        email=body.email,
-        display_name=body.display_name or body.email.split("@")[0],
-        avatar_url=None,
-        timezone=DEFAULT_TIMEZONE,
-    )
+    try:
+        user = await user_service.upsert_google_user(
+            db,
+            google_sub=f"dev:{body.email}",
+            email=body.email,
+            display_name=body.display_name or body.email.split("@")[0],
+            avatar_url=None,
+            timezone=DEFAULT_TIMEZONE,
+        )
+    except user_service.AccountDeleted as exc:
+        raise ApiError(403, "ACCOUNT_DELETED", "Tài khoản này đang chờ xóa") from exc
     await create_session(db, response, user.id)
     return {
         "next": _landing_after_login(user.onboarded_at is not None),

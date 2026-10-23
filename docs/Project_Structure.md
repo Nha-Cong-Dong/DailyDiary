@@ -72,12 +72,13 @@ dailydiary/
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
     │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_entries_norm_backfill.py, m0008_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py)
-    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py)
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py, account.py)
+    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py,
+    │   │   │                         # account.py: xóa toàn bộ dữ liệu, xóa tài khoản, dọn kho)
     │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, calendar, pixels,
     │   │   │                         # search (/search, /keywords/top, /sub-icons/top), shares (F-10: chủ trang + /public/shares);
     │   │   │                         # (B12) feedback
-    │   │   └── jobs/                 # (B12–B13) dọn bài xóa mềm, hoàn tất xóa tài khoản, sao lưu
+    │   │   └── jobs/                 # purge_accounts.py (làm nốt xóa tài khoản dang dở); (B13) dọn bài xóa mềm, sao lưu
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
     │   │   ├── export_openapi.py     # xuất OpenAPI cho web (npm run gen:api, CI kiểm tra lệch)
     │   │   └── seed_demo.py          # (B14) nạp dữ liệu mẫu 3 tháng vào DB local
@@ -203,3 +204,4 @@ dailydiary/
 | 19 | 23/10/2026 | Year in Pixels tô theo màu cờ (tùy chọn): `features/pixels/ColorByFlag.tsx`, `useColorBy.ts` |
 | 20 | 23/10/2026 | Bước 11 (tìm kiếm): `routers|schemas|services/search.py` (bỏ nhãn (B11)), migration `m0007_entries_norm_backfill.py`, `tests/api/test_search.py`; web `features/search/useSearch.ts` dùng API, bỏ `searchEntries.test.ts` (tìm ở backend), `SearchPage` vào bản build (không còn route dev nào ngoài /dev/ui); `e2e/search.spec.ts` |
 | 21 | 23/10/2026 | Bỏ dữ liệu mẫu ở "sub icon hay dùng" (`GET /sub-icons/top`, `features/entry/useFrequentSubIcons.ts`) và tóm tắt trang chủ (`features/landing/useHomeSummary.ts` đọc `GET /calendar`) |
+| 22 | 24/10/2026 | Bước 12 (xóa dữ liệu/tài khoản): `schemas|services/account.py`, `app/jobs/__init__.py`, `app/jobs/purge_accounts.py`, `tests/api/test_account.py`; `core/storage.py` thêm `list_keys`/`delete_prefix`; web `features/profile/useJournalData.ts` dùng API, `DeleteData.test.tsx`, `e2e/account.spec.ts` |

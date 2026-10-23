@@ -45,7 +45,8 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
  * Giả lập API: GET /me trả `me`, PATCH /me gộp body vào `me`, POST /auth/logout trả 204.
  * Nhật ký (`entries`, theo ngày) làm giống backend: 404 khi chưa có, 409 khi `updated_at` lệch hoặc tạo trùng,
  * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}), Year in Pixels (GET /pixels/{year}),
- * tìm kiếm (GET /search, GET /keywords/top), sub icon hay dùng (GET /sub-icons/top). Ảnh: xóa và sắp xếp lại.
+ * tìm kiếm (GET /search, GET /keywords/top), sub icon hay dùng (GET /sub-icons/top),
+ * xóa dữ liệu / tài khoản (GET /me/data-summary, DELETE /entries, DELETE /me). Ảnh: xóa và sắp xếp lại.
  * Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
@@ -67,6 +68,18 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
       return json(me)
     }
     if (path === '/auth/logout') return new Response(null, { status: 204 })
+    if (path === '/me/data-summary') {
+      const live = Object.values(entries)
+      const pages = live.length
+      return json({ pages, photos: live.reduce((n, e) => n + e.photos.length, 0), share_links: 0 })
+    }
+    if (path === '/entries' && request.method === 'DELETE') {
+      const pages = Object.keys(entries).length
+      for (const day of Object.keys(entries)) delete entries[day]
+      for (const day of Object.keys(deleted)) delete deleted[day]
+      return json({ pages, photos: 0, share_links: 0 })
+    }
+    if (path === '/me' && request.method === 'DELETE') return new Response(null, { status: 204 })
     if (path === '/search' && request.method === 'GET') {
       // Bản gọn của backend: khớp chuỗi con (lib/text, cùng quy tắc có dấu/không dấu), lọc điểm, có ảnh; một trang.
       const params = new URL(request.url).searchParams

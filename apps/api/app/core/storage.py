@@ -80,13 +80,29 @@ class Storage:
         return await anyio.to_thread.run_sync(read)
 
     async def delete(self, *keys: str) -> None:
-        if not keys:
-            return
-        await anyio.to_thread.run_sync(
-            lambda: self.client.delete_objects(
-                Bucket=self.bucket, Delete={"Objects": [{"Key": k} for k in keys], "Quiet": True}
+        # delete_objects nhận tối đa 1000 key mỗi lần (giới hạn của S3).
+        for i in range(0, len(keys), 1000):
+            batch = keys[i : i + 1000]
+            await anyio.to_thread.run_sync(
+                lambda b=batch: self.client.delete_objects(
+                    Bucket=self.bucket, Delete={"Objects": [{"Key": k} for k in b], "Quiet": True}
+                )
             )
-        )
+
+    async def list_keys(self, prefix: str) -> list[str]:
+        """Mọi key bắt đầu bằng `prefix` (đọc hết các trang của list_objects_v2)."""
+
+        def collect() -> list[str]:
+            pages = self.client.get_paginator("list_objects_v2").paginate(Bucket=self.bucket, Prefix=prefix)
+            return [obj["Key"] for page in pages for obj in page.get("Contents", [])]
+
+        return await anyio.to_thread.run_sync(collect)
+
+    async def delete_prefix(self, prefix: str, *, keep: str | None = None) -> int:
+        """Xóa mọi object theo tiền tố (trừ các key bắt đầu bằng `keep`); trả số object đã xóa."""
+        keys = [k for k in await self.list_keys(prefix) if not (keep and k.startswith(keep))]
+        await self.delete(*keys)
+        return len(keys)
 
 
 def make_storage() -> Storage | None:

@@ -64,6 +64,10 @@ async def create_session(db: AsyncDatabase, response: Response, user_id: UUID) -
 async def destroy_session(db: AsyncDatabase, response: Response, token: str | None) -> None:
     if token:
         await db[c.USER_SESSIONS].delete_one({"_id": hash_token(token)})
+    clear_session_cookies(response)
+
+
+def clear_session_cookies(response: Response) -> None:
     # delete_cookie phải truyền đúng path/domain/samesite/secure như lúc set,
     # nếu không trình duyệt giữ cookie lại.
     for name, http_only in ((SESSION_COOKIE, True), (CSRF_COOKIE, False)):

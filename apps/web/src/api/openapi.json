@@ -191,6 +191,45 @@
         "title": "CalendarStatsOut",
         "type": "object"
       },
+      "DataSummaryOut": {
+        "description": "GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số).",
+        "properties": {
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "photos": {
+            "title": "Photos",
+            "type": "integer"
+          },
+          "share_links": {
+            "title": "Share Links",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pages",
+          "photos",
+          "share_links"
+        ],
+        "title": "DataSummaryOut",
+        "type": "object"
+      },
+      "DeleteAccountIn": {
+        "additionalProperties": false,
+        "description": "DELETE /me: phải gửi đúng email của tài khoản (so ở service, không phân biệt hoa thường).",
+        "properties": {
+          "confirm_email": {
+            "title": "Confirm Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirm_email"
+        ],
+        "title": "DeleteAccountIn",
+        "type": "object"
+      },
       "EntryDeletedOut": {
         "description": "Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.",
         "properties": {
@@ -1561,6 +1600,45 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "WipeIn": {
+        "additionalProperties": false,
+        "description": "DELETE /entries: phải gửi đúng chữ \"XÓA\" (backend kiểm tra lại, không chỉ dựa vào giao diện).",
+        "properties": {
+          "confirm": {
+            "title": "Confirm",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "title": "WipeIn",
+        "type": "object"
+      },
+      "WipeOut": {
+        "description": "Đã xóa bao nhiêu (ảnh trong kho được dọn trong nền ngay sau đó).",
+        "properties": {
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "photos": {
+            "title": "Photos",
+            "type": "integer"
+          },
+          "share_links": {
+            "title": "Share Links",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pages",
+          "photos",
+          "share_links"
+        ],
+        "title": "WipeOut",
+        "type": "object"
       }
     }
   },
@@ -1753,6 +1831,64 @@
       }
     },
     "/entries": {
+      "delete": {
+        "description": "Xóa toàn bộ dữ liệu (F-07): mọi trang (cả thùng rác), link chia sẻ, ảnh nhật ký.\n\nGiữ tài khoản và cài đặt.\n\nGửi `{\"confirm\": \"XÓA\"}`. Ảnh trong kho được dọn trong nền ngay sau khi trả lời.",
+        "operationId": "wipe_journal_entries_delete",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WipeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WipeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Wipe Journal",
+        "tags": [
+          "entries"
+        ]
+      },
       "get": {
         "description": "Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh.",
         "operationId": "list_month_entries_get",
@@ -2529,6 +2665,57 @@
       }
     },
     "/me": {
+      "delete": {
+        "description": "Xóa tài khoản (F-07): gửi `{\"confirm_email\": <email tài khoản>}`. Đăng xuất mọi thiết bị ngay;\nảnh trong kho và hồ sơ được dọn trong nền. Góp ý giữ nội dung nhưng ẩn danh.",
+        "operationId": "delete_account_me_delete",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteAccountIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Account",
+        "tags": [
+          "me"
+        ]
+      },
       "get": {
         "operationId": "read_me_me_get",
         "parameters": [
@@ -2690,6 +2877,56 @@
           }
         },
         "summary": "Create Avatar Upload",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/me/data-summary": {
+      "get": {
+        "description": "Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản.",
+        "operationId": "data_summary_me_data_summary_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataSummaryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Data Summary",
         "tags": [
           "me"
         ]

@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { ChevronRight, CircleCheck, Eraser, Link2, LogOut, Lock, Mail, Trash2 } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
@@ -15,7 +16,7 @@ import { AccountDeletedDialog, DeleteAccountDialog, DeleteDataDialog } from './c
 import { IconSetPicker } from './components/IconSetPicker'
 import { CustomFlagColors } from './components/CustomFlagColors'
 import { TimeZoneField } from './components/TimeZoneField'
-import { usePageCount, useWipeJournal } from './useJournalData'
+import { useDataSummary, useDeleteAccount, useWipeJournal } from './useJournalData'
 
 const THEMES: { id: ThemePreference; label: string }[] = [
   { id: 'light', label: 'Sáng' },
@@ -103,7 +104,9 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
   const [timeZone, setTimeZone] = useState(profile.timeZone)
   // Múi giờ lúc mở trang: đổi khác đi thì nhắc "chỉ áp dụng từ ngày đang viết".
   const [initialTimeZone] = useState(() => profile.timeZone)
-  const pageCount = usePageCount()
+  const { data: summary } = useDataSummary()
+  const deleteAccount = useDeleteAccount()
+  const client = useQueryClient()
   const wipe = useWipeJournal(onClearShares)
   const [dataOpen, setDataOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
@@ -387,7 +390,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
                 <Eraser aria-hidden="true" /> Xóa dữ liệu
               </Button>
             </Row>
-            <Row title="Xóa tài khoản" hint="Xóa mọi trang, link chia sẻ và hồ sơ của bạn. Jotly không còn lưu gì về bạn." danger>
+            <Row title="Xóa tài khoản" hint="Xóa mọi trang, link chia sẻ và hồ sơ của bạn. Jotly không còn lưu gì gắn với bạn." danger>
               <Button variant="destructive" size="sm" className="h-10 px-3.5" onClick={() => setAccountOpen(true)}>
                 <Trash2 aria-hidden="true" /> Xóa tài khoản
               </Button>
@@ -398,7 +401,11 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
       {wiped ? (
         <p role="status" className="-mt-3 inline-flex items-center gap-2 px-1 text-sm text-muted-foreground max-sm:-mt-2 max-sm:text-[13px]">
           <CircleCheck className="size-4" aria-hidden="true" /> Đã xóa toàn bộ dữ liệu. Trang Hôm nay đang chờ bạn.
-          <span className="sr-only">Bản thử trên dữ liệu mẫu.</span>
+        </p>
+      ) : null}
+      {wipe.isError || deleteAccount.isError ? (
+        <p role="alert" className="-mt-3 px-1 text-sm font-medium text-destructive max-sm:-mt-2 max-sm:text-[13px]">
+          {wipe.isError ? 'Chưa xóa được dữ liệu.' : 'Chưa xóa được tài khoản.'} Kiểm tra kết nối rồi thử lại; chưa có gì bị xóa.
         </p>
       ) : null}
       <p className="mx-1 -mt-1.5 text-xs leading-[18px] text-muted-foreground sm:hidden">
@@ -432,21 +439,26 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
       <DeleteDataDialog
         open={dataOpen}
         onOpenChange={setDataOpen}
-        pageCount={pageCount}
+        pageCount={summary?.pages}
+        photoCount={summary?.photos}
         onConfirm={() => wipe.mutate(undefined, { onSuccess: () => setWiped(true) })}
       />
       <DeleteAccountDialog
         open={accountOpen}
         onOpenChange={setAccountOpen}
         email={profile.email}
-        pageCount={pageCount}
-        shareCount={shareCount}
-        onConfirm={() => wipe.mutate(undefined, { onSuccess: () => setAccountGone(true) })}
+        pageCount={summary?.pages}
+        photoCount={summary?.photos}
+        shareCount={summary?.share_links ?? shareCount}
+        onConfirm={() => deleteAccount.mutate(undefined, { onSuccess: () => setAccountGone(true) })}
       />
-      {/* Bản thử: "xóa" tài khoản = xóa dữ liệu mẫu rồi đăng xuất khi bấm Về trang chủ (API thật ở Bước 12). */}
       <AccountDeletedDialog
         open={accountGone}
-        onHome={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true }) })}
+        onHome={() => {
+          // Máy chủ đã xóa phiên và cookie; xóa nốt cache của người vừa xóa tài khoản rồi về trang chủ.
+          client.clear()
+          navigate('/', { replace: true })
+        }}
       />
     </div>
   )
