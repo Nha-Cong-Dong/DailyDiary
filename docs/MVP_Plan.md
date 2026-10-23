@@ -32,7 +32,7 @@
 | 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
 | 8    | Dòng thời gian (F-02, phần danh sách) — xong 23/10/2026                                        | 6–7             | 5, 7      |
 | 9    | Lịch tháng và thống kê tháng (F-02) — xong 23/10/2026                                          | 8–9             | 5         |
-| 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
+| 10   | Year in Pixels (F-03) — xong 23/10/2026                                                         | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
 | 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
 | 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026)              | 11              | 7         |
@@ -429,6 +429,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Payload chỉ vài KB.
 
 **Hoàn thành khi:** có test năm nhuận 366 ô, test chỉ trả các năm có dữ liệu, kích thước payload dưới 10 KB, dùng được trên điện thoại.
+
+**Kết quả (23/10/2026):**
+- `GET /pixels/{year}` (`routers|schemas|services/pixels.py`) dạng gọn: `scores` là chuỗi 365/366 ký tự, `flags`
+  (chỉ số ngày → hex) và `backfilled` chỉ liệt kê ngày có, `years` là các năm có trang chưa xóa, `stats` chuỗi dài
+  nhất trong năm và chuỗi hiện tại (quy tắc ghi bù như Bước 9). Không có tiêu đề/nội dung. Rate limit `read`.
+- Web: `usePixels` đọc API và giải dạng gọn; xem nhanh ngày đọc `GET /entries/{day}`; `/pixels` vào bản build.
+  Ô có trang luôn hiện kể cả trước ngày bắt đầu dùng (giống Dòng thời gian).
+- Chế độ tô theo màu cờ (người dùng chọn, 23/10/2026): nút "Tô ô theo: Điểm | Cờ hiệu" trên bảng (thiết kế B7 chưa có,
+  thêm theo yêu cầu). Ô có cờ mang màu cờ (bản tối khi giao diện tối), có trang mà không cờ là ô viền; chú thích liệt kê
+  cờ dùng trong năm + số ngày (màu riêng kèm mã màu); bộ lọc theo điểm ẩn ở chế độ này. Nhớ lựa chọn trên trình duyệt
+  (`localStorage`, như chế độ sáng/tối).
+- Test: năm nhuận 366 ký tự (29/2 là ngày thứ 60), chỉ năm có trang chưa xóa của chính người dùng, cả năm ghi đủ + cờ mỗi
+  ngày + nửa năm ghi bù vẫn dưới 10 KB, chuỗi bỏ qua ghi bù, truy cập chéo; backend 209; Vitest 167; e2e 45/45
+  (có ca 360 px: chạm ô mở bảng xem nhanh).
 
 ---
 

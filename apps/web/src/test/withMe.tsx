@@ -43,7 +43,7 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
 /**
  * Giả lập API: GET /me trả `me`, PATCH /me gộp body vào `me`, POST /auth/logout trả 204.
  * Nhật ký (`entries`, theo ngày) làm giống backend: 404 khi chưa có, 409 khi `updated_at` lệch hoặc tạo trùng,
- * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}). Ảnh: xóa và sắp xếp lại.
+ * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}), Year in Pixels (GET /pixels/{year}). Ảnh: xóa và sắp xếp lại.
  * Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
@@ -65,6 +65,22 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
       return json(me)
     }
     if (path === '/auth/logout') return new Response(null, { status: 204 })
+    const pixels = path.match(/^\/pixels\/(\d{4})$/)
+    if (pixels && request.method === 'GET') {
+      const year = Number(pixels[1])
+      const first = Date.UTC(year, 0, 1)
+      const length = (Date.UTC(year + 1, 0, 1) - first) / 86_400_000
+      const scores = Array<string>(length).fill('0')
+      const flags: Record<number, string> = {}
+      for (const e of Object.values(entries)) {
+        if (!e.entry_date.startsWith(`${year}-`)) continue
+        const i = (Date.parse(`${e.entry_date}T00:00:00Z`) - first) / 86_400_000
+        scores[i] = String(e.score)
+        if (e.flag_color) flags[i] = e.flag_color
+      }
+      const years = [...new Set(Object.values(entries).map((e) => Number(e.entry_date.slice(0, 4))))].sort()
+      return json({ year, years, scores: scores.join(''), flags, backfilled: [], stats: { longest_streak: 0, current_streak: 0 } })
+    }
     const calendar = path.match(/^\/calendar\/(\d{4})\/(\d{1,2})$/)
     if (calendar && request.method === 'GET') {
       // Bản gọn của backend: chuỗi chỉ đếm ngày liên tiếp (không xét ghi bù), hiện tại tính tới hôm nay/hôm qua.

@@ -5,6 +5,7 @@ import { DayPage } from '@/routes/DayPage'
 import { PixelsPage } from '@/routes/PixelsPage'
 import { ProfilePage } from '@/routes/ProfilePage'
 import { SearchPage } from '@/routes/SearchPage'
+import { flagColors } from '@/lib/catalog'
 import { getThemePreference } from '@/lib/theme'
 import { makeEntry, makeMe, mockApi, renderWithMe } from '@/test/withMe'
 
@@ -47,12 +48,44 @@ describe('Tìm kiếm', () => {
 
 describe('Year in Pixels cả năm', () => {
   it('bấm một ô thì khung "Ngày đã chọn" hiện trang đó; phím mũi tên sang ngày bên cạnh', async () => {
+    mockApi(makeMe(), {
+      '2026-10-17': makeEntry('2026-10-17', { score: 3 }),
+      '2026-10-18': makeEntry('2026-10-18', { score: 4, title: 'Chiều mưa đọc sách' }),
+    })
     renderAt([{ path: '/pixels', Component: PixelsPage }], '/pixels')
     const cell = await screen.findByRole('button', { name: '18 tháng 10, điểm 4' })
     fireEvent.click(cell)
     expect(await screen.findByRole('heading', { name: 'Chiều mưa đọc sách' })).toBeInTheDocument()
     fireEvent.keyDown(cell, { key: 'ArrowLeft' })
     expect(screen.getByRole('button', { name: '17 tháng 10, điểm 3' })).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+describe('Year in Pixels: tô ô theo màu cờ', () => {
+  it('chọn "Cờ hiệu" thì ô mang màu cờ, chú thích liệt kê cờ trong năm; lựa chọn được nhớ', async () => {
+    localStorage.removeItem('jotly:pixels-color-by')
+    mockApi(makeMe(), {
+      '2026-10-16': makeEntry('2026-10-16', { score: 2, flag_color: '#3A7BD5' }),
+      '2026-10-17': makeEntry('2026-10-17', { score: 3, flag_color: flagColors[0]!.hex }),
+      '2026-10-18': makeEntry('2026-10-18', { score: 4 }),
+    })
+    const view = renderAt([{ path: '/pixels', Component: PixelsPage }], '/pixels')
+    expect(await screen.findByRole('button', { name: '18 tháng 10, điểm 4' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: 'Cờ hiệu' }))
+    expect(screen.getByRole('radio', { name: 'Cờ hiệu' })).toHaveAttribute('aria-checked', 'true')
+    const custom = screen.getByRole('button', { name: '16 tháng 10, điểm 2, cờ Màu riêng' })
+    expect(custom).toHaveStyle({ backgroundColor: '#3A7BD5' })
+    expect(screen.getByRole('button', { name: '18 tháng 10, điểm 4, không cờ' })).toBeInTheDocument()
+    const legend = screen.getByRole('list', { name: 'Chú thích màu cờ' })
+    expect(within(legend).getByText(`${flagColors[0]!.name} · 1`)).toBeInTheDocument()
+    expect(within(legend).getByText('Không cờ · 1')).toBeInTheDocument()
+    expect(localStorage.getItem('jotly:pixels-color-by')).toBe('flag')
+
+    view.unmount()
+    renderAt([{ path: '/pixels', Component: PixelsPage }], '/pixels')
+    expect(await screen.findByRole('radio', { name: 'Cờ hiệu' })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(screen.getByRole('radio', { name: 'Điểm' }))
+    expect(localStorage.getItem('jotly:pixels-color-by')).toBeNull()
   })
 })
 

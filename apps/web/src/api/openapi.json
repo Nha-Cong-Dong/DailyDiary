@@ -855,6 +855,71 @@
         "title": "PhotoUploadOut",
         "type": "object"
       },
+      "PixelsOut": {
+        "description": "GET /pixels/{year}: Year in Pixels trong một request, dạng gọn để cả năm chỉ vài KB (F-03).\n\nNgày thứ i của năm (0 = 1/1) ứng với ký tự `scores[i]`: \"1\"..\"5\" là điểm, \"0\" là chưa ghi.",
+        "properties": {
+          "backfilled": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Backfilled",
+            "type": "array"
+          },
+          "flags": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "object"
+          },
+          "scores": {
+            "title": "Scores",
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/PixelsStatsOut"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "year",
+          "years",
+          "scores",
+          "flags",
+          "backfilled",
+          "stats"
+        ],
+        "title": "PixelsOut",
+        "type": "object"
+      },
+      "PixelsStatsOut": {
+        "properties": {
+          "current_streak": {
+            "title": "Current Streak",
+            "type": "integer"
+          },
+          "longest_streak": {
+            "title": "Longest Streak",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "longest_streak",
+          "current_streak"
+        ],
+        "title": "PixelsStatsOut",
+        "type": "object"
+      },
       "PublicPhotoOut": {
         "description": "Ảnh trên trang chia sẻ: chỉ link ký và kích thước, không có id hay key trong kho.",
         "properties": {
@@ -2457,6 +2522,67 @@
         "summary": "Delete Photo",
         "tags": [
           "photos"
+        ]
+      }
+    },
+    "/pixels/{year}": {
+      "get": {
+        "description": "Điểm cả năm (chuỗi gọn), cờ hiệu, ngày ghi bù, chuỗi ngày và các năm có dữ liệu. Không có nội dung.",
+        "operationId": "read_year_pixels__year__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Year",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PixelsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Year",
+        "tags": [
+          "pixels"
         ]
       }
     },

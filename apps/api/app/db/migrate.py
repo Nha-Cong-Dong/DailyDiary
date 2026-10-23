@@ -23,6 +23,7 @@ from app.db.migrations import (
     m0004_entries_icon_set_norm,
     m0005_user_custom_flag_colors,
     m0006_user_avatar_key,
+    m0007_entries_norm_backfill,
 )
 
 MIGRATIONS = [
@@ -32,6 +33,7 @@ MIGRATIONS = [
     m0004_entries_icon_set_norm,
     m0005_user_custom_flag_colors,
     m0006_user_avatar_key,
+    m0007_entries_norm_backfill,
 ]
 
 

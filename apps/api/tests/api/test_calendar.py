@@ -39,7 +39,7 @@ async def _entry(db, user, day: str, *, score=4, created: datetime | None = None
 def _today(monkeypatch, local: str, tz: ZoneInfo = VN, hour: int = 12):
     """Đặt "bây giờ" là `local` (giờ địa phương) cho cách tính chuỗi hiện tại."""
     now = datetime.combine(date.fromisoformat(local), datetime.min.time(), tz).replace(hour=hour)
-    monkeypatch.setattr(calendar_service, "_utcnow", lambda: now.astimezone(UTC))
+    monkeypatch.setattr(calendar_service, "utcnow", lambda: now.astimezone(UTC))
 
 
 async def _month(client, ym: str) -> dict:

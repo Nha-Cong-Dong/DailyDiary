@@ -136,10 +136,11 @@ Quy tắc:
 ### F-03. Year in Pixels
 
 - Lưới 365/366 ô sắp theo 12 tháng, mỗi ô tô màu theo điểm 1–5; ngày chưa ghi dùng màu trung tính.
-- Dữ liệu cả năm lấy trong **1 request** (chỉ ngày + điểm + màu cờ, vài KB).
+- Dữ liệu cả năm lấy trong **1 request** (chỉ ngày + điểm + màu cờ, vài KB): điểm là chuỗi 365/366 ký tự ("0" = chưa
+  ghi), cờ và ngày ghi bù chỉ liệt kê ngày có; cả năm ghi đủ, ngày nào cũng có cờ vẫn dưới 10 KB.
 - Rê chuột để xem nhanh, bấm để mở nhật ký ngày đó.
 - Chọn năm: chỉ các năm có dữ liệu.
-- (Tùy chọn) chế độ tô màu theo cờ hiệu.
+- Chế độ tô màu theo cờ hiệu: người dùng chọn "Tô ô theo: Điểm | Cờ hiệu"; lựa chọn nhớ trên trình duyệt.
 
 ### F-04. Đăng nhập và hồ sơ
 
@@ -455,7 +456,7 @@ Nguyên tắc:
 | PATCH       | `/entries/{date}/photos/order`      | Sắp xếp lại ảnh                                                        |
 | DELETE      | `/photos/{id}`                      | Xóa ảnh                                                                |
 | GET         | `/calendar/{year}/{month}`          | Lịch tháng (ngày, điểm, sub icon, cờ, số ảnh, ghi bù) + thống kê, chuỗi ngày; không có tiêu đề/nội dung |
-| GET         | `/pixels/{year}`                    | Dữ liệu Year in Pixels                                                 |
+| GET         | `/pixels/{year}`                    | Year in Pixels dạng gọn: chuỗi điểm 365/366 ký tự, cờ, ngày ghi bù, chuỗi ngày, các năm có dữ liệu |
 | GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05); `q` gửi trong query string của request nhưng không ghi log |
 | GET         | `/keywords/top`                     | 6 từ khóa dùng nhiều nhất của người dùng                               |
 | GET         | `/entries/{date}/share`             | Link chia sẻ của một ngày (`null` nếu chưa bật) (F-10)                 |

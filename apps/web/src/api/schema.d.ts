@@ -320,6 +320,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/pixels/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Year
+         * @description Điểm cả năm (chuỗi gọn), cờ hiệu, ngày ghi bù, chuỗi ngày và các năm có dữ liệu. Không có nội dung.
+         */
+        get: operations["read_year_pixels__year__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/public/shares/{token}": {
         parameters: {
             query?: never;
@@ -708,6 +728,34 @@ export interface components {
             thumb_upload_url: string;
             /** Upload Url */
             upload_url: string;
+        };
+        /**
+         * PixelsOut
+         * @description GET /pixels/{year}: Year in Pixels trong một request, dạng gọn để cả năm chỉ vài KB (F-03).
+         *
+         *     Ngày thứ i của năm (0 = 1/1) ứng với ký tự `scores[i]`: "1".."5" là điểm, "0" là chưa ghi.
+         */
+        PixelsOut: {
+            /** Backfilled */
+            backfilled: number[];
+            /** Flags */
+            flags: {
+                [key: string]: string;
+            };
+            /** Scores */
+            scores: string;
+            stats: components["schemas"]["PixelsStatsOut"];
+            /** Year */
+            year: number;
+            /** Years */
+            years: number[];
+        };
+        /** PixelsStatsOut */
+        PixelsStatsOut: {
+            /** Current Streak */
+            current_streak: number;
+            /** Longest Streak */
+            longest_streak: number;
         };
         /**
          * PublicPhotoOut
@@ -1523,6 +1571,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_year_pixels__year__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PixelsOut"];
+                };
             };
             /** @description Validation Error */
             422: {

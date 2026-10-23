@@ -20,7 +20,7 @@ from app.schemas.users import User
 from app.services.entries import ACTIVE, user_today
 
 
-def _utcnow() -> datetime:
+def utcnow() -> datetime:
     return datetime.now(UTC)  # tách riêng để test đặt "bây giờ"
 
 
@@ -112,6 +112,6 @@ async def get_month(db: AsyncDatabase, user: User, year: int, month: int) -> Cal
         photos=sum(d.photo_count for d in days),
         photo_days=sum(1 for d in days if d.photo_count),
         longest_streak=longest_run([d.entry_date for d in days if not d.backfilled]),
-        current_streak=await current_streak(db, user.id, user_today(user.timezone, _utcnow()), tz),
+        current_streak=await current_streak(db, user.id, user_today(user.timezone, utcnow()), tz),
     )
     return CalendarOut(month=f"{year}-{month:02d}", days=days, stats=stats)
