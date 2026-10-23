@@ -404,7 +404,7 @@ function Privacy() {
  * nay, menu tài khoản, chấm điểm nhanh cho hôm nay và Year in Pixels "của bạn".
  */
 export function Landing({ account }: { account?: LandingAccount }) {
-  const { data } = useHomeSummary(account?.timeZone ?? browserTimeZone())
+  const { data } = useHomeSummary(account?.timeZone ?? browserTimeZone(), Boolean(account))
   const summary = account ? data : undefined
   const todayWritten = Boolean(summary?.todayWritten)
   return (

@@ -1,4 +1,4 @@
-"""Tìm kiếm (F-05, Bước 11) và "Từ khóa hay dùng".
+"""Tìm kiếm (F-05, Bước 11), "Từ khóa hay dùng" và "Sub icon hay dùng".
 
 - Khớp chuỗi con trên tiêu đề, nội dung, từ khóa. `q` không dấu → so trên `title_norm`, `content_norm`,
   `keywords.norm` (đã bỏ dấu, chữ thường); `q` có dấu → so đúng dấu, không phân biệt hoa thường.
@@ -14,13 +14,15 @@ from pymongo.asynchronous.database import AsyncDatabase
 
 from app.core.text import fold, has_diacritics, keyword_norm, nfc
 from app.db import collections as c
-from app.schemas.search import SearchHitOut, SearchOut
+from app.schemas.search import SearchHitOut, SearchOut, SubIconCount
 from app.schemas.users import User
 from app.services.entries import ACTIVE, user_today
 
 Period = Literal["month", "3m", "year", "all"]
 EXCERPT_CHARS = 240
 TOP_KEYWORDS = 6
+# Dư hơn 8 ô của hàng "hay dùng": frontend bỏ icon đã rời danh mục (shared/icons.json) rồi mới cắt.
+TOP_SUB_ICONS = 20
 
 
 def query_filter(q: str) -> dict:
@@ -154,3 +156,18 @@ async def top_keywords(db: AsyncDatabase, user: User) -> list[str]:
         )
     ).to_list()
     return [r["label"] for r in rows]
+
+
+async def top_sub_icons(db: AsyncDatabase, user: User) -> list[SubIconCount]:
+    """Đếm trên mọi trang chưa xóa của người dùng; hòa thì xếp theo icon cho ổn định."""
+    rows = await (
+        await db[c.ENTRIES].aggregate(
+            [
+                {"$match": {"user_id": user.id, **ACTIVE, "sub_icon": {"$type": "string"}}},
+                {"$group": {"_id": "$sub_icon", "n": {"$sum": 1}}},
+                {"$sort": {"n": -1, "_id": 1}},
+                {"$limit": TOP_SUB_ICONS},
+            ]
+        )
+    ).to_list()
+    return [SubIconCount(icon=r["_id"], count=r["n"]) for r in rows]

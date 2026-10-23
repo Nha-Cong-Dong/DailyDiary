@@ -460,6 +460,7 @@ Nguyên tắc:
 | GET         | `/pixels/{year}`                    | Year in Pixels dạng gọn: chuỗi điểm 365/366 ký tự, cờ, ngày ghi bù, chuỗi ngày, các năm có dữ liệu |
 | GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05): kết quả có đoạn trích quanh chỗ khớp, `matched` (trước bộ lọc), `total`, `next_cursor`; `q` gửi trong query string nhưng không ghi log |
 | GET         | `/keywords/top`                     | 6 từ khóa dùng nhiều nhất của người dùng                               |
+| GET         | `/sub-icons/top`                    | Sub icon dùng nhiều nhất của người dùng (hàng "hay dùng" ở Sửa / Ghi bù) |
 | GET         | `/entries/{date}/share`             | Link chia sẻ của một ngày (`null` nếu chưa bật) (F-10)                 |
 | PUT         | `/entries/{date}/share`             | Bật link hoặc đổi phần hiển thị; lần đầu tạo token                     |
 | DELETE      | `/entries/{date}/share`             | Tắt link (thu hồi vĩnh viễn)                                           |

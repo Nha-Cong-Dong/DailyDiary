@@ -422,6 +422,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sub-icons/top": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Top Sub Icons
+         * @description Sub icon dùng nhiều nhất của chính người dùng (hàng "hay dùng" ở Sửa trang / Ghi bù).
+         */
+        get: operations["top_sub_icons_sub_icons_top_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -994,6 +1014,13 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** SubIconCount */
+        SubIconCount: {
+            /** Count */
+            count: number;
+            /** Icon */
+            icon: string;
+        };
         /**
          * TopKeywordsOut
          * @description GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu).
@@ -1001,6 +1028,14 @@ export interface components {
         TopKeywordsOut: {
             /** Keywords */
             keywords: string[];
+        };
+        /**
+         * TopSubIconsOut
+         * @description GET /sub-icons/top: sub icon dùng nhiều nhất của chính người dùng, nhiều trước.
+         */
+        TopSubIconsOut: {
+            /** Icons */
+            icons: components["schemas"]["SubIconCount"][];
         };
         /** ValidationError */
         ValidationError: {
@@ -1823,6 +1858,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SharedEntryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    top_sub_icons_sub_icons_top_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopSubIconsOut"];
                 };
             };
             /** @description Validation Error */

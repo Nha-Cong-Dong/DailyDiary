@@ -75,7 +75,7 @@ dailydiary/
     │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py)
     │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py)
     │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, calendar, pixels,
-    │   │   │                         # search (/search, /keywords/top), shares (F-10: chủ trang + /public/shares);
+    │   │   │                         # search (/search, /keywords/top, /sub-icons/top), shares (F-10: chủ trang + /public/shares);
     │   │   │                         # (B12) feedback
     │   │   └── jobs/                 # (B12–B13) dọn bài xóa mềm, hoàn tất xóa tài khoản, sao lưu
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
@@ -202,3 +202,4 @@ dailydiary/
 | 18 | 23/10/2026 | Bước 10 (Year in Pixels): `routers|schemas|services/pixels.py` (bỏ nhãn (B10)), `tests/api/test_pixels.py`; web `features/pixels/usePixels.ts` dùng API, `PixelsPage` vào bản build; `e2e/pixels.spec.ts` |
 | 19 | 23/10/2026 | Year in Pixels tô theo màu cờ (tùy chọn): `features/pixels/ColorByFlag.tsx`, `useColorBy.ts` |
 | 20 | 23/10/2026 | Bước 11 (tìm kiếm): `routers|schemas|services/search.py` (bỏ nhãn (B11)), migration `m0007_entries_norm_backfill.py`, `tests/api/test_search.py`; web `features/search/useSearch.ts` dùng API, bỏ `searchEntries.test.ts` (tìm ở backend), `SearchPage` vào bản build (không còn route dev nào ngoài /dev/ui); `e2e/search.spec.ts` |
+| 21 | 23/10/2026 | Bỏ dữ liệu mẫu ở "sub icon hay dùng" (`GET /sub-icons/top`, `features/entry/useFrequentSubIcons.ts`) và tóm tắt trang chủ (`features/landing/useHomeSummary.ts` đọc `GET /calendar`) |

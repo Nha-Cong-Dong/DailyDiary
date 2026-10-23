@@ -51,7 +51,7 @@ describe('Ghi bù ngày đã bỏ trống', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Hoàn tác' }))
     expect(await screen.findByRole('heading', { name: 'Ngày này bạn chưa ghi' })).toBeInTheDocument()
-    expect(calls.at(-1)).toMatchObject({ method: 'DELETE', path: '/entries/2026-10-14' })
+    expect(calls.filter((c) => c.method === 'DELETE')).toMatchObject([{ path: '/entries/2026-10-14' }])
   })
 
   it('ngày đã có trang thì dẫn sang xem hoặc sửa', async () => {

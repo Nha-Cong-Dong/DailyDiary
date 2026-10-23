@@ -28,6 +28,17 @@ class SearchOut(BaseModel):
     next_cursor: date | None
 
 
+class SubIconCount(BaseModel):
+    icon: str
+    count: int
+
+
+class TopSubIconsOut(BaseModel):
+    """GET /sub-icons/top: sub icon dùng nhiều nhất của chính người dùng, nhiều trước."""
+
+    icons: list[SubIconCount]
+
+
 class TopKeywordsOut(BaseModel):
     """GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu)."""
 

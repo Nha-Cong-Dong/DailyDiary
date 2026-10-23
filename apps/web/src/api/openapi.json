@@ -1470,6 +1470,24 @@
         "title": "SharedEntryOut",
         "type": "object"
       },
+      "SubIconCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "icon": {
+            "title": "Icon",
+            "type": "string"
+          }
+        },
+        "required": [
+          "icon",
+          "count"
+        ],
+        "title": "SubIconCount",
+        "type": "object"
+      },
       "TopKeywordsOut": {
         "description": "GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu).",
         "properties": {
@@ -1485,6 +1503,23 @@
           "keywords"
         ],
         "title": "TopKeywordsOut",
+        "type": "object"
+      },
+      "TopSubIconsOut": {
+        "description": "GET /sub-icons/top: sub icon dùng nhiều nhất của chính người dùng, nhiều trước.",
+        "properties": {
+          "icons": {
+            "items": {
+              "$ref": "#/components/schemas/SubIconCount"
+            },
+            "title": "Icons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "icons"
+        ],
+        "title": "TopSubIconsOut",
         "type": "object"
       },
       "ValidationError": {
@@ -2996,6 +3031,56 @@
         "summary": "List Shares",
         "tags": [
           "shares"
+        ]
+      }
+    },
+    "/sub-icons/top": {
+      "get": {
+        "description": "Sub icon dùng nhiều nhất của chính người dùng (hàng \"hay dùng\" ở Sửa trang / Ghi bù).",
+        "operationId": "top_sub_icons_sub_icons_top_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopSubIconsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Top Sub Icons",
+        "tags": [
+          "search"
         ]
       }
     }

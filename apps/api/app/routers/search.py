@@ -7,7 +7,7 @@ from app.core.limits import get_limits, rate_limit
 from app.core.rate_limit import limiter
 from app.core.security import CurrentUser
 from app.db.client import Db
-from app.schemas.search import SearchOut, TopKeywordsOut
+from app.schemas.search import SearchOut, TopKeywordsOut, TopSubIconsOut
 from app.services import search as search_service
 
 router = APIRouter(tags=["search"])
@@ -51,3 +51,10 @@ async def search(
 async def top_keywords(request: Request, user: CurrentUser, db: Db) -> TopKeywordsOut:
     """6 từ khóa dùng nhiều nhất của chính người dùng."""
     return TopKeywordsOut(keywords=await search_service.top_keywords(db, user))
+
+
+@router.get("/sub-icons/top", response_model=TopSubIconsOut)
+@limiter.limit(rate_limit("read"))
+async def top_sub_icons(request: Request, user: CurrentUser, db: Db) -> TopSubIconsOut:
+    """Sub icon dùng nhiều nhất của chính người dùng (hàng "hay dùng" ở Sửa trang / Ghi bù)."""
+    return TopSubIconsOut(icons=await search_service.top_sub_icons(db, user))

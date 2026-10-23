@@ -45,7 +45,7 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
  * Giả lập API: GET /me trả `me`, PATCH /me gộp body vào `me`, POST /auth/logout trả 204.
  * Nhật ký (`entries`, theo ngày) làm giống backend: 404 khi chưa có, 409 khi `updated_at` lệch hoặc tạo trùng,
  * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}), Year in Pixels (GET /pixels/{year}),
- * tìm kiếm (GET /search, GET /keywords/top). Ảnh: xóa và sắp xếp lại.
+ * tìm kiếm (GET /search, GET /keywords/top), sub icon hay dùng (GET /sub-icons/top). Ảnh: xóa và sắp xếp lại.
  * Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
@@ -79,6 +79,11 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
         .filter((e) => (!scores.length || scores.includes(e.score)) && (params.get('has_photo') !== 'true' || e.photos.length))
         .map(({ content, photos, updated_at: _u, created_at: _c, ...e }) => ({ ...e, excerpt: content, photo_count: photos.length }))
       return json({ results, matched: hit.length, total: results.length, next_cursor: null })
+    }
+    if (path === '/sub-icons/top') {
+      const count = new Map<string, number>()
+      for (const e of Object.values(entries)) if (e.sub_icon) count.set(e.sub_icon, (count.get(e.sub_icon) ?? 0) + 1)
+      return json({ icons: [...count.entries()].sort((a, b) => b[1] - a[1]).map(([icon, n]) => ({ icon, count: n })) })
     }
     if (path === '/keywords/top') {
       const count = new Map<string, number>()

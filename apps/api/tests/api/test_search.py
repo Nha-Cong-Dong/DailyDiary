@@ -152,6 +152,7 @@ async def test_invalid_params(alice, params):
 async def test_search_requires_login(anon):
     assert (await anon.get("/search", params={"q": "x"})).status_code == 401
     assert (await anon.get("/keywords/top")).status_code == 401
+    assert (await anon.get("/sub-icons/top")).status_code == 401
 
 
 async def test_top_keywords_group_by_unaccented_form(alice):
@@ -184,3 +185,16 @@ async def test_m0007_backfills_norm_fields(db):
     await m7.up(db)  # chạy lại không đổi gì
     got = await db[c.ENTRIES].find_one({"_id": doc["_id"]})
     assert got["title_norm"] == "da lat" and got["content_norm"] == "troi mua"
+
+
+async def test_top_sub_icons_counts_own_live_pages(alice, bob):
+    await _create(alice, _day(1), sub_icon="☕")
+    await _create(alice, _day(2), sub_icon="☕")
+    await _create(alice, _day(3), sub_icon="🌸")
+    await _create(alice, _day(4))  # không sub icon
+    await _create(alice, _day(5), sub_icon="🌸")
+    assert (await alice.delete(f"/entries/{_day(5)}")).status_code == 200  # xóa mềm: không tính
+    await _create(bob, _day(1), sub_icon="🌸")
+    body = (await alice.get("/sub-icons/top")).json()
+    assert body == {"icons": [{"icon": "☕", "count": 2}, {"icon": "🌸", "count": 1}]}
+    assert (await bob.get("/sub-icons/top")).json() == {"icons": [{"icon": "🌸", "count": 1}]}

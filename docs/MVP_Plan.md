@@ -479,6 +479,9 @@ p95 dưới 500 ms với dữ liệu mẫu.
   trang không trùng không sót, xóa mềm, truy cập chéo, log, tham số sai, từ khóa hay dùng, m0007); backend 235; Vitest 164;
   e2e 47/47.
 - Hiệu năng: 365 trang (~620 ký tự/trang), 55 lần tìm trộn từ khóa và bộ lọc: **p50 33 ms, p95 61 ms**; `/keywords/top` 46 ms.
+- Bổ sung cùng ngày: hàng "sub icon hay dùng" ở Sửa / Ghi bù đọc `GET /sub-icons/top` (đếm trên trang chưa xóa của chính
+  người dùng); tóm tắt trang chủ khi đã đăng nhập đọc `GET /calendar` (chuỗi ngày từ backend, khớp Dòng thời gian), chỉ gọi
+  khi đã đăng nhập. Chỉ còn Hồ sơ (đếm trang, xóa dữ liệu) dùng dữ liệu mẫu — Bước 12.
 
 ---
 
