@@ -6,6 +6,15 @@ import type { DemoEntry } from '@/lib/demo'
 export type MonthString = string
 
 /**
+ * Một trang trong Dòng thời gian (GET /entries?month): không có nội dung đầy đủ — `content` là đoạn đầu
+ * (đủ cho thẻ cắt 2 dòng), ảnh chỉ có số lượng.
+ */
+export type MonthEntry = Pick<
+  DemoEntry,
+  'entry_date' | 'score' | 'sub_icon' | 'flag_color' | 'title' | 'content' | 'keywords' | 'created_at' | 'updated_at'
+> & { photo_count: number }
+
+/**
  * Trạng thái một ngày trong tháng (thiết kế B8 · Dòng thời gian):
  * `entry` đã ghi · `missing` đã qua mà không ghi · `open` hôm nay chưa ghi (ngày chưa hết, không tính là bỏ trống)
  * · `future` chưa tới · `pre` trước khi bắt đầu dùng Jotly.
@@ -15,12 +24,12 @@ export type MonthDay = {
   date: DateString
   day: number
   kind: DayKind
-  entry: DemoEntry | null
+  entry: MonthEntry | null
 }
 
 /** Một dòng trong danh sách: một trang, một đoạn ngày bỏ trống liền nhau (`from`..`to`), hoặc hôm nay chưa ghi. */
 export type TimelineItem =
-  | { kind: 'entry'; day: number; date: DateString; entry: DemoEntry }
+  | { kind: 'entry'; day: number; date: DateString; entry: MonthEntry }
   | { kind: 'gap'; day: number; from: number; to: number; date: DateString }
   | { kind: 'open'; day: number; date: DateString }
 
@@ -74,7 +83,7 @@ export function monthBounds(joined: DateString, today: DateString): { min: Month
   return { min: monthOf(joined), max: monthOf(today) }
 }
 
-export function buildMonth(month: MonthString, entries: DemoEntry[], today: DateString, joined: DateString): MonthTimeline {
+export function buildMonth(month: MonthString, entries: MonthEntry[], today: DateString, joined: DateString): MonthTimeline {
   const [y, m] = month.split('-').map(Number)
   const len = daysInMonth(y, m)
   const byDate = new Map(entries.map((e) => [e.entry_date, e]))
@@ -156,8 +165,8 @@ export function buildMonth(month: MonthString, entries: DemoEntry[], today: Date
     average: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null,
     longestStreak: longest,
     currentStreak: current,
-    photos: written.reduce((a, e) => a + e.photos.length, 0),
-    photoDays: written.filter((e) => e.photos.length).length,
+    photos: written.reduce((a, e) => a + e.photo_count, 0),
+    photoDays: written.filter((e) => e.photo_count).length,
     topSubIcon: topIcon ? { icon: topIcon[0], count: topIcon[1] } : null,
     items,
     anchorOf,

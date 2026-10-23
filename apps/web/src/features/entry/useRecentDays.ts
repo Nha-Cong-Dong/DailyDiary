@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { api, toApiError } from '@/api/client'
 import type { Score } from '@/lib/catalog'
 import { addDays, type DateString } from '@/lib/date'
 
@@ -34,20 +35,24 @@ export function recentDaysFrom(rows: Row[], today: DateString): RecentDaysData {
   return { days, monthRecorded, monthScoreSum }
 }
 
-const EMPTY: RecentDaysData = { days: {}, monthRecorded: 0, monthScoreSum: 0 }
-
 /**
- * Cùng nguồn với Dòng thời gian: ở dev đọc dữ liệu mẫu (kèm trang vừa ghi trong tab qua demoWrite), bản build
- * chưa có API (Bước 9 `/calendar`) nên trả rỗng. Import động để dữ liệu mẫu không vào bản build.
- * Key nằm dưới ['entries'] nên Sửa / Ghi bù / chấm điểm nhanh làm mới được dải này.
+ * Lấy từ lịch tháng (GET /calendar/{year}/{month}, chỉ ngày + điểm): tháng của hôm nay, thêm tháng trước nếu 6 ngày qua
+ * vắt sang tháng trước. Key nằm dưới ['entries'] nên Sửa / Ghi bù / chấm điểm nhanh làm mới được dải này.
  */
+async function monthRows(month: string): Promise<Row[]> {
+  const [year, m] = month.split('-').map(Number)
+  const { data, error, response } = await api.GET('/calendar/{year}/{month}', { params: { path: { year, month: m } } })
+  if (error || !data) throw toApiError(response, error)
+  return data.days.map((d) => ({ entry_date: d.entry_date, score: d.score as Score, sub_icon: d.sub_icon }))
+}
+
 export function useRecentDays(today: DateString) {
   return useQuery<RecentDaysData>({
     queryKey: ['entries', 'recent', today],
     queryFn: async () => {
-      if (!import.meta.env.DEV) return EMPTY
-      const { demoEntries } = await import('@/lib/demo')
-      return recentDaysFrom(demoEntries(), today)
+      const months = [...new Set([addDays(today, -6).slice(0, 7), today.slice(0, 7)])]
+      const rows = (await Promise.all(months.map(monthRows))).flat()
+      return recentDaysFrom(rows, today)
     },
   })
 }

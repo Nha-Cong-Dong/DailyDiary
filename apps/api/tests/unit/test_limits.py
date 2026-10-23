@@ -5,7 +5,7 @@ import pytest
 from app.core.config import settings
 from app.core.limits import get_limits, load_limits, rate_limit
 
-USER_RATE_NAMES = {"read", "me", "autosave", "write", "photo_upload", "feedback"}
+USER_RATE_NAMES = {"read", "me", "autosave", "write", "photo_upload", "feedback", "search"}
 
 
 def test_shared_limits_load_and_match_spec():

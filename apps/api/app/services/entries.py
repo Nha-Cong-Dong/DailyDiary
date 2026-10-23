@@ -20,7 +20,14 @@ from app.core.limits import EntryLimits, get_limits
 from app.core.storage import Storage
 from app.core.text import keyword_norm
 from app.db import collections as c
-from app.schemas.entries import EntryDeletedOut, EntryOut, EntryPhotoOut, EntryWrite
+from app.schemas.entries import (
+    EntryDeletedOut,
+    EntryMonthOut,
+    EntryOut,
+    EntryPhotoOut,
+    EntrySummaryOut,
+    EntryWrite,
+)
 from app.schemas.users import User
 
 ACTIVE = {"deleted_at": None}  # khớp cả document chưa có trường deleted_at
@@ -77,6 +84,63 @@ async def find_active(
     """Nhật ký chưa xóa của một ngày. Dùng chung cho chia sẻ (services/shares.py)."""
     return await db[c.ENTRIES].find_one(
         {"user_id": user_id, "entry_date": day.isoformat(), **ACTIVE}, projection
+    )
+
+
+EXCERPT_CHARS = 300
+
+
+async def list_month(db: AsyncDatabase, user_id: UUID, month: str) -> EntryMonthOut:
+    """Dòng thời gian một tháng (F-02, thiết kế B8): 1 truy vấn theo index (user_id, entry_date).
+
+    `month` đã được router kiểm tra dạng YYYY-MM. Không trả nội dung đầy đủ: cắt đoạn đầu ngay trong MongoDB.
+    """
+    rows = await (
+        await db[c.ENTRIES].aggregate(
+            [
+                {
+                    "$match": {
+                        "user_id": user_id,
+                        "entry_date": {"$gte": f"{month}-01", "$lte": f"{month}-31"},
+                        **ACTIVE,
+                    }
+                },
+                {"$sort": {"entry_date": -1}},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "entry_date": 1,
+                        "score": 1,
+                        "title": 1,
+                        "sub_icon": 1,
+                        "flag_color": 1,
+                        "keywords": "$keywords.keyword",
+                        "excerpt": {"$substrCP": [{"$ifNull": ["$content", ""]}, 0, EXCERPT_CHARS]},
+                        "photo_count": {"$size": {"$ifNull": ["$photos", []]}},
+                        "created_at": 1,
+                        "updated_at": 1,
+                    }
+                },
+            ]
+        )
+    ).to_list()
+    return EntryMonthOut(
+        month=month,
+        entries=[
+            EntrySummaryOut(
+                entry_date=date.fromisoformat(r["entry_date"]),
+                score=r["score"],
+                title=r.get("title"),
+                excerpt=r["excerpt"] or None,
+                sub_icon=r.get("sub_icon"),
+                flag_color=r.get("flag_color"),
+                keywords=r.get("keywords") or [],
+                photo_count=r["photo_count"],
+                created_at=r["created_at"],
+                updated_at=r["updated_at"],
+            )
+            for r in rows
+        ],
     )
 
 

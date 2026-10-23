@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { Score } from '@/lib/catalog'
-import type { DemoEntry } from '@/lib/demo'
-import { addMonths, buildMonth, cutAfterEntries, decimal, monthBounds } from './monthTimeline'
+import { addMonths, buildMonth, cutAfterEntries, decimal, monthBounds, type MonthEntry } from './monthTimeline'
 
-function entry(date: string, score: Score, extra: Partial<DemoEntry> = {}): DemoEntry {
+function entry(date: string, score: Score, extra: Partial<MonthEntry> = {}): MonthEntry {
   return {
     entry_date: date,
     score,
@@ -12,7 +11,7 @@ function entry(date: string, score: Score, extra: Partial<DemoEntry> = {}): Demo
     title: null,
     content: null,
     keywords: [],
-    photos: [],
+    photo_count: 0,
     created_at: `${date}T14:00:00Z`,
     updated_at: `${date}T14:00:00Z`,
     ...extra,
@@ -63,9 +62,9 @@ describe('tháng của Dòng thời gian', () => {
 
   it('đếm ảnh, sub icon hay dùng và từ khóa trong tháng', () => {
     const entries = [
-      entry('2026-10-01', 3, { sub_icon: '☕', keywords: ['cà phê'], photos: [{ id: 'a', label: '' }] }),
+      entry('2026-10-01', 3, { sub_icon: '☕', keywords: ['cà phê'], photo_count: 1 }),
       entry('2026-10-02', 4, { sub_icon: '☕', keywords: ['cà phê', 'mưa'] }),
-      entry('2026-10-03', 5, { sub_icon: '🌸', keywords: ['mưa', 'Linh'], photos: [{ id: 'b', label: '' }, { id: 'c', label: '' }] }),
+      entry('2026-10-03', 5, { sub_icon: '🌸', keywords: ['mưa', 'Linh'], photo_count: 2 }),
     ]
     const t = buildMonth('2026-10', entries, '2026-10-03', '2025-09-01')
     expect(t.photos).toBe(3)

@@ -32,10 +32,12 @@ export function yearStats(year: number, days: YearDay[], today: DateString, join
       const day = i + 1
       const date = `${year}-${pad(m + 1)}-${pad(day)}`
       if (day > len) return { date, day, month: m + 1, kind: 'none', score: null }
+      // Trang có thật luôn hiện, kể cả ngày trước khi bắt đầu dùng (ghi bù) — giống Dòng thời gian.
+      const score = byDate.get(date) ?? null
+      if (score) return { date, day, month: m + 1, kind: 'score', score }
       if (date < joined) return { date, day, month: m + 1, kind: 'pre', score: null }
       if (date > today) return { date, day, month: m + 1, kind: 'future', score: null }
-      const score = byDate.get(date) ?? null
-      return { date, day, month: m + 1, kind: score ? 'score' : 'missing', score }
+      return { date, day, month: m + 1, kind: 'missing', score: null }
     })
   })
 

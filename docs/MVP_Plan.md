@@ -30,10 +30,10 @@
 | 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng) — xong 21/10/2026                        | 4–5             | 3         |
 | 6    | Tự động lưu và trạng thái đồng bộ (F-06) — xong 21/10/2026                                     | 4–5             | 5         |
 | 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
-| 8    | Dòng thời gian (F-02, phần danh sách)                                                           | 6–7             | 5, 7      |
-| 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
-| 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
-| 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
+| 8    | Dòng thời gian (F-02, phần danh sách) — xong 23/10/2026                                        | 6–7             | 5, 7      |
+| 9    | Lịch tháng và thống kê tháng (F-02) — xong 23/10/2026                                          | 8–9             | 5         |
+| 10   | Year in Pixels (F-03) — xong 23/10/2026                                                         | 10              | 9         |
+| 11   | Tìm kiếm theo từ khóa (F-05) — xong 23/10/2026                                                  | 11              | 5         |
 | 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
 | 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026)              | 11              | 7         |
 | 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
@@ -369,6 +369,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Hoàn thành khi:** có test phân trang (không trùng, không sót bài, bỏ qua bài đã xóa mềm) và test truy cập chéo tài khoản; Lighthouse cho LCP dưới 2,5 giây.
 
+**Kết quả (23/10/2026):**
+- Làm theo thiết kế B8: `GET /entries?month=YYYY-MM` (thay `?cursor=&limit=`). Một aggregate theo index
+  `(user_id, entry_date)`, mới nhất trước, bỏ bài xóa mềm; không trả nội dung đầy đủ — `excerpt` 300 ký tự cắt ngay trong
+  MongoDB, `photo_count` thay cho mảng ảnh. Rate limit `read`. Tháng sai dạng → 422.
+- Web: `useMonth` đọc API (tháng nhỏ nhất = tháng của `joined_at` theo múi giờ hồ sơ); chấm điểm nhanh trên Dòng thời
+  gian dùng PUT/DELETE thật; dải "7 ngày qua" ở Hôm nay đọc cùng endpoint (thêm tháng trước khi vắt tháng).
+  `/timeline` vào bản build (trước đây chỉ có ở dev). Thẻ trang hiện số ảnh, không hiện ảnh thu nhỏ (theo thiết kế B8).
+- Test: "phân trang" theo tháng — đi qua 36 tháng không trùng, không sót (ngày 29/2, đầu/cuối tháng, cuối năm), bỏ bài
+  xóa mềm, B không thấy tháng của A, tháng sai dạng; backend 183 test; Vitest 166; e2e 43/43 (`--workers=1`).
+- Lighthouse trên bản build (`vite preview`), tài khoản 23 trang: **máy tính LCP 1,1 s, CLS 0,005 — đạt**. Cấu hình di
+  động mô phỏng (CPU ×4, 4G chậm): LCP 4,7 s; màn Hôm nay 4,6 s và Hồ sơ 4,7 s cũng vậy, nên đây là phần khởi động của
+  cả app (JS chính ~186 KB, chuỗi tải nối tiếp JS → /me → trang → API, 5 tệp phông), chưa tối ưu ở bước này.
+- Để lại cho Bước 9 (đã làm, xem Bước 9): chuỗi ngày chưa áp quy tắc ghi bù và chuỗi vắt qua tháng.
+
 ---
 
 ## Bước 9 – Lịch tháng và thống kê tháng (F-02)
@@ -388,6 +402,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Test chuỗi liên tiếp kéo qua ranh giới tháng, test tháng 2 năm nhuận.
 - Payload không chứa `content` hay `title`.
 
+**Kết quả (23/10/2026):**
+- `GET /calendar/{year}/{month}` (`routers|schemas|services/calendar.py`): ngày, điểm, sub icon, cờ, số ảnh, `backfilled`
+  + thống kê (số ngày đã ghi, trung bình, phân bố 1–5, ảnh, chuỗi dài nhất trong tháng, chuỗi hiện tại). Không có
+  tiêu đề, nội dung, từ khóa. Rate limit `read`; tháng/năm sai → 422.
+- Ghi bù = `created_at` theo múi giờ hồ sơ rơi sau `entry_date`: vẫn tô màu, không nối chuỗi. Chuỗi hiện tại tính lùi từ
+  hôm nay (chưa ghi thì từ hôm qua), vắt qua tháng, đọc lần lượt và dừng ở chỗ đứt đầu tiên. Chốt: "dài nhất" tính
+  trong tháng đang xem (thiết kế ghi "Dài nhất tháng").
+- Hai truy vấn đều dùng index `uq_user_date`, không sắp xếp trong bộ nhớ (đã `explain`). Thời gian xử lý ~18 ms với
+  tháng 23 trang.
+- Web: Dòng thời gian lấy chuỗi từ `/calendar` (song song với `/entries?month`); dải "7 ngày qua" ở Hôm nay đọc
+  `/calendar` (nhẹ hơn, không có đoạn nội dung). Biểu đồ "Nhịp tháng" vẽ tay theo thiết kế B8, không dùng Recharts.
+- Test: 17 test lịch (chuỗi vắt tháng, 29/2/2024, ghi bù, 23:59 / 00:01 / 06:00 giờ Việt Nam, Los Angeles, hôm nay
+  chưa ghi, xóa mềm, truy cập chéo, payload không có tiêu đề/nội dung); backend 200; Vitest 166; e2e 43/43.
+
 ---
 
 ## Bước 10 – Year in Pixels (F-03)
@@ -401,6 +429,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Payload chỉ vài KB.
 
 **Hoàn thành khi:** có test năm nhuận 366 ô, test chỉ trả các năm có dữ liệu, kích thước payload dưới 10 KB, dùng được trên điện thoại.
+
+**Kết quả (23/10/2026):**
+- `GET /pixels/{year}` (`routers|schemas|services/pixels.py`) dạng gọn: `scores` là chuỗi 365/366 ký tự, `flags`
+  (chỉ số ngày → hex) và `backfilled` chỉ liệt kê ngày có, `years` là các năm có trang chưa xóa, `stats` chuỗi dài
+  nhất trong năm và chuỗi hiện tại (quy tắc ghi bù như Bước 9). Không có tiêu đề/nội dung. Rate limit `read`.
+- Web: `usePixels` đọc API và giải dạng gọn; xem nhanh ngày đọc `GET /entries/{day}`; `/pixels` vào bản build.
+  Ô có trang luôn hiện kể cả trước ngày bắt đầu dùng (giống Dòng thời gian).
+- Chế độ tô theo màu cờ (người dùng chọn, 23/10/2026): nút "Tô ô theo: Điểm | Cờ hiệu" trên bảng (thiết kế B7 chưa có,
+  thêm theo yêu cầu). Ô có cờ mang màu cờ (bản tối khi giao diện tối), có trang mà không cờ là ô viền; chú thích liệt kê
+  cờ dùng trong năm + số ngày (màu riêng kèm mã màu); bộ lọc theo điểm ẩn ở chế độ này. Nhớ lựa chọn trên trình duyệt
+  (`localStorage`, như chế độ sáng/tối).
+- Test: năm nhuận 366 ký tự (29/2 là ngày thứ 60), chỉ năm có trang chưa xóa của chính người dùng, cả năm ghi đủ + cờ mỗi
+  ngày + nửa năm ghi bù vẫn dưới 10 KB, chuỗi bỏ qua ghi bù, truy cập chéo; backend 209; Vitest 167; e2e 45/45
+  (có ca 360 px: chạm ô mở bảng xem nhanh).
 
 ---
 
@@ -420,6 +462,23 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Hoàn thành khi:** có test tiếng Việt có dấu và không dấu, test chuỗi con, test ký tự regex, test truy cập chéo tài khoản;
 p95 dưới 500 ms với dữ liệu mẫu.
+
+**Kết quả (23/10/2026):**
+- `GET /search` + `GET /keywords/top` (`routers|schemas|services/search.py`). Có dấu → regex `i` trên `title`, `content`,
+  `keywords.keyword` (đã thử: MongoDB gập hoa/thường đúng cho chữ có dấu); không dấu → `title_norm`, `content_norm`,
+  `keywords.norm`. `q` qua `re.escape`, bộ lọc luôn có `user_id` của phiên. Trả `excerpt` 240 ký tự quanh chỗ khớp (không trả
+  cả nội dung), `matched` (trước bộ lọc), `total` (sau bộ lọc), `next_cursor`; 30 kết quả/trang. Khoảng thời gian theo
+  "hôm nay" của người dùng. Rate limit mới `search` 60/phút (limits.json).
+- Migration `m0007`: điền `title_norm`/`content_norm` cho trang còn thiếu (chạy lại không đổi gì).
+- **Quyền riêng tư:** phát hiện log DEBUG của PyMongo ghi nguyên câu lệnh và kết quả (từ khóa, tiêu đề) → `configure_logging`
+  luôn để logger `pymongo` ở WARNING; có test bật DEBUG mà log không chứa từ khóa hay tiêu đề. Đã kiểm tra log thật của API sau
+  e2e: có dòng `GET /search`, không có từ khóa. Frontend giữ từ khóa trong state, không lên URL.
+- Web: `useSearch` (useInfiniteQuery, chờ ngừng gõ 300 ms, "Xem thêm N kết quả cũ hơn"), từ khóa hay dùng, trang gần đây,
+  màn trống người mới đều đọc API; `/search` vào bản build. Bỏ hàm tìm phía trình duyệt (`searchEntries.ts` chỉ còn bộ lọc).
+- Test: 26 test tìm kiếm (có dấu/không dấu, hoa thường, chuỗi con, 7 chuỗi ký tự regex, đoạn trích, bộ lọc, phân trang 35
+  trang không trùng không sót, xóa mềm, truy cập chéo, log, tham số sai, từ khóa hay dùng, m0007); backend 235; Vitest 164;
+  e2e 47/47.
+- Hiệu năng: 365 trang (~620 ký tự/trang), 55 lần tìm trộn từ khóa và bộ lọc: **p50 33 ms, p95 61 ms**; `/keywords/top` 46 ms.
 
 ---
 

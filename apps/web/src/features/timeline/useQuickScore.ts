@@ -1,11 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { api } from '@/api/client'
 import type { Score } from '@/lib/catalog'
 import type { DateString } from '@/lib/date'
-import { demoWrite } from '@/lib/demo'
 
 /**
  * Chấm điểm nhanh cho hôm nay ngay trên Dòng thời gian (thiết kế B8 · hôm nay chưa viết), kèm hoàn tác.
- * BẢN THỬ: ghi vào bộ nhớ tab (lib/demo.ts). Khi có PUT /entries/{date} (Bước 5) thì đổi thành useMutation.
+ * Chấm = tạo trang chỉ có điểm (PUT /entries/{date}); hoàn tác = xóa mềm trang vừa tạo (DELETE).
+ * Lỗi (mất mạng, trang vừa được tạo ở tab khác) thì tải lại tháng để màn khớp với máy chủ.
  */
 export function useQuickScore() {
   const client = useQueryClient()
@@ -15,24 +16,12 @@ export function useQuickScore() {
     void client.invalidateQueries({ queryKey: ['pixels'] })
   }
   return {
-    save(date: DateString, score: Score) {
-      const at = new Date().toISOString()
-      demoWrite(date, {
-        entry_date: date,
-        score,
-        sub_icon: null,
-        flag_color: null,
-        title: null,
-        content: null,
-        keywords: [],
-        photos: [],
-        created_at: at,
-        updated_at: at,
-      })
+    async save(date: DateString, score: Score) {
+      await api.PUT('/entries/{day}', { params: { path: { day: date } }, body: { score, keywords: [], updated_at: null } })
       refresh()
     },
-    undo(date: DateString) {
-      demoWrite(date, null)
+    async undo(date: DateString) {
+      await api.DELETE('/entries/{day}', { params: { path: { day: date } } })
       refresh()
     },
   }

@@ -48,7 +48,8 @@
         "autosave": "20/minute",
         "write": "10/minute",
         "photo_upload": "10/minute;50/day",
-        "feedback": "5/minute"
+        "feedback": "5/minute",
+        "search": "60/minute"
       }
     },
     "free": {
@@ -93,7 +94,8 @@
         "autosave": "20/minute",
         "write": "10/minute",
         "photo_upload": "10/minute;50/day",
-        "feedback": "5/minute"
+        "feedback": "5/minute",
+        "search": "60/minute"
       }
     },
     "premium": {
@@ -138,7 +140,8 @@
         "autosave": "20/minute",
         "write": "10/minute",
         "photo_upload": "10/minute;50/day",
-        "feedback": "5/minute"
+        "feedback": "5/minute",
+        "search": "60/minute"
       }
     }
   }

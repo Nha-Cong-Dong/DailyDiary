@@ -1,16 +1,29 @@
 from datetime import date
+from typing import Annotated
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 
 from app.core.limits import rate_limit
 from app.core.rate_limit import limiter
 from app.core.security import CurrentUser
 from app.core.storage import OptionalS3
 from app.db.client import Db
-from app.schemas.entries import EntryDeletedOut, EntryOut, EntryWrite
+from app.schemas.entries import EntryDeletedOut, EntryMonthOut, EntryOut, EntryWrite
 from app.services import entries as entry_service
 
 router = APIRouter(prefix="/entries", tags=["entries"])
+
+
+@router.get("", response_model=EntryMonthOut)
+@limiter.limit(rate_limit("read"))
+async def list_month(
+    request: Request,
+    month: Annotated[str, Query(pattern=r"^\d{4}-(0[1-9]|1[0-2])$", description="Tháng YYYY-MM")],
+    user: CurrentUser,
+    db: Db,
+) -> EntryMonthOut:
+    """Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh."""
+    return await entry_service.list_month(db, user.id, month)
 
 
 @router.get("/{day}", response_model=EntryOut)

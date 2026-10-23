@@ -87,3 +87,26 @@ class EntryDeletedOut(BaseModel):
     entry_date: date
     deleted_at: datetime
     restore_until: datetime
+
+
+class EntrySummaryOut(BaseModel):
+    """Một trang trong Dòng thời gian theo tháng: không có nội dung đầy đủ, chỉ đoạn đầu và số ảnh."""
+
+    entry_date: date
+    score: int
+    title: str | None
+    # Đoạn đầu nội dung (tối đa EXCERPT_CHARS ký tự), đủ cho thẻ trang cắt 2 dòng.
+    excerpt: str | None
+    sub_icon: str | None
+    flag_color: str | None
+    keywords: list[str]
+    photo_count: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class EntryMonthOut(BaseModel):
+    """GET /entries?month=YYYY-MM: mọi trang chưa xóa của tháng, mới nhất trước (tối đa 31)."""
+
+    month: str
+    entries: list[EntrySummaryOut]

@@ -26,6 +26,9 @@ def configure_logging(level: int = logging.INFO) -> None:
     logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     # Access log của uvicorn ghi cả query string (vd. /search?q=<từ khóa>) → tắt, dùng RequestLogMiddleware.
     logging.getLogger("uvicorn.access").disabled = True
+    # Log DEBUG của PyMongo ghi nguyên câu lệnh và kết quả (từ khóa tìm kiếm, tiêu đề, nội dung)
+    # → không bao giờ dưới WARNING, kể cả khi bật DEBUG cho app.
+    logging.getLogger("pymongo").setLevel(logging.WARNING)
 
 
 class RequestLogMiddleware:

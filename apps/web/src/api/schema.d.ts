@@ -61,6 +61,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/calendar/{year}/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Month
+         * @description Lịch + thống kê tháng trong một request: ngày, điểm, sub icon, cờ, số ảnh.
+         *
+         *     Không có tiêu đề, nội dung hay từ khóa.
+         */
+        get: operations["read_month_calendar__year___month__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Month
+         * @description Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh.
+         */
+        get: operations["list_month_entries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/entries/{day}": {
         parameters: {
             query?: never;
@@ -216,6 +258,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/keywords/top": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Top Keywords
+         * @description 6 từ khóa dùng nhiều nhất của chính người dùng.
+         */
+        get: operations["top_keywords_keywords_top_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -278,6 +340,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/pixels/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Year
+         * @description Điểm cả năm (chuỗi gọn), cờ hiệu, ngày ghi bù, chuỗi ngày và các năm có dữ liệu. Không có nội dung.
+         */
+        get: operations["read_year_pixels__year__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/public/shares/{token}": {
         parameters: {
             query?: never;
@@ -290,6 +372,28 @@ export interface paths {
          * @description Trang người nhận xem, không cần đăng nhập. Mọi lý do không mở được đều trả cùng một 404.
          */
         get: operations["read_public_share_public_shares__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search
+         * @description Tìm trong tiêu đề, nội dung, từ khóa; lọc điểm (nhiều mức), khoảng thời gian, chỉ ngày có ảnh.
+         *
+         *     Mới nhất trước, `pagination.search_page_size` kết quả mỗi trang; `cursor` = `next_cursor` của lần trước.
+         */
+        get: operations["search_search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -355,6 +459,55 @@ export interface components {
             upload_url: string;
         };
         /**
+         * CalendarDayOut
+         * @description Một ngày đã ghi trong lịch tháng: không có tiêu đề, nội dung hay từ khóa.
+         */
+        CalendarDayOut: {
+            /** Backfilled */
+            backfilled: boolean;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+        };
+        /**
+         * CalendarOut
+         * @description GET /calendar/{year}/{month}: một request cho lịch + thống kê tháng (F-02).
+         */
+        CalendarOut: {
+            /** Days */
+            days: components["schemas"]["CalendarDayOut"][];
+            /** Month */
+            month: string;
+            stats: components["schemas"]["CalendarStatsOut"];
+        };
+        /** CalendarStatsOut */
+        CalendarStatsOut: {
+            /** Average */
+            average: number | null;
+            /** Current Streak */
+            current_streak: number;
+            /** Distribution */
+            distribution: number[];
+            /** Longest Streak */
+            longest_streak: number;
+            /** Photo Days */
+            photo_days: number;
+            /** Photos */
+            photos: number;
+            /** Recorded */
+            recorded: number;
+        };
+        /**
          * EntryDeletedOut
          * @description Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.
          */
@@ -374,6 +527,16 @@ export interface components {
              * Format: date-time
              */
             restore_until: string;
+        };
+        /**
+         * EntryMonthOut
+         * @description GET /entries?month=YYYY-MM: mọi trang chưa xóa của tháng, mới nhất trước (tối đa 31).
+         */
+        EntryMonthOut: {
+            /** Entries */
+            entries: components["schemas"]["EntrySummaryOut"][];
+            /** Month */
+            month: string;
         };
         /** EntryOut */
         EntryOut: {
@@ -427,6 +590,41 @@ export interface components {
             url?: string | null;
             /** Width */
             width: number;
+        };
+        /**
+         * EntrySummaryOut
+         * @description Một trang trong Dòng thời gian theo tháng: không có nội dung đầy đủ, chỉ đoạn đầu và số ảnh.
+         */
+        EntrySummaryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Excerpt */
+            excerpt: string | null;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /**
          * EntryWrite
@@ -574,6 +772,34 @@ export interface components {
             upload_url: string;
         };
         /**
+         * PixelsOut
+         * @description GET /pixels/{year}: Year in Pixels trong một request, dạng gọn để cả năm chỉ vài KB (F-03).
+         *
+         *     Ngày thứ i của năm (0 = 1/1) ứng với ký tự `scores[i]`: "1".."5" là điểm, "0" là chưa ghi.
+         */
+        PixelsOut: {
+            /** Backfilled */
+            backfilled: number[];
+            /** Flags */
+            flags: {
+                [key: string]: string;
+            };
+            /** Scores */
+            scores: string;
+            stats: components["schemas"]["PixelsStatsOut"];
+            /** Year */
+            year: number;
+            /** Years */
+            years: number[];
+        };
+        /** PixelsStatsOut */
+        PixelsStatsOut: {
+            /** Current Streak */
+            current_streak: number;
+            /** Longest Streak */
+            longest_streak: number;
+        };
+        /**
          * PublicPhotoOut
          * @description Ảnh trên trang chia sẻ: chỉ link ký và kích thước, không có id hay key trong kho.
          */
@@ -616,6 +842,45 @@ export interface components {
             sub_icon?: string | null;
             /** Title */
             title?: string | null;
+        };
+        /**
+         * SearchHitOut
+         * @description Một trang khớp: tiêu đề, đoạn trích quanh chỗ khớp (không phải cả nội dung), từ khóa.
+         */
+        SearchHitOut: {
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Excerpt */
+            excerpt: string | null;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+        };
+        /**
+         * SearchOut
+         * @description GET /search. `matched`: số trang khớp từ khóa trước khi áp bộ lọc (để báo trang bị bộ lọc ẩn).
+         */
+        SearchOut: {
+            /** Matched */
+            matched: number;
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Results */
+            results: components["schemas"]["SearchHitOut"][];
+            /** Total */
+            total: number;
         };
         /**
          * ShareOut
@@ -729,6 +994,14 @@ export interface components {
             /** Url */
             url: string;
         };
+        /**
+         * TopKeywordsOut
+         * @description GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu).
+         */
+        TopKeywordsOut: {
+            /** Keywords */
+            keywords: string[];
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -819,6 +1092,74 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_month_calendar__year___month__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+                month: number;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_month_entries_get: {
+        parameters: {
+            query: {
+                /** @description Tháng YYYY-MM */
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryMonthOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -1199,6 +1540,37 @@ export interface operations {
             };
         };
     };
+    top_keywords_keywords_top_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopKeywordsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_me_me_get: {
         parameters: {
             query?: never;
@@ -1331,6 +1703,39 @@ export interface operations {
             };
         };
     };
+    read_year_pixels__year__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PixelsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_public_share_public_shares__token__get: {
         parameters: {
             query?: never;
@@ -1349,6 +1754,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicShareOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_search_get: {
+        parameters: {
+            query: {
+                /** @description Từ khóa (không ghi log) */
+                q: string;
+                score?: number[] | null;
+                period?: "month" | "3m" | "year" | "all";
+                has_photo?: boolean;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
                 };
             };
             /** @description Validation Error */

@@ -1,8 +1,10 @@
 import { Fragment, useRef, type KeyboardEvent } from 'react'
 import { pixelFilterOf, type PixelFilter } from '@/components/diary/pixelFilter'
-import type { Score } from '@/lib/catalog'
+import { flagHex, flagName, type Score } from '@/lib/catalog'
 import type { DateString } from '@/lib/date'
+import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
+import type { ColorBy } from './useColorBy'
 import { decimal, type YearCell } from './yearStats'
 
 const SCORE_BG: Record<Score, string> = {
@@ -20,8 +22,9 @@ const SCORE_SWATCH: Record<Score, string> = {
   5: 'bg-score-5',
 }
 
-function describe(c: YearCell, today: DateString): string {
+function describe(c: YearCell, today: DateString, flag?: string): string {
   const label = `${c.day} tháng ${c.month}${c.date === today ? ', hôm nay' : ''}`
+  if (c.kind === 'score' && flag !== undefined) return `${label}, điểm ${c.score}, ${flag ? `cờ ${flagName(flag)}` : 'không cờ'}`
   if (c.kind === 'score') return `${label}, điểm ${c.score}`
   if (c.kind === 'missing') return `${label}, chưa ghi`
   if (c.kind === 'future') return `${label}, chưa tới`
@@ -38,6 +41,9 @@ type YearGridProps = {
   onSelect: (date: DateString) => void
   /** Nhóm đang lọc/làm nổi ở chú thích; các ô khác mờ đi. */
   focus: PixelFilter | null
+  /** Tô theo điểm (mặc định) hay theo màu cờ; `flags`: ngày → mã hex. */
+  colorBy?: ColorBy
+  flags?: Record<DateString, string>
 }
 
 /**
@@ -45,8 +51,10 @@ type YearGridProps = {
  * Điện thoại: xoay thành 12 cột tháng × 31 hàng ngày + hàng trung bình, để không phải cuộn ngang.
  * Bàn phím: chỉ một ô nhận Tab (roving tabindex); phím mũi tên đi theo đúng hướng đang nhìn thấy.
  */
-export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus }: YearGridProps) {
+export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus, colorBy = 'score', flags = {} }: YearGridProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const dark = useDarkMode()
+  const byFlag = colorBy === 'flag'
   const cells = grid.flat()
   const tabStop =
     (selected && cells.find((c) => c.date === selected && focusable(c))?.date) ??
@@ -114,9 +122,13 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
             {row.map((c, d) => {
               if (c.kind === 'none') return <span key={d} aria-hidden="true" />
               const dimmed = focus !== null && c.kind !== 'pre' && pixelFilterOf(c.score, c.kind === 'future' ? 'future' : 'past') !== focus
+              const flag = byFlag && c.kind === 'score' ? (flags[c.date] ?? '') : undefined
+              // Tô theo cờ: ô có cờ mang màu cờ; có trang mà không cờ thì chỉ có viền đậm.
+              const style = flag ? { backgroundColor: flagHex(flag, dark), borderColor: 'var(--line)' } : undefined
               const look = cn(
                 'h-[13px] w-full rounded-[3px] border transition-[transform,filter] duration-150 ease-out md:aspect-square md:h-auto md:rounded-[5px]',
-                c.kind === 'score' && SCORE_BG[c.score!],
+                c.kind === 'score' && !byFlag && SCORE_BG[c.score!],
+                c.kind === 'score' && byFlag && !flag && 'border-[1.5px] border-line bg-card',
                 c.kind === 'missing' && 'border-border bg-muted',
                 c.kind === 'future' && 'border-border',
                 c.kind === 'pre' && 'border-dashed border-border',
@@ -124,6 +136,7 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
                 dimmed && '[filter:grayscale(1)_opacity(.25)]',
               )
               if (!focusable(c)) return <span key={d} title={describe(c, today)} className={look} />
+              const label = describe(c, today, flag)
               const isSel = c.date === selected
               return (
                 <button
@@ -131,8 +144,9 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
                   type="button"
                   data-date={c.date}
                   tabIndex={c.date === tabStop ? 0 : -1}
-                  title={describe(c, today)}
-                  aria-label={describe(c, today)}
+                  title={label}
+                  aria-label={label}
+                  style={style}
                   aria-pressed={isSel}
                   onClick={() => onSelect(c.date)}
                   onKeyDown={(e) => move(e, m, d)}

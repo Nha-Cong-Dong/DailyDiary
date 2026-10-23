@@ -58,6 +58,139 @@
         "title": "AvatarUploadOut",
         "type": "object"
       },
+      "CalendarDayOut": {
+        "description": "Một ngày đã ghi trong lịch tháng: không có tiêu đề, nội dung hay từ khóa.",
+        "properties": {
+          "backfilled": {
+            "title": "Backfilled",
+            "type": "boolean"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "sub_icon",
+          "flag_color",
+          "photo_count",
+          "backfilled"
+        ],
+        "title": "CalendarDayOut",
+        "type": "object"
+      },
+      "CalendarOut": {
+        "description": "GET /calendar/{year}/{month}: một request cho lịch + thống kê tháng (F-02).",
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarDayOut"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/CalendarStatsOut"
+          }
+        },
+        "required": [
+          "month",
+          "days",
+          "stats"
+        ],
+        "title": "CalendarOut",
+        "type": "object"
+      },
+      "CalendarStatsOut": {
+        "properties": {
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "current_streak": {
+            "title": "Current Streak",
+            "type": "integer"
+          },
+          "distribution": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Distribution",
+            "type": "array"
+          },
+          "longest_streak": {
+            "title": "Longest Streak",
+            "type": "integer"
+          },
+          "photo_days": {
+            "title": "Photo Days",
+            "type": "integer"
+          },
+          "photos": {
+            "title": "Photos",
+            "type": "integer"
+          },
+          "recorded": {
+            "title": "Recorded",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "recorded",
+          "average",
+          "distribution",
+          "photos",
+          "photo_days",
+          "longest_streak",
+          "current_streak"
+        ],
+        "title": "CalendarStatsOut",
+        "type": "object"
+      },
       "EntryDeletedOut": {
         "description": "Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.",
         "properties": {
@@ -83,6 +216,28 @@
           "restore_until"
         ],
         "title": "EntryDeletedOut",
+        "type": "object"
+      },
+      "EntryMonthOut": {
+        "description": "GET /entries?month=YYYY-MM: mọi trang chưa xóa của tháng, mới nhất trước (tối đa 31).",
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/EntrySummaryOut"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "entries"
+        ],
+        "title": "EntryMonthOut",
         "type": "object"
       },
       "EntryOut": {
@@ -230,6 +385,99 @@
           "height"
         ],
         "title": "EntryPhotoOut",
+        "type": "object"
+      },
+      "EntrySummaryOut": {
+        "description": "Một trang trong Dòng thời gian theo tháng: không có nội dung đầy đủ, chỉ đoạn đầu và số ảnh.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "excerpt",
+          "sub_icon",
+          "flag_color",
+          "keywords",
+          "photo_count",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EntrySummaryOut",
         "type": "object"
       },
       "EntryWrite": {
@@ -607,6 +855,71 @@
         "title": "PhotoUploadOut",
         "type": "object"
       },
+      "PixelsOut": {
+        "description": "GET /pixels/{year}: Year in Pixels trong một request, dạng gọn để cả năm chỉ vài KB (F-03).\n\nNgày thứ i của năm (0 = 1/1) ứng với ký tự `scores[i]`: \"1\"..\"5\" là điểm, \"0\" là chưa ghi.",
+        "properties": {
+          "backfilled": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Backfilled",
+            "type": "array"
+          },
+          "flags": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "object"
+          },
+          "scores": {
+            "title": "Scores",
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/PixelsStatsOut"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          },
+          "years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "year",
+          "years",
+          "scores",
+          "flags",
+          "backfilled",
+          "stats"
+        ],
+        "title": "PixelsOut",
+        "type": "object"
+      },
+      "PixelsStatsOut": {
+        "properties": {
+          "current_streak": {
+            "title": "Current Streak",
+            "type": "integer"
+          },
+          "longest_streak": {
+            "title": "Longest Streak",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "longest_streak",
+          "current_streak"
+        ],
+        "title": "PixelsStatsOut",
+        "type": "object"
+      },
       "PublicPhotoOut": {
         "description": "Ảnh trên trang chia sẻ: chỉ link ký và kích thước, không có id hay key trong kho.",
         "properties": {
@@ -764,6 +1077,127 @@
           "entry_date"
         ],
         "title": "PublicShareOut",
+        "type": "object"
+      },
+      "SearchHitOut": {
+        "description": "Một trang khớp: tiêu đề, đoạn trích quanh chỗ khớp (không phải cả nội dung), từ khóa.",
+        "properties": {
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "excerpt",
+          "keywords",
+          "sub_icon",
+          "flag_color",
+          "photo_count"
+        ],
+        "title": "SearchHitOut",
+        "type": "object"
+      },
+      "SearchOut": {
+        "description": "GET /search. `matched`: số trang khớp từ khóa trước khi áp bộ lọc (để báo trang bị bộ lọc ẩn).",
+        "properties": {
+          "matched": {
+            "title": "Matched",
+            "type": "integer"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHitOut"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "results",
+          "matched",
+          "total",
+          "next_cursor"
+        ],
+        "title": "SearchOut",
         "type": "object"
       },
       "ShareOut": {
@@ -1036,6 +1470,23 @@
         "title": "SharedEntryOut",
         "type": "object"
       },
+      "TopKeywordsOut": {
+        "description": "GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu).",
+        "properties": {
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          }
+        },
+        "required": [
+          "keywords"
+        ],
+        "title": "TopKeywordsOut",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1191,6 +1642,140 @@
         "summary": "Logout",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/calendar/{year}/{month}": {
+      "get": {
+        "description": "Lịch + thống kê tháng trong một request: ngày, điểm, sub icon, cờ, số ảnh.\n\nKhông có tiêu đề, nội dung hay từ khóa.",
+        "operationId": "read_month_calendar__year___month__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Year",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "maximum": 12,
+              "minimum": 1,
+              "title": "Month",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Month",
+        "tags": [
+          "calendar"
+        ]
+      }
+    },
+    "/entries": {
+      "get": {
+        "description": "Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh.",
+        "operationId": "list_month_entries_get",
+        "parameters": [
+          {
+            "description": "Tháng YYYY-MM",
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "description": "Tháng YYYY-MM",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "title": "Month",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryMonthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Month",
+        "tags": [
+          "entries"
         ]
       }
     },
@@ -1858,6 +2443,56 @@
         ]
       }
     },
+    "/keywords/top": {
+      "get": {
+        "description": "6 từ khóa dùng nhiều nhất của chính người dùng.",
+        "operationId": "top_keywords_keywords_top_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopKeywordsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Top Keywords",
+        "tags": [
+          "search"
+        ]
+      }
+    },
     "/me": {
       "get": {
         "operationId": "read_me_me_get",
@@ -2078,6 +2713,67 @@
         ]
       }
     },
+    "/pixels/{year}": {
+      "get": {
+        "description": "Điểm cả năm (chuỗi gọn), cờ hiệu, ngày ghi bù, chuỗi ngày và các năm có dữ liệu. Không có nội dung.",
+        "operationId": "read_year_pixels__year__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "maximum": 2100,
+              "minimum": 2000,
+              "title": "Year",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PixelsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Year",
+        "tags": [
+          "pixels"
+        ]
+      }
+    },
     "/public/shares/{token}": {
       "get": {
         "description": "Trang người nhận xem, không cần đăng nhập. Mọi lý do không mở được đều trả cùng một 404.",
@@ -2118,6 +2814,134 @@
         "summary": "Read Public Share",
         "tags": [
           "shares"
+        ]
+      }
+    },
+    "/search": {
+      "get": {
+        "description": "Tìm trong tiêu đề, nội dung, từ khóa; lọc điểm (nhiều mức), khoảng thời gian, chỉ ngày có ảnh.\n\nMới nhất trước, `pagination.search_page_size` kết quả mỗi trang; `cursor` = `next_cursor` của lần trước.",
+        "operationId": "search_search_get",
+        "parameters": [
+          {
+            "description": "Từ khóa (không ghi log)",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Từ khóa (không ghi log)",
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "\\S",
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "score",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maximum": 5,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Score"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "month",
+                "3m",
+                "year",
+                "all"
+              ],
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "has_photo",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Has Photo",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
+        "tags": [
+          "search"
         ]
       }
     },

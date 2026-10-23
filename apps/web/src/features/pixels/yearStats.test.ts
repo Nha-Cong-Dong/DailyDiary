@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { decodeYear } from './usePixels'
 import { yearStats } from './yearStats'
 
 describe('yearStats', () => {
@@ -28,5 +29,18 @@ describe('yearStats', () => {
     expect(s.average).toBeCloseTo(3.4)
     expect(s.bestMonth).toBe(9) // tháng 10
     expect(s.distribution).toEqual([1, 0, 2, 0, 2])
+  })
+})
+
+describe('giải dạng gọn của GET /pixels', () => {
+  it('ký tự thứ i là ngày thứ i của năm, kể cả 29/2 năm nhuận', () => {
+    const scores = '2' + '0'.repeat(58) + '5' + '0'.repeat(305) + '3' // 366 ký tự
+    const { days, flags } = decodeYear(2024, scores, { '59': '#E3A4A8' })
+    expect(days).toEqual([
+      { entry_date: '2024-01-01', score: 2 },
+      { entry_date: '2024-02-29', score: 5 },
+      { entry_date: '2024-12-31', score: 3 },
+    ])
+    expect(flags).toEqual({ '2024-02-29': '#E3A4A8' })
   })
 })

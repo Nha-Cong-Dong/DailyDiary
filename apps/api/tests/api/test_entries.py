@@ -273,3 +273,84 @@ async def test_new_page_over_deleted_day_does_not_reopen_old_share_link(alice, a
     await _create(alice, title="Trang mới, riêng tư")
     assert (await anon.get(f"/public/shares/{token}")).status_code == 404
     assert (await alice.get(f"/entries/{DAY}/share")).json() is None
+
+
+# --- Dòng thời gian theo tháng (Bước 8, GET /entries?month=YYYY-MM) ---
+
+
+async def test_month_lists_only_that_month_newest_first(alice):
+    for day in ("2026-08-31", "2026-09-01", "2026-09-15", "2026-09-30", "2026-10-01"):
+        await _create(alice, day=day)
+    r = await alice.get("/entries", params={"month": "2026-09"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["month"] == "2026-09"
+    assert [e["entry_date"] for e in body["entries"]] == ["2026-09-30", "2026-09-15", "2026-09-01"]
+
+
+async def test_month_summary_fields_and_excerpt(alice, db):
+    long = "Mưa " * 200  # 800 ký tự
+    await _create(
+        alice,
+        day="2026-09-05",
+        title="Chiều mưa",
+        content=long,
+        keywords=["mưa", "đọc sách"],
+        flag_color=FLAG,
+    )
+    await db[c.ENTRIES].update_one(
+        {"user_id": alice.user["_id"], "entry_date": "2026-09-05"},
+        {"$set": {"photos": [{"id": i} for i in range(3)]}},  # chỉ để đếm, không qua validator ảnh đầy đủ
+        bypass_document_validation=True,
+    )
+    await _create(alice, day="2026-09-06")
+    entries = (await alice.get("/entries", params={"month": "2026-09"})).json()["entries"]
+    only_score, full = entries
+    assert (
+        full["title"] == "Chiều mưa"
+        and full["keywords"] == ["mưa", "đọc sách"]
+        and full["flag_color"] == FLAG
+    )
+    assert full["photo_count"] == 3
+    assert len(full["excerpt"]) == 300 and long.startswith(full["excerpt"])
+    assert "content" not in full  # không trả nội dung đầy đủ
+    assert only_score["excerpt"] is None and only_score["photo_count"] == 0 and only_score["title"] is None
+
+
+async def test_month_skips_soft_deleted(alice):
+    await _create(alice, day="2026-09-10")
+    await _create(alice, day="2026-09-11")
+    assert (await alice.delete("/entries/2026-09-10")).status_code == 200
+    entries = (await alice.get("/entries", params={"month": "2026-09"})).json()["entries"]
+    assert [e["entry_date"] for e in entries] == ["2026-09-11"]
+
+
+async def test_months_cover_every_entry_exactly_once(alice):
+    """Đi qua từng tháng: không trùng, không sót trang nào (kể cả ngày đầu/cuối tháng, năm nhuận)."""
+    days = ["2024-02-29", "2024-03-01", "2025-12-31", "2026-01-01", "2026-02-28", "2026-03-31", "2026-04-30"]
+    for day in days:
+        await _create(alice, day=day)
+    seen: list[str] = []
+    for year in (2024, 2025, 2026):
+        for m in range(1, 13):
+            r = await alice.get("/entries", params={"month": f"{year}-{m:02d}"})
+            seen += [e["entry_date"] for e in r.json()["entries"]]
+    assert sorted(seen) == sorted(days)
+
+
+async def test_month_is_per_user(alice, bob):
+    await _create(alice, day="2026-09-10", title="Của Alice")
+    assert (await bob.get("/entries", params={"month": "2026-09"})).json()["entries"] == []
+    # Không có cách nào xin tháng của người khác: không nhận user_id từ request.
+    r = await bob.get("/entries", params={"month": "2026-09", "user_id": str(alice.user["_id"])})
+    assert r.json()["entries"] == []
+
+
+@pytest.mark.parametrize("month", ["2026-13", "2026-1", "2026-00", "abc", "2026-09-01", ""])
+async def test_month_rejects_bad_format(alice, month):
+    assert (await alice.get("/entries", params={"month": month})).status_code == 422
+
+
+async def test_month_requires_month_and_login(alice, anon):
+    assert (await alice.get("/entries")).status_code == 422
+    assert (await anon.get("/entries", params={"month": "2026-09"})).status_code == 401
