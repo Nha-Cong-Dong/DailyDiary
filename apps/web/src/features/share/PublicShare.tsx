@@ -51,8 +51,11 @@ export function PublicShare({ token }: { token: string }) {
 function SharedPage({ share }: { share: PublicShareData }) {
   const dark = useDarkMode()
   const [photo, setPhoto] = useState<number | null>(null)
-  // Bước 7 có link xem ảnh có thời hạn; trước đó API chỉ báo số ảnh nên hiện ô giữ chỗ.
-  const photos: PhotoItem[] = Array.from({ length: share.photo_count ?? 0 }, (_, i) => ({ id: `p${i}`, label: `[Ảnh ${i + 1}]` }))
+  // Link xem ảnh ký có hạn ~1 giờ; API không có `photos` (kho ảnh chưa cấu hình) thì hiện ô giữ chỗ theo số ảnh.
+  const photos: PhotoItem[] = Array.from({ length: share.photo_count ?? 0 }, (_, i) => {
+    const p = share.photos?.[i]
+    return { id: `p${i}`, label: `[Ảnh ${i + 1}]`, url: p?.url, thumbUrl: p?.thumb_url, width: p?.width, height: p?.height }
+  })
   const hasFlag = !!share.flag_color
   const iconSetId = share.icon_set_id ?? ''
   // Trường không được chọn vắng mặt khỏi JSON (undefined), nên so bằng `!= null`.

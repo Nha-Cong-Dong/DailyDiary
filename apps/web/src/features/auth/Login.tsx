@@ -38,7 +38,7 @@ const COPY: Record<Mode, { title: string; text: string; button: string }> = {
   error: { title: 'Chưa đăng nhập được', text: '', button: 'Thử lại với Google' },
   expired: {
     title: 'Phiên đăng nhập đã hết hạn',
-    text: 'Đăng nhập lại để tiếp tục.',
+    text: 'Đăng nhập lại để tiếp tục. Những gì bạn đang viết vẫn được giữ trên trình duyệt này.',
     button: 'Đăng nhập lại với Google',
   },
 }

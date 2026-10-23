@@ -36,7 +36,7 @@ jobs:
       PYTHONUTF8: "1"
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.2
         with:
           enable-cache: true
       - run: uv python install 3.12
@@ -95,9 +95,21 @@ jobs:
       MONGODB_URI: mongodb://dd:dd@localhost:27017/?authSource=admin
       MONGODB_DB: dailydiary_e2e
       PYTHONUTF8: "1"
+      # Kho ảnh MinIO (docker-compose.yml) cho e2e ảnh: presigned PUT, link ký, CORS từ localhost:5173.
+      S3_ENDPOINT_URL: http://localhost:9000
+      S3_PUBLIC_ENDPOINT_URL: http://localhost:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: dailydiary-photos
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      # MinIO cần lệnh khởi động `server /data` nên không chạy bằng `services:` được; dùng lại docker-compose.yml.
+      # minio-init tạo bucket riêng tư rồi thoát, nên chạy bằng `run` thay vì `up --wait`.
+      - name: Kho ảnh MinIO
+        run: |
+          docker compose up -d --wait minio
+          docker compose run --rm minio-init
+      - uses: astral-sh/setup-uv@v10.3.2
       - uses: actions/setup-node@v7
         with:
           node-version: 24

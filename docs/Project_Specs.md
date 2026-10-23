@@ -103,7 +103,7 @@ Mỗi người dùng có tối đa **1 nhật ký cho mỗi ngày**. Mỗi nhậ
 | Tiêu đề                      | Không    | 0–100 ký tự                                                         |
 | Nội dung                     | Không    | 0–20.000 ký tự, văn bản thuần, chuẩn hóa Unicode NFC                |
 | Từ khóa                      | Không    | 0–10 từ khóa, mỗi từ 1–30 ký tự, không trùng lặp                    |
-| Cờ hiệu                      | Không    | 1 màu từ bảng 8–12 màu cố định (lưu mã hex); có lựa chọn "không cờ" |
+| Cờ hiệu                      | Không    | 1 màu: từ bảng 8 màu có sẵn hoặc màu tùy chỉnh người dùng thêm qua bảng pha màu (lưu mã hex `#RRGGBB`); có lựa chọn "không cờ" |
 | Ảnh                          | Không    | 0–10 ảnh/ngày                                                       |
 | Biểu tượng chính (main icon) | **Có**   | Điểm số nguyên 1–5; hình vẽ theo bộ icon trong hồ sơ (MVP có 6 bộ)  |
 | Biểu tượng con (sub icon)    | Không    | 0–1 emoji, chọn từ danh sách khoảng 30–50 emoji gợi ý               |
@@ -112,7 +112,8 @@ Quy tắc:
 - **Điều kiện "đã ghi"**: đã chọn biểu tượng chính. Mọi trường khác là tùy chọn, giúp giữ chân người dùng khi họ nhất thời chán nản.
 - **Ngày được phép ghi**: hôm nay và các ngày trước; không cho ghi ngày tương lai. "Ngày" tính theo múi giờ của người dùng.
 - **Thời gian khởi tạo và sửa cuối** được lưu lại. Bài có lần sửa cuối nằm trong chính ngày đó hiện nhãn **"ghi đúng ngày"**; ngược lại hiện **"cập nhật muộn"**, nhằm khuyến khích người dùng ghi ngay trong ngày.
-- **Sửa, xóa**: cho phép. Xóa cần xác nhận và là **xóa mềm**, khôi phục được trong 30 ngày.
+- **Sửa, xóa**: cho phép. Xóa cần xác nhận và là **xóa mềm**, khôi phục được trong 30 ngày (`entry.restore_days` trong
+  `shared/limits.json`). Ghi lại vào một ngày đã xóa mềm tạo trang mới thay cho bản đã xóa.
 - **Hiển thị biểu tượng**: sub icon hiển thị nhỏ cạnh main icon, tỉ lệ kích thước sub/main khoảng 0,5–0,6 (đặt thành biến giao diện để dễ điều chỉnh).
 
 Ảnh:
@@ -361,10 +362,13 @@ users
   google_sub        string   UNIQUE       -- định danh Google
   email             string
   display_name      string                -- 1..50 ký tự
-  avatar_url        string | null
+  avatar_url        string | null         -- ảnh Google
+  avatar_key        string | null         -- ảnh tự tải lên ("{user_id}/avatar/{id}.webp"); có thì thay avatar_url
   timezone          string                -- IANA, vd Asia/Ho_Chi_Minh
   icon_set_id       string                -- id trong shared/icons.json; bộ icon vẽ cho mọi ngày
   onboarded_at      date | null           -- xong 3 bước lần đầu; null thì đăng nhập xong vào /onboarding
+  custom_flag_colors [ string "#RRGGBB" ] -- màu cờ tự thêm từ bảng pha màu, chữ hoa, không trùng 8 màu có sẵn;
+                                          -- tối đa profile.custom_flag_colors_max (limits.json); sửa qua PATCH /me
   account_tier      "beta" | "free" | "premium"
   joined_at         date
   deleted_at        date | null
@@ -384,10 +388,13 @@ entries                                   -- 1 document = nhật ký của 1 ng�
   score             int 1..5              -- bắt buộc
   title_norm        string | null         -- tiêu đề chữ thường, không dấu (tìm kiếm)
   sub_icon          string | null         -- 1 emoji
-  flag_color        string "#RRGGBB" | null
+  flag_color        string "#RRGGBB" | null  -- màu có sẵn hoặc màu tùy chỉnh (không bắt buộc còn trong
+                                             -- users.custom_flag_colors); giao diện tối: hex_dark hoặc trừ 25 mỗi kênh
   content_norm      string | null         -- nội dung chữ thường, không dấu (tìm kiếm)
   keywords          [ { keyword, norm } ] -- 0..10; norm: chữ thường, không dấu
   photos            [ { id uuid, storage_key, thumb_key, width, height, size_bytes, position 0..9, created_at } ]
+                                          -- key "{user_id}/YYYY/MM/DD/{id}[_thumb].webp|jpg"; size_bytes = ảnh chính +
+                                          -- ảnh thu nhỏ (tính hạn mức); thêm/xóa/sắp xếp ảnh không đổi updated_at
   created_at        date
   updated_at        date
   deleted_at        date | null           -- xóa mềm
@@ -434,7 +441,8 @@ Nguyên tắc:
 | GET         | `/auth/google/callback`             | Nhận kết quả, tạo/cập nhật người dùng, đặt cookie phiên                |
 | POST        | `/auth/logout`                      | Đăng xuất                                                              |
 | GET         | `/me`                               | Lấy hồ sơ                                                              |
-| PATCH       | `/me`                               | Sửa tên, ảnh đại diện, múi giờ, bộ icon                                |
+| PATCH       | `/me`                               | Sửa tên, ảnh đại diện (xác nhận ảnh vừa tải hoặc gỡ), múi giờ, bộ icon, màu cờ riêng |
+| POST        | `/me/avatar/upload-url`             | Xin presigned URL tải ảnh đại diện (đã cắt vuông, nén trên trình duyệt) |
 | DELETE      | `/me`                               | Xóa tài khoản và toàn bộ dữ liệu                                       |
 | GET         | `/entries?cursor=&limit=`           | Danh sách bài gần đây (phân trang theo con trỏ)                        |
 | GET         | `/entries/{date}`                   | Nhật ký của một ngày                                                   |
@@ -611,8 +619,8 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 ## 9. Câu hỏi mở / quyết định chưa chốt
 
 - Nhà cung cấp cụ thể cho cơ sở dữ liệu, kho ảnh, hosting backend.
-- Danh sách sub icon cho MVP (số bộ biểu tượng chính đã chốt: 6 bộ, xem `shared/icons.json`).
-- Bảng màu cờ hiệu (8 hay 12 màu).
+- ~~Danh sách sub icon cho MVP~~ — đã chốt 23/10/2026: giữ 6 bộ main icon và danh sách sub icon hiện tại trong `shared/icons.json`.
+- ~~Bảng màu cờ hiệu~~ — đã chốt 23/10/2026: 8 màu có sẵn + màu tùy chỉnh từ bảng pha màu.
 - Có cho đổi ảnh đại diện ở MVP hay chỉ dùng ảnh Google.
 - Mốc thời gian và ngân sách cho giai đoạn 2 và 3.
 - Hình thức kiếm tiền cuối cùng: chỉ bán vật phẩm, hay kết hợp thuê bao.

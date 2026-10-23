@@ -1,4 +1,4 @@
-"""Người dùng: tạo/cập nhật khi đăng nhập Google, đọc và sửa hồ sơ (/me)."""
+"""Người dùng: tạo/cập nhật khi đăng nhập Google, đọc và sửa hồ sơ (/me), ảnh đại diện tự tải lên."""
 
 import unicodedata
 from datetime import UTC, datetime
@@ -11,8 +11,11 @@ from pymongo.errors import DuplicateKeyError
 from app.core.catalog import get_icons
 from app.core.errors import ApiError
 from app.core.limits import get_limits
+from app.core.storage import UPLOAD_EXPIRES, Storage
 from app.db import collections as c
+from app.schemas.photos import AvatarUploadIn, AvatarUploadOut
 from app.schemas.users import MeUpdate, User
+from app.services.photos import EXT, MAGIC
 
 
 class AccountDeleted(Exception):
@@ -50,6 +53,7 @@ async def upsert_google_user(
             "account_tier": get_limits().default_tier,
             "joined_at": now,
             "onboarded_at": None,
+            "custom_flag_colors": [],
             "deleted_at": None,
         },
     }
@@ -67,7 +71,36 @@ async def upsert_google_user(
     return User.from_doc(doc)
 
 
-async def update_me(db: AsyncDatabase, user: User, data: MeUpdate) -> User:
+def avatar_key(user_id: UUID, upload_id: UUID, content_type: str) -> str:
+    return f"{user_id}/avatar/{upload_id}.{EXT[content_type]}"
+
+
+def create_avatar_upload(storage: Storage, user: User, content_type: str) -> AvatarUploadOut:
+    upload_id = uuid4()
+    return AvatarUploadOut(
+        upload_id=upload_id,
+        upload_url=storage.upload_url(avatar_key(user.id, upload_id, content_type), content_type),
+        headers={"Content-Type": content_type},
+        expires_in=UPLOAD_EXPIRES,
+    )
+
+
+async def _verified_avatar(storage: Storage, user: User, upload: AvatarUploadIn) -> str:
+    """Key ảnh đại diện vừa tải nếu hợp lệ (tồn tại, ≤ avatar_max_bytes, đúng định dạng); sai thì xóa, 422."""
+    key = avatar_key(user.id, upload.upload_id, upload.content_type)
+    max_bytes = get_limits().tier(user.account_tier).profile.avatar_max_bytes
+    size = await storage.size(key)
+    if (
+        size is not None
+        and 0 < size <= max_bytes
+        and MAGIC[upload.content_type](await storage.first_bytes(key))
+    ):
+        return key
+    await storage.delete(key)
+    raise ApiError(422, "AVATAR_INVALID", "Ảnh đại diện chưa tải lên đủ, quá lớn hoặc sai định dạng")
+
+
+async def update_me(db: AsyncDatabase, user: User, data: MeUpdate, storage: Storage | None = None) -> User:
     """Chỉ $set các trường đã kiểm tra kiểu trong MeUpdate, không đưa dict từ request vào truy vấn."""
     fields: dict = {}
     if data.display_name is not None:
@@ -82,6 +115,16 @@ async def update_me(db: AsyncDatabase, user: User, data: MeUpdate) -> User:
         fields["icon_set_id"] = data.icon_set_id
     if "avatar_url" in data.model_fields_set:
         fields["avatar_url"] = None
+        fields["avatar_key"] = None
+    if data.avatar_upload is not None:
+        if storage is None:
+            raise ApiError(503, "STORAGE_UNAVAILABLE", "Kho ảnh chưa sẵn sàng")
+        fields["avatar_key"] = await _verified_avatar(storage, user, data.avatar_upload)
+    if data.custom_flag_colors is not None:
+        max_colors = get_limits().tier(user.account_tier).profile.custom_flag_colors_max
+        if len(data.custom_flag_colors) > max_colors:
+            raise ApiError(422, "FLAG_COLORS_LIMIT", f"Tối đa {max_colors} màu cờ tùy chỉnh")
+        fields["custom_flag_colors"] = data.custom_flag_colors
     if data.onboarded and user.onboarded_at is None:
         fields["onboarded_at"] = datetime.now(UTC)
     if not fields:
@@ -91,6 +134,9 @@ async def update_me(db: AsyncDatabase, user: User, data: MeUpdate) -> User:
     )
     if doc is None:
         raise ApiError(401, "AUTH_REQUIRED", "Phiên đăng nhập đã hết hạn")
+    # Ảnh đại diện cũ (tự tải lên) bị thay hoặc gỡ: xóa khỏi kho.
+    if "avatar_key" in fields and user.avatar_key and user.avatar_key != fields["avatar_key"] and storage:
+        await storage.delete(user.avatar_key)
     return User.from_doc(doc)
 
 

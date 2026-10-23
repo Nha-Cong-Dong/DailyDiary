@@ -1,10 +1,11 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Clock, Link2, Pencil, Share2, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { KeywordChip } from '@/components/diary/KeywordChip'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { PhotoTile, PhotoViewer } from '@/components/diary/PhotoViewer'
-import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
+import { Toast } from '@/components/diary/Toast'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { flagHex, scoreLabel } from '@/lib/catalog'
 import { addDays, dayOfMonth, editedOnTheDay, isValidDate, longDateLabel, shortDateLabel, timeIn, todayIn, useNow } from '@/lib/date'
@@ -12,6 +13,7 @@ import { useProfile } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { ConfirmDialog, PhoneBar, phoneIconButton } from './components/EntryFormParts'
+import { saveErrorMessage, useDeleteEntry, useRestoreEntry, type EntryDeleted } from './entries'
 import { useDay } from './useDay'
 
 const pill = 'inline-flex h-10 items-center gap-1.5 rounded-[12px] px-3 text-sm font-medium'
@@ -60,8 +62,25 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
   const { data: entry, isPending, isError } = useDay(date)
   const [photo, setPhoto] = useState<number | null>(null)
   const [confirming, setConfirming] = useState(false)
-  // Xóa mềm (F-01): ẩn trang, còn khôi phục được 30 ngày. Ở bản dữ liệu mẫu chỉ là trạng thái trong trang.
-  const [deleted, setDeleted] = useState(false)
+  // Xóa mềm (F-01): DELETE /entries/{day}; khôi phục bằng POST …/restore trước `restore_until`.
+  const deleteEntry = useDeleteEntry(date)
+  const restoreEntry = useRestoreEntry(date)
+  const [deleted, setDeleted] = useState<EntryDeleted | null>(null)
+  const [toast, setToast] = useState(false)
+  useEffect(() => {
+    if (!toast) return
+    const t = window.setTimeout(() => setToast(false), 8000)
+    return () => window.clearTimeout(t)
+  }, [toast])
+
+  function restore() {
+    restoreEntry.mutate(date, {
+      onSuccess: () => {
+        setDeleted(null)
+        setToast(false)
+      },
+    })
+  }
 
   const back = (
     <Link to="/timeline" className={cn(pill, 'press pl-2 focus-visible:outline-3 focus-visible:outline-ring')}>
@@ -119,15 +138,9 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
         </nav>
       </div>
 
-      {deleted ? (
-        <Alert role="status">
-          <Trash2 aria-hidden="true" />
-          <AlertDescription>Đã xóa trang ngày {dayOfMonth(date)}/{Number(date.slice(5, 7))}. Khôi phục được trong 30 ngày.</AlertDescription>
-          <AlertAction>
-            <Button variant="ghost" size="sm" onClick={() => setDeleted(false)}>
-              Hoàn tác
-            </Button>
-          </AlertAction>
+      {deleteEntry.isError || restoreEntry.isError ? (
+        <Alert variant="destructive" role="alert">
+          <AlertDescription>{saveErrorMessage(deleteEntry.error ?? restoreEntry.error)}</AlertDescription>
         </Alert>
       ) : null}
 
@@ -144,7 +157,17 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
           <h1 className="text-title-3 font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
         </section>
-      ) : !entry || deleted ? (
+      ) : deleted ? (
+        <section className="flex flex-col items-start gap-3 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
+          <h1 className="text-title-3 font-bold">{longDateLabel(date)}</h1>
+          <p className="text-muted-foreground">
+            Đã xóa trang này. Khôi phục được tới {shortDateLabel(todayIn(timeZone, new Date(deleted.restore_until)))}.
+          </p>
+          <Button variant="secondary" onClick={restore} disabled={restoreEntry.isPending}>
+            Khôi phục trang
+          </Button>
+        </section>
+      ) : !entry ? (
         <section className="flex flex-col items-start gap-3 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
           <h1 className="text-title-3 font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">Ngày này chưa ghi.</p>
@@ -297,10 +320,28 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
         cancelLabel="Giữ lại"
         actionLabel="Xóa nhật ký"
         onAction={() => {
-          setDeleted(true)
           setConfirming(false)
+          deleteEntry.mutate(date, {
+            onSuccess: (info) => {
+              setDeleted(info)
+              setToast(true)
+            },
+          })
         }}
       />
+
+      {toast ? (
+        <Toast>
+          Đã xóa trang ngày {dayOfMonth(date)}/{Number(date.slice(5, 7))}.
+          <button
+            type="button"
+            onClick={restore}
+            className="ml-1 cursor-pointer underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-ring"
+          >
+            Hoàn tác
+          </button>
+        </Toast>
+      ) : null}
     </div>
   )
 }

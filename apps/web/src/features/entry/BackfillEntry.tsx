@@ -3,22 +3,31 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { ScorePicker } from '@/components/diary/ScorePicker'
+import { SyncStatus } from '@/components/diary/SyncStatus'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { flagHex, scoreLabel, type Score } from '@/lib/catalog'
 import { dayOfMonth, isValidDate, longDateLabel, todayIn, useNow, weekdayShort, type DateString } from '@/lib/date'
-import type { DemoEntry } from '@/lib/demo'
 import { useProfile } from '@/lib/profile'
+import type { DraftFields } from '@/lib/storage'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
-import { applyDraft, dateTimeLabel, dayMonth, daysBetween, draftOf } from './entryDraft'
+import { saveErrorMessage, useDeleteEntry, type DayEntry } from './entries'
+import { dateTimeLabel, dayMonth, daysBetween } from './entryDraft'
+import { ConflictDialog } from './components/ConflictDialog'
+import { fieldsOf, useAutosave } from './useAutosave'
 import { BackLink, ExtraFields, Notice, PhoneBar, phoneIconButton } from './components/EntryFormParts'
-import { useWriteDay } from './localDays'
 import { useDay } from './useDay'
 import { useFrequentSubIcons } from './useFrequentSubIcons'
 
 type Extras = { sub_icon: string | null; flag_color: string | null; title: string; content: string }
 const NO_EXTRAS: Extras = { sub_icon: null, flag_color: null, title: '', content: '' }
+const extrasOf = (e: DayEntry): Extras => ({
+  sub_icon: e.sub_icon,
+  flag_color: e.flag_color,
+  title: e.title ?? '',
+  content: e.content ?? '',
+})
 const sameExtras = (a: Extras, b: Extras) =>
   a.sub_icon === b.sub_icon && a.flag_color === b.flag_color && a.title === b.title && a.content === b.content
 
@@ -32,7 +41,7 @@ function BackfillChip() {
 }
 
 /** Thẻ xem trước: trang ghi bù sẽ hiện thế nào trong Dòng thời gian. */
-function TimelinePreview({ record, extras }: { record: DemoEntry; extras: Extras }) {
+function TimelinePreview({ record, extras }: { record: DayEntry; extras: Extras }) {
   const { iconSetId, timeZone } = useProfile()
   const dark = useDarkMode()
   const title = extras.title.trim()
@@ -80,58 +89,53 @@ function TimelinePreview({ record, extras }: { record: DemoEntry; extras: Extras
 
 function BackfillForm({ date, today }: { date: DateString; today: DateString }) {
   const { timeZone, iconSetId } = useProfile()
-  const writeDay = useWriteDay()
+  const deleteEntry = useDeleteEntry(date)
   const { data: frequentIcons } = useFrequentSubIcons()
-  const [record, setRecord] = useState<DemoEntry | null>(null)
+  const [record, setRecord] = useState<DayEntry | null>(null)
   const [saved, setSaved] = useState<Extras>(NO_EXTRAS)
   const [extras, setExtras] = useState<Extras>(NO_EXTRAS)
-  const [savedAt, setSavedAt] = useState<string | null>(null)
   const dirty = !sameExtras(saved, extras)
   const set = <K extends keyof Extras>(key: K) => (value: Extras[K]) => setExtras((x) => ({ ...x, [key]: value }))
 
-  useEffect(() => {
-    if (!dirty) return
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
-    window.addEventListener('beforeunload', warn)
-    return () => window.removeEventListener('beforeunload', warn)
-  }, [dirty])
+  const autosave = useAutosave({
+    date,
+    record: null,
+    mode: 'auto',
+    onLoad: (f) => {
+      const next = { sub_icon: f.sub_icon, flag_color: f.flag_color, title: f.title, content: f.content }
+      setExtras(next)
+    },
+    onSaved: (next) => {
+      setRecord(next)
+      setSaved(extrasOf(next))
+    },
+  })
+  const fields: DraftFields | null = record ? { ...fieldsOf(record), ...extras } : null
+  const fieldsKey = JSON.stringify(fields)
+  const { change } = autosave
+  useEffect(() => change(fieldsKey === 'null' ? null : (JSON.parse(fieldsKey) as DraftFields)), [change, fieldsKey])
 
-  // Chấm điểm là ghi bù xong: trang được tạo (hoặc đổi điểm) ngay, không cần bấm Lưu.
+  // Chấm điểm là ghi bù xong: trang được tạo (hoặc đổi điểm) ngay bằng PUT, không cần bấm Lưu.
+  // Phần còn lại tự lưu khi ngừng gõ (F-06); nút Lưu chỉ để lưu ngay.
   function pick(score: Score) {
-    const nowIso = new Date().toISOString()
-    const next: DemoEntry = record
-      ? { ...record, score, updated_at: nowIso }
-      : {
-          entry_date: date,
-          score,
-          sub_icon: null,
-          flag_color: null,
-          title: null,
-          content: null,
-          keywords: [],
-          photos: [],
-          created_at: nowIso,
-          updated_at: nowIso,
-        }
-    writeDay(date, next)
-    setRecord(next)
+    const base = record ? fieldsOf(record) : { sub_icon: null, flag_color: null, title: '', content: '', keywords: [] }
+    void autosave.saveNow({ ...base, ...extras, score })
   }
 
+  /** Bỏ trang vừa ghi bù (xóa mềm như mọi trang; vẫn khôi phục được trong hạn). */
   function undo() {
-    writeDay(date, null)
-    setRecord(null)
-    setSaved(NO_EXTRAS)
-    setExtras(NO_EXTRAS)
-    setSavedAt(null)
+    deleteEntry.mutate(date, {
+      onSuccess: () => {
+        autosave.adopt(null)
+        setRecord(null)
+        setSaved(NO_EXTRAS)
+        setExtras(NO_EXTRAS)
+      },
+    })
   }
 
   function save() {
-    if (!record) return
-    const next = applyDraft(record, { ...draftOf(record), ...extras })
-    writeDay(date, next)
-    setRecord(next)
-    setSaved(extras)
-    setSavedAt(next.updated_at)
+    if (record) void autosave.flush()
   }
 
   const ago = daysBetween(date, today)
@@ -178,7 +182,6 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
             <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
             Đã ghi bù lúc {dateTimeLabel(timeZone, record.created_at, false)}
             <BackfillChip />
-            <span className="text-muted-foreground max-md:hidden">· bản thử, chưa lưu lên máy chủ</span>
             <button
               type="button"
               onClick={undo}
@@ -192,11 +195,20 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
             Chấm điểm là ghi bù xong. Viết thêm hay không tùy bạn.
           </p>
         )}
+        {deleteEntry.isError ? (
+          <Alert variant="destructive" role="alert">
+            <AlertDescription>{saveErrorMessage(deleteEntry.error)}</AlertDescription>
+          </Alert>
+        ) : autosave.status.kind === 'error' ? (
+          <SyncStatus status={autosave.status} timeZone={timeZone} />
+        ) : null}
         <Notice className="animate-rise [animation-delay:.1s] max-md:rounded-[12px] max-md:px-3 max-md:py-2.5 max-md:text-[13px] max-md:leading-5">
           Ngày ghi bù vẫn được tô màu<span className="max-md:hidden"> trong Year in Pixels và lịch tháng</span>, nhưng không nối lại
           chuỗi ngày liên tiếp.
         </Notice>
       </section>
+
+      <ConflictDialog conflict={autosave.conflict} onKeepMine={autosave.keepMine} onTakeTheirs={autosave.takeTheirs} />
 
       {record ? (
         <>
@@ -226,15 +238,26 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
             />
             {/* Điện thoại: trạng thái ở trên, nút Lưu rộng hết thẻ ở dưới (B10). */}
             <div className="flex flex-col gap-2.5 border-t-[1.5px] border-dashed border-border pt-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3 md:pt-4">
-              <span role="status" className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5">
-                {dirty
-                  ? 'Có thay đổi chưa lưu'
-                  : savedAt
-                    ? `Đã lưu lúc ${dateTimeLabel(timeZone, savedAt, false)}`
-                    : 'Điểm đã được lưu. Phần này lưu khi bấm Lưu.'}
-              </span>
+              <SyncStatus
+                // Đang gửi / mất mạng / lỗi thì nói đúng trạng thái đó; còn lại đọc theo bản trên máy chủ.
+                status={['saving', 'unsynced', 'error'].includes(autosave.status.kind) ? autosave.status : { kind: 'idle' }}
+                timeZone={timeZone}
+                onRetry={autosave.retry}
+                className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5"
+                fallback={
+                  dirty
+                    ? 'Có thay đổi chưa lưu'
+                    : record.updated_at !== record.created_at
+                      ? `Đã lưu lúc ${dateTimeLabel(timeZone, record.updated_at, false)}`
+                      : 'Điểm đã được lưu. Phần này tự lưu khi bạn ngừng gõ.'
+                }
+              />
               {dirty ? (
-                <Button className="animate-pop max-md:h-12 max-md:rounded-[14px]" onClick={save}>
+                <Button
+                  className="animate-pop max-md:h-12 max-md:rounded-[14px]"
+                  onClick={save}
+                  disabled={autosave.status.kind === 'saving'}
+                >
                   Lưu
                 </Button>
               ) : null}
@@ -280,7 +303,7 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
   )
 }
 
-/** Màn ghi bù một ngày đã bỏ trống (thiết kế B9 · Ghi bù). Bản thử: lưu trong bộ nhớ tab tới khi có API ở Bước 5. */
+/** Màn ghi bù một ngày đã bỏ trống (thiết kế B9 · Ghi bù), lưu bằng PUT /entries/{day}. */
 export function BackfillEntry({ date }: { date: string }) {
   const { timeZone } = useProfile()
   const now = useNow()

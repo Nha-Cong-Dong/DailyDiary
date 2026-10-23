@@ -18,6 +18,7 @@ from app.db.client import get_db
 from app.db.client import make_client as make_mongo_client
 from app.db.migrate import run_migrations
 from app.main import create_app
+from tests.fakes import FakeStorage
 
 ORIGIN = settings.frontend_origins[0]
 
@@ -56,10 +57,16 @@ def app(db):
     # ASGITransport không chạy lifespan → không có app.state.db; phải override get_db.
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db
+    app.state.storage = FakeStorage()  # lifespan không chạy nên tự gắn kho giả
     limiter.enabled = False
     yield app
     app.dependency_overrides.clear()
     limiter.enabled = True
+
+
+@pytest.fixture
+def s3(app) -> FakeStorage:
+    return app.state.storage
 
 
 @pytest.fixture

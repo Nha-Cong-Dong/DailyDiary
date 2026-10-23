@@ -20,6 +20,8 @@ class EntryLimits(_Strict):
     keywords_max: int
     keyword_len_min: int
     keyword_len_max: int
+    # Số ngày nhật ký xóa mềm còn khôi phục được (F-01); tác vụ dọn ở Bước 13 xóa hẳn sau mốc này.
+    restore_days: int
 
 
 class PhotoLimits(_Strict):
@@ -42,6 +44,7 @@ class ProfileLimits(_Strict):
     display_name_max: int
     avatar_max_bytes: int
     avatar_edge_px: int
+    custom_flag_colors_max: int
 
 
 class PaginationLimits(_Strict):

@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 10 (21/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 13 (21/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -63,19 +63,19 @@ dailydiary/
     │   │   │   ├── limits.py         # đọc shared/limits.json
     │   │   │   ├── rate_limit.py     # slowapi limiter + handler 429
     │   │   │   ├── catalog.py        # đọc shared/icons.json (danh sách bộ icon, bộ mặc định)
-    │   │   │   ├── text.py           # (B5) chuẩn hóa NFC, norm từ khóa không dấu
+    │   │   │   ├── text.py           # chuẩn hóa NFC, norm từ khóa không dấu
     │   │   │   ├── security.py       # cookie phiên, get_current_user, CSRF
     │   │   │   ├── oauth.py          # Authlib Google
-    │   │   │   └── storage.py        # (B7) boto3, presigned URL
+    │   │   │   └── storage.py        # boto3: ký URL PUT/GET, kiểm tra object; dependency S3 / OptionalS3
     │   │   ├── db/
     │   │   │   ├── client.py         # AsyncMongoClient, dependency Db
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
-    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, shares.py)
-    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, shares.py)
-    │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, shares (F-10: chủ trang + /public/shares);
-│   │   │                         # (B5) entries; (B7) photos; (B9) calendar;
+    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_<mo_ta>.py ...
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, shares.py)
+    │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, shares.py)
+    │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, shares (F-10: chủ trang + /public/shares);
+│   │   │                         # (B9) calendar;
     │   │   │                         # (B10) pixels; (B11) search; (B12) export, feedback
     │   │   └── jobs/                 # (B12–B13) dọn bài xóa mềm, hoàn tất xóa tài khoản, sao lưu
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
@@ -83,7 +83,7 @@ dailydiary/
     │   │   └── seed_demo.py          # (B14) nạp dữ liệu mẫu 3 tháng vào DB local
     │   └── tests/
     │       ├── conftest.py           # DB *_test, client, make_client (phiên đăng nhập), alice/bob
-    │       ├── fakes.py              # (B7) S3 giả
+    │       ├── fakes.py              # kho ảnh giả (FakeStorage) + byte đầu WebP/JPEG/PNG mẫu
     │       ├── unit/                 # hàm thuần, không cần DB
     │       ├── db/                   # migration, index, validator
     │       └── api/                  # test_<router>.py: thành công, dữ liệu sai, truy cập chéo
@@ -104,11 +104,11 @@ dailydiary/
             ├── routes/               # router.tsx, RootLayout.tsx (+ RootLoading), ErrorPage.tsx (lỗi route), <Tên>Page.tsx
             │                         # (mỏng, ghép từ features; ghép feature với nhau ở đây, vd. DayPage = entry + share, HomePage = landing + share);
             │                         # route có khung riêng trên điện thoại khai báo handle.phoneChrome ('tabs' | 'none');
-            │                         # LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage có trong bản build;
-            │                         # chỉ có khi chạy dev (tải lười, không vào bản build): DevUiPage, TimelinePage,
+            │                         # trong bản build: LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage,
             │                         # DayPage (/day/:date), DayEditPage (/day/:date/edit), BackfillPage (/day/:date/backfill),
-            │                         # PixelsPage, SearchPage, SharePage (/s/:token), SharedListPage (/profile/shares),
-            │                         # cho tới khi có API ở các bước 5–11b
+            │                         # SharePage (/s/:token), SharedListPage (/profile/shares);
+            │                         # chỉ có khi chạy dev (dữ liệu mẫu tới khi có API ở bước 8–11): DevUiPage, TimelinePage,
+            │                         # PixelsPage, SearchPage
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
             │   ├── landing/          # trang chủ /: bản giới thiệu cho người chưa đăng nhập và bản đã đăng nhập (menu tài khoản,
@@ -118,7 +118,8 @@ dailydiary/
             │   │                     # PATCH /me; xóa toàn bộ dữ liệu, xóa tài khoản (confirm.ts, useJournalData.ts;
             │   │                     # bản thử, API ở B12)
             │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù (giao diện, lưu tạm trong tab:
-            │   │                     # localDays.ts ghi qua demoWrite, uploadPhoto.ts giả lập); bản điện thoại B10; useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts (sub icon hay dùng);
+            │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; uploadPhoto.ts giả lập tới B7); bản điện thoại B10; useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột,
+            │   │                     # components/ConflictDialog.tsx);
             │   │                     # components/ vì ≥ 6 component;
             │   │                     # (B5–B7) lưu nhật ký, ảnh, tự động lưu
             │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
@@ -135,7 +136,7 @@ dailydiary/
             │   │                     # có dialog, alert-dialog, switch, dropdown-menu; button có biến thể cta)
             │   ├── diary/            # thành phần nhật ký dùng chung: main/sub icon, chọn điểm, cờ hiệu,
             │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh, tải ảnh (PhotoUploader),
-            │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung),
+            │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung), SyncStatus (Đang lưu / Đã lưu / Chưa đồng bộ),
             │   │                     # xem nhanh một ngày (DayPeek)
             │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang,
             │                         # thanh ngoại tuyến (OfflineBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark),
@@ -145,9 +146,10 @@ dailydiary/
             │                         # profile.ts (GET/PATCH /me), session.ts (đăng xuất, đăng nhập thử), text.ts (bỏ dấu, tô sáng),
             │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
             │                         # image.ts (kiểm tra loại/kích thước ảnh), online.ts (trạng thái mạng);
-            │                         # (B6) autosave.ts, storage.ts (IndexedDB)
+            │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn)
-            └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me khi render test)
+            └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me và API nhật ký khi render test),
+                                      # demoApi.ts (giả API chia sẻ)
 ```
 
 ## Quy ước bên trong thư mục
@@ -191,3 +193,8 @@ dailydiary/
 | 8 | 21/10/2026 | Thiết kế B8–B9 + Chia sẻ (ADR 0005): `features/timeline/` (bỏ `.gitkeep`), `features/share/`, Sửa/Ghi bù trong `features/entry/` (tách `components/`), `PhotoUploader`, `lib/image.ts` (bỏ nhãn (B7)), `lib/online.ts`, `OfflineBanner`, `PageStates`, `GoogleMark` (thay ô giữ chỗ logo Google), `routes/ErrorPage.tsx` và các trang dev mới; backend `shares` (router, service, schema, migration `m0003`); `core/logging.py` che token; `scripts/export_openapi.py` sửa lỗi in trên console Windows |
 | 9 | 21/10/2026 | Thiết kế B10 (điện thoại), B5-Landing-Signed, B8-Timeline-Today, chuyển động dịu lại: `components/diary/BottomSheet.tsx`, `DayPeek.tsx`, `components/layout/PlainFrame.tsx`, `components/ui/dropdown-menu.tsx`, `features/landing/AccountMenu.tsx`, `useHomeSummary.ts`, `features/timeline/TodayPrompt.tsx`, `WritingNotebook.tsx`, `useQuickScore.ts`, `features/entry/useIsPhone.ts`, `features/profile/components/sheet.ts` (hai file sau đã bỏ ở phiên bản 10); route `*` ra ngoài AppShell; `handle.phoneChrome` cho các route có khung điện thoại riêng |
 | 10 | 21/10/2026 | Làm theo báo cáo rà thiết kế: `components/diary/Toast.tsx` mới, `BottomSheet` dùng chung cả app; bỏ `features/profile/components/sheet.ts`, `features/share/components/Toast.tsx`, `features/entry/useIsPhone.ts`; thêm `features/profile/confirm.ts`, `useJournalData.ts`, `features/entry/useRecentDays.ts`, `useFrequentSubIcons.ts`, `features/search/Search.test.tsx`; route trong app tải lười |
+| 11 | 21/10/2026 | Bước 5 (backend): `routers/entries.py`, `services/entries.py`, `schemas/entries.py`, `core/text.py` (bỏ nhãn (B5)), migration `m0004_entries_icon_set_norm.py` |
+| 12 | 21/10/2026 | Bước 5 (web): `features/entry/entries.ts`, `src/test/demoApi.ts`; bỏ `features/entry/localDays.ts`; Trang ngày, Sửa, Ghi bù, Chia sẻ vào bản build |
+| 13 | 21/10/2026 | Bước 6: `lib/autosave.ts`, `lib/storage.ts` (bỏ nhãn (B6)), `features/entry/useAutosave.ts`, `features/entry/components/ConflictDialog.tsx`, `components/diary/SyncStatus.tsx`, `e2e/autosave.spec.ts`; thư viện `idb`, `fake-indexeddb` (test) |
+| 14 | 23/10/2026 | Màu cờ tùy chỉnh (Q6): migration `m0005_user_custom_flag_colors.py`, `features/profile/components/CustomFlagColors.tsx`, `components/diary/FlagPicker.test.tsx` |
+| 15 | 23/10/2026 | Bước 7 (ảnh): `core/storage.py`, `routers/photos.py`, `schemas/photos.py`, `services/photos.py`, `tests/fakes.py` (bỏ nhãn (B7)), migration `m0006_user_avatar_key.py`, `tests/api/test_photos.py`; web: `features/entry/uploadPhoto.ts` (thay hàm giả), `uploadPhoto.test.ts`, `e2e/photos.spec.ts`; thư viện `boto3`, `browser-image-compression`, `heic-to` (tải lười) |

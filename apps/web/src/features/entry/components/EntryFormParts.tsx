@@ -8,7 +8,7 @@ import { Toast } from '@/components/diary/Toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { flagColors, subIcons } from '@/lib/catalog'
+import { flagName, subIcons } from '@/lib/catalog'
 import { tierLimits } from '@/lib/limits'
 import { cn } from '@/lib/utils'
 import { FREQUENT_COUNT } from '../useFrequentSubIcons'
@@ -216,7 +216,7 @@ function FrequentSubIcons({
 export function ExtraFields(props: ExtraFieldsProps) {
   const ids = useId()
   const limits = tierLimits().entry
-  const flagName = flagColors.find((f) => f.hex.toLowerCase() === props.flag?.toLowerCase())?.name ?? 'Không cờ'
+  const flagLabel = flagName(props.flag) ?? 'Không cờ'
   const fieldBg = props.flatOnPhone ? 'bg-card md:bg-background' : 'bg-background'
   return (
     <>
@@ -234,7 +234,7 @@ export function ExtraFields(props: ExtraFieldsProps) {
         </div>
       </fieldset>
       <fieldset className="m-0 min-w-0 border-0 p-0">
-        <Legend>Cờ hiệu · {flagName}</Legend>
+        <Legend>Cờ hiệu · {flagLabel}</Legend>
         <FlagPicker value={props.flag} onChange={props.onFlag} form />
       </fieldset>
       <div className="flex flex-col gap-1.5 md:gap-2">

@@ -25,11 +25,11 @@
 | 0    | Chuẩn bị môi trường và chốt quyết định                                                          | trước ngày 1    | –         |
 | 1    | Nền móng: monorepo, Docker, DB, khung API/web, CI                                               | 1–2             | 0         |
 | 2    | Hướng giao diện và hệ thống thành phần                                                          | 1–2             | 1         |
-| 3    | Đăng nhập Google, hồ sơ, múi giờ (F-04)                                                         | 3               | 1         |
+| 3    | Đăng nhập Google, hồ sơ, múi giờ (F-04) — xong 21/10/2026                                      | 3               | 1         |
 | 4    | *(Tùy chọn, khuyên làm)* Triển khai thử bản khung lên beta                                      | sớm hơn ngày 13 | 3         |
-| 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng)                                           | 4–5             | 3         |
-| 6    | Tự động lưu và trạng thái đồng bộ (F-06)                                                        | 4–5             | 5         |
-| 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh)                                | 6–7             | 5         |
+| 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng) — xong 21/10/2026                        | 4–5             | 3         |
+| 6    | Tự động lưu và trạng thái đồng bộ (F-06) — xong 21/10/2026                                     | 4–5             | 5         |
+| 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
 | 8    | Dòng thời gian (F-02, phần danh sách)                                                           | 6–7             | 5, 7      |
 | 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
 | 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
@@ -81,8 +81,8 @@ Bước này không viết code. Mục tiêu là chốt các quyết định ả
 | Mã   | Câu hỏi                                                                                                                                             | Đề xuất                                                                                        |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Q4 ★ | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đồng ý cả bốn, rồi bổ sung vào đặc tả mục 5.4 và `api-conventions`                             |
-| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9)                                                                                                  | Đã chốt ở bước 2: 6 bộ (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`); sub icon vẫn là danh sách tạm khoảng 40 emoji, chốt trước bước 5 |
-| Q6   | Bảng màu cờ hiệu 8 hay 12 màu                                                                                                                       | Đã chốt ở bước 2: 8 màu pastel (`blush`…`lavender`), mỗi màu có `hex` và `hex_dark`; nhật ký lưu `hex`, giao diện tối tra `hex_dark` |
+| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9) | Đã chốt (23/10/2026): giữ 6 bộ main icon hiện tại (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`) và danh sách 47 sub icon hiện tại trong `shared/icons.json`. Thêm main/sub icon mới sau khi sản phẩm hoàn thiện (xem Ngoài phạm vi MVP) |
+| Q6   | Bảng màu cờ hiệu 8 hay 12 màu | Đã chốt (23/10/2026): giữ 8 màu pastel (`blush`…`lavender`, có `hex` và `hex_dark`) và cho người dùng thêm màu tùy chỉnh chọn từ bảng pha màu; nhật ký lưu `hex` (`#RRGGBB`), giao diện tối tra `hex_dark` cho màu có sẵn |
 | Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Không, chỉ dùng ảnh Google (bớt một luồng upload)                                              |
 | Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Dùng bước 2                                                                                    |
 | Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Thay bằng skill `run` (chạy app, chụp màn hình) cộng một bộ smoke test Playwright tạo ở bước 1 |
@@ -194,7 +194,13 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 **Phạm vi:**
 - Kết nối MongoDB và kho ảnh thật do bạn cung cấp (ưu tiên khu vực Singapore).
 - `apps/api/Dockerfile` (build từ gốc repo để mang theo `shared/`); biến môi trường trên hosting.
-- Bước `python -m app.db.migrate` trong pipeline triển khai.
+- Bước `python -m app.db.migrate` trong pipeline triển khai, chạy bằng **user migration riêng** (`dbAdmin` + `readWrite`
+  trên `dailydiary`); API chạy bằng user chỉ có `readWrite` (user này không được `collMod`, nên không chạy migration được).
+  Đã tạo DB beta trên Atlas M0 (Singapore, cluster0.auszmkf) ngày 21/10/2026; đã chạy đủ `0001`–`0004` bằng user
+  `jotly_migrate` (chạy lại báo không có migration mới). User của app hiện là `readWriteAnyDatabase` — nên thu hẹp
+  về `readWrite@dailydiary`.
+- Máy dev có tên chứa emoji làm dnspython không tra được SRV: ở máy này dùng chuỗi `mongodb://` liệt kê 3 máy
+  (xem `apps/api/.env.beta`, không commit); hosting dùng chuỗi `mongodb+srv://` gốc.
 - Tự động triển khai khi merge vào `main`.
 - Thêm redirect URI production vào Google Console.
 - Kiểm tra cookie và CORS giữa hai subdomain.
@@ -233,7 +239,29 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Test truy cập chéo tài khoản trả 404.
 - Trên điện thoại 360 px, ghi được một ngày chỉ bằng 1–2 lần chạm.
 
-**Bạn cần:** chốt Q5 và Q6.
+**Bạn cần:** chốt Q5 và Q6 (đã chốt 23/10/2026).
+
+**Bổ sung theo Q6 (23/10/2026) — màu cờ tùy chỉnh:**
+- `users.custom_flag_colors` (migration `m0005`), sửa qua `PATCH /me` (thay cả danh sách); tối đa
+  `profile.custom_flag_colors_max` = 8 trong `limits.json` (422 `FLAG_COLORS_LIMIT`); không trùng 8 màu có sẵn.
+- `flag_color` của nhật ký nhận mọi `#RRGGBB` (gỡ màu khỏi danh sách thì bài cũ vẫn tự lưu được).
+- Web: ô "+" trong `FlagPicker` mở bảng pha màu của hệ thống (`input type=color`), chọn xong thì thêm vào hồ sơ và
+  gắn luôn; Hồ sơ › Nhật ký › "Màu cờ riêng" để gỡ. Giao diện tối: màu tùy chỉnh trừ 25 mỗi kênh (cách pha của 8 màu).
+- Test: backend 140 xanh (thêm `/me`, nhật ký, `m0005`); Vitest 162; e2e 38/38 (`--workers=1`), có ca thêm màu → tải lại
+  → gỡ trong Hồ sơ ở cả 2 khổ màn.
+
+**Kết quả backend (21/10/2026):**
+- `routers/entries.py`, `services/entries.py`, `schemas/entries.py`, `core/text.py` (NFC, `keyword_norm`), migration
+  `m0004` (bỏ `icon_set_id` khỏi bắt buộc, thêm `title_norm`/`content_norm`), `entry.restore_days` trong `limits.json`.
+- PUT dùng hạn mức `autosave` (20/phút) vì Bước 6 tự lưu qua đúng endpoint này; xóa/khôi phục dùng `write` (10/phút).
+- Ngày tương lai → 422 `ENTRY_FUTURE_DATE` theo múi giờ hồ sơ; xung đột → 409 `ENTRY_CONFLICT` (cả khi tạo mới mà ngày
+  đó vừa được tạo ở nơi khác); truy cập chéo → 404. Chia sẻ dùng chung hàm đọc nhật ký của service này.
+- Sub icon (Q5): người dùng chốt 47 emoji hiện có trong `shared/icons.json` (21/10/2026); backend từ chối emoji
+  ngoài danh sách. Đổi danh sách = sửa file đó (kiểm tra bài cũ còn dùng emoji bị bỏ).
+- 128 test backend xanh (42 test mới: mốc 23:59/00:01/06:00 Việt Nam, Los Angeles, giới hạn, NFC, xóa/khôi phục,
+  xung đột, truy cập chéo, CSRF, rate limit).
+- Web nối API thật (137 test Vitest, e2e `entry.spec.ts`). Kiểm ở 360×740: **một lần chạm** vào điểm là đã lưu
+  (PUT 200, tải lại vẫn còn); nút điểm 61×82 px, không cuộn ngang.
 
 ---
 
@@ -254,6 +282,24 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - tắt mạng, gõ, bật mạng lại → dữ liệu tự đồng bộ;
 - sửa ở 2 tab → hiện hộp thoại chọn bản;
 - F5 khi chưa đồng bộ → không mất chữ.
+
+**Kết quả (21/10/2026):**
+- `lib/storage.ts`: nháp IndexedDB qua `idb` 8.0.4, khóa `SHA-256(email):ngày` (/me không trả id; không lưu email gốc);
+  xóa khi đăng xuất và khi xóa dữ liệu; IndexedDB lỗi/bị chặn thì app vẫn chạy, chỉ mất lớp nháp.
+- `lib/autosave.ts`: nháp sau 1 s, đồng bộ sau 4 s, khi chuyển tab (`visibilitychange`), `pagehide`, rời màn, nút Lưu;
+  chỉ gửi khi khác bản đã đồng bộ; thử lại 2, 4, 8… s (tối đa 60 s), có mạng lại thì thử ngay; 422 dừng kèm câu báo;
+  409 → hộp thoại chọn bản. Gửi dồn: gõ tiếp trong lúc đang gửi thì gửi bản mới ngay sau.
+- `features/entry/useAutosave.ts` + `ConflictDialog` + `components/diary/SyncStatus.tsx`: Hôm nay và Ghi bù tự lưu;
+  Sửa trang cũ chỉ ghi nháp, lên máy chủ khi bấm "Lưu thay đổi". Mở màn gặp nháp cùng gốc → nạp lại và lưu; nháp dựa
+  trên bản cũ hơn máy chủ → hộp thoại chọn bản. Cảnh báo khi đóng tab còn thay đổi chưa đồng bộ.
+- Lệnh lưu dùng `networkMode: 'always'` (mất mạng báo lỗi ngay để hiện "Chưa đồng bộ", không bị TanStack Query tạm dừng).
+- Khôi phục câu "vẫn được giữ trên trình duyệt này và sẽ tự lưu khi có mạng" ở thanh ngoại tuyến và màn hết phiên;
+  "Đã có mạng lại" báo số trang vừa tự lưu.
+- Rate limit autosave giữ 20/phút (Bước 5); với 4 s ngừng gõ, một người gõ liên tục gửi tối đa ~15 lần/phút.
+- Test: Vitest `autosave.test.ts` (12, fake timers), `storage.test.ts` (4, `fake-indexeddb`), màn Hôm nay/Sửa (tự lưu
+  sau 4 s, khôi phục nháp, xung đột cả hai lựa chọn) — 156 test xanh. e2e `autosave.spec.ts` (4 ca × 2 khổ màn: mất
+  mạng rồi có mạng lại, 2 tab, F5, F5 khi máy chủ chưa nhận) — cả bộ e2e 36/36 xanh với `--workers=1`.
+- Đã gặp và sửa: React StrictMode (dev) gỡ rồi gắn lại effect làm tắt bộ máy (`attach()` khi gắn lại).
 
 ---
 
@@ -283,6 +329,26 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Upload một ảnh đã nén mất dưới 5 giây.
 - Có test cho: ảnh thứ 11 bị từ chối, file giả định dạng, file quá lớn, B không xác nhận hoặc xóa được ảnh của A.
 - Ảnh không mở được nếu không có link ký.
+
+**Kết quả (23/10/2026):**
+- Backend: `core/storage.py` (boto3, hai client ký/gọi kho, I/O qua `anyio.to_thread`), `routers|schemas|services/photos.py`.
+  Nhận `image/webp` (và `image/jpeg` khi trình duyệt không mã hóa được WebP); key do backend dựng
+  `{user_id}/YYYY/MM/DD/{id}[_thumb].ext`. Xác nhận: tồn tại, ≤ `main_max_bytes`/`thumb_max_bytes`, magic bytes, cạnh
+  ≤ 1920 px; sai thì xóa object. Mảng `photos` đổi bằng khóa lạc quan (so khớp nguyên mảng) nên hai lần xác nhận cùng
+  lúc không vượt 10 ảnh. Hạn mức 500 MB tính cả trang đã xóa mềm. Upload-url và xác nhận dùng `photo_upload`
+  (10/phút; 50/ngày), sắp xếp/xóa dùng `write`. Ảnh không đổi `updated_at` (tự lưu chữ không bị 409). Xóa ảnh bỏ luôn
+  ảnh khỏi link chia sẻ; ghi đè ngày đã xóa mềm xóa ảnh cũ khỏi kho. Trang chia sẻ công khai trả link ký cho ảnh đã chọn.
+- Ảnh đại diện: `POST /me/avatar/upload-url` + `PATCH /me {avatar_upload}`; `users.avatar_key` (migration `m0006`);
+  thay/gỡ thì xóa ảnh cũ khỏi kho.
+- Web: `preparePhoto` (lib/image.ts) — `browser-image-compression` (không dùng worker vì worker tải script từ CDN),
+  HEIC giải mã bằng `heic-to` tải lười (Safari giải mã sẵn); `uploadPhoto.ts` PUT bằng XHR để có tiến độ.
+  Hôm nay: nút Ảnh bật khi trang đã có, thêm/bỏ là lưu ngay, tải song song xong thì chốt lại thứ tự đã chọn.
+  Sửa trang cũ: ảnh mới gắn ngay khi tải xong; bỏ ảnh/thứ tự chốt khi bấm Lưu thay đổi; Hủy/rời trang thì xóa ảnh vừa
+  thêm. Trang ngày, trình xem ảnh, hộp thoại Chia sẻ, trang chia sẻ công khai hiện ảnh thật.
+- Kiểm tra: backend 171 test (ảnh thứ 11 — cả khi xác nhận chen ngang, file giả định dạng, quá lớn, quá rộng, chưa
+  tải, hạn mức, B không xác nhận/xóa/sắp xếp ảnh của A); Vitest 166; e2e 41/41 (`--workers=1`) có ca trên MinIO
+  thật: ảnh 2400 px → 1920 px, tải xong < 5 s, link ký 200, link không ký 403, bỏ ảnh thì kho trả 404.
+- Chưa kiểm tra: tệp HEIC thật từ iPhone (không tạo được trong test) và trên điện thoại thật.
 
 ---
 
@@ -450,3 +516,5 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 Theo mục 2.2 của đặc tả: nhật ký chung và bình luận (chia sẻ một trang qua link đã vào MVP ở Bước 11b), đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
 ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (mục 6.2) chỉ được chuẩn bị qua dữ liệu
 (`user_items`, `account_tier`, `joined_at`), không xây giao diện.
+
+Thêm main icon (bộ mới) và sub icon mới: làm sau khi sản phẩm hoàn thiện (chốt Q5, 23/10/2026).

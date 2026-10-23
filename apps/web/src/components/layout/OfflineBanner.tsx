@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Check, LoaderCircle, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { onReconnectSynced, resetReconnectSynced } from '@/lib/autosave'
 import { flagColors } from '@/lib/catalog'
 import { useOnline } from '@/lib/online'
 import { cn } from '@/lib/utils'
@@ -19,11 +20,16 @@ export function OfflineBanner() {
   const client = useQueryClient()
   const [backOnline, setBackOnline] = useState(false)
   const [retrying, setRetrying] = useState(false)
+  // Số trang tự động lưu xong sau khi có mạng lại (F-06).
+  const [synced, setSynced] = useState(0)
+  useEffect(() => onReconnectSynced(setSynced), [])
 
   // Nghe thẳng sự kiện của trình duyệt để biết lúc vừa có mạng lại (useOnline chỉ cho biết trạng thái hiện tại).
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
     const onOnline = () => {
+      resetReconnectSynced()
+      setSynced(0)
       setBackOnline(true)
       // Lấy lại dữ liệu đang hiện trên màn (đã hỏng khi mất mạng).
       void client.refetchQueries({ type: 'active' })
@@ -70,16 +76,16 @@ export function OfflineBanner() {
               <Check className="size-3.5" strokeWidth={3} />
             </span>
             <p className="text-sm leading-[22px]">
-              <strong className="font-semibold">Đã có mạng lại.</strong> Dữ liệu trên màn đã được tải lại.
+              <strong className="font-semibold">Đã có mạng lại.</strong>{' '}
+              {synced > 0 ? `Đã lưu ${synced} trang bạn viết lúc ngoại tuyến.` : 'Dữ liệu trên màn đã được tải lại.'}
             </p>
           </>
         ) : (
           <>
             <WifiOff className="size-5 animate-blink" aria-hidden="true" />
-            {/* Thiết kế hứa "vẫn giữ trên trình duyệt và tự lưu": chỉ đúng khi có tự động lưu (MVP Bước 6). */}
             <p className="flex-[1_1_360px] text-sm leading-[22px]">
-              <strong className="font-semibold">Bạn đang ngoại tuyến.</strong> Kiểm tra kết nối rồi thử lại. Đừng tải lại
-              trang khi đang viết dở.
+              <strong className="font-semibold">Bạn đang ngoại tuyến.</strong> Những gì bạn viết vẫn được giữ trên trình
+              duyệt này và sẽ tự lưu khi có mạng.
             </p>
             <Button variant="secondary" size="sm" className="h-9 shadow-none" disabled={retrying} onClick={retry}>
               {retrying ? <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" /> : null}

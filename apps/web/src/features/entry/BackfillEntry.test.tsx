@@ -1,8 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { renderWithMe } from '@/test/withMe'
+import { makeEntry, makeMe, mockApi, renderWithMe } from '@/test/withMe'
 import { BackfillEntry } from './BackfillEntry'
-import { clearLocalDays } from './localDays'
+
+let calls: ReturnType<typeof mockApi>
 
 function renderBackfill(date: string) {
   function Page() {
@@ -14,10 +15,10 @@ function renderBackfill(date: string) {
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-18T14:12:00Z'))
+  calls = mockApi(makeMe(), { '2026-10-16': makeEntry('2026-10-16') })
 })
 afterEach(() => {
   vi.useRealTimers()
-  clearLocalDays()
 })
 
 // Màn nhiều icon SVG: dành thêm thời gian khi cả bộ test chạy song song.
@@ -32,8 +33,11 @@ describe('Ghi bù ngày đã bỏ trống', () => {
     expect(screen.getByText('Mở sau khi chấm điểm').closest('section')?.querySelector('[inert]')).not.toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Điểm 3, Nụ' }))
+    expect(await screen.findByRole('heading', { name: 'Ghi bù cho ngày 14/10' })).toBeInTheDocument()
     expect(screen.queryByText('Mở sau khi chấm điểm')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Ghi bù cho ngày 14/10' })).toBeInTheDocument()
+    // Tạo mới: không gửi updated_at.
+    const create = calls.find((c) => c.method === 'PUT')!
+    expect(create.body).toEqual({ score: 3, sub_icon: null, flag_color: null, title: null, content: null, keywords: [] })
     expect(screen.getByText(/Đã ghi bù lúc 21:12, 18\/10/)).toBeInTheDocument()
     expect(screen.getByText('Chỉ chấm điểm')).toBeInTheDocument()
 
@@ -41,10 +45,13 @@ describe('Ghi bù ngày đã bỏ trống', () => {
     expect(screen.getByText('Có thay đổi chưa lưu')).toBeInTheDocument()
     expect(screen.getByText('Đi xem phim', { selector: 'span' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Lưu' }))
-    expect(screen.getByText('Đã lưu lúc 21:12, 18/10')).toBeInTheDocument()
+    expect(await screen.findByText('Đã lưu lúc 21:12, 18/10')).toBeInTheDocument()
+    const update = calls.filter((c) => c.method === 'PUT').at(-1)!
+    expect(update.body).toMatchObject({ title: 'Đi xem phim', updated_at: expect.any(String) })
 
     fireEvent.click(screen.getByRole('button', { name: 'Hoàn tác' }))
-    expect(screen.getByRole('heading', { name: 'Ngày này bạn chưa ghi' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Ngày này bạn chưa ghi' })).toBeInTheDocument()
+    expect(calls.at(-1)).toMatchObject({ method: 'DELETE', path: '/entries/2026-10-14' })
   })
 
   it('ngày đã có trang thì dẫn sang xem hoặc sửa', async () => {

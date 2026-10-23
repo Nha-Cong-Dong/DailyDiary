@@ -21,8 +21,27 @@ export function scoreLabel(iconSetId: string, score: Score): string {
   return findIconSet(iconSetId).levels.find((l) => l.score === score)?.label ?? String(score)
 }
 
+export function presetFlag(hex: string | null | undefined): FlagColor | undefined {
+  if (!hex) return undefined
+  return flagColors.find((c) => c.hex.toLowerCase() === hex.toLowerCase())
+}
+
+/** Tên hiển thị của cờ: tên trong bảng màu, "Màu riêng" cho màu tùy chỉnh, null khi không cờ. */
+export function flagName(hex: string | null | undefined): string | null {
+  if (!hex) return null
+  return presetFlag(hex)?.name ?? 'Màu riêng'
+}
+
+// Tám màu có sẵn: hex_dark thấp hơn hex khoảng 25 ở mỗi kênh; màu tùy chỉnh pha tối theo cùng cách.
+const DARK_SHIFT = 25
+
+function darken(hex: string): string {
+  const channels = [1, 3, 5].map((i) => Math.max(0, parseInt(hex.slice(i, i + 2), 16) - DARK_SHIFT))
+  return `#${channels.map((c) => c.toString(16).padStart(2, '0')).join('').toUpperCase()}`
+}
+
 /** Nhật ký lưu mã hex bản sáng; khi giao diện tối thì đổi sang bản tối tương ứng. */
 export function flagHex(hex: string, dark: boolean): string {
   if (!dark) return hex
-  return flagColors.find((c) => c.hex.toLowerCase() === hex.toLowerCase())?.hex_dark ?? hex
+  return presetFlag(hex)?.hex_dark ?? (/^#[0-9a-f]{6}$/i.test(hex) ? darken(hex) : hex)
 }

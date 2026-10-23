@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "_note": "6 bộ main icon theo thiết kế Jotly (Bước 2). Hình vẽ ở apps/web/src/components/diary/ScoreIcon.tsx. Sub icon: danh sách gốc khoảng 40 emoji cộng các emoji dùng trong thiết kế (🌸 🍀 🧊 😌 🎧 ✨ 💤); chốt lại trước bước 5.",
+  "_note": "6 bộ main icon theo thiết kế Jotly (Bước 2). Hình vẽ ở apps/web/src/components/diary/ScoreIcon.tsx. Sub icon: 47 emoji, chốt ngày 21/10/2026 (Q5); backend từ chối emoji ngoài danh sách.",
   "default_icon_set": "sprout",
   "icon_sets": [
     {

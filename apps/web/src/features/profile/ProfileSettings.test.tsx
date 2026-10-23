@@ -26,6 +26,19 @@ describe('Hồ sơ trên điện thoại', () => {
     expect(screen.getByText('Đã lưu tên hiển thị.')).toBeInTheDocument()
   })
 
+  it('mục Màu cờ riêng liệt kê màu đã thêm; bấm gỡ gửi danh sách còn lại', async () => {
+    const me = makeMe({ custom_flag_colors: ['#3A7BD5', '#112233'] })
+    const calls = mockApi(me)
+    renderWithMe([{ path: '/profile', Component: ProfilePage }], '/profile', me)
+
+    expect(await screen.findByText(/Màu cờ riêng · 2\//)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Gỡ màu #3A7BD5' }))
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ custom_flag_colors: ['#112233'] }),
+    )
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Gỡ màu #3A7BD5' })).toBeNull())
+  })
+
   it('mục Chia sẻ là một dòng dẫn tới các trang đang chia sẻ', async () => {
     renderWithMe([{ path: '/profile', Component: ProfilePage }], '/profile', makeMe())
     expect(await screen.findByRole('link', { name: /Trang đang chia sẻ/ })).toHaveAttribute('href', '/profile/shares')

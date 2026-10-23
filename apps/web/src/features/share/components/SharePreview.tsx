@@ -8,7 +8,7 @@ import { useDarkMode } from '@/lib/theme'
 import { hasContent, shapeOf, type ShareSettings } from '../shares'
 import { Fold } from './Fold'
 
-// Ô ảnh giữ chỗ cùng tông với PhotoTile (ảnh thật có ở Bước 7).
+// Ô ảnh giữ chỗ cùng tông với PhotoTile, khi trang chưa có link xem ảnh (dữ liệu mẫu).
 const TINTS = ['bg-[#E7DCEB]', 'bg-[#F6E3D6]', 'bg-[#DCE6D5]']
 
 type SharePreviewProps = {
@@ -84,9 +84,9 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
               {picked.map((p) => (
                 <span
                   key={p.id}
-                  className={`flex aspect-[4/3] animate-pop items-center justify-center rounded-[10px] border-[1.5px] border-line text-[11px] text-[#6A6255] ${p.tint}`}
+                  className={`relative flex aspect-[4/3] animate-pop items-center justify-center overflow-hidden rounded-[10px] border-[1.5px] border-line text-[11px] text-[#6A6255] ${p.tint}`}
                 >
-                  {p.label}
+                  {p.thumbUrl ? <img src={p.thumbUrl} alt="" className="absolute inset-0 size-full object-cover" /> : p.label}
                 </span>
               ))}
             </div>

@@ -3,14 +3,23 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 // Đăng xuất và đăng nhập thử: dùng ở cả trang đăng nhập (features/auth) lẫn Hồ sơ (features/profile).
 import { API_URL, csrfToken, toApiError, api } from '@/api/client'
 import { ME_KEY, type Me } from './profile'
+import { clearDraftsFor } from './storage'
 
-/** POST /auth/logout: xóa phiên phía máy chủ, rồi xóa toàn bộ cache (dữ liệu của người vừa đăng xuất). */
+/**
+ * POST /auth/logout: xóa phiên phía máy chủ, rồi xóa toàn bộ cache và nháp trong trình duyệt (dữ liệu của người vừa
+ * đăng xuất; người sau dùng chung máy không thấy).
+ */
 export function useLogout() {
   const client = useQueryClient()
   return useMutation({
     mutationFn: async () => {
-      const { error, response } = await api.POST('/auth/logout')
-      if (error && response.status !== 401) throw toApiError(response, error)
+      const email = client.getQueryData<Me>(ME_KEY)?.email
+      try {
+        const { error, response } = await api.POST('/auth/logout')
+        if (error && response.status !== 401) throw toApiError(response, error)
+      } finally {
+        await clearDraftsFor(email)
+      }
     },
     onSettled: () => client.clear(),
   })

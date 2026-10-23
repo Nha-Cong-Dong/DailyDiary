@@ -12,7 +12,8 @@
         "content_max": 20000,
         "keywords_max": 10,
         "keyword_len_min": 1,
-        "keyword_len_max": 30
+        "keyword_len_max": 30,
+        "restore_days": 30
       },
       "photos": {
         "per_day_max": 10,
@@ -31,7 +32,8 @@
       "profile": {
         "display_name_max": 50,
         "avatar_max_bytes": 2097152,
-        "avatar_edge_px": 256
+        "avatar_edge_px": 256,
+        "custom_flag_colors_max": 8
       },
       "pagination": {
         "entries_page_size": 20,
@@ -55,7 +57,8 @@
         "content_max": 20000,
         "keywords_max": 10,
         "keyword_len_min": 1,
-        "keyword_len_max": 30
+        "keyword_len_max": 30,
+        "restore_days": 30
       },
       "photos": {
         "per_day_max": 10,
@@ -74,7 +77,8 @@
       "profile": {
         "display_name_max": 50,
         "avatar_max_bytes": 2097152,
-        "avatar_edge_px": 256
+        "avatar_edge_px": 256,
+        "custom_flag_colors_max": 8
       },
       "pagination": {
         "entries_page_size": 20,
@@ -98,7 +102,8 @@
         "content_max": 20000,
         "keywords_max": 10,
         "keyword_len_min": 1,
-        "keyword_len_max": 30
+        "keyword_len_max": 30,
+        "restore_days": 30
       },
       "photos": {
         "per_day_max": 10,
@@ -117,7 +122,8 @@
       "profile": {
         "display_name_max": 50,
         "avatar_max_bytes": 2097152,
-        "avatar_edge_px": 256
+        "avatar_edge_px": 256,
+        "custom_flag_colors_max": 8
       },
       "pagination": {
         "entries_page_size": 20,

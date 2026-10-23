@@ -105,6 +105,7 @@ async def test_public_page_shows_only_selected_parts(alice, anon, db):
     r = await anon.get(f"/public/shares/{token}")
     assert r.status_code == 200
     data = r.json()
+    photos = data.pop("photos")
     assert data == {
         "entry_date": DAY,
         "title": "Chiều mưa đọc sách",
@@ -112,6 +113,7 @@ async def test_public_page_shows_only_selected_parts(alice, anon, db):
         "icon_set_id": "sprout",
         "photo_count": 1,
     }
+    assert len(photos) == 1 and photos[0]["url"].endswith("?signed")
     for header, value in {
         "x-robots-tag": "noindex, nofollow",
         "cache-control": "no-store",

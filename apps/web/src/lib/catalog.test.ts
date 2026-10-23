@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultIconSetId, findIconSet, flagColors, flagHex, iconSets, scoreLabel } from './catalog'
+import { defaultIconSetId, findIconSet, flagColors, flagHex, flagName, iconSets, scoreLabel } from './catalog'
 
 describe('catalog', () => {
   it('mỗi bộ icon có đủ 5 mức và bộ mặc định tồn tại', () => {
@@ -18,6 +18,14 @@ describe('catalog', () => {
     const lavender = flagColors.find((c) => c.id === 'lavender')!
     expect(flagHex(lavender.hex.toLowerCase(), true)).toBe(lavender.hex_dark)
     expect(flagHex(lavender.hex, false)).toBe(lavender.hex)
-    expect(flagHex('#123456', true)).toBe('#123456')
+  })
+
+  it('màu tùy chỉnh: bản tối trừ 25 mỗi kênh (không âm), tên là "Màu riêng"', () => {
+    expect(flagHex('#3a7bd5', true)).toBe('#2162BC')
+    expect(flagHex('#100A30', true)).toBe('#000017')
+    expect(flagHex('#3a7bd5', false)).toBe('#3a7bd5')
+    expect(flagName('#3A7BD5')).toBe('Màu riêng')
+    expect(flagName(flagColors[0]!.hex.toLowerCase())).toBe(flagColors[0]!.name)
+    expect(flagName(null)).toBeNull()
   })
 })

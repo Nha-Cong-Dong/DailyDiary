@@ -1,6 +1,6 @@
 import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { makeMe, renderWithMe } from '@/test/withMe'
+import { makeEntry, makeMe, mockApi, renderWithMe } from '@/test/withMe'
 import { DayDetail } from './DayDetail'
 
 function Day() {
@@ -24,6 +24,12 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-18T14:15:00Z'))
 })
+
+function withEntry() {
+  return mockApi(makeMe(), {
+    '2026-10-18': makeEntry('2026-10-18', { title: 'Chiều mưa đọc sách', content: 'Mưa từ trưa.', sub_icon: '😌' }),
+  })
+}
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
@@ -32,6 +38,7 @@ afterEach(() => {
 describe('Chi tiết một ngày trên điện thoại (B10)', () => {
   it('thanh trên có ngày, Sửa; Xóa ở cuối trang mở bảng trượt', async () => {
     phoneWidth()
+    const calls = withEntry()
     renderWithMe([{ path: '/day/:date', Component: Day }], '/day/2026-10-18', makeMe())
     expect(await screen.findByRole('heading', { name: 'Chiều mưa đọc sách' })).toBeInTheDocument()
     expect(screen.getByText('18/10/2026')).toBeInTheDocument()
@@ -44,6 +51,22 @@ describe('Chi tiết một ngày trên điện thoại (B10)', () => {
     expect(first).toHaveTextContent('Xóa nhật ký')
     expect(second).toHaveTextContent('Giữ lại')
     fireEvent.click(first)
-    expect(await screen.findByText(/Đã xóa trang ngày 18\/10/)).toBeInTheDocument()
+    const toast = await screen.findByText(/Đã xóa trang ngày 18\/10/)
+    expect(calls.at(-1)).toMatchObject({ method: 'DELETE', path: '/entries/2026-10-18' })
+    expect(screen.getByRole('button', { name: 'Khôi phục trang' })).toBeInTheDocument()
+
+    // Hoàn tác trong thông báo nổi: POST restore, trang hiện lại.
+    fireEvent.click(within(toast.closest('[role="status"]') as HTMLElement).getByRole('button', { name: 'Hoàn tác' }))
+    expect(await screen.findByRole('heading', { name: 'Chiều mưa đọc sách' })).toBeInTheDocument()
+    expect(calls.at(-1)).toMatchObject({ method: 'POST', path: '/entries/2026-10-18/restore' })
+  })
+})
+
+describe('Chi tiết một ngày', () => {
+  it('ngày chưa ghi (API 404) thì mời ghi bù', async () => {
+    mockApi(makeMe())
+    renderWithMe([{ path: '/day/:date', Component: Day }], '/day/2026-10-18', makeMe())
+    expect(await screen.findByText('Ngày này chưa ghi.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Viết cho hôm nay' })).toBeInTheDocument()
   })
 })

@@ -1,6 +1,317 @@
 {
   "components": {
     "schemas": {
+      "AvatarUploadIn": {
+        "additionalProperties": false,
+        "properties": {
+          "content_type": {
+            "enum": [
+              "image/webp",
+              "image/jpeg"
+            ],
+            "title": "Content Type",
+            "type": "string"
+          },
+          "upload_id": {
+            "format": "uuid",
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "content_type"
+        ],
+        "title": "AvatarUploadIn",
+        "type": "object"
+      },
+      "AvatarUploadOut": {
+        "description": "POST /me/avatar/upload-url. Tải xong thì gửi PATCH /me {avatar_upload: {...}} để dùng ảnh.",
+        "properties": {
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "headers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Headers",
+            "type": "object"
+          },
+          "upload_id": {
+            "format": "uuid",
+            "title": "Upload Id",
+            "type": "string"
+          },
+          "upload_url": {
+            "title": "Upload Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "upload_url",
+          "headers",
+          "expires_in"
+        ],
+        "title": "AvatarUploadOut",
+        "type": "object"
+      },
+      "EntryDeletedOut": {
+        "description": "Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.",
+        "properties": {
+          "deleted_at": {
+            "format": "date-time",
+            "title": "Deleted At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "restore_until": {
+            "format": "date-time",
+            "title": "Restore Until",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_date",
+          "deleted_at",
+          "restore_until"
+        ],
+        "title": "EntryDeletedOut",
+        "type": "object"
+      },
+      "EntryOut": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "photos": {
+            "items": {
+              "$ref": "#/components/schemas/EntryPhotoOut"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "content",
+          "sub_icon",
+          "flag_color",
+          "keywords",
+          "photos",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EntryOut",
+        "type": "object"
+      },
+      "EntryPhotoOut": {
+        "description": "Ảnh của một ngày. `url`/`thumb_url` là link ký có hạn ~1 giờ (null khi kho ảnh chưa cấu hình).",
+        "properties": {
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "thumb_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumb Url"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "width",
+          "height"
+        ],
+        "title": "EntryPhotoOut",
+        "type": "object"
+      },
+      "EntryWrite": {
+        "additionalProperties": false,
+        "description": "PUT /entries/{date}: tạo hoặc cập nhật nhật ký một ngày (F-01).\n\nGiới hạn độ dài và số từ khóa phụ thuộc cấp tài khoản nên kiểm tra ở service (shared/limits.json).",
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Keywords",
+            "type": "array"
+          },
+          "score": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "score"
+        ],
+        "title": "EntryWrite",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -55,6 +366,13 @@
             ],
             "title": "Avatar Url"
           },
+          "custom_flag_colors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Custom Flag Colors",
+            "type": "array"
+          },
           "display_name": {
             "title": "Display Name",
             "type": "string"
@@ -89,7 +407,8 @@
           "icon_set_id",
           "account_tier",
           "joined_at",
-          "onboarded"
+          "onboarded",
+          "custom_flag_colors"
         ],
         "title": "MeOut",
         "type": "object"
@@ -98,9 +417,33 @@
         "additionalProperties": false,
         "description": "PATCH /me: chỉ các trường dưới đây, trường khác bị từ chối.\n\nĐộ dài tên kiểm ở service, theo limits.json của cấp tài khoản.",
         "properties": {
+          "avatar_upload": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AvatarUploadIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "avatar_url": {
             "title": "Avatar Url",
             "type": "null"
+          },
+          "custom_flag_colors": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Flag Colors"
           },
           "display_name": {
             "anyOf": [
@@ -149,6 +492,148 @@
           }
         },
         "title": "MeUpdate",
+        "type": "object"
+      },
+      "PhotoConfirmIn": {
+        "additionalProperties": false,
+        "description": "POST /entries/{date}/photos: xác nhận đã tải xong. Backend tự dựng key từ phiên + ngày + photo_id.",
+        "properties": {
+          "content_type": {
+            "enum": [
+              "image/webp",
+              "image/jpeg"
+            ],
+            "title": "Content Type",
+            "type": "string"
+          },
+          "height": {
+            "minimum": 1.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "photo_id": {
+            "format": "uuid",
+            "title": "Photo Id",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1.0,
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "photo_id",
+          "content_type",
+          "width",
+          "height"
+        ],
+        "title": "PhotoConfirmIn",
+        "type": "object"
+      },
+      "PhotoOrderIn": {
+        "additionalProperties": false,
+        "description": "PATCH /entries/{date}/photos/order: đủ mọi ảnh của trang, theo thứ tự mới.",
+        "properties": {
+          "photo_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Photo Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "photo_ids"
+        ],
+        "title": "PhotoOrderIn",
+        "type": "object"
+      },
+      "PhotoUploadIn": {
+        "additionalProperties": false,
+        "description": "POST /entries/{date}/photos/upload-url.",
+        "properties": {
+          "content_type": {
+            "enum": [
+              "image/webp",
+              "image/jpeg"
+            ],
+            "title": "Content Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content_type"
+        ],
+        "title": "PhotoUploadIn",
+        "type": "object"
+      },
+      "PhotoUploadOut": {
+        "description": "Hai presigned PUT (ảnh chính + ảnh thu nhỏ). PUT phải gửi đúng `headers`, không kèm cookie.",
+        "properties": {
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "headers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Headers",
+            "type": "object"
+          },
+          "photo_id": {
+            "format": "uuid",
+            "title": "Photo Id",
+            "type": "string"
+          },
+          "thumb_upload_url": {
+            "title": "Thumb Upload Url",
+            "type": "string"
+          },
+          "upload_url": {
+            "title": "Upload Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "photo_id",
+          "upload_url",
+          "thumb_upload_url",
+          "headers",
+          "expires_in"
+        ],
+        "title": "PhotoUploadOut",
+        "type": "object"
+      },
+      "PublicPhotoOut": {
+        "description": "Ảnh trên trang chia sẻ: chỉ link ký và kích thước, không có id hay key trong kho.",
+        "properties": {
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "thumb_url": {
+            "title": "Thumb Url",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "url",
+          "thumb_url",
+          "width",
+          "height"
+        ],
+        "title": "PublicPhotoOut",
         "type": "object"
       },
       "PublicShareOut": {
@@ -226,6 +711,20 @@
               }
             ],
             "title": "Photo Count"
+          },
+          "photos": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PublicPhotoOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photos"
           },
           "score": {
             "anyOf": [
@@ -695,6 +1194,462 @@
         ]
       }
     },
+    "/entries/{day}": {
+      "delete": {
+        "description": "Xóa mềm; khôi phục được tới `restore_until`.",
+        "operationId": "delete_entry_entries__day__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryDeletedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Entry",
+        "tags": [
+          "entries"
+        ]
+      },
+      "get": {
+        "description": "Nhật ký của một ngày. 404 khi chưa ghi hoặc đã xóa.",
+        "operationId": "read_entry_entries__day__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Entry",
+        "tags": [
+          "entries"
+        ]
+      },
+      "put": {
+        "description": "Tạo hoặc cập nhật. Gửi kèm `updated_at` đã nhận để phát hiện xung đột (409).\n\nKhông cho ghi ngày tương lai theo múi giờ hồ sơ (422).",
+        "operationId": "save_entry_entries__day__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntryWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Entry",
+        "tags": [
+          "entries"
+        ]
+      }
+    },
+    "/entries/{day}/photos": {
+      "post": {
+        "description": "Xác nhận ảnh đã tải lên kho: kiểm tra tồn tại, dung lượng, định dạng rồi gắn vào trang.",
+        "operationId": "confirm_upload_entries__day__photos_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Upload",
+        "tags": [
+          "photos"
+        ]
+      }
+    },
+    "/entries/{day}/photos/order": {
+      "patch": {
+        "description": "Sắp xếp lại: gửi đủ id ảnh của trang theo thứ tự mới.",
+        "operationId": "reorder_photos_entries__day__photos_order_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reorder Photos",
+        "tags": [
+          "photos"
+        ]
+      }
+    },
+    "/entries/{day}/photos/upload-url": {
+      "post": {
+        "description": "Xin hai presigned PUT (ảnh chính, ảnh thu nhỏ) cho trang đã có. 422 khi đủ ảnh hoặc hết dung lượng.",
+        "operationId": "create_upload_entries__day__photos_upload_url_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoUploadIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoUploadOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Upload",
+        "tags": [
+          "photos"
+        ]
+      }
+    },
+    "/entries/{day}/restore": {
+      "post": {
+        "description": "Hoàn tác xóa (còn trong hạn khôi phục).",
+        "operationId": "restore_entry_entries__day__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restore Entry",
+        "tags": [
+          "entries"
+        ]
+      }
+    },
     "/entries/{day}/share": {
       "delete": {
         "description": "Tắt link. Link cũ không mở được nữa; bật lại sẽ có link mới.",
@@ -952,7 +1907,7 @@
         ]
       },
       "patch": {
-        "description": "Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, gỡ ảnh đại diện, đánh dấu xong lần đầu.",
+        "description": "Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, màu cờ tùy chỉnh,\nđổi hoặc gỡ ảnh đại diện, đánh dấu xong lần đầu.",
         "operationId": "update_me_me_patch",
         "parameters": [
           {
@@ -1007,6 +1962,119 @@
         "summary": "Update Me",
         "tags": [
           "me"
+        ]
+      }
+    },
+    "/me/avatar/upload-url": {
+      "post": {
+        "description": "Presigned PUT cho ảnh đại diện đã cắt vuông và nén trên trình duyệt; tải xong gửi PATCH /me.",
+        "operationId": "create_avatar_upload_me_avatar_upload_url_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoUploadIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvatarUploadOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Avatar Upload",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/photos/{photo_id}": {
+      "delete": {
+        "description": "Xóa ảnh khỏi trang và khỏi kho.",
+        "operationId": "delete_photo_photos__photo_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "photo_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Photo Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Photo",
+        "tags": [
+          "photos"
         ]
       }
     },

@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
-import { defaultIconSetId } from './catalog'
+import { defaultIconSetId, presetFlag } from './catalog'
+import { prepareAvatar } from './image'
+import { tierLimits } from './limits'
 import { browserTimeZone } from './date'
 
 /**
@@ -19,6 +21,8 @@ export type Profile = {
   iconSetId: string
   timeZone: string
   onboarded: boolean
+  /** Màu cờ người dùng tự thêm từ bảng pha màu (#RRGGBB), theo thứ tự thêm. */
+  customFlagColors: string[]
 }
 
 export const ME_KEY = ['me'] as const
@@ -31,6 +35,7 @@ const FALLBACK: Profile = {
   iconSetId: defaultIconSetId,
   timeZone: browserTimeZone(),
   onboarded: false,
+  customFlagColors: [],
 }
 
 export function toProfile(me: Me): Profile {
@@ -41,6 +46,7 @@ export function toProfile(me: Me): Profile {
     iconSetId: me.icon_set_id,
     timeZone: me.timezone,
     onboarded: me.onboarded,
+    customFlagColors: me.custom_flag_colors,
   }
 }
 
@@ -82,6 +88,55 @@ export function useUpdateProfile() {
     },
     onSuccess: (me) => client.setQueryData(ME_KEY, me),
   })
+}
+
+/**
+ * Đổi ảnh đại diện (F-04, Bước 7): cắt vuông + nén trên trình duyệt → presigned PUT lên kho
+ * → PATCH /me {avatar_upload} để backend kiểm tra rồi dùng ảnh (ảnh cũ bị xóa khỏi kho).
+ */
+export function useUploadAvatar() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const { blob, type } = await prepareAvatar(file)
+      const up = await api.POST('/me/avatar/upload-url', { body: { content_type: type } })
+      if (up.error || !up.data) throw toApiError(up.response, up.error)
+      // Không kèm cookie, chỉ đúng header đã ký.
+      const put = await fetch(up.data.upload_url, { method: 'PUT', headers: up.data.headers, body: blob })
+      if (!put.ok) throw new Error(`Kho ảnh trả ${put.status}`)
+      const body = { avatar_upload: { upload_id: up.data.upload_id, content_type: type } }
+      const { data, error, response } = await api.PATCH('/me', { body: body as never })
+      if (error || !data) throw toApiError(response, error)
+      return data
+    },
+    onSuccess: (me) => client.setQueryData(ME_KEY, me),
+  })
+}
+
+/**
+ * Màu cờ tùy chỉnh (chốt Q6): thêm khi chọn cờ, gỡ trong Hồ sơ. PATCH /me thay cả danh sách.
+ * Màu có sẵn hoặc đã có thì không thêm lại; đủ số màu tối đa (limits.json) thì `canAdd` = false.
+ */
+export function useCustomFlagColors() {
+  const { data } = useMe()
+  const save = useUpdateProfile()
+  const colors = data?.custom_flag_colors ?? []
+  const max = tierLimits(data?.account_tier).profile.custom_flag_colors_max
+  const has = (hex: string) => colors.some((c) => c.toLowerCase() === hex.toLowerCase())
+  return {
+    colors,
+    max,
+    canAdd: Boolean(data) && colors.length < max,
+    pending: save.isPending,
+    add(hex: string) {
+      if (!data || presetFlag(hex) || has(hex) || colors.length >= max) return
+      save.mutate({ custom_flag_colors: [...colors, hex.toUpperCase()] })
+    },
+    remove(hex: string) {
+      if (!has(hex)) return
+      save.mutate({ custom_flag_colors: colors.filter((c) => c.toLowerCase() !== hex.toLowerCase()) })
+    },
+  }
 }
 
 /** "Minh An" → "MA"; một chữ → chữ cái đầu. */

@@ -3,7 +3,7 @@ import { checkPhoto, isHeic } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
 import type { PhotoItem } from './PhotoViewer'
 
-/** Tải một ảnh lên; gọi `onProgress` với 0–1, trả ảnh đã lưu. Bản thật (presigned URL) có ở Bước 7. */
+/** Tải một ảnh lên; gọi `onProgress` với 0–1, trả ảnh đã lưu (features/entry/uploadPhoto.ts). */
 export type UploadPhoto = (file: File, onProgress: (ratio: number) => void, signal: AbortSignal) => Promise<PhotoItem>
 
 export type UploadTile =
@@ -54,14 +54,19 @@ export function planAdd(
 }
 
 function previewOf(file: File): string | undefined {
-  // HEIC: Chrome/Edge/Firefox không vẽ được trong <img> nên để ô màu kèm tên tệp (bản nén WebP có ở Bước 7).
+  // HEIC: Chrome/Edge/Firefox không vẽ được trong <img> nên để ô màu kèm tên tệp; xong thì hiện ảnh thu nhỏ.
   if (isHeic(file)) return undefined
   // jsdom (test) không có createObjectURL.
   return typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : undefined
 }
 
+type Options = {
+  /** Bỏ một ảnh đã lưu: màn tự lưu (Hôm nay) xóa ngay trên máy chủ; màn Sửa để tới lúc bấm Lưu. */
+  onRemoveDone?: (photo: PhotoItem) => void
+}
+
 /** Trạng thái ô ảnh của một trang: thêm, bỏ, thử lại; tự hủy request và thu hồi ảnh xem trước khi rời trang. */
-export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto) {
+export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto, { onRemoveDone }: Options = {}) {
   const [tiles, setTiles] = useState<UploadTile[]>(() => initial.map((photo) => ({ key: photo.id, status: 'done', photo })))
   const [note, setNote] = useState<string | null>(null)
   const seq = useRef(0)
@@ -116,11 +121,16 @@ export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto) {
     [run, tiles],
   )
 
-  const remove = useCallback((key: string) => {
-    controllers.current.get(key)?.abort()
-    setTiles((list) => list.filter((t) => t.key !== key))
-    setNote(null)
-  }, [])
+  const remove = useCallback(
+    (key: string) => {
+      controllers.current.get(key)?.abort()
+      const tile = tiles.find((t) => t.key === key)
+      if (tile?.status === 'done') onRemoveDone?.(tile.photo)
+      setTiles((list) => list.filter((t) => t.key !== key))
+      setNote(null)
+    },
+    [onRemoveDone, tiles],
+  )
 
   const retry = useCallback(
     (key: string) => {
