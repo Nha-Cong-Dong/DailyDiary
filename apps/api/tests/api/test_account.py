@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
+from httpx import ASGITransport, AsyncClient
 from limits import parse_many
 from pymongo.errors import WriteError
 
@@ -10,6 +11,8 @@ from app.core.config import settings
 from app.core.limits import get_limits, rate_limit
 from app.core.rate_limit import limiter
 from app.db import collections as c
+from app.db.client import get_db
+from app.main import create_app
 from app.routers import me as me_router
 from app.services import account as account_service
 from app.services import photos as photo_service
@@ -253,15 +256,28 @@ async def test_deletes_need_login_and_csrf(anon, alice):
     ).status_code == 403
 
 
-async def test_dev_login_reports_pending_deletion(anon, db):
-    r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
-    assert r.status_code == 200
-    await db[c.USERS].update_one(
-        {"google_sub": "dev:x@example.com"}, {"$set": {"deleted_at": datetime.now(UTC)}}
-    )
-    anon.cookies.clear()  # lần đăng nhập trên đã gắn cookie phiên
-    r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
-    assert r.status_code == 403 and r.json()["error"]["code"] == "ACCOUNT_DELETED"
+async def test_dev_login_reports_pending_deletion(db, monkeypatch):
+    # /auth/dev-login chỉ được đăng ký khi bật DEV_LOGIN lúc tạo app: bật ngay trong test, không dựa vào
+    # .env của máy chạy (CI không đặt DEV_LOGIN nên route trả 404).
+    monkeypatch.setattr(settings, "dev_login", True)
+    monkeypatch.setattr(settings, "env", "test")
+    app = create_app()
+    app.dependency_overrides[get_db] = lambda: db
+    limiter.enabled = False
+    try:
+        transport = ASGITransport(app=app)
+        origin = {"Origin": settings.frontend_origins[0]}
+        async with AsyncClient(transport=transport, base_url="http://test", headers=origin) as anon:
+            r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
+            assert r.status_code == 200
+            await db[c.USERS].update_one(
+                {"google_sub": "dev:x@example.com"}, {"$set": {"deleted_at": datetime.now(UTC)}}
+            )
+            anon.cookies.clear()  # lần đăng nhập trên đã gắn cookie phiên
+            r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
+            assert r.status_code == 403 and r.json()["error"]["code"] == "ACCOUNT_DELETED"
+    finally:
+        limiter.enabled = True
 
 
 async def test_delete_account_needs_recent_login(alice, db, s3):
