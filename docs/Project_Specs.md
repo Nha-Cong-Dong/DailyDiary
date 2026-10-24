@@ -1,59 +1,80 @@
-# DailyDiary – Tài liệu đặc tả kỹ thuật
+# Jotly (DailyDiary) – Tài liệu đặc tả
 
-|                       |                                                           |
-| --------------------- | --------------------------------------------------------- |
-| **Phiên bản**         | 0.1 (bản nháp)                                            |
-| **Ngày cập nhật**     | 16/10/2026                                                |
-| **Phạm vi**           | Giai đoạn 1 – MVP (web app), kèm định hướng giai đoạn 2–3 |
-| **Quy mô thử nghiệm** | Dưới 20 người dùng                                        |
-| **Thời gian MVP**     | 2 tuần                                                    |
+|                       |                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------- |
+| **Phiên bản**         | 1.0 (viết lại theo code thực tế)                                                 |
+| **Ngày cập nhật**     | 25/10/2026                                                                       |
+| **Trạng thái MVP**    | Xong Bước 1–3, 5–13 (phần local), 11b; đang Bước 14 — xem [`MVP_Plan.md`](MVP_Plan.md) |
+| **Phạm vi**           | Giai đoạn 1 – MVP (web app), kèm định hướng giai đoạn 2–3                        |
+| **Quy mô thử nghiệm** | Dưới 20 người dùng                                                               |
+| **Tài liệu liên quan** | Cây dự án: [`Project_Structure.md`](Project_Structure.md) · Quyết định kiến trúc: [`adr/`](adr/README.md) |
+
+**Cách đọc:** mỗi con số giới hạn trong tài liệu này lấy từ [`shared/limits.json`](../shared/limits.json) (cấp `beta`);
+khi hai nơi lệch nhau, `limits.json` là đúng. Quyết định đổi so với bản trước ghi ở [Phụ lục D](#phụ-lục-d-nhật-ký-quyết-định).
+
+## Mục lục
+
+1. [Tổng quan sản phẩm](#1-tổng-quan-sản-phẩm)
+2. [Phạm vi MVP](#2-phạm-vi-mvp)
+3. [Tính năng](#3-tính-năng)
+4. [Yêu cầu phi tính năng](#4-yêu-cầu-phi-tính-năng)
+5. [Kiến trúc hệ thống](#5-kiến-trúc-hệ-thống)
+6. [Vận hành](#6-vận-hành)
+7. [Lộ trình](#7-lộ-trình)
+8. [Chiến lược kiếm tiền và giới hạn](#8-chiến-lược-kiếm-tiền-và-giới-hạn)
+9. [Rủi ro](#9-rủi-ro)
+10. [Câu hỏi mở](#10-câu-hỏi-mở)
+- Phụ lục: [A. Sản phẩm tham khảo](#phụ-lục-a-sản-phẩm-tham-khảo) · [B. Kho ý tưởng](#phụ-lục-b-kho-ý-tưởng-cho-các-giai-đoạn-sau) ·
+  [C. Tài liệu tham khảo](#phụ-lục-c-tài-liệu-và-công-cụ-tham-khảo) · [D. Nhật ký quyết định](#phụ-lục-d-nhật-ký-quyết-định)
 
 ---
 
-## 1. Tổng quan dự án
+## 1. Tổng quan sản phẩm
 
 ### 1.1. Vấn đề
 
-Nhiều người có thói quen ghi lại cuộc sống của mình: viết nhật ký, lưu ảnh, trang trí sổ. Song song đó, ngày càng nhiều người muốn thay thế các nguồn "dopamine nhanh" (mạng xã hội, video ngắn) bằng các nguồn dopamine lành mạnh hơn như tập luyện, học tập, rèn thói quen tốt. Điểm chung là cảm giác tiến bộ khi nhìn lại hành trình của bản thân.
+Nhiều người có thói quen ghi lại cuộc sống: viết nhật ký, lưu ảnh, trang trí sổ. Ngày càng nhiều người cũng muốn thay
+các nguồn "dopamine nhanh" (mạng xã hội, video ngắn) bằng nguồn lành mạnh hơn như tập luyện, học tập, rèn thói quen tốt.
+Điểm chung là cảm giác tiến bộ khi nhìn lại hành trình của bản thân.
 
-Tuy nhiên, sổ giấy khó mang theo, khó tìm lại, dễ thất lạc. Các ứng dụng ghi chú thông thường lại khô khan và không giúp người dùng thấy sự thay đổi của mình theo thời gian.
+Sổ giấy khó mang theo, khó tìm lại, dễ thất lạc. Ứng dụng ghi chú thông thường lại khô khan và không cho người dùng thấy
+sự thay đổi của mình theo thời gian.
 
 ### 1.2. Giải pháp
 
-**DailyDiary** là ứng dụng nhật ký giúp người dùng ghi lại suy nghĩ, tâm trạng và hình ảnh mỗi ngày: tiện lợi, trực quan, dễ chịu khi nhìn lại tiến trình, sự phát triển và biến động tâm trạng của chính mình.
+**Jotly** (tên mã dự án **DailyDiary**) là nhật ký cá nhân trên web: mỗi ngày một trang, chấm điểm tâm trạng trong một
+chạm, thêm chữ, từ khóa, ảnh nếu muốn; rồi nhìn lại qua dòng thời gian, lịch tháng và Year in Pixels.
+Khẩu hiệu: *"Chạm để ghi chú, mở để nhìn lại."*
 
 ### 1.3. Mục tiêu của MVP
 
-MVP chứng minh một điều duy nhất: **ghi lại mỗi ngày thật dễ, và nhìn lại thì thấy vui.**
+MVP chứng minh một điều: **ghi lại mỗi ngày thật dễ, và nhìn lại thì thấy vui.**
 
-Mục tiêu cụ thể:
-- Có web app chạy thật, người dùng thử truy cập được qua một đường link.
-- Người dùng ghi được một ngày trong vài giây (chỉ cần chọn biểu tượng chấm điểm).
-- Người dùng nhìn lại được hành trình qua dòng thời gian, lịch tháng và Year in Pixels.
-- Thu thập dữ liệu sử dụng và góp ý để quyết định hướng phát triển.
+- Web app chạy thật, người dùng thử vào được qua một đường link.
+- Ghi được một ngày trong vài giây (chỉ cần chọn biểu tượng điểm).
+- Nhìn lại hành trình qua dòng thời gian, lịch tháng và Year in Pixels.
+- Thu thập góp ý (và khi bật lại phân tích sự kiện, số liệu sử dụng) để quyết định hướng phát triển.
 
 ### 1.4. Chỉ số thành công (tiêu chí chuyển sang giai đoạn 2)
 
-| Chỉ số                                                          | Cách đo                                   |
-| --------------------------------------------------------------- | ----------------------------------------- |
-| Tỉ lệ người dùng còn hoạt động sau 7 ngày (D7) và 30 ngày (D30) | Sự kiện đăng nhập / tạo bài viết          |
-| Số ngày được ghi trung bình mỗi tuần / người                    | Collection `entries`                      |
-| Tỉ lệ bài ghi "đúng ngày" so với "cập nhật muộn"                | So sánh `updated_at` với `entry_date`     |
-| Thiết bị người dùng thường dùng để ghi                          | Phân tích sự kiện (máy tính / điện thoại) |
-| Mức sẵn sàng giới thiệu cho người khác (NPS)                    | Khảo sát sau 2–4 tuần                     |
+| Chỉ số                                                          | Cách đo                                             |
+| --------------------------------------------------------------- | --------------------------------------------------- |
+| Tỉ lệ còn hoạt động sau 7 ngày (D7) và 30 ngày (D30)             | Collection `entries` (ngày có trang), phiên đăng nhập |
+| Số ngày được ghi trung bình mỗi tuần / người                    | Collection `entries`                                |
+| Tỉ lệ trang "ghi đúng ngày" so với "cập nhật muộn"              | So `updated_at` (theo múi giờ người dùng) với `entry_date` |
+| Thiết bị thường dùng để ghi                                     | Phân tích sự kiện — **hoãn** cùng Umami (mục 4.7)   |
+| Mức sẵn sàng giới thiệu cho người khác (NPS)                    | Khảo sát sau 2–4 tuần                               |
 
 ### 1.5. Đối tượng người dùng
 
-- Người muốn viết nhật ký, lưu lại kỷ niệm trên thiết bị của mình.
-- Người đang viết nhật ký giấy, muốn chuyển sang hoặc kết hợp thêm dạng số.
+- Người muốn viết nhật ký, lưu kỷ niệm trên thiết bị của mình; người đang viết sổ giấy muốn chuyển sang dạng số.
 - Người yêu thích trang trí sổ (bullet journal, scrapbook).
-- Người đang xây dựng lối sống lành mạnh hơn và muốn nhìn thấy sự tiến bộ.
-- Học sinh, sinh viên muốn lưu lại hành trình học tập, ôn thi, du học.
-- Người quan tâm sức khỏe tinh thần, muốn theo dõi tâm trạng.
-- Cặp đôi, nhóm bạn, gia đình muốn lưu giữ kỷ niệm chung *(giai đoạn sau)*.
-- Cha mẹ muốn ghi lại quá trình lớn lên của con.
-- Người thích du lịch muốn lưu hành trình bằng chữ và ảnh.
-- Người đang trải qua giai đoạn thay đổi lớn trong cuộc sống.
+- Người xây dựng lối sống lành mạnh và muốn thấy sự tiến bộ; người quan tâm sức khỏe tinh thần, theo dõi tâm trạng.
+- Học sinh, sinh viên lưu hành trình học tập, ôn thi, du học; người thích du lịch lưu hành trình bằng chữ và ảnh.
+- Cha mẹ ghi lại quá trình lớn lên của con; người đang trải qua thay đổi lớn trong cuộc sống.
+- Cặp đôi, nhóm bạn, gia đình lưu kỷ niệm chung *(giai đoạn sau)*.
+
+Độ tuổi: **từ 16 tuổi** (chính sách quyền riêng tư, 24/10/2026).
 
 ---
 
@@ -62,161 +83,171 @@ Mục tiêu cụ thể:
 ### 2.1. Trong phạm vi
 
 - Trải nghiệm **cá nhân**: một người dùng, nhật ký riêng.
-- Nền tảng: **web app**, ưu tiên trình duyệt trên máy tính (Chrome, Edge); giao diện responsive để dùng được trên điện thoại. Luồng "ghi nhanh" (chọn biểu tượng, thêm ảnh) phải mượt trên điện thoại.
+- **Web app**, ưu tiên trình duyệt máy tính; giao diện riêng cho điện thoại từ 360 px. Luồng "ghi nhanh" (chọn điểm,
+  thêm ảnh) phải mượt trên điện thoại.
 - Đăng nhập bằng tài khoản Google.
-- Chia sẻ **một trang** qua link chỉ xem, người viết chọn phần được hiện (F-10, ADR 0005, chốt 21/10/2026).
+- Chia sẻ **một trang** qua link chỉ xem, người viết chọn phần được hiện (F-10, ADR 0005).
+- Giao diện tiếng Việt, chế độ sáng/tối. Thiết kế theo canvas "Jotly Design System" (màu *Mực & giấy*, chữ *Sổ tay*,
+  nền tảng *Sổ dán*); khi thiết kế và kế hoạch khác nhau thì theo thiết kế.
 
 ### 2.2. Ngoài phạm vi MVP
 
-- Tính năng nhiều người dùng: nhật ký chung, bình luận, theo dõi người khác. (Chia sẻ một trang qua link đã vào MVP, xem F-10.)
-- Đăng nhập Facebook và các nhà cung cấp khác.
-- Đổi chủ đề, theme, trang trí, sticker.
-- AI, video tổng kết, thông báo đẩy.
+- Nhiều người dùng: nhật ký chung, bình luận, theo dõi người khác (chỉ có chia sẻ một trang, F-10).
+- Đăng nhập Facebook và nhà cung cấp khác.
+- Theme, trang trí, sticker; thêm bộ biểu tượng mới (làm sau khi sản phẩm hoàn thiện).
+- AI, video tổng kết, thông báo đẩy, PWA.
 - Ứng dụng desktop, ứng dụng di động.
 - Thanh toán, tiền ảo.
+- **Xuất dữ liệu** (bỏ 21/10/2026; Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu").
+- Ngôn ngữ khác tiếng Việt (ô English hiện khóa "Sắp có").
 
 ---
 
-## 3. Danh sách tính năng
+## 3. Tính năng
 
-Ký hiệu mức ưu tiên: **P0** bắt buộc · **P1** nên có nếu kịp · **P2** để giai đoạn sau.
+Mức ưu tiên: **P0** bắt buộc · **P1** nên có · **P2** giai đoạn sau.
 
-| Mã   | Tính năng                                  | Ưu tiên      |
-| ---- | ------------------------------------------ | ------------ |
-| F-01 | Viết nhật ký trong ngày                    | P0           |
-| F-02 | Dòng thời gian, lịch tháng, thống kê tháng | P0           |
-| F-03 | Year in Pixels                             | P0           |
-| F-04 | Đăng nhập Google, hồ sơ người dùng         | P0           |
-| F-05 | Tìm kiếm theo từ khóa                      | P0           |
-| F-06 | Tự động lưu, trạng thái đồng bộ            | P0           |
-| F-07 | Xóa toàn bộ dữ liệu, xóa tài khoản         | P1 (đề xuất) |
-| F-08 | ~~Xuất dữ liệu (JSON)~~ bỏ (21/10/2026)    | –            |
-| F-09 | Nút góp ý trong app                        | P1 (đề xuất) |
-| F-10 | Chia sẻ một trang qua link chỉ xem         | P1           |
+| Mã   | Tính năng                                   | Ưu tiên | Trạng thái              |
+| ---- | ------------------------------------------- | ------- | ----------------------- |
+| F-01 | Viết nhật ký trong ngày (chữ, biểu tượng, ảnh) | P0   | Xong (Bước 5, 7)        |
+| F-02 | Dòng thời gian, lịch tháng, thống kê tháng  | P0      | Xong (Bước 8, 9)        |
+| F-03 | Year in Pixels                              | P0      | Xong (Bước 10)          |
+| F-04 | Đăng nhập Google, hồ sơ người dùng          | P0      | Xong (Bước 3)           |
+| F-05 | Tìm kiếm                                    | P0      | Xong (Bước 11)          |
+| F-06 | Tự động lưu, trạng thái đồng bộ             | P0      | Xong (Bước 6)           |
+| F-07 | Thùng rác, xóa toàn bộ dữ liệu, xóa tài khoản | P1    | Xong (Bước 12)          |
+| F-08 | ~~Xuất dữ liệu (JSON)~~                     | –       | Bỏ (21/10/2026)         |
+| F-09 | Góp ý trong app                             | P1      | Xong (Bước 12)          |
+| F-10 | Chia sẻ một trang qua link chỉ xem          | P1      | Xong (Bước 11b)         |
 
 ### F-01. Viết nhật ký trong ngày
 
-Mỗi người dùng có tối đa **1 nhật ký cho mỗi ngày**. Mỗi nhật ký gồm:
+Mỗi người dùng có tối đa **1 trang cho mỗi ngày**.
 
-| Trường                       | Bắt buộc | Thông số                                                            |
-| ---------------------------- | -------- | ------------------------------------------------------------------- |
-| Tiêu đề                      | Không    | 0–100 ký tự                                                         |
-| Nội dung                     | Không    | 0–20.000 ký tự, văn bản thuần, chuẩn hóa Unicode NFC                |
-| Từ khóa                      | Không    | 0–10 từ khóa, mỗi từ 1–30 ký tự, không trùng lặp                    |
-| Cờ hiệu                      | Không    | 1 màu: từ bảng 8 màu có sẵn hoặc màu tùy chỉnh người dùng thêm qua bảng pha màu (lưu mã hex `#RRGGBB`); có lựa chọn "không cờ" |
-| Ảnh                          | Không    | 0–10 ảnh/ngày                                                       |
-| Biểu tượng chính (main icon) | **Có**   | Điểm số nguyên 1–5; hình vẽ theo bộ icon trong hồ sơ (MVP có 6 bộ)  |
-| Biểu tượng con (sub icon)    | Không    | 0–1 emoji, chọn từ danh sách khoảng 30–50 emoji gợi ý               |
+| Trường                       | Bắt buộc | Thông số                                                                      |
+| ---------------------------- | -------- | ----------------------------------------------------------------------------- |
+| Biểu tượng chính (điểm)      | **Có**   | Số nguyên 1–5; hình vẽ theo bộ biểu tượng trong hồ sơ (6 bộ, mặc định `sprout`) |
+| Biểu tượng phụ (sub icon)    | Không    | 0–1 emoji trong danh sách 47 gợi ý (`shared/icons.json`)                      |
+| Cờ hiệu                      | Không    | 1 màu: 8 màu có sẵn (`shared/flag_colors.json`) hoặc màu tự thêm (tối đa 8); lưu `#RRGGBB` |
+| Tiêu đề                      | Không    | 0–100 ký tự                                                                   |
+| Nội dung                     | Không    | 0–20.000 ký tự, văn bản thuần, chuẩn hóa Unicode NFC                          |
+| Từ khóa                      | Không    | 0–10 từ khóa, mỗi từ 1–30 ký tự, không trùng                                  |
+| Ảnh                          | Không    | 0–10 ảnh/ngày                                                                 |
 
 Quy tắc:
-- **Điều kiện "đã ghi"**: đã chọn biểu tượng chính. Mọi trường khác là tùy chọn, giúp giữ chân người dùng khi họ nhất thời chán nản.
-- **Ngày được phép ghi**: hôm nay và các ngày trước; không cho ghi ngày tương lai. "Ngày" tính theo múi giờ của người dùng.
-- **Thời gian khởi tạo và sửa cuối** được lưu lại. Bài có lần sửa cuối nằm trong chính ngày đó hiện nhãn **"ghi đúng ngày"**; ngược lại hiện **"cập nhật muộn"**, nhằm khuyến khích người dùng ghi ngay trong ngày.
-- **Sửa, xóa**: cho phép. Xóa cần xác nhận và là **xóa mềm**, khôi phục được trong 30 ngày (`entry.restore_days` trong
-  `shared/limits.json`). Ghi lại vào một ngày đã xóa mềm tạo trang mới thay cho bản đã xóa.
-- **Hiển thị biểu tượng**: sub icon hiển thị nhỏ cạnh main icon, tỉ lệ kích thước sub/main khoảng 0,5–0,6 (đặt thành biến giao diện để dễ điều chỉnh).
+- **"Đã ghi"** = đã chọn biểu tượng chính; mọi trường khác tùy chọn (giữ chân người dùng cả khi họ chỉ muốn chấm điểm).
+- **Ngày được ghi**: hôm nay và các ngày trước, theo múi giờ trong hồ sơ; backend từ chối ngày tương lai (422).
+- **Nhãn thời điểm**: lần sửa cuối rơi vào chính ngày đó (theo múi giờ người dùng) → **"ghi đúng ngày"**; ngược lại →
+  **"cập nhật muộn"**.
+- **Ba cách viết**: *Hôm nay* (tự lưu), *Ghi bù* một ngày đã qua chưa có trang, *Sửa trang cũ* (chỉ lưu nháp, lên máy chủ
+  khi bấm "Lưu thay đổi"). Trang chủ và dòng thời gian có **chấm điểm nhanh** cho hôm nay.
+- **Xóa** cần xác nhận và là **xóa mềm**: trang vào Thùng rác, khôi phục được trong 30 ngày (`entry.restore_days`).
+  Ghi lại vào một ngày đã xóa mềm tạo trang mới thay cho bản đã xóa (ảnh cũ bị xóa ngay).
+- **Hiển thị**: sub icon nhỏ cạnh main icon, tỉ lệ khoảng 0,5–0,6 (biến giao diện).
 
 Ảnh:
-- Định dạng nhận vào: JPEG, PNG, HEIC, WebP; tối đa 10 MB/ảnh gốc (chốt theo thiết kế B9, 21/10/2026). HEIC được
-  chuyển sang WebP ngay trên trình duyệt trước khi nén (thư viện giải mã HEIC chạy WebAssembly, Bước 7).
-- Nén trên trình duyệt trước khi tải lên: cạnh dài tối đa 1920 px, WebP chất lượng khoảng 80% (khoảng 300–500 KB).
-- Tạo ảnh thu nhỏ cạnh dài khoảng 320 px cho dòng thời gian và lịch.
-- Không lưu ảnh gốc ở MVP; thông báo cho người dùng biết ảnh gốc vẫn nằm trên máy của họ.
+- Người dùng chọn JPEG, PNG, HEIC/HEIF hoặc WebP, tối đa **10 MB/ảnh gốc**. HEIC được giải mã ngay trên trình duyệt
+  (WebAssembly, không gọi CDN).
+- Trình duyệt nén trước khi tải lên: ảnh chính cạnh dài ≤ 1920 px, ≤ 1,5 MB; ảnh thu nhỏ ≤ 320 px, ≤ 200 KB; WebP chất
+  lượng 0,8 (JPEG khi trình duyệt không hỗ trợ WebP). Khi nén, **EXIF (kể cả GPS) bị bỏ**.
+- **Ảnh gốc không rời khỏi thiết bị**; giao diện báo điều này.
+- Kéo để sắp xếp; xóa một ảnh là xóa luôn trong kho. Ảnh tính vào hạn mức dung lượng (mục 4.5).
 
 ### F-02. Dòng thời gian, lịch tháng, thống kê tháng
 
-- **Danh sách bài theo tháng** (thiết kế B8, đổi 21/10/2026 thay cho cuộn vô hạn): xem từng tháng, mới nhất ở trên,
-  hiện 7 trang rồi "Xem thêm"; cả tháng lấy trong 1 request, mỗi trang chỉ có đoạn đầu nội dung (300 ký tự) và số ảnh.
-- **Lịch tháng**: mỗi ngày hiển thị main icon và sub icon thu nhỏ. Dữ liệu cả tháng lấy trong **1 request**, chỉ gồm ngày, điểm, sub icon, màu cờ (bộ icon lấy từ hồ sơ, áp cho mọi ngày); không tải nội dung bài viết.
-- **Thống kê tháng**: số ngày đã ghi / tổng số ngày; điểm trung bình; phân bố điểm 1–5; tổng số ảnh; chuỗi ngày ghi liên tiếp dài nhất; biểu đồ điểm theo ngày.
-- **Ghi bù** (thiết kế B9, 21/10/2026): trang tạo sau khi ngày đó đã qua (`created_at` rơi vào ngày sau `entry_date`
-  theo múi giờ người dùng) vẫn tô màu trong lịch tháng và Year in Pixels, nhưng **không nối lại chuỗi ngày liên tiếp**.
-- Thời gian tải lịch + thống kê: dưới 1 giây.
+- **Dòng thời gian theo tháng**: mới nhất ở trên, hiện 7 trang rồi "Xem thêm"; cả tháng lấy trong **1 request**, mỗi
+  trang chỉ gồm 300 ký tự đầu nội dung và số ảnh. Tháng nằm trên URL (`/timeline?m=2026-09`).
+- **Lịch tháng**: mỗi ngày hiện main icon, sub icon, màu cờ; cả tháng 1 request, không tải nội dung.
+- **Thống kê tháng**: số ngày đã ghi / số ngày; điểm trung bình; phân bố điểm 1–5; tổng số ảnh; chuỗi ngày liên tiếp
+  (hiện tại và dài nhất, tính ở backend, vắt qua tháng); nhịp điểm theo ngày (biểu đồ vẽ bằng SVG/CSS).
+- **Ghi bù**: trang tạo sau khi ngày đó đã qua vẫn tô màu trong lịch và Year in Pixels, nhưng **không nối lại chuỗi**.
+- **Hôm nay chưa viết**: dòng thời gian hiện lời mời và chấm điểm nhanh (thiết kế B8-Timeline-Today).
+- Điện thoại: bấm một ngày mở bảng xem nhanh.
+- Mục tiêu: lịch + thống kê tải dưới 1 giây.
 
 ### F-03. Year in Pixels
 
-- Lưới 365/366 ô sắp theo 12 tháng, mỗi ô tô màu theo điểm 1–5; ngày chưa ghi dùng màu trung tính.
-- Dữ liệu cả năm lấy trong **1 request** (chỉ ngày + điểm + màu cờ, vài KB): điểm là chuỗi 365/366 ký tự ("0" = chưa
-  ghi), cờ và ngày ghi bù chỉ liệt kê ngày có; cả năm ghi đủ, ngày nào cũng có cờ vẫn dưới 10 KB.
-- Rê chuột để xem nhanh, bấm để mở nhật ký ngày đó.
+- Lưới 365/366 ô theo 12 tháng, tô theo điểm; ngày chưa ghi màu trung tính; ô trước ngày bắt đầu dùng Jotly là "trước khi dùng".
+- Cả năm **1 request**, vài KB: điểm là chuỗi 365/366 ký tự (`"0"` = chưa ghi), cờ và ngày ghi bù chỉ liệt kê ngày có.
+- Rê chuột/bấm để xem nhanh, mở trang của ngày đó.
 - Chọn năm: chỉ các năm có dữ liệu.
-- Chế độ tô màu theo cờ hiệu: người dùng chọn "Tô ô theo: Điểm | Cờ hiệu"; lựa chọn nhớ trên trình duyệt.
+- **Tô theo: Điểm | Cờ hiệu**, lựa chọn nhớ trên trình duyệt.
 
 ### F-04. Đăng nhập và hồ sơ
 
-- Đăng nhập bằng Google (OAuth 2.0). Trong giai đoạn thử nghiệm, để OAuth ở chế độ **Testing** và thêm email người dùng thử vào danh sách.
-- Phiên đăng nhập 30 ngày, tự làm mới.
-- Hồ sơ gồm:
+- Đăng nhập bằng Google (OAuth 2.0, scope `openid email profile`); chỉ nhận email đã xác minh. Thời kỳ thử nghiệm để
+  OAuth ở chế độ **Testing** với danh sách email người dùng thử.
+- Lần đầu: 3 bước giới thiệu (`/onboarding`) — tên, bộ biểu tượng, múi giờ.
+- Phiên đăng nhập 30 ngày, tự gia hạn khi dùng; đăng xuất hủy phiên ngay.
+- Hồ sơ:
 
-| Trường         | Hiển thị | Thông số                                                                                                                                                                         |
-| -------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ảnh đại diện   | Có       | Mặc định lấy từ Google; cho đổi và gỡ: JPEG/PNG/WebP, tối đa 2 MB, cắt vuông 256×256 px (giới hạn ở `limits.json` mục `profile`). Làm cùng Bước 7 (kho ảnh) |
-| Tên người dùng | Có       | 1–50 ký tự, mặc định lấy từ Google                                                                                                                                               |
-| Múi giờ        | Không    | Định dạng IANA (vd: `Asia/Ho_Chi_Minh`), tự nhận từ trình duyệt khi đăng ký, cho phép sửa. Dùng để xác định thời điểm kết thúc ngày. Đổi múi giờ chỉ áp dụng cho các ngày sau đó |
-| Bộ icon        | Không    | Mã bộ main icon trong `shared/icons.json` (vd: `sprout`), chọn ở bước 2 lần đầu sử dụng, đổi được trong hồ sơ. Áp dụng cho **mọi ngày**, kể cả ngày đã ghi: đổi bộ chỉ thay hình, điểm giữ nguyên (chốt 20/10/2026) |
-| Chế độ màu, ngôn ngữ | Không | Sáng / Tối / Theo hệ thống, lưu trên trình duyệt. MVP chỉ có tiếng Việt; ô chọn English hiện khóa "Sắp có" |
+| Trường         | Thông số                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------- |
+| Ảnh đại diện   | Mặc định ảnh Google (chỉ lưu link). Cho tải ảnh riêng (cắt vuông 256 px, nén trên trình duyệt, ≤ 2 MB) hoặc gỡ ảnh |
+| Tên            | 1–50 ký tự, mặc định từ Google                                                                            |
+| Múi giờ        | IANA (vd `Asia/Ho_Chi_Minh`), tự nhận từ trình duyệt lần đầu, sửa được; đổi chỉ áp dụng cho các ngày sau đó |
+| Bộ biểu tượng  | 1 trong 6 bộ; áp cho **mọi ngày**, kể cả ngày đã ghi (đổi hình, giữ điểm)                                  |
+| Màu cờ riêng   | Tối đa 8 màu tự thêm từ bảng pha màu                                                                      |
+| Giao diện      | Sáng / Tối / Theo hệ thống, lưu trên trình duyệt                                                          |
+
+- Hồ sơ còn có: dung lượng ảnh đã dùng, Thùng rác, Trang đang chia sẻ, Góp ý, xóa dữ liệu/tài khoản, link chính sách.
 
 ### F-05. Tìm kiếm
 
-- Phạm vi: tiêu đề, nội dung và từ khóa (chốt theo thiết kế B7, 20/10/2026).
-- Khớp **chuỗi con**, không phân biệt hoa thường. Gõ **không dấu** thì so không dấu (`da lat` khớp `Đà Lạt`);
-  gõ **có dấu** thì so đúng dấu (`mưa` không khớp `mua`).
-- Bộ lọc kết hợp: điểm (chọn nhiều mức), khoảng thời gian (tháng này / 3 tháng / năm nay / mọi lúc, mặc định
-  mọi lúc để tìm được cả trang của năm trước), chỉ ngày có ảnh. Khoảng thời gian tính theo múi giờ người dùng.
-- Kết quả hiện tiêu đề và một đoạn trích quanh chỗ khớp, tô sáng phần khớp; kèm "Từ khóa hay dùng" (6 từ khóa
-  dùng nhiều nhất của chính người dùng).
-- Từ khóa tìm kiếm không đưa lên URL, không ghi log, không gửi Sentry (là nội dung nhật ký).
-- 20–50 kết quả/trang (`pagination.search_page_size` = 30), mới nhất trước, "Xem thêm" theo con trỏ. Thời gian phản hồi
-  dưới 500 ms. Rate limit riêng `search` (60/phút) vì tìm theo lần ngừng gõ.
+- Phạm vi: tiêu đề, nội dung, từ khóa.
+- Khớp **chuỗi con**, không phân biệt hoa thường. Gõ **không dấu** thì so không dấu (`da lat` khớp `Đà Lạt`); gõ
+  **có dấu** thì so đúng dấu (`mưa` không khớp `mua`).
+- Bộ lọc kết hợp: điểm (nhiều mức), khoảng thời gian (tháng này / 3 tháng / năm nay / mọi lúc — mặc định mọi lúc), chỉ
+  ngày có ảnh. Khoảng thời gian theo múi giờ người dùng.
+- Kết quả: tiêu đề + đoạn trích quanh chỗ khớp, tô sáng; "Từ khóa hay dùng" (6 từ khóa của chính người dùng).
+- Tìm sau 300 ms ngừng gõ; 30 kết quả/lần, mới nhất trước, "Xem thêm" theo con trỏ; phản hồi dưới 500 ms.
+- **Từ khóa tìm kiếm là nội dung nhật ký**: không lên URL của trang, không ghi log.
 
 ### F-06. Tự động lưu
 
-- Lưu nháp vào IndexedDB của trình duyệt sau 1 giây ngừng gõ.
-- Đồng bộ lên máy chủ sau 3–5 giây ngừng gõ, khi rời trang hoặc chuyển tab; chỉ gửi khi nội dung thay đổi.
-- Hiển thị 3 trạng thái: **Đang lưu / Đã lưu / Chưa đồng bộ (mất mạng)**.
-- Khi lỗi: tự thử lại với thời gian chờ tăng dần (2, 4, 8... giây); cảnh báo khi đóng tab còn dữ liệu chưa đồng bộ.
-- Mở cùng nhật ký ở 2 tab: gửi kèm thời gian sửa cuối; nếu máy chủ có bản mới hơn thì báo người dùng thay vì ghi đè.
+- Ghi nháp vào IndexedDB sau **1 giây** ngừng gõ; đồng bộ lên máy chủ sau **4 giây**, khi rời trang hoặc chuyển tab;
+  chỉ gửi khi nội dung khác bản đã đồng bộ.
+- Trạng thái: **Đang lưu / Đã lưu / Chưa đồng bộ** (mất mạng).
+- Lỗi tạm thời (mất mạng, 5xx, 429): thử lại sau 2, 4, 8… giây (tối đa 60 giây), thử ngay khi có mạng lại; cảnh báo
+  khi đóng tab còn dữ liệu chưa đồng bộ.
+- **Xung đột**: mỗi lần lưu gửi kèm `updated_at` đã biết; máy chủ có bản mới hơn (409) thì hỏi người dùng giữ bản nào.
+- Nháp gắn với người dùng (mã băm của email, không lưu email); xóa khi đã đồng bộ, khi đăng xuất, xóa dữ liệu hoặc xóa tài khoản.
 
-### F-07 – F-09. Tính năng đề xuất bổ sung
+### F-07. Thùng rác, xóa toàn bộ dữ liệu, xóa tài khoản
 
-- **Xóa toàn bộ dữ liệu** (thiết kế B7/B10-Profile): xóa vĩnh viễn mọi trang, điểm, ảnh và link chia sẻ; giữ tài khoản,
-  hồ sơ, cài đặt, ảnh đại diện và góp ý để viết tiếp. Xác nhận bằng gõ "XÓA" (backend kiểm tra lại). Xóa cả trang đang
-  trong thùng rác 30 ngày và ảnh tải lên mà chưa xác nhận.
-- **Xóa tài khoản**: xóa toàn bộ nhật ký, ảnh, ảnh đại diện, link chia sẻ, hồ sơ và phiên đăng nhập (mọi thiết bị); đăng
-  xuất ngay. Xác nhận bằng gõ đúng email của tài khoản (backend so lại). Tài khoản Google không bị ảnh hưởng.
-  Chốt 23–24/10/2026: góp ý **giữ nội dung nhưng ẩn danh** (`user_id` thay bằng mã ngẫu nhiên, không còn tên/email);
-  dọn xong thì đăng nhập lại bằng cùng Google tạo **tài khoản mới, trống**; trong lúc đang dọn thì báo "đang chờ xóa".
-  Ảnh trong kho dọn trong nền; dở dang thì `python -m app.jobs.purge_accounts` làm nốt.
-  Bổ sung 24/10/2026: chỉ xóa được khi phiên đăng nhập **trong 10 phút gần nhất** (quá thì báo 403 `REAUTH_REQUIRED`,
-  giao diện có nút "Đăng nhập lại" quay về Hồ sơ); xóa xong gửi **email xác nhận** tới chính chủ (không chứa nội dung
-  nhật ký; tài khoản đăng nhập thử không có hộp thư thật thì không gửi).
-- **Thùng rác** (24/10/2026, thiết kế chưa có): Hồ sơ › Thùng rác liệt kê trang đã xóa còn trong `entry.restore_days`
-  ngày (`GET /entries/trash`), khôi phục từng trang.
-- **Ghi nhận việc xóa** (24/10/2026): collection `deletion_log` chỉ lưu loại thao tác, thời điểm, số lượng — không có
-  `user_id`, email hay nội dung — để thống kê và chứng minh việc xóa đã diễn ra.
-- **Sao lưu và dữ liệu đã xóa** (24/10/2026): bản sao lưu tự động giữ 7 ngày rồi bị ghi đè, nên dữ liệu đã xóa có thể
-  còn trong bản sao lưu tối đa 7 ngày; không dùng bản sao lưu để khôi phục tài khoản đã xóa. Hộp thoại xóa, email xác
-  nhận và Chính sách quyền riêng tư (khi viết) đều ghi rõ điều này.
-- ~~**Xuất dữ liệu**~~: bỏ khỏi sản phẩm theo thiết kế (21/10/2026); Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu".
-- **Góp ý** (chốt 23/10/2026): form ngắn mở từ Hồ sơ và menu tài khoản; lưu vào collection `feedback` rồi gửi email
-  về hộp thư của chủ sản phẩm (`FEEDBACK_TO_EMAIL`) qua Gmail SMTP (App Password). Thư kèm tên + email tài khoản người
-  gửi, đặt làm Reply-To; form ghi rõ điều này. Gửi trong nền: lỗi gửi thư không làm hỏng request, góp ý vẫn còn trong DB
-  (`emailed_at` = null). Tối đa `feedback.message_max` ký tự, rate limit `feedback`. Không ghi nội dung vào log.
+- **Thùng rác** (Hồ sơ › Thùng rác): trang đã xóa còn trong 30 ngày, mới xóa nhất trước, khôi phục từng trang. Quá hạn
+  thì tác vụ `purge_trash` xóa hẳn (ảnh → link chia sẻ → trang).
+- **Xóa toàn bộ dữ liệu**: xóa mọi trang (cả trong thùng rác), ảnh nhật ký, link chia sẻ; **giữ** tài khoản, hồ sơ, cài
+  đặt, ảnh đại diện, góp ý. Xác nhận bằng gõ `XÓA` (backend kiểm tra lại). Hộp thoại cho biết số trang, ảnh, link sẽ mất.
+- **Xóa tài khoản**:
+  - Xác nhận bằng gõ đúng email; chỉ được làm khi đăng nhập **trong 10 phút gần nhất** (quá thì 403 `REAUTH_REQUIRED`,
+    giao diện có nút "Đăng nhập lại").
+  - Đăng xuất mọi thiết bị ngay; xóa nhật ký, ảnh, ảnh đại diện, link chia sẻ, hồ sơ, phiên. Kho ảnh dọn trong nền;
+    dở dang thì tác vụ `purge_accounts` làm nốt. Trong lúc đang dọn, đăng nhập lại báo "đang chờ xóa".
+  - Góp ý **giữ nội dung nhưng ẩn danh** (`user_id` thay bằng mã ngẫu nhiên).
+  - Xong gửi **email xác nhận** tới chính chủ (chỉ số lượng, không có nội dung; tài khoản đăng nhập thử không gửi).
+  - Đăng nhập lại bằng cùng Google tạo **tài khoản mới, trống**. Tài khoản Google không bị ảnh hưởng.
+- **Ghi nhận việc xóa**: `deletion_log` chỉ lưu loại thao tác, thời điểm, số lượng — không `user_id`, email hay nội dung.
+- **Sao lưu**: bản sao lưu giữ 7 ngày, nên dữ liệu đã xóa có thể còn trong sao lưu tối đa 7 ngày; không dùng sao lưu để
+  khôi phục dữ liệu đã xóa. Hộp thoại xóa, email xác nhận và chính sách quyền riêng tư đều nói rõ.
 
-### F-10. Chia sẻ một trang (ADR 0005, thiết kế B8)
+### F-09. Góp ý
 
-- Từ trang chi tiết một ngày, người viết bật **link chia sẻ**. Mỗi ngày tối đa một link đang bật; người nhận chỉ xem,
-  không sửa, không cần đăng nhập.
-- Người viết chọn từng phần được hiện: tên của mình, điểm & icon chính, sub icon, màu cờ, tiêu đề, nội dung, từ khóa,
-  từng ảnh. **Ngày viết luôn hiện.** Phải bật ít nhất một phần ngoài ngày viết thì mới sao chép được link.
-  Thay đổi lưu ngay; người nhận thấy bản mới khi mở lại link.
-- **Tắt link** là thu hồi: link cũ không mở được nữa; bật lại tạo link mới. Màn "Trang đang chia sẻ" (từ Hồ sơ) liệt kê
-  các link đang bật, cho sao chép, chỉnh phần chia sẻ, tắt link.
-- Trang bị xóa mềm, link đã tắt, token sai hoặc tài khoản đã xóa: người nhận thấy cùng một màn "Trang này không mở
-  được", không phân biệt lý do.
-- Trang công khai: rate limit theo IP (`shared/limits.json`), không cho lập chỉ mục (`noindex`), không lưu cache,
-  không gửi Referer; không lộ email, `user_id` hay id nội bộ. Ảnh dùng link ký có hạn như trong app (Bước 7).
-- Token không ghi vào log, Sentry, analytics.
+- Form ngắn mở từ Hồ sơ và menu tài khoản; tối đa 2.000 ký tự.
+- Lưu vào `feedback` rồi gửi email về hộp thư của chủ sản phẩm (`FEEDBACK_TO_EMAIL`) trong nền; thư kèm tên + email
+  người gửi và đặt Reply-To là người gửi (form ghi rõ). Gửi thư lỗi không làm hỏng request (góp ý vẫn trong DB,
+  `emailed_at` = null). Không ghi nội dung vào log.
+
+### F-10. Chia sẻ một trang (ADR 0005)
+
+- Từ trang một ngày, bật **link chia sẻ** (mỗi ngày tối đa một link). Người nhận chỉ xem, không cần đăng nhập.
+- Người viết chọn từng phần: tên, điểm & icon chính, sub icon, màu cờ, tiêu đề, nội dung, từ khóa, từng ảnh. **Ngày viết
+  luôn hiện**; phải bật ít nhất một phần khác mới sao chép được link. Thay đổi lưu ngay.
+- **Tắt link** là thu hồi vĩnh viễn; bật lại tạo link mới. Link không có hạn dùng. "Trang đang chia sẻ" (Hồ sơ) liệt kê,
+  sao chép, chỉnh, tắt link.
+- Link tắt, trang bị xóa mềm, token sai hoặc tài khoản đã xóa: cùng một màn "Trang này không mở được".
+- Trang công khai: rate limit theo IP, `noindex`, không cache, không gửi Referer; không lộ email, `user_id`, id nội bộ;
+  ảnh qua link ký 1 giờ. Token không ghi vào log.
 
 ---
 
@@ -224,92 +255,97 @@ Quy tắc:
 
 ### 4.1. Bảo mật và quyền riêng tư
 
-| Yêu cầu             | Thông số                                                                                                                                                                                                                               |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kết nối             | HTTPS bắt buộc, TLS 1.2 trở lên, bật HSTS                                                                                                                                                                                              |
-| Phân quyền          | Mỗi người chỉ đọc/ghi/sửa/xóa dữ liệu của mình. Mọi truy vấn ở backend đều lọc theo `user_id` lấy từ phiên đăng nhập, không lấy từ tham số người dùng gửi lên. Có test truy cập chéo tài khoản cho mọi endpoint |
-| Ảnh                 | Kho ảnh riêng tư; truy cập bằng link có thời hạn khoảng 1 giờ                                                                                                                                                                          |
-| Phiên đăng nhập     | Lưu trong cookie `HttpOnly`, `Secure`, `SameSite=Lax`; có chống CSRF cho các request ghi                                                                                                                                               |
-| Log                 | Chỉ ghi mã người dùng, API, mã trạng thái, thời gian xử lý. **Không ghi** tiêu đề, nội dung, từ khóa, ảnh. Giữ log 14–30 ngày                                                                                                          |
-| Công cụ bắt lỗi     | Lọc bỏ nội dung nhật ký khỏi dữ liệu gửi về                                                                                                                                                                                            |
-| Kiểm thử phân quyền | Dùng tài khoản A gọi API lấy/sửa dữ liệu của B phải bị từ chối                                                                                                                                                                         |
-| Pháp lý             | Có trang chính sách quyền riêng tư ngắn gọn. Trước khi ra mắt công khai, rà soát quy định bảo vệ dữ liệu cá nhân của Việt Nam                                                                                                          |
-| Quản trị máy chủ    | Nếu dùng SSH: chỉ đăng nhập bằng SSH key, tắt đăng nhập root, không đưa private key lên repo                                                                                                                                           |
+| Yêu cầu             | Thông số                                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Kết nối             | HTTPS bắt buộc, TLS 1.2+, bật HSTS                                                                          |
+| Phân quyền          | Mỗi người chỉ đọc/ghi dữ liệu của mình. Mọi truy vấn lọc theo `user_id` từ phiên, không từ tham số. Bộ lọc và lệnh cập nhật dựng từ trường đã kiểm tra kiểu (chặn `$ne`, `$where`…). Có test truy cập chéo cho mọi endpoint; tài nguyên không thuộc người dùng trả 404 |
+| Ảnh                 | Kho riêng tư; khóa ảnh bắt đầu bằng `user_id/`; link xem có hạn 1 giờ, link tải lên 5 phút                   |
+| Phiên đăng nhập     | Token ngẫu nhiên trong cookie `dd_session` (`HttpOnly`, `Secure`, `SameSite=Lax`); DB chỉ lưu SHA-256 của token. Chống CSRF: kiểm tra `Origin` + header `X-CSRF-Token` khớp cookie `dd_csrf` (ADR 0002) |
+| Log                 | Chỉ mã người dùng nội bộ, phương thức, đường dẫn (bỏ query, che token chia sẻ), mã trạng thái, thời gian. **Không** ghi tiêu đề, nội dung, từ khóa, ảnh, IP, user agent, body. Giữ 14–30 ngày |
+| Công cụ bắt lỗi     | Hoãn (mục 4.7); khi thêm lại phải lọc bỏ nội dung nhật ký                                                   |
+| Pháp lý             | Trang chính sách quyền riêng tư công khai `/privacy`, đúng với code. **Trước khi ra mắt công khai:** rà soát quy định bảo vệ dữ liệu cá nhân của Việt Nam, gồm chuyển dữ liệu ra nước ngoài (sao lưu ở Canada, hosting dự kiến Singapore) |
+| Bí mật              | Chỉ trong biến môi trường / `.env` (bị `.gitignore`); production từ chối khởi động khi thiếu `SESSION_SECRET` hoặc bật `DEV_LOGIN` |
+| Quản trị máy chủ    | Nếu dùng SSH: chỉ SSH key, tắt đăng nhập root, không đưa private key lên repo                                |
 
 ### 4.2. Toàn vẹn dữ liệu
 
-| Yêu cầu                   | Thông số                                                                              |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| Sao lưu cơ sở dữ liệu     | Mỗi 8 tiếng theo giờ cố định của hệ thống: 00:00, 08:00, 16:00 giờ Việt Nam           |
-| Thời gian giữ bản sao lưu | 7 ngày (21 bản); dữ liệu người dùng đã xóa còn trong bản sao lưu tối đa 7 ngày, không dùng để khôi phục |
-| Sao lưu ảnh               | Sao chép định kỳ sang nơi lưu trữ khác (sao lưu cơ sở dữ liệu không bao gồm file ảnh) |
-| Kiểm tra khôi phục        | Thử khôi phục ít nhất 1 lần trước khi mời người dùng                                  |
-| Múi giờ                   | `entry_date` là ngày địa phương của người dùng; mọi mốc thời gian khác lưu dạng UTC   |
-| Xóa mềm                   | Bài xóa giữ 30 ngày rồi mới xóa hẳn (kèm ảnh)                                         |
+| Yêu cầu                   | Thông số                                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| Sao lưu cơ sở dữ liệu     | 3 lần/ngày: 00:00, 08:00, 16:00 giờ Việt Nam, sang kho sao lưu khác nhà cung cấp            |
+| Giữ bản sao lưu           | 7 ngày (21 bản); dữ liệu đã xóa còn trong sao lưu tối đa 7 ngày, không dùng để khôi phục   |
+| Sao lưu ảnh               | Hằng ngày, chép tăng dần; bản sao của ảnh đã xóa giữ tối đa 7 ngày                         |
+| Kiểm tra khôi phục        | Thử khôi phục ít nhất 1 lần trước khi mời người dùng (đã thử trên local 24/10/2026)       |
+| Múi giờ                   | `entry_date` là ngày địa phương (`YYYY-MM-DD`); mọi mốc thời gian khác lưu UTC              |
+| Xóa mềm                   | Trang xóa giữ 30 ngày rồi mới xóa hẳn (kèm ảnh)                                          |
+| Ghi đồng thời             | Mỗi ngày một document, ghi nguyên tử; xung đột phát hiện bằng `updated_at`; ảnh dùng khóa lạc quan |
 
 ### 4.3. Hiệu năng
 
-| Chỉ số                   | Mục tiêu                         |
-| ------------------------ | -------------------------------- |
-| API đọc/ghi nhật ký      | p95 dưới 500 ms                  |
-| Tải trang (LCP)          | Dưới 2,5 giây                    |
-| Phản hồi tương tác (INP) | Dưới 200 ms                      |
-| Độ ổn định bố cục (CLS)  | Dưới 0,1                         |
-| Tải lên 1 ảnh đã nén     | Dưới 5 giây với mạng bình thường |
-| Thời gian hoạt động      | Khoảng 99%                       |
+| Chỉ số                   | Mục tiêu                         | Hiện trạng (24/10/2026, đo local)                         |
+| ------------------------ | -------------------------------- | --------------------------------------------------------- |
+| API đọc/ghi nhật ký      | p95 dưới 500 ms                  | Chưa đo trên production                                    |
+| Tải trang (LCP)          | Dưới 2,5 giây                    | Lighthouse mobile: 2,3–3,1 s tùy màn (chưa đạt hết)       |
+| Phản hồi tương tác (INP) | Dưới 200 ms                      | TBT < 100 ms                                              |
+| Độ ổn định bố cục (CLS)  | Dưới 0,1                         | ≤ 0,02                                                    |
+| Tải lên 1 ảnh đã nén     | Dưới 5 giây với mạng bình thường | –                                                         |
+| Thời gian hoạt động      | Khoảng 99%                       | Chưa triển khai                                           |
+
+Biện pháp đã áp dụng: tải lười mọi màn (kể cả trang chủ, đăng nhập); gọi `/me` ngay khi mở app; loader tải trước dữ
+liệu của màn song song với chunk; font tự host đã cắt còn ký tự tiếng Việt + Latin, preload font tiêu đề và chữ thường.
 
 ### 4.4. Giới hạn tần suất (rate limit)
 
-| Loại thao tác       | Giới hạn                       |
-| ------------------- | ------------------------------ |
-| Đồng bộ tự động lưu | 15–20 request/phút/người       |
-| Đọc dữ liệu         | 30 request/phút/người          |
-| Tạo/xóa nhật ký     | 10 request/phút/người          |
-| Tải ảnh lên         | 10 lần/phút, 50 lần/ngày/người |
-| Đăng nhập           | 5 lần/phút/IP                  |
-| Đọc hồ sơ (`GET /me`) | 120 request/phút/người       |
-| Mở trang chia sẻ công khai (F-10) | 60 lần/phút/IP   |
-| Xóa toàn bộ dữ liệu / xóa tài khoản | 3 lần/phút, 10 lần/ngày/người |
-| Xin URL tải ảnh đại diện | 5 lần/phút, 20 lần/ngày/người |
-| Góp ý (gửi email về hộp thư Jotly) | 5 lần/phút, 20 lần/ngày/người |
-| Đăng xuất | 20 lần/phút/IP |
+Mức trần chống lạm dụng, không phải mức dùng dự kiến; điều chỉnh sau tuần thử nghiệm đầu. Giá trị trong
+`shared/limits.json` (`rate_limits`, `ip_rate_limits`).
 
-Ba dòng xóa, ảnh đại diện, góp ý thêm ở Bước 13: thao tác không hoàn tác hoặc tốn tài nguyên ngoài (dọn kho, ảnh
-không tính hạn mức, hạn mức SMTP) nên chặt hơn "tạo/xóa nhật ký" và có trần theo ngày. Giá trị nằm trong
-`shared/limits.json`. Slowapi đếm trong bộ nhớ (`RATE_LIMIT_STORAGE_URI=memory://`), chỉ đúng khi chạy một tiến trình;
-chạy nhiều worker hoặc nhiều instance thì đổi sang Redis.
+| Nhóm             | Áp cho                                         | Giới hạn                   | Theo     |
+| ---------------- | ---------------------------------------------- | -------------------------- | -------- |
+| `autosave`       | Lưu trang (`PUT /entries/{date}`)              | 20/phút                    | người    |
+| `read`           | Đọc dữ liệu                                    | 30/phút                    | người    |
+| `me`             | `GET /me`                                      | 120/phút                   | người    |
+| `write`          | Sửa hồ sơ, xóa/khôi phục trang, ảnh (xóa, sắp xếp), bật/tắt chia sẻ | 10/phút | người    |
+| `photo_upload`   | Xin URL tải ảnh nhật ký                        | 10/phút, 50/ngày           | người    |
+| `avatar_upload`  | Xin URL tải ảnh đại diện                       | 5/phút, 20/ngày            | người    |
+| `search`         | Tìm kiếm                                       | 60/phút                    | người    |
+| `feedback`       | Gửi góp ý                                      | 5/phút, 20/ngày            | người    |
+| `destructive`    | Xóa toàn bộ dữ liệu, xóa tài khoản             | 3/phút, 10/ngày            | người    |
+| `login`          | Đăng nhập                                      | 5/phút                     | IP       |
+| `logout`         | Đăng xuất                                      | 20/phút                    | IP       |
+| `share_view`     | Mở trang chia sẻ công khai                     | 60/phút                    | IP       |
 
-Các con số là mức trần chống lạm dụng, không phải mức sử dụng dự kiến. Điều chỉnh sau tuần thử nghiệm đầu tiên dựa trên log.
+Bộ đếm hiện ở bộ nhớ tiến trình (`RATE_LIMIT_STORAGE_URI=memory://`): chỉ đúng khi chạy một tiến trình; nhiều worker
+hoặc nhiều instance thì chuyển sang Redis. Vượt giới hạn trả 429 kèm `Retry-After`.
 
 ### 4.5. Dung lượng
 
-| Hạng mục                     | Thông số                                                |
-| ---------------------------- | ------------------------------------------------------- |
-| Hạn mức mỗi người dùng       | 500 MB trong giai đoạn thử nghiệm; cảnh báo khi đạt 80% (Hồ sơ và ô tải ảnh); tính cả ảnh trong thùng rác, không tính ảnh đại diện |
-| Ước tính trường hợp xấu nhất | 10 ảnh × 0,5 MB × 365 ngày ≈ 1,8 GB/người/năm           |
+| Hạng mục                     | Thông số                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| Hạn mức mỗi người            | 500 MB (cấp `beta`); cảnh báo từ 80% ở Hồ sơ và ô tải ảnh; hết hạn mức thì chặn tải ảnh (`STORAGE_QUOTA`) |
+| Cách tính                    | Ảnh chính + ảnh thu nhỏ của mọi trang, kể cả trong thùng rác; không tính ảnh đại diện            |
+| Ước tính xấu nhất            | 10 ảnh × 0,5 MB × 365 ngày ≈ 1,8 GB/người/năm                                                    |
 
-Theo dõi tổng dung lượng ảnh hằng tuần và đối chiếu với giới hạn gói dịch vụ đang dùng.
+Theo dõi tổng dung lượng hằng tuần, đối chiếu với giới hạn gói dịch vụ. Ảnh tải lên nhưng không xác nhận hiện còn nằm
+lại trong kho và không tính hạn mức — cần tác vụ dọn (mục 10).
 
 ### 4.6. Tương thích
 
-- Bản mới của Chrome, Edge, Firefox, Safari trên máy tính.
-- Responsive cho màn hình điện thoại (từ 360 px).
-- Phông chữ hỗ trợ tốt tiếng Việt có dấu (vd: Be Vietnam Pro).
+- Bản mới của Chrome, Edge, Firefox, Safari trên máy tính; trình duyệt điện thoại từ màn hình 360 px.
+- Phông chữ hỗ trợ tốt tiếng Việt: Be Vietnam Pro (chữ thường), Lora (tiêu đề), Young Serif (logo).
 
-### 4.7. Theo dõi và đo lường
+### 4.7. Theo dõi và đo lường — **hoãn**
 
-- Bắt lỗi: Sentry (frontend và backend).
-- Phân tích hành vi ở mức sự kiện, không thu thập nội dung: PostHog hoặc Umami. Sự kiện chính: `login`, `entry_created`, `entry_updated`, `photo_uploaded`, `calendar_viewed`, `pixels_viewed`, `search_used`.
-- Đã chọn (Bước 13): Umami (không cookie). Sentry và Umami tắt khi chưa đặt DSN/địa chỉ script.
-- Hiện **tạm gỡ** khỏi code (24/10/2026), sẽ thêm lại theo đúng các quy tắc dưới (bản đã làm: commit `dd35f04`).
-  - Sentry chỉ gửi loại lỗi, stack (không biến cục bộ), URL đã bỏ query và che token chia sẻ, mã người dùng nội bộ.
-    Không gửi body, query, cookie, header (trừ user-agent), breadcrumb click/gõ phím/console. Backend bỏ cả thông điệp
-    lỗi; web giữ thông điệp đã làm sạch (bỏ URL query, đoạn trong ngoặc kép, cắt 200 ký tự). Sentry React v11 dùng
-    `dataCollection` thay cho `sendDefaultPii`: phải tắt từng mục.
-  - Umami: pageview tự gửi với đường dẫn đã làm sạch (`/s/:token`, ngày → `:date`, không query); props chỉ là boolean
-    hoặc giá trị liệt kê (`search_used`: có lọc hay không, số kết quả theo khoảng 0 / 1-5 / 6-20 / 21+). `login` = lần
-    đầu `/me` thành công trong phiên của tab; `entry_updated` tối đa một lần mỗi 30 phút cho mỗi trang.
-  - Có CSP thì phải cho phép host của Sentry và Umami.
+> Sentry (bắt lỗi) và Umami (phân tích sự kiện, không cookie) đã làm ở Bước 13 rồi **tạm gỡ khỏi code** (24/10/2026).
+> Thêm lại từ commit `dd35f04`, theo đúng các quy tắc dưới, và cập nhật trang `/privacy` cùng lúc.
+
+- Sự kiện dự kiến: `login`, `entry_created`, `entry_updated`, `photo_uploaded`, `calendar_viewed`, `pixels_viewed`,
+  `search_used`. Tắt hẳn khi chưa đặt DSN/địa chỉ script.
+- Sentry chỉ gửi loại lỗi, stack (không biến cục bộ), URL đã bỏ query và che token chia sẻ, mã người dùng nội bộ. Không
+  gửi body, query, cookie, header (trừ user-agent), breadcrumb click/gõ phím/console. Backend bỏ cả thông điệp lỗi; web
+  giữ thông điệp đã làm sạch (bỏ query, đoạn trong ngoặc kép, cắt 200 ký tự). Sentry React v11 dùng `dataCollection`
+  thay `sendDefaultPii`: phải tắt từng mục.
+- Umami: pageview với đường dẫn đã làm sạch (`/s/:token`, ngày → `:date`, không query); props chỉ là boolean hoặc giá
+  trị liệt kê. `login` = lần đầu `/me` thành công trong phiên của tab; `entry_updated` tối đa 1 lần/30 phút/trang.
+- Có CSP thì phải cho phép host của Sentry và Umami.
 
 ---
 
@@ -319,284 +355,296 @@ Theo dõi tổng dung lượng ảnh hằng tuần và đối chiếu với gi�
 
 ```mermaid
 flowchart LR
-    U[Trình duyệt người dùng] -->|HTTPS| FE[Frontend<br/>React + Vite<br/>static hosting/CDN]
-    U -->|HTTPS + cookie phiên| API[Backend<br/>FastAPI]
-    U -->|HTTPS, presigned URL| S3[(Object Storage<br/>kho ảnh riêng tư)]
+    U[Trình duyệt] -->|HTTPS| FE[Frontend<br/>React + Vite<br/>static hosting / CDN]
+    U -->|"HTTPS + cookie phiên + CSRF"| API[Backend<br/>FastAPI]
+    U -->|"presigned PUT/GET"| S3[(Kho ảnh S3<br/>riêng tư)]
     U --- IDB[(IndexedDB<br/>bản nháp)]
     API -->|OAuth 2.0| G[Google]
-    API --> DB[(MongoDB)]
-    API -->|tạo presigned URL| S3
-    API --> SEN[Sentry]
-    FE --> AN[PostHog / Umami]
-    BK[Tác vụ định kỳ<br/>sao lưu, dọn xóa mềm] --> DB
-    BK --> S3
+    API --> DB[(MongoDB 8)]
+    API -->|ký URL, kiểm tra ảnh| S3
+    API -->|SMTP| MAIL[Email<br/>góp ý, xác nhận xóa]
+    JOB[Tác vụ định kỳ<br/>app.jobs.run] --> DB
+    JOB --> S3
+    JOB --> BAK[(Kho sao lưu S3<br/>khác nhà cung cấp)]
+    API -.->|hoãn| SEN[Sentry]
+    FE -.->|hoãn| AN[Umami]
 ```
 
-### 5.2. Công nghệ sử dụng
+### 5.2. Công nghệ
 
-**Frontend**
+**Frontend** (`apps/web`)
 
-| Thành phần            | Công nghệ                                                  |
-| --------------------- | ---------------------------------------------------------- |
-| Ngôn ngữ, framework   | TypeScript, React, Vite                                    |
-| Định tuyến            | React Router                                               |
-| Gọi API, bộ nhớ đệm   | TanStack Query                                             |
-| Giao diện             | Tailwind CSS, shadcn/ui, biểu tượng Lucide                 |
-| Xử lý ngày, múi giờ   | date-fns + date-fns-tz                                     |
-| Nén ảnh               | browser-image-compression                                  |
-| Lưu nháp              | IndexedDB (thư viện `idb`)                                 |
-| Biểu đồ               | Recharts                                                   |
-| Kiểm tra dữ liệu form | Zod                                                        |
-| Kiểu dữ liệu API      | Sinh tự động từ OpenAPI của FastAPI (`openapi-typescript`) |
+| Thành phần            | Công nghệ                                                                   |
+| --------------------- | --------------------------------------------------------------------------- |
+| Ngôn ngữ, build       | TypeScript 5.9, React 19, Vite 8 (Rolldown)                                 |
+| Định tuyến            | React Router 8 (data router, tải lười mọi màn, loader tải trước dữ liệu)    |
+| Gọi API, bộ nhớ đệm   | TanStack Query 5; `openapi-fetch` với kiểu sinh từ OpenAPI (`openapi-typescript`) |
+| Giao diện             | Tailwind CSS 4, shadcn/ui (Radix, CSS chép vào dự án — ADR 0003), Lucide    |
+| Ngày, múi giờ         | `date-fns` + `date-fns-tz`                                                  |
+| Ảnh                   | `browser-image-compression`, `heic-to` (giải mã HEIC bằng WebAssembly)      |
+| Lưu nháp              | IndexedDB qua `idb`                                                         |
+| Biểu đồ               | Vẽ bằng SVG/CSS, không dùng thư viện                                        |
+| Kiểm tra form         | Theo `shared/limits.json`; kiểu dữ liệu từ OpenAPI                          |
+| Font                  | Tự host (`scripts/subset_fonts.py`), Lora qua `@fontsource/lora`            |
+| Kiểm thử, lint        | Vitest + Testing Library, Playwright, oxlint, `tsc`                         |
 
-**Backend**
+**Backend** (`apps/api`)
 
-| Thành phần                | Công nghệ                                                |
-| ------------------------- | -------------------------------------------------------- |
-| Ngôn ngữ, framework       | Python 3.12, FastAPI, Uvicorn                            |
-| Kiểm tra dữ liệu          | Pydantic v2                                              |
-| Cơ sở dữ liệu, migration  | PyMongo async (driver chính thức), migration tự viết `app.db.migrate` |
-| Đăng nhập Google          | Authlib (OAuth 2.0 Authorization Code)                   |
-| Rate limit                | slowapi                                                  |
-| Kho ảnh                   | boto3 (giao thức tương thích S3), tạo presigned URL      |
-| Kiểm tra ảnh phía server  | Kiểm tra ảnh đã tải lên kho: tồn tại, định dạng (magic bytes), dung lượng. Không xử lý ảnh; ảnh thu nhỏ tạo trên trình duyệt (MVP không dùng Pillow) |
-| Kiểm thử, chất lượng code | pytest, ruff                                             |
+| Thành phần                | Công nghệ                                                                   |
+| ------------------------- | --------------------------------------------------------------------------- |
+| Ngôn ngữ, framework       | Python 3.12 (uv), FastAPI 0.143, Uvicorn, Pydantic v2 + pydantic-settings    |
+| Cơ sở dữ liệu             | PyMongo async (`AsyncMongoClient`), migration tự viết `python -m app.db.migrate` (ADR 0001) |
+| Đăng nhập                 | Authlib (Google OIDC), phiên lưu DB (ADR 0002)                               |
+| Rate limit                | slowapi                                                                     |
+| Kho ảnh, sao lưu          | boto3 (giao thức S3)                                                        |
+| Kiểm tra ảnh phía server  | Tồn tại, định dạng (magic bytes WebP/JPEG), dung lượng; không xử lý ảnh (không Pillow) |
+| Email                     | `smtplib` (Gmail SMTP khi chạy thật, Mailpit ở local)                        |
+| Kiểm thử, lint            | pytest + httpx (MongoDB thật), ruff                                         |
 
 **Hạ tầng**
 
-| Thành phần            | Lựa chọn đề xuất                                                        |
-| --------------------- | ----------------------------------------------------------------------- |
-| Cơ sở dữ liệu         | MongoDB 8.0 có quản lý (vd: MongoDB Atlas, Singapore); gói phải có sao lưu tự động, nếu không thì tự chạy `mongodump` |
-| Kho ảnh               | Object storage tương thích S3 (vd: Supabase Storage, Cloudflare R2)     |
-| Hosting frontend      | Vercel, Netlify hoặc Cloudflare Pages                                   |
-| Hosting backend       | Render, Railway hoặc Fly.io                                             |
-| Khu vực máy chủ       | Singapore (gần Việt Nam)                                                |
-| Môi trường phát triển | Windows, uv, Docker Compose (MongoDB + MinIO giả lập S3)                |
-| CI                    | GitHub Actions: lint, test, build                                       |
+| Thành phần            | Lựa chọn                                                                     |
+| --------------------- | ---------------------------------------------------------------------------- |
+| Cơ sở dữ liệu         | MongoDB 8.0 có quản lý (dự kiến MongoDB Atlas, Singapore)                     |
+| Kho ảnh               | Kho S3 có quản lý (dự kiến Cloudflare R2 hoặc Supabase Storage)               |
+| Kho sao lưu           | **Backblaze B2** (đã chốt 24/10/2026, khác nhà cung cấp kho ảnh)              |
+| Hosting frontend      | Cloudflare Pages, Vercel hoặc Netlify (chốt ở Bước 14)                        |
+| Hosting backend       | Render, Railway hoặc Fly.io (chốt ở Bước 14)                                  |
+| Môi trường local      | Windows, uv, Docker Compose: MongoDB, MinIO (+ bucket ảnh và sao lưu), Mailpit |
+| CI                    | GitHub Actions: lint, typecheck, migration, test, kiểm tra lệch OpenAPI, build, e2e |
 
-**Lưu ý tên miền:** để cookie phiên hoạt động ổn định, đặt frontend và backend chung tên miền gốc, ví dụ `app.dailydiary.xxx` và `api.dailydiary.xxx`, hoặc dùng proxy để frontend gọi API qua cùng tên miền.
+**Tên miền:** đặt frontend và backend chung tên miền gốc (vd `app.jotly.xxx` và `api.jotly.xxx`, `COOKIE_DOMAIN`)
+hoặc dùng proxy cùng tên miền, để cookie phiên hoạt động ổn định.
 
-### 5.3. Cấu trúc repo (monorepo)
+### 5.3. Cấu trúc repo
 
-Cây thư mục chuẩn của dự án nằm ở **[`docs/Project_Structure.md`](Project_Structure.md)** (nguồn duy nhất, ADR 0004).
-Tóm tắt: `apps/api` (FastAPI, MongoDB), `apps/web` (React + Vite), `shared/` (giới hạn và danh mục dùng chung),
-`docs/` (đặc tả, kế hoạch, ADR), `.github/workflows/` (CI), `docker-compose.yml` (MongoDB + MinIO cho local).
+Monorepo: `apps/api` (FastAPI), `apps/web` (React + Vite), `shared/` (giới hạn và danh mục dùng chung), `docs/`
+(đặc tả, kế hoạch, ADR), `.github/workflows/` (CI), `docker-compose.yml`. Cây đầy đủ, khung ban đầu và lịch sử thay
+đổi nằm ở **[`Project_Structure.md`](Project_Structure.md)** — nguồn duy nhất (ADR 0004).
+
+Phân tầng backend: `routers/` (nhận request) → `services/` (nghiệp vụ + truy vấn, tham số đầu là `user_id`) → MongoDB;
+`schemas/` (Pydantic), `core/` (cấu hình, bảo mật, log, rate limit, kho, email), `jobs/` (tác vụ định kỳ).
+Phân tầng frontend: `routes/` (màn, mỏng) ghép từ `features/` (mỗi tính năng một thư mục, không import lẫn nhau),
+dùng `components/` và `lib/`.
 
 ### 5.4. Mô hình dữ liệu (MongoDB)
 
-Cơ sở dữ liệu là **MongoDB** (dữ liệu dạng document). Nguyên tắc thiết kế:
-- Một **nhật ký là một document**; từ khóa và ảnh (tối đa 10) **nhúng** trong document đó, nên đọc/ghi một ngày
-  chỉ cần một thao tác và luôn nguyên tử.
-- `_id` và mọi khóa tham chiếu là UUID (BSON binary subtype 4). Thời gian lưu dạng BSON date (UTC, độ chính xác
-  mili giây). `entry_date` lưu dạng **chuỗi** `"YYYY-MM-DD"` (ngày địa phương), không dùng kiểu date để tránh lệch múi giờ.
-- MVP **không dùng transaction** nhiều document: mọi thao tác ghi nằm trong một document, riêng xóa tài khoản
-  được viết theo thứ tự và chạy lại được nếu gián đoạn.
-- Validator `$jsonSchema` kiểm tra cấu trúc (kiểu, điểm 1–5, enum); giới hạn độ dài/số lượng lấy từ
-  `shared/limits.json` và kiểm tra ở backend.
-- Migration chạy bằng `python -m app.db.migrate`: chỉ tiến, chạy lại không đổi gì, ghi lịch sử vào `_migrations`.
+Nguyên tắc:
+- Một **trang nhật ký là một document**; từ khóa và ảnh (tối đa 10) **nhúng** bên trong, nên đọc/ghi một ngày là một
+  thao tác nguyên tử.
+- `_id` và khóa tham chiếu là UUID (BSON binary subtype 4); thời gian là BSON date (UTC, mili giây). `entry_date` là
+  **chuỗi** `"YYYY-MM-DD"` (ngày địa phương), không dùng kiểu date.
+- Không dùng transaction nhiều document; xóa tài khoản viết theo thứ tự và chạy lại được.
+- Validator `$jsonSchema` kiểm tra cấu trúc (kiểu, điểm 1–5, enum); giới hạn độ dài/số lượng kiểm tra ở backend theo
+  `shared/limits.json`.
+- Migration `python -m app.db.migrate`: chỉ tiến, chạy lại an toàn, lịch sử trong `_migrations` (hiện có m0001–m0009).
 
 ```
 users
-  _id               uuid
-  google_sub        string   UNIQUE       -- định danh Google
-  email             string
-  display_name      string                -- 1..50 ký tự
-  avatar_url        string | null         -- ảnh Google
-  avatar_key        string | null         -- ảnh tự tải lên ("{user_id}/avatar/{id}.webp"); có thì thay avatar_url
-  timezone          string                -- IANA, vd Asia/Ho_Chi_Minh
-  icon_set_id       string                -- id trong shared/icons.json; bộ icon vẽ cho mọi ngày
-  onboarded_at      date | null           -- xong 3 bước lần đầu; null thì đăng nhập xong vào /onboarding
-  custom_flag_colors [ string "#RRGGBB" ] -- màu cờ tự thêm từ bảng pha màu, chữ hoa, không trùng 8 màu có sẵn;
-                                          -- tối đa profile.custom_flag_colors_max (limits.json); sửa qua PATCH /me
-  account_tier      "beta" | "free" | "premium"
-  joined_at         date
-  deleted_at        date | null
+  _id                uuid
+  google_sub         string   UNIQUE        -- định danh Google
+  email              string                 -- cập nhật mỗi lần đăng nhập
+  display_name       string                 -- 1..50 ký tự
+  avatar_url         string | null          -- link ảnh Google (không lưu ảnh)
+  avatar_key         string | null          -- ảnh tự tải "{user_id}/avatar/{id}.webp|jpg"; có thì thay avatar_url
+  timezone           string                 -- IANA
+  icon_set_id        string                 -- bộ main icon (shared/icons.json), áp cho mọi ngày
+  onboarded_at       date | null            -- null → đăng nhập xong vào /onboarding
+  custom_flag_colors [ "#RRGGBB" ]          -- tối đa profile.custom_flag_colors_max
+  account_tier       "beta" | "free" | "premium"
+  joined_at          date
+  deleted_at         date | null            -- đang chờ xóa: chặn đăng nhập
 
-user_sessions                             -- phiên đăng nhập (cookie dd_session)
-  _id               binary                -- SHA-256 của token; không lưu token gốc
-  user_id           uuid                  INDEX
-  created_at        date
-  expires_at        date                  TTL: MongoDB tự xóa khi hết hạn
+user_sessions                               -- cookie dd_session
+  _id                binary                 -- SHA-256 của token; không lưu token gốc, không lưu IP/user agent
+  user_id            uuid     INDEX
+  created_at         date                   -- dùng cho "đăng nhập trong 10 phút" khi xóa tài khoản
+  expires_at         date     TTL           -- 30 ngày, tự gia hạn
 
-entries                                   -- 1 document = nhật ký của 1 ngày
-  _id               uuid
-  user_id           uuid
-  entry_date        string "YYYY-MM-DD"   -- ngày địa phương của người dùng
-  title             string | null         -- tối đa 100 ký tự
-  content           string | null         -- tối đa 20.000 ký tự
-  score             int 1..5              -- bắt buộc
-  title_norm        string | null         -- tiêu đề chữ thường, không dấu (tìm kiếm)
-  sub_icon          string | null         -- 1 emoji
-  flag_color        string "#RRGGBB" | null  -- màu có sẵn hoặc màu tùy chỉnh (không bắt buộc còn trong
-                                             -- users.custom_flag_colors); giao diện tối: hex_dark hoặc trừ 25 mỗi kênh
-  content_norm      string | null         -- nội dung chữ thường, không dấu (tìm kiếm)
-  keywords          [ { keyword, norm } ] -- 0..10; norm: chữ thường, không dấu
-  photos            [ { id uuid, storage_key, thumb_key, width, height, size_bytes, position 0..9, created_at } ]
-                                          -- key "{user_id}/YYYY/MM/DD/{id}[_thumb].webp|jpg"; size_bytes = ảnh chính +
-                                          -- ảnh thu nhỏ (tính hạn mức); thêm/xóa/sắp xếp ảnh không đổi updated_at
-  created_at        date
-  updated_at        date
-  deleted_at        date | null           -- xóa mềm
+entries                                     -- 1 document = 1 ngày
+  _id                uuid
+  user_id            uuid
+  entry_date         string "YYYY-MM-DD"
+  score              int 1..5               -- bắt buộc
+  sub_icon           string | null          -- 1 emoji
+  flag_color         string "#RRGGBB" | null
+  title              string | null          -- ≤ 100
+  content            string | null          -- ≤ 20.000
+  title_norm         string | null          -- chữ thường, không dấu (tìm kiếm)
+  content_norm       string | null
+  keywords           [ { keyword, norm } ]  -- ≤ 10
+  photos             [ { id uuid, storage_key, thumb_key, width, height, size_bytes, position 0..9, created_at } ]
+                                            -- key "{user_id}/YYYY/MM/DD/{id}[_thumb].webp|jpg";
+                                            -- thêm/xóa/sắp xếp ảnh không đổi updated_at
+  created_at, updated_at   date
+  deleted_at         date | null            -- xóa mềm
   UNIQUE (user_id, entry_date)
-  INDEX  (user_id, keywords.norm, entry_date)   -- từ khóa hay dùng, lọc theo từ khóa
-  INDEX  (user_id, entry_date)                  -- tìm kiếm: lọc theo user rồi khớp chuỗi trên *_norm
-  INDEX  (user_id, photos.id)                   -- thao tác theo id ảnh
-  INDEX  (deleted_at), chỉ bài đã xóa mềm       -- tác vụ dọn sau 30 ngày (không dùng TTL vì phải xóa ảnh trước)
+  INDEX  (user_id, entry_date) · (user_id, keywords.norm, entry_date) · (user_id, photos.id)
+  INDEX  (deleted_at) chỉ trang đã xóa mềm   -- purge_trash (không dùng TTL vì phải xóa ảnh trước)
 
-share_links                               -- link chia sẻ một trang (F-10); tắt link = xóa document
-  _id               uuid
-  user_id           uuid
-  entry_date        string "YYYY-MM-DD"
-  token             string                -- token_urlsafe(16); lưu gốc vì chủ trang cần xem lại link
-                                          -- (lý do trong m0003_share_links.py); không ghi vào log
+share_links                                 -- tắt link = xóa document
+  _id, user_id, entry_date
+  token              string   UNIQUE        -- 16 byte ngẫu nhiên; lưu gốc để chủ trang xem lại link; không ghi log
   show_name, show_score, show_sub_icon, show_flag, show_title, show_content, show_keywords   bool
-  photo_ids         [uuid]                -- ảnh được chọn, phải thuộc trang đó
-  created_at        date
-  updated_at        date
-  UNIQUE (user_id, entry_date)            -- mỗi ngày tối đa một link đang bật
-  UNIQUE (token)
-
-user_items                                -- chuẩn bị cho giai đoạn 2–3
-  _id, user_id, item_id, source ("beta" | "free" | "purchase" | "reward"), acquired_at
-  UNIQUE (user_id, item_id)
+  photo_ids          [uuid]                 -- ảnh được chọn, thuộc trang đó
+  created_at, updated_at
+  UNIQUE (user_id, entry_date)
 
 feedback
-  _id, user_id, message, created_at, emailed_at (date | null: đã gửi email về hộp thư Jotly)
-  anonymized        bool (tùy chọn)       -- người gửi đã xóa tài khoản: user_id thay bằng mã ngẫu nhiên, chỉ giữ nội dung
+  _id, user_id, message, created_at, emailed_at (date | null)
+  anonymized         bool (tùy chọn)        -- người gửi đã xóa tài khoản: user_id là mã ngẫu nhiên
 
-deletion_log                              -- mỗi lần xóa; KHÔNG có user_id/email/nội dung (validator chặn trường lạ)
-  _id, kind ("journal" | "account" | "trash"), at (date), pages, photos, share_links, feedback_anonymized (tùy chọn)
+deletion_log                                -- không user_id/email/nội dung (validator chặn trường lạ)
+  _id, kind ("journal" | "account" | "trash"), at, pages, photos, share_links, feedback_anonymized (tùy chọn)
   INDEX (at)
+
+user_items                                  -- chuẩn bị giai đoạn 2–3, chưa dùng
+  _id, user_id, item_id, source ("beta" | "free" | "purchase" | "reward"), acquired_at
+  UNIQUE (user_id, item_id)
 ```
 
-Nguyên tắc:
-- Cơ sở dữ liệu chỉ lưu **mã** biểu tượng, chủ đề; hình biểu tượng là file tĩnh của frontend.
-- Ảnh không lưu trong cơ sở dữ liệu; chỉ lưu đường dẫn trong kho ảnh.
-- Đường dẫn ảnh đặt theo `user_id` để dễ phân quyền, tính dung lượng và xóa khi người dùng xóa tài khoản.
-- Mọi truy vấn tới `entries`, `share_links`, `user_items`, `feedback` có điều kiện `user_id` (riêng trang chia sẻ
-  công khai tìm theo `token` rồi đọc entry theo `user_id` của link); bộ lọc và lệnh cập nhật luôn được
-  dựng từ trường đã kiểm tra kiểu, không bao giờ đưa nguyên dict từ request vào (tránh chèn toán tử `$...`).
+- DB chỉ lưu **mã** biểu tượng; hình là file tĩnh của frontend.
+- Ảnh không lưu trong DB, chỉ lưu khóa trong kho; khóa bắt đầu bằng `user_id` để phân quyền, tính dung lượng, xóa theo người.
+- Trang chia sẻ công khai tìm theo `token` rồi đọc entry theo `user_id` của link.
 
-### 5.5. Danh sách API (MVP)
+### 5.5. API
 
-| Phương thức | Đường dẫn                           | Mô tả                                                                  |
-| ----------- | ----------------------------------- | ---------------------------------------------------------------------- |
-| GET         | `/auth/google/login?tz=&next=`      | Chuyển hướng sang Google; `next` chỉ nhận `/profile` (đăng nhập lại để xác nhận xóa tài khoản) |
-| GET         | `/entries/trash`                    | Thùng rác: trang đã xóa còn khôi phục được, xóa gần nhất trước        |
-| GET         | `/auth/google/callback`             | Nhận kết quả, tạo/cập nhật người dùng, đặt cookie phiên                |
-| POST        | `/auth/logout`                      | Đăng xuất                                                              |
-| GET         | `/me`                               | Lấy hồ sơ                                                              |
-| PATCH       | `/me`                               | Sửa tên, ảnh đại diện (xác nhận ảnh vừa tải hoặc gỡ), múi giờ, bộ icon, màu cờ riêng |
-| POST        | `/me/avatar/upload-url`             | Xin presigned URL tải ảnh đại diện (đã cắt vuông, nén trên trình duyệt) |
-| DELETE      | `/me`                               | Xóa tài khoản: gửi `{confirm_email}`; đăng xuất mọi thiết bị, dọn kho ảnh trong nền, góp ý giữ ẩn danh |
-| GET         | `/me/data-summary`                  | Số trang, ảnh, link chia sẻ sẽ mất khi xóa                              |
-| GET         | `/entries?month=YYYY-MM`            | Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước; đoạn đầu nội dung + số ảnh |
-| GET         | `/entries/{date}`                   | Nhật ký của một ngày                                                   |
-| PUT         | `/entries/{date}`                   | Tạo hoặc cập nhật (gửi kèm `updated_at` đã biết để phát hiện xung đột) |
-| DELETE      | `/entries/{date}`                   | Xóa mềm                                                                |
-| POST        | `/entries/{date}/restore`           | Khôi phục bài đã xóa mềm                                               |
-| POST        | `/entries/{date}/photos/upload-url` | Xin presigned URL để tải ảnh trực tiếp lên kho                         |
-| POST        | `/entries/{date}/photos`            | Xác nhận ảnh chính và ảnh thu nhỏ đã tải (do trình duyệt tạo), lưu thông tin |
-| PATCH       | `/entries/{date}/photos/order`      | Sắp xếp lại ảnh                                                        |
-| DELETE      | `/photos/{id}`                      | Xóa ảnh                                                                |
-| GET         | `/calendar/{year}/{month}`          | Lịch tháng (ngày, điểm, sub icon, cờ, số ảnh, ghi bù) + thống kê, chuỗi ngày; không có tiêu đề/nội dung |
-| GET         | `/pixels/{year}`                    | Year in Pixels dạng gọn: chuỗi điểm 365/366 ký tự, cờ, ngày ghi bù, chuỗi ngày, các năm có dữ liệu |
-| GET         | `/search?q=&score=&period=&has_photo=&cursor=` | Tìm trong tiêu đề, nội dung, từ khóa (F-05): kết quả có đoạn trích quanh chỗ khớp, `matched` (trước bộ lọc), `total`, `next_cursor`; `q` gửi trong query string nhưng không ghi log |
-| GET         | `/keywords/top`                     | 6 từ khóa dùng nhiều nhất của người dùng                               |
-| GET         | `/sub-icons/top`                    | Sub icon dùng nhiều nhất của người dùng (hàng "hay dùng" ở Sửa / Ghi bù) |
-| GET         | `/entries/{date}/share`             | Link chia sẻ của một ngày (`null` nếu chưa bật) (F-10)                 |
-| PUT         | `/entries/{date}/share`             | Bật link hoặc đổi phần hiển thị; lần đầu tạo token                     |
-| DELETE      | `/entries/{date}/share`             | Tắt link (thu hồi vĩnh viễn)                                           |
-| GET         | `/shares`                           | Các trang đang chia sẻ                                                 |
-| GET         | `/public/shares/{token}`            | Trang chia sẻ công khai, không cần đăng nhập; chỉ trả phần được chọn; mọi lỗi là 404 chung |
-| DELETE      | `/entries`                          | Xóa toàn bộ dữ liệu: gửi `{confirm: "XÓA"}`; mọi trang (cả thùng rác), ảnh, link chia sẻ; giữ tài khoản, cài đặt, ảnh đại diện |
-| POST        | `/feedback`                         | Gửi góp ý: lưu rồi gửi email (Reply-To = người gửi) trong nền          |
+Mọi request ghi có cookie phiên phải kèm `Origin` hợp lệ và `X-CSRF-Token`. Lỗi trả dạng
+`{"error": {"code": "...", "message": "..."}}`: 401 chưa đăng nhập · 403 `CSRF_FAILED` / `REAUTH_REQUIRED` /
+`ACCOUNT_DELETED` · 404 không có hoặc không thuộc người dùng · 409 xung đột `updated_at` · 422 dữ liệu sai · 429 vượt
+giới hạn. Tài liệu tự sinh ở `/docs` (tắt khi `ENV=production`); web dùng `src/api/openapi.json`.
+
+| Nhóm | Phương thức | Đường dẫn | Mô tả |
+| --- | --- | --- | --- |
+| Hệ thống | GET | `/health` | Kiểm tra API và DB, không cần đăng nhập |
+| Đăng nhập | GET | `/auth/google/login?tz=&next=` | Sang Google; `next` chỉ nhận `/profile` (đăng nhập lại để xóa tài khoản) |
+| | GET | `/auth/google/callback` | Nhận kết quả, tạo/cập nhật người dùng, đặt cookie phiên |
+| | POST | `/auth/logout` | Đăng xuất (hủy phiên) |
+| | POST | `/auth/dev-login` | Đăng nhập thử — **chỉ local/test** khi bật `DEV_LOGIN`, không có trong OpenAPI |
+| Hồ sơ | GET / PATCH | `/me` | Lấy / sửa tên, ảnh đại diện, múi giờ, bộ biểu tượng, màu cờ, onboarding |
+| | POST | `/me/avatar/upload-url` | Presigned URL tải ảnh đại diện |
+| | GET | `/me/data-summary` | Số trang, ảnh, link sẽ mất khi xóa; dung lượng đã dùng / hạn mức / ngưỡng cảnh báo |
+| | DELETE | `/me` | Xóa tài khoản, gửi `{confirm_email}` |
+| Nhật ký | GET | `/entries?month=YYYY-MM` | Các trang của một tháng, mới nhất trước, đoạn đầu nội dung + số ảnh |
+| | GET / PUT / DELETE | `/entries/{date}` | Đọc / tạo-cập nhật (kèm `updated_at` đã biết) / xóa mềm |
+| | POST | `/entries/{date}/restore` | Khôi phục trang trong thùng rác |
+| | GET | `/entries/trash` | Thùng rác |
+| | DELETE | `/entries` | Xóa toàn bộ dữ liệu, gửi `{confirm: "XÓA"}` |
+| Ảnh | POST | `/entries/{date}/photos/upload-url` | Presigned PUT cho ảnh chính + ảnh thu nhỏ (kiểm tra số ảnh, hạn mức, rate limit) |
+| | POST | `/entries/{date}/photos` | Xác nhận ảnh đã tải, thêm vào trang |
+| | PATCH | `/entries/{date}/photos/order` | Sắp xếp lại ảnh |
+| | DELETE | `/photos/{id}` | Xóa ảnh |
+| Tổng hợp | GET | `/calendar/{year}/{month}` | Lịch tháng + thống kê + chuỗi ngày (không có tiêu đề/nội dung) |
+| | GET | `/pixels/{year}` | Year in Pixels dạng gọn |
+| Tìm kiếm | GET | `/search?q=&score=&period=&has_photo=&cursor=` | Kết quả có đoạn trích, `matched`, `total`, `next_cursor`; `q` không ghi log |
+| | GET | `/keywords/top` | 6 từ khóa hay dùng |
+| | GET | `/sub-icons/top` | Sub icon hay dùng (Sửa / Ghi bù) |
+| Chia sẻ | GET / PUT / DELETE | `/entries/{date}/share` | Xem / bật-chỉnh / tắt link của một ngày |
+| | GET | `/shares` | Các trang đang chia sẻ |
+| | GET | `/public/shares/{token}` | Trang công khai, không cần đăng nhập; mọi lỗi là 404 chung |
+| Góp ý | POST | `/feedback` | Lưu góp ý rồi gửi email trong nền |
 
 ### 5.6. Các luồng chính
 
+**Mở app**
+1. Trình duyệt tải gói đầu (React, router, query); nếu có cookie `dd_csrf`, gọi `/me` ngay.
+2. Router tải chunk của màn; loader của màn tải trước dữ liệu (vd trang hôm nay, lịch tháng) ngay khi `/me` trả về.
+3. `/me` trả 401 → về trang chủ/đăng nhập; chưa onboarding → `/onboarding`.
+
 **Đăng nhập**
-1. Người dùng bấm "Đăng nhập với Google", trình duyệt chuyển đến `/auth/google/login`.
-2. Google xác thực và gọi lại `/auth/google/callback`.
-3. Backend xác minh token, tạo hoặc cập nhật bản ghi `users` (lấy múi giờ từ trình duyệt ở lần đầu), đặt cookie phiên `HttpOnly`.
+1. "Tiếp tục với Google" → `/auth/google/login?tz=<múi giờ trình duyệt>`.
+2. Google gọi lại `/auth/google/callback`; backend xác minh `id_token`, từ chối email chưa xác minh.
+3. Tạo/cập nhật `users` (múi giờ lấy từ trình duyệt ở lần đầu), tạo phiên, đặt `dd_session` + `dd_csrf`, chuyển về web.
 
 **Tải ảnh**
-1. Frontend nén ảnh và tạo bản thu nhỏ trên trình duyệt.
-2. Frontend gọi `/photos/upload-url`; backend kiểm tra giới hạn (số ảnh/ngày, dung lượng, rate limit) rồi trả presigned URL.
-3. Frontend tải ảnh trực tiếp lên kho ảnh (không đi qua backend).
-4. Frontend gọi `/photos` để xác nhận; backend kiểm tra file thực sự tồn tại, đúng định dạng, đúng kích thước rồi lưu `entry_photos`.
+1. Trình duyệt kiểm tra loại/kích thước, giải mã HEIC nếu cần, nén ảnh chính + ảnh thu nhỏ (bỏ EXIF).
+2. `POST /entries/{date}/photos/upload-url`: backend kiểm tra số ảnh, hạn mức, rate limit; trả 2 presigned PUT (5 phút).
+3. Trình duyệt tải thẳng lên kho (có thanh tiến độ), không qua backend.
+4. `POST /entries/{date}/photos`: backend dựng lại khóa từ `photo_id`, kiểm tra tồn tại, magic bytes, dung lượng; thêm vào
+   `photos` bằng khóa lạc quan. Sai thì xóa file và báo lỗi.
 
-**Tự động lưu**
-1. Mỗi thay đổi ghi vào IndexedDB sau 1 giây.
-2. Sau 3–5 giây không gõ (hoặc khi rời trang), gửi `PUT /entries/{date}` kèm `updated_at` đã biết.
-3. Máy chủ có bản mới hơn: trả lỗi xung đột, giao diện hỏi người dùng giữ bản nào.
-4. Mất mạng: giữ trong IndexedDB, hiện "Chưa đồng bộ", thử lại tăng dần.
-
-**Xác định ngày**
-- Frontend tính `entry_date` theo múi giờ trong hồ sơ người dùng.
-- Backend kiểm tra `entry_date` không lớn hơn "hôm nay" theo múi giờ đó.
-- Nhãn "ghi đúng ngày": `updated_at` (đổi sang múi giờ người dùng) có cùng ngày với `entry_date`.
+**Tự động lưu**: xem F-06. **Xác định ngày**: frontend tính `entry_date` theo múi giờ hồ sơ; backend từ chối ngày lớn
+hơn "hôm nay" theo múi giờ đó; nhãn "ghi đúng ngày" so `updated_at` (đổi sang múi giờ người dùng) với `entry_date`.
 
 ### 5.7. Môi trường và triển khai
 
-| Môi trường        | Mục đích                                                                                                                |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Local             | Docker Compose (MongoDB + MinIO), Google OAuth với `localhost`                                                          |
-| Production (beta) | Frontend trên static hosting, backend trên dịch vụ PaaS, cơ sở dữ liệu + kho ảnh có quản lý, tất cả ở khu vực Singapore |
+| Môi trường        | Mô tả                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------- |
+| Local             | `docker compose up -d` (MongoDB, MinIO, Mailpit); Google OAuth với `localhost` hoặc đăng nhập thử (`DEV_LOGIN`) |
+| Test / CI         | MongoDB thật (DB `*_test` bị xóa sạch mỗi lần chạy); e2e chạy API + web thật với MinIO và Mailpit        |
+| Production (beta) | Frontend trên static hosting/CDN, backend trên PaaS, DB + kho ảnh có quản lý (Singapore), kho sao lưu B2 |
 
-- Triển khai tự động khi đẩy code lên nhánh `main` (sau khi CI chạy qua).
-- Migration cơ sở dữ liệu chạy bằng `python -m app.db.migrate` trong bước triển khai.
-- Bí mật (khóa OAuth, khóa kho ảnh, chuỗi kết nối) lưu trong biến môi trường của dịch vụ hosting, không đưa vào repo.
+- Triển khai khi đẩy lên `main` sau khi CI qua; migration chạy trong bước triển khai (không chạy trong lifespan).
+- Bí mật trong biến môi trường của hosting. Danh sách biến và giải thích: `apps/api/.env.example`, `apps/web/.env.example`.
+- Checklist triển khai: skill `/deploy`; rà soát bảo mật trước khi mở: `securitymaxxing:ship-check`.
 
 ### 5.8. Lưu trữ dữ liệu theo giai đoạn
 
-|                           | Giai đoạn 1                       | Giai đoạn 2                              | Giai đoạn 3                                         |
-| ------------------------- | --------------------------------- | ---------------------------------------- | --------------------------------------------------- |
-| Thông tin ngày + nội dung | MongoDB                           | + bộ nhớ đệm IndexedDB các tháng gần đây | + SQLite trên điện thoại, đồng bộ hai chiều         |
-| Ảnh                       | Kho riêng tư, bản nén + ảnh nhỏ   | Có thể chuyển sang kho rẻ hơn            | Phân tầng nóng/lạnh; gói trả phí giữ chất lượng cao |
-| Biểu tượng, chủ đề        | Đóng gói trong frontend           | CDN có đánh số phiên bản                 | CDN + cửa hàng vật phẩm                             |
-| Bản nháp                  | IndexedDB                         | IndexedDB + hàng đợi đồng bộ ngoại tuyến | Cơ sở dữ liệu trên máy                              |
-| Giao dịch                 | Chưa có (đã có `user_items`)      | Chưa có                                  | Sổ cái riêng, chỉ thêm, chỉ server được ghi         |
-| Mã hóa                    | Mã hóa khi lưu của nhà cung cấp   | Như giai đoạn 1                          | (Tùy chọn) mã hóa đầu cuối do người dùng bật        |
+|                           | Giai đoạn 1                     | Giai đoạn 2                              | Giai đoạn 3                                         |
+| ------------------------- | ------------------------------- | ---------------------------------------- | --------------------------------------------------- |
+| Thông tin ngày + nội dung | MongoDB                         | + bộ nhớ đệm IndexedDB các tháng gần đây | + SQLite trên điện thoại, đồng bộ hai chiều         |
+| Ảnh                       | Kho riêng tư, bản nén + ảnh nhỏ | Có thể chuyển sang kho rẻ hơn            | Phân tầng nóng/lạnh; gói trả phí giữ chất lượng cao |
+| Biểu tượng, chủ đề        | Đóng gói trong frontend         | CDN có đánh số phiên bản                 | CDN + cửa hàng vật phẩm                             |
+| Bản nháp                  | IndexedDB                       | IndexedDB + hàng đợi đồng bộ ngoại tuyến | Cơ sở dữ liệu trên máy                              |
+| Giao dịch                 | Chưa có (đã có `user_items`)    | Chưa có                                  | Sổ cái riêng, chỉ thêm, chỉ server được ghi         |
+| Mã hóa                    | Mã hóa khi lưu của nhà cung cấp | Như giai đoạn 1                          | (Tùy chọn) mã hóa đầu cuối do người dùng bật        |
 
 ---
 
-## 6. Kế hoạch triển khai
+## 6. Vận hành
 
-### 6.1. Kế hoạch 2 tuần cho MVP
+Tác vụ chạy bằng `uv run python -m app.jobs.run <tác vụ>` (trong `apps/api`). Mã thoát: `0` ổn hoặc chưa cấu hình ·
+`1` lỗi · `2` sai cú pháp. Lịch chạy tự động (GitHub Actions cron hoặc cron của hosting) chốt ở Bước 14.
 
-| Ngày | Công việc                                                                                       |
-| ---- | ----------------------------------------------------------------------------------------------- |
-| 1–2  | Phác thảo giao diện (Figma), dựng monorepo, Docker Compose, mô hình dữ liệu, migration đầu tiên |
-| 3    | Đăng nhập Google, hồ sơ, múi giờ                                                                |
-| 4–5  | Viết/sửa/xóa nhật ký: các trường chữ, từ khóa, cờ hiệu, main icon, sub icon; tự động lưu        |
-| 6–7  | Tải ảnh (nén, presigned URL, ảnh thu nhỏ); dòng thời gian                                       |
-| 8–9  | Lịch tháng + thống kê tháng                                                                     |
-| 10   | Year in Pixels                                                                                  |
-| 11   | Tìm kiếm; xóa dữ liệu, xóa tài khoản; góp ý                                                    |
-| 12   | Rate limit, hạn mức dung lượng, log, Sentry, phân tích sự kiện                                  |
-| 13   | Hoàn thiện giao diện, kiểm tra trên điện thoại, nạp dữ liệu mẫu, triển khai production          |
-| 14   | Kiểm thử phân quyền, thử khôi phục sao lưu, sửa lỗi, chuẩn bị demo                              |
+| Tác vụ | Lịch | Việc |
+| --- | --- | --- |
+| `purge_accounts` | mỗi giờ | Hoàn tất xóa tài khoản: kho ảnh, hồ sơ; gửi email xác nhận |
+| `purge_trash` | mỗi ngày | Xóa hẳn trang quá 30 ngày trong thùng rác: ảnh → link → trang; kho lỗi thì giữ trang; ghi `deletion_log` |
+| `backup_db` | 00:00, 08:00, 16:00 giờ VN | Mọi collection (BSON thô) → `.tar.gz` ở `db/YYYY/MM/DD/…` trên kho sao lưu; giữ `BACKUP_KEEP` = 21 bản |
+| `backup_photos` | mỗi ngày | Chép tăng dần ảnh (gồm ảnh đại diện) sang `photos/`; ảnh đã mất ở kho chính quá 7 ngày thì xóa bản sao |
+| `restore_db --target <db> [--key] [--force]` | khi cần | Chạy migration rồi nạp vào DB khác; từ chối DB đang chạy hoặc DB có dữ liệu nếu không `--force` |
+
+Kho sao lưu đặt ở **nhà cung cấp khác** kho ảnh (Backblaze B2), bucket riêng tư, lifecycle "chỉ giữ phiên bản mới
+nhất" để xóa bản cũ thật sự giải phóng dung lượng. Đã chạy thử sao lưu + khôi phục trên dữ liệu local (24/10/2026);
+bản sao lưu chính thức làm sau khi triển khai production.
+
+---
+
+## 7. Lộ trình
+
+### 7.1. MVP (giai đoạn 1)
+
+Kế hoạch chi tiết 15 bước, tiêu chí hoàn thành và kết quả từng bước: **[`MVP_Plan.md`](MVP_Plan.md)**. Tóm tắt:
+
+| Bước | Nội dung | Trạng thái |
+| --- | --- | --- |
+| 1–2 | Nền móng (monorepo, Docker, CI), hệ thiết kế | Xong |
+| 3 | Đăng nhập Google, hồ sơ, múi giờ | Xong |
+| 4 | Triển khai thử bản khung | Làm dở (DB beta), gộp vào 14 |
+| 5–7 | Viết nhật ký, tự động lưu, ảnh | Xong |
+| 8–11, 11b | Dòng thời gian, lịch tháng, Year in Pixels, tìm kiếm, chia sẻ | Xong |
+| 12 | Thùng rác, xóa dữ liệu/tài khoản, góp ý | Xong |
+| 13 | Vận hành: hạn mức, rate limit, tác vụ, sao lưu (Sentry/Umami hoãn) | Xong phần local |
+| 14 | Hiệu năng, chính sách quyền riêng tư, dữ liệu mẫu, triển khai production | Đang làm |
+| 15 | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo | Chưa |
 
 Trước khi mời người dùng thử: tự dùng app viết nhật ký thật 2–3 ngày để phát hiện lỗi múi giờ, tự động lưu, tải ảnh.
 
-### 6.2. Lộ trình các giai đoạn
-
-**Giai đoạn 1 – MVP:** kiểm chứng thói quen ghi chép. Web app, trải nghiệm cá nhân, dưới 20 người dùng thử.
+### 7.2. Các giai đoạn sau
 
 **Giai đoạn 2 – Hoàn thiện, tăng giữ chân:**
-- PWA (cài lên màn hình chính điện thoại), nhắc nhở viết nhật ký (thông báo đẩy, email dự phòng).
-- Cá nhân hóa: chủ đề, theme, bộ biểu tượng. Xác định rõ phần **miễn phí vĩnh viễn** và phần sẽ là nội dung trả phí mới.
-- Tính năng mở rộng: "ngày này năm trước", tiến trình/mục tiêu với so sánh trước – sau, thư gửi tương lai.
-- Đăng nhập thêm Facebook.
-- Đánh giá lại trọng tâm nền tảng dựa trên dữ liệu thiết bị của giai đoạn 1.
+- PWA (cài lên màn hình chính), nhắc viết nhật ký (thông báo đẩy, email dự phòng).
+- Cá nhân hóa: chủ đề, theme, bộ biểu tượng mới; xác định rõ phần **miễn phí vĩnh viễn** và phần nội dung trả phí mới.
+- "Ngày này năm trước", tiến trình/mục tiêu với so sánh trước – sau, thư gửi tương lai.
+- Đăng nhập Facebook; đánh giá lại trọng tâm nền tảng theo dữ liệu thiết bị của giai đoạn 1.
 
 **Giai đoạn 3 – Ra mắt và kiếm tiền:**
-- Ứng dụng di động (bọc web bằng Capacitor hoặc viết bằng React Native).
-- Cửa hàng gói cá nhân hóa, tiền ảo; cân nhắc thêm gói thuê bao cho dung lượng ảnh, video tổng kết.
-- Tính năng chia sẻ: nhật ký chung, nhật ký trao đổi luân phiên.
-- Backend xử lý thanh toán, sổ cái giao dịch.
+- Ứng dụng di động (Capacitor hoặc React Native).
+- Cửa hàng gói cá nhân hóa, tiền ảo; cân nhắc thuê bao cho dung lượng ảnh, video tổng kết.
+- Nhật ký chung, nhật ký trao đổi luân phiên.
+- Backend thanh toán, sổ cái giao dịch.
 
-### 6.3. So sánh hướng nền tảng
+### 7.3. So sánh hướng nền tảng
 
 | Tiêu chí               | Web app (+ PWA)          | Desktop app             | Mobile app                             |
 | ---------------------- | ------------------------ | ----------------------- | -------------------------------------- |
@@ -609,68 +657,90 @@ Trước khi mời người dùng thử: tự dùng app viết nhật ký thật
 
 Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng minh được giữ chân → desktop ưu tiên thấp.
 
+### 7.4. Kế hoạch 2 tuần ban đầu (tham khảo)
+
+Lịch dự kiến lúc lập đặc tả (16/10/2026). `MVP_Plan.md` chia lại thành 15 bước và đối chiếu với bảng này ở cột "Ngày".
+
+| Ngày | Công việc                                                                                       |
+| ---- | ----------------------------------------------------------------------------------------------- |
+| 1–2  | Phác thảo giao diện, dựng monorepo, Docker Compose, mô hình dữ liệu, migration đầu tiên         |
+| 3    | Đăng nhập Google, hồ sơ, múi giờ                                                                |
+| 4–5  | Viết/sửa/xóa nhật ký: các trường chữ, từ khóa, cờ hiệu, main icon, sub icon; tự động lưu        |
+| 6–7  | Tải ảnh (nén, presigned URL, ảnh thu nhỏ); dòng thời gian                                       |
+| 8–9  | Lịch tháng + thống kê tháng                                                                     |
+| 10   | Year in Pixels                                                                                  |
+| 11   | Tìm kiếm; xóa dữ liệu, xóa tài khoản; góp ý                                                    |
+| 12   | Rate limit, hạn mức dung lượng, log, bắt lỗi, phân tích sự kiện                                 |
+| 13   | Hoàn thiện giao diện, kiểm tra trên điện thoại, nạp dữ liệu mẫu, triển khai production          |
+| 14   | Kiểm thử phân quyền, thử khôi phục sao lưu, sửa lỗi, chuẩn bị demo                              |
+
 ---
 
-## 7. Chiến lược kiếm tiền và giới hạn
+## 8. Chiến lược kiếm tiền và giới hạn
 
-### 7.1. Nguyên tắc cam kết từ giai đoạn 1
+### 8.1. Nguyên tắc cam kết từ giai đoạn 1
 
-- **Dữ liệu thuộc về người dùng**: viết, xem lại, tìm kiếm, xóa nhật ký luôn miễn phí. (Xuất nhật ký đã bỏ khỏi
-  sản phẩm ngày 21/10/2026, xem F-08; cần xem lại nếu luật bảo vệ dữ liệu áp dụng yêu cầu quyền nhận bản sao dữ liệu.)
+- **Dữ liệu thuộc về người dùng**: viết, xem lại, tìm kiếm, xóa nhật ký luôn miễn phí. (Xuất dữ liệu đã bỏ ngày
+  21/10/2026; xem lại nếu luật bảo vệ dữ liệu yêu cầu quyền nhận bản sao dữ liệu.)
 - **Không lấy lại những gì đã có**: ảnh đã tải lên luôn xem được; vật phẩm đã nhận luôn giữ.
 - **Thu tiền cho cái mới, không thu tiền cho cái cũ.**
 - **Minh bạch**: ghi rõ bản beta, giới hạn có thể thay đổi, công bố trước những gì miễn phí vĩnh viễn.
+- **Không** bán dữ liệu, không quảng cáo, không dùng nhật ký để huấn luyện AI (cam kết trong chính sách quyền riêng tư).
 
-### 7.2. Định hướng gói miễn phí lâu dài
+### 8.2. Định hướng gói miễn phí lâu dài
 
 | Hạng mục                                | Chi phí vận hành | Gói miễn phí lâu dài                            |
 | --------------------------------------- | ---------------- | ----------------------------------------------- |
-| Bài viết, chữ, từ khóa                  | Rất thấp         | Không giới hạn                                  |
+| Trang, chữ, từ khóa                     | Rất thấp         | Không giới hạn                                  |
 | Bộ biểu tượng cơ bản, sub icon, cờ hiệu | Không đáng kể    | Miễn phí                                        |
 | Lịch, Year in Pixels, thống kê tháng    | Thấp             | Miễn phí; thống kê nâng cao có thể trả phí      |
 | Ảnh                                     | Cao nhất         | Ví dụ 3–5 ảnh/ngày; nhiều hơn thuộc gói trả phí |
 | Chủ đề, bộ biểu tượng mới               | Chi phí thiết kế | Nội dung trả phí trong cửa hàng                 |
 
-### 7.3. Biện pháp khi bật chế độ kiếm tiền
+### 8.3. Khi bật chế độ kiếm tiền
 
 1. Ưu đãi người dùng sớm: giữ vĩnh viễn một phần quyền lợi beta, huy hiệu "Thành viên sáng lập".
 2. Báo trước ít nhất 30 ngày, giải thích lý do.
 3. Ưu đãi mở bán cho người dùng beta.
 4. Chạm giới hạn nhẹ nhàng: không bao giờ chặn việc lưu chữ và biểu tượng.
-5. Có đường kiếm vật phẩm miễn phí theo **cột mốc** (30, 100 ngày), không thưởng theo từng bài, để giữ động lực "nhìn lại bản thân".
-6. Thu thập dữ liệu sẵn sàng chi trả trong beta (khảo sát, thống kê chủ đề được dùng nhiều).
+5. Kiếm vật phẩm miễn phí theo **cột mốc** (30, 100 ngày), không thưởng theo từng trang.
+6. Thu thập dữ liệu sẵn sàng chi trả trong beta (khảo sát, chủ đề được dùng nhiều).
 
-### 7.4. Chuẩn bị kỹ thuật
+### 8.4. Chuẩn bị kỹ thuật (đã có)
 
-- Giới hạn lưu trong `shared/limits.json` theo **cấp tài khoản** (`beta`, `free`, `premium`).
-- Collection `user_items` có từ MVP để ghi nhận vật phẩm theo nguồn.
-- Lưu `joined_at` để xác định người dùng beta.
+- Giới hạn theo **cấp tài khoản** (`beta`, `free`, `premium`) trong `shared/limits.json`; `users.account_tier`.
+- Collection `user_items` ghi nhận vật phẩm theo nguồn; `joined_at` xác định người dùng beta.
 
 ---
 
-## 8. Rủi ro và lưu ý
+## 9. Rủi ro
 
 | Rủi ro                                                  | Biện pháp                                                                                    |
 | ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Trải nghiệm trên điện thoại kém làm giảm tỉ lệ quay lại | Tối ưu luồng ghi nhanh trên điện thoại ngay từ MVP; theo dõi thiết bị sử dụng                |
-| Lỗi múi giờ làm bài viết rơi vào sai ngày               | `entry_date` là ngày địa phương; kiểm thử với các mốc gần nửa đêm                            |
-| Mất bài viết khi mất mạng                               | IndexedDB + trạng thái đồng bộ rõ ràng + thử lại                                             |
-| Lộ dữ liệu nhật ký                                      | Lọc theo `user_id` ở mọi truy vấn, kho ảnh riêng tư, không log nội dung, kiểm thử phân quyền |
+| Trải nghiệm điện thoại kém làm giảm tỉ lệ quay lại      | Giao diện riêng từ 360 px, chấm điểm nhanh; e2e chạy cả kích thước điện thoại                 |
+| Lỗi múi giờ làm trang rơi vào sai ngày                  | `entry_date` là ngày địa phương; test mốc 23:59, 00:01, múi giờ âm, năm nhuận                |
+| Mất bài khi mất mạng                                    | Nháp IndexedDB + trạng thái đồng bộ + thử lại tăng dần                                       |
+| Lộ dữ liệu nhật ký                                      | Lọc `user_id` mọi truy vấn, kho ảnh riêng tư, không log nội dung, test truy cập chéo          |
+| Mất dữ liệu do sự cố nhà cung cấp                       | Sao lưu 3 lần/ngày sang nhà cung cấp khác; đã thử khôi phục                                  |
 | Chi phí lưu ảnh vượt dự kiến                            | Nén ảnh, không lưu ảnh gốc, hạn mức theo người, theo dõi hằng tuần                           |
-| Phản ứng tiêu cực khi bắt đầu thu phí                   | Các nguyên tắc tại mục 7                                                                     |
-| Tiền ảo phức tạp về kỹ thuật và pháp lý                 | Thiết kế sổ cái riêng; tìm hiểu quy định trước giai đoạn 3                                   |
-| Tên "DailyDiary" trùng với nhiều app khác               | Kiểm tra tên miền, tên trên kho ứng dụng, khả năng đăng ký nhãn hiệu                         |
+| LCP trên điện thoại chưa đạt 2,5 s                      | Đo lại trên production; nếu vẫn thiếu thì render sẵn trang chủ / nhúng CSS quan trọng        |
+| Quy định bảo vệ dữ liệu cá nhân (chuyển dữ liệu ra nước ngoài) | Rà soát pháp lý trước khi ra mắt công khai                                            |
+| Phản ứng tiêu cực khi bắt đầu thu phí                   | Nguyên tắc tại mục 8                                                                         |
+| Tiền ảo phức tạp về kỹ thuật và pháp lý                 | Sổ cái riêng; tìm hiểu quy định trước giai đoạn 3                                            |
+| Tên trùng với app khác                                  | Kiểm tra tên miền, tên trên kho ứng dụng, khả năng đăng ký nhãn hiệu cho "Jotly"             |
 
 ---
 
-## 9. Câu hỏi mở / quyết định chưa chốt
+## 10. Câu hỏi mở
 
-- Nhà cung cấp cụ thể cho cơ sở dữ liệu, kho ảnh, hosting backend.
-- ~~Danh sách sub icon cho MVP~~ — đã chốt 23/10/2026: giữ 6 bộ main icon và danh sách sub icon hiện tại trong `shared/icons.json`.
-- ~~Bảng màu cờ hiệu~~ — đã chốt 23/10/2026: 8 màu có sẵn + màu tùy chỉnh từ bảng pha màu.
-- Có cho đổi ảnh đại diện ở MVP hay chỉ dùng ảnh Google.
-- Mốc thời gian và ngân sách cho giai đoạn 2 và 3.
-- Hình thức kiếm tiền cuối cùng: chỉ bán vật phẩm, hay kết hợp thuê bao.
+- Nhà cung cấp DB, kho ảnh, hosting frontend/backend, tên miền (chốt ở Bước 14) — kéo theo điền mục nhà cung cấp
+  trong trang `/privacy`.
+- Cách chạy lịch tác vụ: GitHub Actions cron (phải mở Atlas cho mọi IP) hay cron của hosting.
+- Khi nào thêm lại Sentry và Umami.
+- Tác vụ dọn ảnh tải lên nhưng không xác nhận (ảnh mồ côi trong kho).
+- Rate limit dùng Redis khi chạy nhiều tiến trình.
+- Trang Điều khoản sử dụng (đang để giữ chỗ).
+- Mốc thời gian và ngân sách cho giai đoạn 2 và 3; hình thức kiếm tiền cuối cùng (vật phẩm, hay kết hợp thuê bao).
 
 ---
 
@@ -680,7 +750,7 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 | ----------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Day One                             | Tự gắn vị trí, thời tiết; "On This Day"; nhật ký chung có bình luận, tách biệt với nhật ký riêng           |
 | Daylio                              | Ghi một ngày bằng 2 lần chạm; Year in Pixels; thống kê liên hệ hoạt động – tâm trạng; dữ liệu lưu trên máy |
-| 1 Second Everyday                   | Tự ghép clip mỗi ngày thành video tổng kết; khuyến khích người dùng tìm trải nghiệm mới                    |
+| 1 Second Everyday                   | Tự ghép clip mỗi ngày thành video tổng kết                                                                 |
 | Finch                               | Thú cưng ảo lớn lên theo thói quen tốt (lưu ý rủi ro dùng app quá lâu)                                     |
 | Reflectly, Rosebud, Stoic, Mindsera | Câu hỏi gợi ý, quy trình sáng – tối, AI phân tích cảm xúc                                                  |
 
@@ -691,8 +761,7 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 - Trò chơi hóa nhẹ nhàng (cây, căn phòng lớn dần theo hành trình).
 - Sổ tay trang trí số: sticker, washi tape, chữ viết tay.
 - Nhật ký trao đổi luân phiên giữa hai người hoặc một nhóm.
-- Thư gửi tương lai gắn với mục tiêu.
-- So sánh "trước – sau" cho một tiến trình.
+- Thư gửi tương lai gắn với mục tiêu; so sánh "trước – sau" cho một tiến trình.
 - Đối chiếu thời gian dùng mạng xã hội với tâm trạng (có sự đồng ý của người dùng).
 - Bản địa hóa: âm lịch, ngày lễ, mẫu tổng kết dịp Tết.
 - "Chương đời": AI tóm tắt mỗi tháng thành một chương (tùy chọn, minh bạch về dữ liệu).
@@ -700,9 +769,25 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 
 ## Phụ lục C. Tài liệu và công cụ tham khảo
 
-- **Tài liệu chính thức**: React, Vite, FastAPI, PyMongo, MongoDB, Authlib, MDN Web Docs.
+- **Tài liệu chính thức**: React, Vite, TanStack Query, FastAPI, PyMongo, MongoDB, Authlib, MDN Web Docs.
 - **Đăng nhập**: Google Cloud Console (OAuth client, consent screen).
 - **Hiệu năng, bảo mật**: web.dev (Core Web Vitals), Lighthouse, PageSpeed Insights, OWASP Top 10.
-- **Thiết kế**: Figma Community, Mobbin, Dribbble, Lucide, unDraw, Google Fonts.
-- **Kiểm thử, góp ý**: pytest, Playwright, Google Forms, Tally.
-- **Cộng đồng**: Viblo, Stack Overflow, các nhóm lập trình Việt Nam.
+- **Thiết kế**: canvas "Jotly Design System", Lucide, Google Fonts.
+- **Kiểm thử, góp ý**: pytest, Vitest, Playwright, Google Forms, Tally.
+
+## Phụ lục D. Nhật ký quyết định
+
+| Ngày | Quyết định | Nguồn |
+| --- | --- | --- |
+| 16/10/2026 | Phát triển trên Windows với uv; ảnh thu nhỏ tạo ở trình duyệt | MVP_Plan Q1, Q3 |
+| 17/10/2026 | Đổi DB từ PostgreSQL sang **MongoDB**; một cây dự án chuẩn; không cài CLI shadcn | ADR 0001, 0004, 0003 |
+| 17/10/2026 | Phiên lưu trong DB, cookie HttpOnly + CSRF double-submit | ADR 0002 |
+| 20/10/2026 | Tìm kiếm gồm tiêu đề + nội dung + từ khóa, có "Mọi lúc"; bộ biểu tượng áp cho mọi ngày; cho đổi ảnh đại diện | Thiết kế B7 |
+| 21/10/2026 | Đưa "Chia sẻ một trang" vào MVP; bỏ xuất dữ liệu; dòng thời gian theo tháng thay cuộn vô hạn; ghi bù không nối chuỗi; ảnh gốc tối đa 10 MB, nhận HEIC | ADR 0005, thiết kế B8–B9 |
+| 23/10/2026 | Giữ 6 bộ main icon + 47 sub icon; 8 màu cờ + màu tự thêm; góp ý gửi email qua Gmail SMTP | MVP_Plan Q5, Q6 |
+| 23–24/10/2026 | Xóa tài khoản: góp ý ẩn danh, đăng nhập lại tạo tài khoản mới, cần đăng nhập trong 10 phút, email xác nhận; Thùng rác; `deletion_log` | Bước 12 |
+| 24/10/2026 | Hạn mức ảnh 500 MB + cảnh báo 80%; thêm nhóm rate limit `destructive`, `avatar_upload`, `logout`; tác vụ dọn dẹp/sao lưu | Bước 13 |
+| 24/10/2026 | Sentry và Umami: làm rồi **tạm gỡ**, hoãn | Bước 13 |
+| 24/10/2026 | Kho sao lưu Backblaze B2; chính sách quyền riêng tư `/privacy`, người dùng từ 16 tuổi | Bước 13–14 |
+| 24/10/2026 | Tối ưu LCP: tải lười, tải trước dữ liệu theo route, font tự host đã cắt | Bước 14 |
+| 25/10/2026 | Viết lại đặc tả theo code thực tế (bản 1.0) | – |

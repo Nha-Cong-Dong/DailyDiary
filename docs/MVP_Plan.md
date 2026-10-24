@@ -2,9 +2,9 @@
 
 |                |                                                                                     |
 | -------------- | ----------------------------------------------------------------------------------- |
-| **Trạng thái** | Đã duyệt; chốt Q1–Q3 (16/10/2026), Q11–Q13 (17/10/2026); xong bước 3 (21/10/2026) |
+| **Trạng thái** | Xong bước 1–3, 5–12, 11b; bước 13 xong phần làm được ở local (Sentry/Umami hoãn); đang bước 14 (24/10/2026) |
 | **Ngày lập**   | 16/10/2026                                                                          |
-| **Căn cứ**     | `docs/Project_Specs.md` v0.1 (mục 3–6), skill trong `.claude/` và `apps/*/.claude/` |
+| **Căn cứ**     | `docs/Project_Specs.md` v1.0 (mục 3–7), skill trong `.claude/` và `apps/*/.claude/` |
 
 ## Cách làm
 
@@ -16,17 +16,17 @@
   và việc bạn cần chuẩn bị.
 - Rate limit, kiểm tra quyền riêng tư và test truy cập chéo tài khoản làm **ngay trong bước viết endpoint**,
   không để dồn tới cuối.
-- Cột "Ngày (mục 6.1)" chỉ để đối chiếu với kế hoạch 2 tuần trong đặc tả.
+- Cột "Ngày (mục 7.4)" chỉ để đối chiếu với kế hoạch 2 tuần trong đặc tả.
 
 ## Tổng quan
 
-| Bước | Nội dung                                                                                        | Ngày (mục 6.1)  | Phụ thuộc |
+| Bước | Nội dung                                                                                        | Ngày (mục 7.4)  | Phụ thuộc |
 | ---- | ----------------------------------------------------------------------------------------------- | --------------- | --------- |
 | 0    | Chuẩn bị môi trường và chốt quyết định                                                          | trước ngày 1    | –         |
 | 1    | Nền móng: monorepo, Docker, DB, khung API/web, CI                                               | 1–2             | 0         |
 | 2    | Hướng giao diện và hệ thống thành phần                                                          | 1–2             | 1         |
 | 3    | Đăng nhập Google, hồ sơ, múi giờ (F-04) — xong 21/10/2026                                      | 3               | 1         |
-| 4    | *(Tùy chọn, khuyên làm)* Triển khai thử bản khung lên beta                                      | sớm hơn ngày 13 | 3         |
+| 4    | *(Tùy chọn)* Triển khai thử bản khung lên beta — làm dở: có DB beta, chưa hosting (gộp vào 14)   | sớm hơn ngày 13 | 3         |
 | 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng) — xong 21/10/2026                        | 4–5             | 3         |
 | 6    | Tự động lưu và trạng thái đồng bộ (F-06) — xong 21/10/2026                                     | 4–5             | 5         |
 | 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
@@ -34,19 +34,19 @@
 | 9    | Lịch tháng và thống kê tháng (F-02) — xong 23/10/2026                                          | 8–9             | 5         |
 | 10   | Year in Pixels (F-03) — xong 23/10/2026                                                         | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05) — xong 23/10/2026                                                  | 11              | 5         |
-| 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
+| 11b  | Chia sẻ một trang qua link (F-10, ADR 0005) — xong 23/10/2026                                   | –               | 5, 7      |
 | 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026) — xong 24/10/2026 | 11              | 7         |
-| 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
+| 13   | Vận hành: hạn mức, tác vụ định kỳ, sao lưu — xong phần local 24/10/2026; Sentry/phân tích hoãn   | 12              | 7, 12     |
 | 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
 | 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo                             | 14              | 14        |
 
-Những điểm khác với mục 6.1 và lý do:
+Những điểm khác với mục 7.4 và lý do:
 - **F-06 tách khỏi F-01.** Tự động lưu (IndexedDB, thử lại, xử lý xung đột 409) đủ phức tạp để làm thành một bước riêng.
 - **CI làm ngay ở bước 1**, để mọi bước sau đều có lint, test và build tự động.
 - **Triển khai thử sớm (bước 4).** Cookie giữa hai tên miền, CORS, redirect OAuth và HTTPS là phần dễ hỏng nhất.
   Nếu đợi tới ngày 13 mới phát hiện thì sẽ quá muộn.
 - **Rate limit không gom vào ngày 12.** Endpoint nào được viết thì gắn limit luôn. Bước 13 chỉ còn tinh chỉnh.
-- **Bổ sung các việc đặc tả yêu cầu nhưng mục 6.1 chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
+- **Bổ sung các việc đặc tả yêu cầu nhưng mục 7.4 chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
   sao lưu DB mỗi 8 giờ, sao lưu ảnh, trang chính sách quyền riêng tư, nhận ảnh HEIC, sắp xếp và xóa ảnh.
 
 ---
@@ -76,23 +76,23 @@ Bước này không viết code. Mục tiêu là chốt các quyết định ả
 | Q12 | (17/10/2026) Cố định cây khung dự án | Cây chuẩn duy nhất ở `docs/Project_Structure.md` (ADR 0004); file mới phải đặt đúng chỗ, đổi cấu trúc thì sửa file đó cùng commit |
 | Q13 | (17/10/2026) Gỡ CLI `shadcn` khỏi dự án (lỗ hổng `braces` không có bản vá) | CSS của shadcn được chép vào `src/styles/shadcn-tailwind.css`; thêm component bằng `npx shadcn@4.22.0 add <tên>`; không chạy `npm audit fix --force` |
 
-**Quyết định còn mở** (★ là chặn bước 1):
+**Quyết định trước đây còn mở** (nay đã chốt gần hết, giữ để tra cứu):
 
 | Mã   | Câu hỏi                                                                                                                                             | Đề xuất                                                                                        |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Q4 ★ | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đồng ý cả bốn, rồi bổ sung vào đặc tả mục 5.4 và `api-conventions`                             |
-| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9) | Đã chốt (23/10/2026): giữ 6 bộ main icon hiện tại (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`) và danh sách 47 sub icon hiện tại trong `shared/icons.json`. Thêm main/sub icon mới sau khi sản phẩm hoàn thiện (xem Ngoài phạm vi MVP) |
+| Q4   | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đã chốt (Bước 1–3): làm cả bốn (`core/security.py`, `core/storage.py`)                          |
+| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 10) | Đã chốt (23/10/2026): giữ 6 bộ main icon hiện tại (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`) và danh sách 47 sub icon hiện tại trong `shared/icons.json`. Thêm main/sub icon mới sau khi sản phẩm hoàn thiện (xem Ngoài phạm vi MVP) |
 | Q6   | Bảng màu cờ hiệu 8 hay 12 màu | Đã chốt (23/10/2026): giữ 8 màu pastel (`blush`…`lavender`, có `hex` và `hex_dark`) và cho người dùng thêm màu tùy chỉnh chọn từ bảng pha màu; nhật ký lưu `hex` (`#RRGGBB`), giao diện tối tra `hex_dark` cho màu có sẵn |
-| Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Không, chỉ dùng ảnh Google (bớt một luồng upload)                                              |
-| Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Dùng bước 2                                                                                    |
-| Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Thay bằng skill `run` (chạy app, chụp màn hình) cộng một bộ smoke test Playwright tạo ở bước 1 |
-| Q10  | Làm bước 4 (triển khai thử sớm) không? Nếu có thì cần chốt hosting và kho ảnh trước bước 4                                                          | Có                                                                                             |
+| Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Đã chốt (Bước 7): cho tải ảnh riêng hoặc gỡ ảnh (`POST /me/avatar/upload-url`, `AvatarField`)   |
+| Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Đã chốt: dùng bước 2 (canvas thiết kế Jotly)                                                   |
+| Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Đã chốt: dùng skill `run` + smoke test Playwright (`apps/web/e2e/`)                            |
+| Q10  | Làm bước 4 (triển khai thử sớm) không? Nếu có thì cần chốt hosting và kho ảnh trước bước 4                                                          | Làm dở (DB beta); hosting chốt ở Bước 14                                                       |
 
 **Bạn cần chuẩn bị:**
 - Google Cloud: OAuth client (Web), redirect URI `http://localhost:8000/auth/google/callback`, consent screen
   ở chế độ Testing, và danh sách email người dùng thử. *(Cần trước bước 3.)*
 - MongoDB thật (vd. MongoDB Atlas, khu vực Singapore), tài khoản hosting và kho ảnh, kèm các khóa (Q2; Claude sẽ hỏi khi tới bước). *(Cần trước bước 4.)*
-- Tài khoản Sentry, PostHog hoặc Umami. *(Cần trước bước 13.)*
+- Tài khoản Sentry và Umami. *(Hoãn: cần khi thêm lại Sentry/Umami.)*
 
 ---
 
@@ -503,6 +503,10 @@ nhận xem `/s/:token`, "Trang đang chia sẻ" trong Hồ sơ, màn "Trang này
 **Hoàn thành khi:** người nhận chỉ thấy đúng phần được chọn; tắt link, xóa mềm trang hoặc xóa tài khoản thì link trả
 màn chung; có test truy cập chéo và test rate limit cho trang công khai.
 
+**Kết quả (xong 23/10/2026):** giao diện nối API thật; `/s/:token` và `/profile/shares` vào bản build; ảnh công khai
+qua link ký 1 giờ, chỉ ảnh được chọn; xóa toàn bộ dữ liệu / tài khoản / dọn thùng rác xóa luôn `share_links`; trang
+công khai gửi `noindex`, `no-store`, `no-referrer`; test truy cập chéo và rate limit trong `tests/api/test_shares.py`.
+
 ---
 
 ## Bước 12 – Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09)
@@ -669,7 +673,7 @@ các màn khác 2,9–3,1 s (trước: 4,1–4,7 s qua HTTP/1.1, chưa tối ưu
 ## Ngoài phạm vi MVP
 
 Theo mục 2.2 của đặc tả: nhật ký chung và bình luận (chia sẻ một trang qua link đã vào MVP ở Bước 11b), đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
-ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (mục 6.2) chỉ được chuẩn bị qua dữ liệu
+ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (mục 7.2) chỉ được chuẩn bị qua dữ liệu
 (`user_items`, `account_tier`, `joined_at`), không xây giao diện.
 
 Thêm main icon (bộ mới) và sub icon mới: làm sau khi sản phẩm hoàn thiện (chốt Q5, 23/10/2026).

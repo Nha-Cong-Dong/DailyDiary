@@ -20,7 +20,9 @@ Cây thư mục chuẩn **duy nhất**: `docs/Project_Structure.md`. Mọi việ
 - Frontend: `apps/web` — React + Vite + TypeScript, TanStack Query, Tailwind + shadcn/ui
 - Backend: `apps/api` — Python 3.12 (uv), FastAPI, Pydantic v2, MongoDB qua PyMongo async
 - Dùng chung: `shared/` — `limits.json`, `icons.json`, `flag_colors.json`
-- Local: `docker compose up -d` (MongoDB + MinIO). Mô hình dữ liệu: `docs/Project_Specs.md` mục 5.4.
+- Local: `docker compose up -d` (MongoDB, MinIO + bucket ảnh/sao lưu, Mailpit bắt email). Mô hình dữ liệu: `docs/Project_Specs.md` mục 5.4.
+- Kiểm tra như CI: `apps/api`: `uv run ruff check . && uv run ruff format --check . && uv run pytest -q`;
+  `apps/web`: `npm run lint && npm run typecheck && npm test && npm run build`; e2e: `npm run test:e2e`.
 
 ## Quy tắc luôn áp dụng
 - Tao một bản tóm tắt những nội dung đã thêm vào, sửa đổi

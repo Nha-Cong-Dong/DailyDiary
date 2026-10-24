@@ -7,11 +7,11 @@ description: Rà soát quyền riêng tư và phân quyền dữ liệu của Da
 
 Rà từng mục trên các file thay đổi (`git diff`), báo cáo dạng: mục – đạt/không đạt – vị trí – cách sửa.
 
-1. **Lọc theo người dùng**: mọi truy vấn MongoDB tới `entries` (gồm ảnh và từ khóa nhúng bên trong), `user_items`, `feedback`, `user_sessions` đều có điều kiện `user_id` lấy từ phiên đăng nhập, không lấy từ tham số request. Bộ lọc và lệnh cập nhật không nhận nguyên dict từ request (chặn chèn toán tử `$ne`, `$where`...).
-2. **Không lộ qua ID**: endpoint nhận `id` ảnh/nhật ký phải kiểm tra quyền sở hữu, trả 404 (không phải 403) khi không thuộc người dùng.
+1. **Lọc theo người dùng**: mọi truy vấn MongoDB tới `entries` (gồm ảnh và từ khóa nhúng bên trong), `share_links`, `user_items`, `feedback`, `user_sessions` đều có điều kiện `user_id` lấy từ phiên đăng nhập, không lấy từ tham số request. Bộ lọc và lệnh cập nhật không nhận nguyên dict từ request (chặn chèn toán tử `$ne`, `$where`...).
+2. **Không lộ qua ID**: endpoint nhận `id` ảnh/nhật ký phải kiểm tra quyền sở hữu, trả 404 (không phải 403) khi không thuộc người dùng. Trang chia sẻ công khai (`/public/shares/{token}`) chỉ tra theo token, chỉ trả phần được chọn, mọi lỗi là 404 chung.
 3. **Ảnh**: kho ảnh riêng tư; chỉ trả link có thời hạn (khoảng 1 giờ); đường dẫn bắt đầu bằng `user_id/`.
-4. **Log và Sentry**: không ghi tiêu đề, nội dung, từ khóa, tên file ảnh; không log toàn bộ request body.
-5. **Phân tích sự kiện**: chỉ gửi tên sự kiện và số liệu, không gửi nội dung.
+4. **Log và công cụ bắt lỗi** (Sentry hiện đã gỡ; áp dụng khi thêm lại): không ghi tiêu đề, nội dung, từ khóa, tên file ảnh; không log toàn bộ request body.
+5. **Phân tích sự kiện** (Umami hiện đã gỡ; áp dụng khi thêm lại): chỉ gửi tên sự kiện và số liệu, không gửi nội dung. Đổi cách thu thập dữ liệu thì cập nhật trang `/privacy` (`features/legal/PrivacyPolicy.tsx`).
 6. **Cookie phiên**: `HttpOnly`, `Secure`, `SameSite=Lax`; request ghi có chống CSRF.
 7. **Xóa tài khoản**: xóa cả dữ liệu DB lẫn file trong kho ảnh.
 8. **Test**: có test tài khoản A truy cập dữ liệu của B và bị từ chối.

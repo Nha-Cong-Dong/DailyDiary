@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 13 (21/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 30 (25/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -18,7 +18,10 @@
 Ký hiệu: không nhãn = đã có trên đĩa · `(Bn)` = sẽ tạo ở bước n trong `MVP_Plan.md` · `[sinh tự động]` = không sửa tay
 · `[không commit]` = nằm trong `.gitignore`.
 
-## Cây thư mục
+## Cây thư mục hiện tại
+
+Đối chiếu với đĩa ngày 25/10/2026: 365 file được theo dõi (không tính `.claude/`), so với 97 file ở
+[khung ban đầu](#khung-dự-án-ban-đầu).
 
 ```
 dailydiary/
@@ -27,7 +30,7 @@ dailydiary/
 ├── LICENSE
 ├── .mcp.json                         # MCP server cho Claude Code (Context7)
 ├── .gitignore  .gitattributes  .editorconfig
-├── docker-compose.yml                # MongoDB + MinIO + Mailpit (bắt email) cho môi trường local
+├── docker-compose.yml                # local: MongoDB, MinIO + minio-init (bucket ảnh và sao lưu), Mailpit (bắt email)
 │
 ├── .claude/                          # cấu hình Claude Code dùng chung cả repo
 │   ├── settings.json                 # plugin dùng chung (marketplace + enabledPlugins), vd. taste-skill
@@ -127,11 +130,11 @@ dailydiary/
             │   ├── profile/          # 3 bước lần đầu, Hồ sơ & cài đặt (giao diện; components/ vì ≥ 6 component);
             │   │                     # PATCH /me; xóa toàn bộ dữ liệu, xóa tài khoản (confirm.ts, useJournalData.ts);
             │   │                     # dung lượng ảnh (components/StorageUsage.tsx)
-            │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù (giao diện, lưu tạm trong tab:
-            │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; uploadPhoto.ts giả lập tới B7); bản điện thoại B10; useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột,
-            │   │                     # components/ConflictDialog.tsx);
-            │   │                     # components/ vì ≥ 6 component;
-            │   │                     # (B5–B7) lưu nhật ký, ảnh, tự động lưu
+            │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù, Thùng rác (Trash.tsx); bản điện thoại B10;
+            │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; useDay.ts (dayQuery); uploadPhoto.ts
+            │   │                     # (nén + PUT presigned, có tiến độ); useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts
+            │   │                     # (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột, components/ConflictDialog.tsx);
+            │   │                     # components/ vì ≥ 6 component
             │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
             │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10);
             │   │                     # GET /entries?month (danh sách), GET /calendar/{y}/{m} (lịch + chuỗi ngày)
@@ -156,7 +159,7 @@ dailydiary/
             │                         # theme.ts (sáng/tối), date.ts (ngày theo múi giờ hồ sơ),
             │                         # profile.ts (GET/PATCH /me), session.ts (đăng xuất, đăng nhập thử), text.ts (bỏ dấu, tô sáng),
             │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
-            │                         # image.ts (kiểm tra loại/kích thước ảnh), online.ts (trạng thái mạng);
+            │                         # image.ts (kiểm tra loại/kích thước, nén WebP + ảnh thu nhỏ: preparePhoto/prepareAvatar), online.ts (trạng thái mạng);
             │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`);
             │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn),
@@ -192,6 +195,105 @@ dailydiary/
 - **`seed/` ở gốc repo:** đã bỏ. Script nạp dữ liệu cần client MongoDB và cấu hình của api, nên đặt ở
   `apps/api/scripts/seed_demo.py`.
 
+## Khung dự án ban đầu
+
+Ghi lại để thấy dự án lớn lên thế nào; **không dùng để đặt file mới** (dùng [cây hiện tại](#cây-thư-mục-hiện-tại)).
+Lấy từ lịch sử git, không tính các file khóa phụ thuộc chi tiết.
+
+### Mốc 0 — Workspace gốc (16/10/2026, commit `e06edd2`)
+
+22 file, chỉ có tài liệu và skill, chưa có dòng code nào. Lúc này dự án còn định dùng **PostgreSQL** (skill backend có
+`alembic-async.md`, `db-session.md`); một ngày sau đổi sang MongoDB (ADR 0001).
+
+```
+DailyDiary/
+├── CLAUDE.md  LICENSE  .mcp.json
+├── .claude/
+│   ├── claude-security-guidance.md
+│   └── skills/          # add-db-change, date-timezone-rules, deploy, implement-feature, privacy-check, seed-demo-data
+├── docs/
+│   ├── Project_Specs.md # đặc tả v0.1
+│   └── MVP_Plan.md
+└── apps/
+    ├── api/.claude/skills/
+    │   ├── api-conventions/
+    │   └── fastapi-backend/   # SKILL.md + references/: alembic-async, db-session, auth-google-cookie,
+    │                          # rate-limit, s3-presigned, settings-lifespan, testing
+    └── web/.claude/skills/web-conventions/
+```
+
+### Mốc 1 — Khung nền móng, Bước 1 (17/10/2026, commit `f8b1097`)
+
+Bản đầu tiên của file này. 97 file (không tính `.claude/`): API chỉ có `/health`, web chỉ có trang kiểm tra kết nối,
+mọi thư mục tính năng là `.gitkeep` chờ các bước sau.
+
+```
+dailydiary/
+├── CLAUDE.md  README.md  LICENSE  .mcp.json
+├── .gitignore  .gitattributes  .editorconfig
+├── docker-compose.yml                # MongoDB + MinIO
+├── .github/workflows/ci.yml          # job api / web / e2e
+├── docs/
+│   ├── Project_Specs.md  MVP_Plan.md  Project_Structure.md
+│   └── adr/                          # README, 0001-mongodb, 0002-session-in-db, 0003-vendor-shadcn-css, 0004-project-structure
+├── shared/                           # limits.json, icons.json, flag_colors.json
+└── apps/
+    ├── api/
+    │   ├── pyproject.toml  uv.lock  .python-version  .env.example
+    │   ├── app/
+    │   │   ├── main.py
+    │   │   ├── core/                 # config, errors, limits, logging, rate_limit
+    │   │   ├── db/                   # client, collections, migrate, migrations/m0001_initial.py
+    │   │   ├── routers/              # health.py
+    │   │   ├── schemas/  services/  jobs/   # trống (__init__.py)
+    │   ├── scripts/export_openapi.py
+    │   └── tests/                    # conftest.py; api/ (test_health, test_errors); db/ (test_migrations); unit/ (test_limits)
+    └── web/
+        ├── package.json  package-lock.json  .npmrc  .oxlintrc.json  components.json
+        ├── vite.config.ts  playwright.config.ts  tsconfig*.json  index.html  .env.example
+        ├── public/favicon.svg
+        ├── e2e/smoke.spec.ts
+        └── src/
+            ├── main.tsx  App.tsx  index.css  vite-env.d.ts
+            ├── api/                  # client.ts, openapi.json, schema.d.ts
+            ├── routes/               # router.tsx, RootLayout.tsx, HomePage.tsx, NotFoundPage.tsx
+            ├── features/
+            │   ├── health/           # HealthStatus.tsx (+ test), useHealth.ts — "API: ok"
+            │   └── auth/ calendar/ entry/ feedback/ pixels/ profile/ search/ timeline/   # .gitkeep
+            ├── components/
+            │   ├── ui/button.tsx
+            │   └── layout/           # .gitkeep
+            ├── lib/                  # limits.ts (+ test), query.ts, utils.ts
+            ├── styles/shadcn-tailwind.css
+            └── test/setup.ts
+```
+
+### Từ khung ban đầu đến hiện tại
+
+| Thư mục | Mốc 1 (17/10) | Hiện tại (25/10) | Thêm gì chính |
+| --- | ---: | ---: | --- |
+| `apps/api/app/core/` | 6 | 12 | catalog, text, security, oauth, storage, mailer |
+| `apps/api/app/routers/` | 2 | 11 | auth, me, entries, photos, calendar, pixels, search, shares, feedback |
+| `apps/api/app/services/` | 1 | 11 | nghiệp vụ từng tài nguyên + `maintenance` (dọn thùng rác) |
+| `apps/api/app/schemas/` | 1 | 10 | Pydantic từng tài nguyên |
+| `apps/api/app/db/migrations/` | 2 | 10 | m0002–m0009 (share_links, norm, avatar, feedback, deletion_log…) |
+| `apps/api/app/jobs/` | 1 | 6 | purge_accounts, backup_db, backup_photos, blobstore, run |
+| `apps/api/tests/` | 9 | 31 | test cho mọi router (gồm truy cập chéo), `jobs/`, `fakes.py` |
+| `apps/web/src/features/` | 11 | 108 | landing, share, legal + nội dung thật cho các thư mục `.gitkeep` |
+| `apps/web/src/components/` | 2 | 40 | `diary/` (icon, ô lịch, ô pixel, ảnh, BottomSheet…), `layout/`, thêm component shadcn |
+| `apps/web/src/lib/` | 4 | 25 | date, profile, session, autosave, storage, image, usage, theme… |
+| `apps/web/src/routes/` | 4 | 24 | một `<Tên>Page.tsx` cho mỗi màn, `prefetch.ts` |
+| `apps/web/e2e/` | 1 | 11 | đăng nhập, nhật ký, tự lưu, ảnh, dòng thời gian, Year in Pixels, tìm kiếm, góp ý, xóa dữ liệu |
+
+Thay đổi về **hình dạng** (không chỉ thêm file):
+- Thêm thư mục: `apps/web/src/features/{landing,share,legal}/`, `components/diary/`, `apps/web/scripts/`,
+  `apps/web/src/assets/fonts/`, `apps/api/tests/jobs/`.
+- `features/calendar/` vẫn là `.gitkeep`: lịch tháng nằm trong `timeline/` theo thiết kế B8.
+- Bỏ khỏi kế hoạch: `routers/export` và tính năng xuất dữ liệu (21/10/2026).
+- Thêm vào ngoài kế hoạch ban đầu: chia sẻ một trang (ADR 0005), Thùng rác, chính sách quyền riêng tư, tác vụ sao lưu,
+  Mailpit trong `docker-compose.yml`.
+- Còn chờ: `apps/api/Dockerfile` (B4), `apps/api/scripts/seed_demo.py` (B14).
+
 ## Lịch sử thay đổi
 
 | Phiên bản | Ngày | Thay đổi |
@@ -224,3 +326,5 @@ dailydiary/
 | 26 | 24/10/2026 | Tạm gỡ Sentry và Umami (sẽ thêm lại sau): xóa `core/observability.py`, `tests/unit/test_observability.py`, web `lib/sentry.ts`, `lib/analytics.ts` (+ test); bỏ thư viện `sentry-sdk`, `@sentry/react` |
 | 27 | 24/10/2026 | Bước 14 (hiệu năng): `apps/web/scripts/subset_fonts.py`, `src/assets/fonts/` (font tự host + OFL), `src/styles/fonts.css`, `src/routes/prefetch.ts` (+ test); bỏ `@fontsource/be-vietnam-pro`, `@fontsource/young-serif`; trang chủ và /login tải lười |
 | 28 | 24/10/2026 | Bước 14 (chính sách quyền riêng tư): `features/legal/PrivacyPolicy.tsx` (+ test), `routes/PrivacyPage.tsx` (/privacy); link "Chính sách quyền riêng tư" ở Landing, đăng nhập, Hồ sơ, trang chia sẻ trỏ tới /privacy |
+| 29 | 24/10/2026 | Rà soát tài liệu so với code: viết lại `README.md`, `apps/api/.env.example`, `apps/web/.env.example`; `docker-compose.yml` tạo thêm bucket `dailydiary-backups`; bỏ `features/auth/.gitkeep`; sửa mô tả `entry/`, `lib/image.ts` trong cây |
+| 30 | 25/10/2026 | Thêm mục "Khung dự án ban đầu" (mốc 0 `e06edd2`, mốc 1 `f8b1097`) và bảng so sánh với hiện tại; đổi tên mục cây thành "Cây thư mục hiện tại" |
