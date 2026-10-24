@@ -1,0 +1,9 @@
+# Ngữ cảnh build của apps/api/Dockerfile là gốc repo: chỉ cần apps/api (không test) và shared/.
+**
+!apps/api/pyproject.toml
+!apps/api/uv.lock
+!apps/api/.python-version
+!apps/api/app/**
+!shared/**
+**/__pycache__
+**/*.py[cod]

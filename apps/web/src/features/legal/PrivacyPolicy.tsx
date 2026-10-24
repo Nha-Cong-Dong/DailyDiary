@@ -9,7 +9,7 @@ import { tierLimits } from '@/lib/limits'
  * Chưa được rà soát pháp lý: làm trước khi ra mắt công khai (đặc tả 4.1, mục Pháp lý).
  */
 export const CONTACT_EMAIL = 'bachvuongtri@gmail.com'
-const UPDATED = '24/10/2026'
+const UPDATED = '25/10/2026'
 const MIN_AGE = 16
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
@@ -122,7 +122,10 @@ export function PrivacyPolicy() {
               Jotly dùng các nhà cung cấp hạ tầng sau để chạy dịch vụ. Dữ liệu có thể được lưu ở máy chủ ngoài Việt Nam:
               <ul className="mt-2 flex list-[circle] flex-col gap-1.5 pl-5">
                 <li>Google: đăng nhập; gửi email (góp ý, xác nhận xóa tài khoản).</li>
-                <li>[Nhà cung cấp máy chủ, cơ sở dữ liệu và kho ảnh — cập nhật khi triển khai]</li>
+                <li>Render: chạy máy chủ ứng dụng (Singapore).</li>
+                <li>MongoDB Atlas: cơ sở dữ liệu (Singapore).</li>
+                <li>Cloudflare: phục vụ trang web và lưu ảnh (kho ảnh R2).</li>
+                <li>GitHub: chạy các tác vụ định kỳ (dọn dữ liệu đã xóa, sao lưu).</li>
                 <li>Backblaze: lưu bản sao lưu (máy chủ ở Canada).</li>
               </ul>
             </li>

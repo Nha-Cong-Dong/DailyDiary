@@ -11,7 +11,7 @@ from app.core.errors import register_error_handlers
 from app.core.limits import get_limits
 from app.core.logging import RequestLogMiddleware, configure_logging
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
-from app.core.security import verify_csrf
+from app.core.security import SecurityHeadersMiddleware, verify_csrf
 from app.core.storage import make_storage
 from app.db.client import make_client
 from app.routers import auth, calendar, entries, feedback, health, me, photos, pixels, search, shares
@@ -70,6 +70,7 @@ def create_app() -> FastAPI:
         https_only=settings.cookie_secure,
     )
     app.add_middleware(RequestLogMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware, hsts=settings.env not in DEV_ENVS)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.frontend_origins,

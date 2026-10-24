@@ -654,6 +654,13 @@ các màn khác 2,9–3,1 s (trước: 4,1–4,7 s qua HTTP/1.1, chưa tối ưu
   chuyển dữ liệu ra nước ngoài (sao lưu ở Canada).
 - Trang Điều khoản sử dụng: vẫn để giữ chỗ.
 
+**Hạ tầng và triển khai (25/10/2026):** chốt Render Free (Singapore, Docker) cho API, Cloudflare Pages cho web, Atlas M0,
+Cloudflare R2 cho ảnh, GitHub Actions cron cho tác vụ, tên miền `jotly.io.vn` (web) + `api.jotly.io.vn`. Code: `render.yaml`,
+`apps/api/Dockerfile` (migration rồi uvicorn; đã chạy thử image ở chế độ production), `.github/workflows/jobs.yml`,
+`apps/web/public/_headers` (CSP Report-Only), middleware header bảo mật ở API; trang `/privacy` điền nhà cung cấp.
+Còn lại (bạn làm theo `docs/Deploy.md`): DNS, Atlas, R2, OAuth production, Render, Pages, GitHub Secrets, kiểm tra
+production, sao lưu chính thức + thử khôi phục; sau đó chạy `/deploy` và `securitymaxxing:ship-check`.
+
 ---
 
 ## Bước 15 – Kiểm thử cuối và chuẩn bị demo

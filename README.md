@@ -27,6 +27,7 @@ rồi nhìn lại cả năm qua dòng thời gian, lịch tháng và Year in Pix
 - [Công nghệ](#-công-nghệ)
 - [Chạy ở máy local](#-chạy-ở-máy-local)
 - [Lệnh thường dùng](#-lệnh-thường-dùng)
+- [Triển khai](#-triển-khai)
 - [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
 - [Tài liệu](#-tài-liệu)
 - [Quy tắc khi đóng góp](#-quy-tắc-khi-đóng-góp)
@@ -195,6 +196,18 @@ Vietnam Pro và Young Serif đã cắt còn ký tự tiếng Việt + Latin vào
 
 </details>
 
+## ☁️ Triển khai
+
+| Thành phần | Dịch vụ | Địa chỉ |
+| --- | --- | --- |
+| Web | Cloudflare Pages | <https://jotly.io.vn> |
+| API | Render (Docker, Singapore) — [`render.yaml`](render.yaml) | <https://api.jotly.io.vn> |
+| Cơ sở dữ liệu · Kho ảnh · Sao lưu | MongoDB Atlas · Cloudflare R2 · Backblaze B2 | |
+| Tác vụ định kỳ | GitHub Actions — [`jobs.yml`](.github/workflows/jobs.yml) | mỗi giờ |
+
+Đẩy lên `main` → CI qua → Render tự deploy API, Cloudflare Pages tự build web. Hướng dẫn dựng từ đầu, việc định kỳ và
+xử lý sự cố: [`docs/Deploy.md`](docs/Deploy.md).
+
 ## 🗂️ Cấu trúc thư mục
 
 ```text
@@ -216,7 +229,8 @@ Cây đầy đủ và quy ước đặt file là **nguồn duy nhất** ở [`do
 | --- | --- |
 | [`docs/Project_Specs.md`](docs/Project_Specs.md) | Đặc tả sản phẩm: tính năng, yêu cầu bảo mật/hiệu năng, mô hình dữ liệu |
 | [`docs/MVP_Plan.md`](docs/MVP_Plan.md) | Kế hoạch 15 bước và kết quả từng bước |
-| [`docs/Project_Structure.md`](docs/Project_Structure.md) | Cây thư mục chuẩn và lịch sử thay đổi |
+| [`docs/Project_Structure.md`](docs/Project_Structure.md) | Cây thư mục chuẩn, khung ban đầu và lịch sử thay đổi |
+| [`docs/Deploy.md`](docs/Deploy.md) | Triển khai production từng bước, việc định kỳ, sự cố thường gặp |
 | [`docs/adr/`](docs/adr/README.md) | Các quyết định kiến trúc (MongoDB, phiên trong DB, chia sẻ trong MVP…) |
 | [`CLAUDE.md`](CLAUDE.md) | Quy tắc làm việc cho trợ lý AI trong repo |
 

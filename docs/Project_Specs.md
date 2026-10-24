@@ -405,11 +405,13 @@ flowchart LR
 
 | Thành phần            | Lựa chọn                                                                     |
 | --------------------- | ---------------------------------------------------------------------------- |
-| Cơ sở dữ liệu         | MongoDB 8.0 có quản lý (dự kiến MongoDB Atlas, Singapore)                     |
-| Kho ảnh               | Kho S3 có quản lý (dự kiến Cloudflare R2 hoặc Supabase Storage)               |
+| Cơ sở dữ liệu         | **MongoDB Atlas** (Singapore; gói free M0 cho beta, không có sao lưu tự động → dùng `backup_db`) |
+| Kho ảnh               | **Cloudflare R2** (bucket `jotly-photos`, riêng tư, CORS cho `https://jotly.io.vn`) |
 | Kho sao lưu           | **Backblaze B2** (đã chốt 24/10/2026, khác nhà cung cấp kho ảnh)              |
-| Hosting frontend      | Cloudflare Pages, Vercel hoặc Netlify (chốt ở Bước 14)                        |
-| Hosting backend       | Render, Railway hoặc Fly.io (chốt ở Bước 14)                                  |
+| Hosting frontend      | **Cloudflare Pages** — `https://jotly.io.vn` (header trong `apps/web/public/_headers`) |
+| Hosting backend       | **Render** gói Free, Singapore — `https://api.jotly.io.vn` (`render.yaml`, Docker); ngủ sau 15 phút không dùng |
+| Tác vụ định kỳ        | **GitHub Actions** cron mỗi giờ (`.github/workflows/jobs.yml`)                 |
+| Tên miền              | `jotly.io.vn` (`io.vn` nằm trong Public Suffix List nên web và API cùng site)  |
 | Môi trường local      | Windows, uv, Docker Compose: MongoDB, MinIO (+ bucket ảnh và sao lưu), Mailpit |
 | CI                    | GitHub Actions: lint, typecheck, migration, test, kiểm tra lệch OpenAPI, build, e2e |
 
@@ -574,7 +576,8 @@ hơn "hôm nay" theo múi giờ đó; nhãn "ghi đúng ngày" so `updated_at` (
 | Test / CI         | MongoDB thật (DB `*_test` bị xóa sạch mỗi lần chạy); e2e chạy API + web thật với MinIO và Mailpit        |
 | Production (beta) | Frontend trên static hosting/CDN, backend trên PaaS, DB + kho ảnh có quản lý (Singapore), kho sao lưu B2 |
 
-- Triển khai khi đẩy lên `main` sau khi CI qua; migration chạy trong bước triển khai (không chạy trong lifespan).
+- Đẩy lên `main` → CI qua → Render tự deploy backend (`autoDeployTrigger: checksPass`), Cloudflare Pages tự build web.
+  Migration chạy lúc container khởi động, trước uvicorn (chỉ đúng khi một instance; không chạy trong lifespan).
 - Bí mật trong biến môi trường của hosting. Danh sách biến và giải thích: `apps/api/.env.example`, `apps/web/.env.example`.
 - Checklist triển khai: skill `/deploy`; rà soát bảo mật trước khi mở: `securitymaxxing:ship-check`.
 
@@ -733,9 +736,10 @@ Lịch dự kiến lúc lập đặc tả (16/10/2026). `MVP_Plan.md` chia lại
 
 ## 10. Câu hỏi mở
 
-- Nhà cung cấp DB, kho ảnh, hosting frontend/backend, tên miền (chốt ở Bước 14) — kéo theo điền mục nhà cung cấp
-  trong trang `/privacy`.
-- Cách chạy lịch tác vụ: GitHub Actions cron (phải mở Atlas cho mọi IP) hay cron của hosting.
+- ~~Nhà cung cấp hạ tầng~~ — đã chốt 25/10/2026: Render Free, Atlas, Cloudflare Pages + R2, GitHub Actions cron, `jotly.io.vn`.
+- Render Free ngủ sau 15 phút: lần mở đầu chậm ~1 phút; tác vụ nền (dọn kho khi xóa tài khoản) có thể bị ngắt (đã có
+  `purge_accounts` mỗi giờ làm nốt). Cân nhắc lên gói Starter khi có người dùng thật.
+- Atlas mở cho mọi IP (GitHub Actions không có IP cố định): dùng user DB riêng, mật khẩu dài, quyền tối thiểu.
 - Khi nào thêm lại Sentry và Umami.
 - Tác vụ dọn ảnh tải lên nhưng không xác nhận (ảnh mồ côi trong kho).
 - Rate limit dùng Redis khi chạy nhiều tiến trình.

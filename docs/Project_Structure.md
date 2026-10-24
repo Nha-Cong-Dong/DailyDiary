@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 30 (25/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 31 (25/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -31,6 +31,8 @@ dailydiary/
 ├── .mcp.json                         # MCP server cho Claude Code (Context7)
 ├── .gitignore  .gitattributes  .editorconfig
 ├── docker-compose.yml                # local: MongoDB, MinIO + minio-init (bucket ảnh và sao lưu), Mailpit (bắt email)
+├── render.yaml                       # Render Blueprint: backend production (Singapore, gói free, api.jotly.io.vn)
+├── .dockerignore                     # ngữ cảnh build của apps/api/Dockerfile (gốc repo): chỉ apps/api + shared/
 │
 ├── .claude/                          # cấu hình Claude Code dùng chung cả repo
 │   ├── settings.json                 # plugin dùng chung (marketplace + enabledPlugins), vd. taste-skill
@@ -38,12 +40,14 @@ dailydiary/
 │   └── skills/                       # skill quy trình: implement-feature, add-db-change, deploy,
 │                                     # privacy-check, date-timezone-rules, seed-demo-data
 ├── .github/workflows/
-│   └── ci.yml                        # job api / web / e2e
+│   ├── ci.yml                        # job api / web / e2e
+│   └── jobs.yml                      # cron mỗi giờ: purge_accounts, backup_db, purge_trash, backup_photos (production)
 │
 ├── docs/
 │   ├── Project_Specs.md              # đặc tả sản phẩm
 │   ├── Project_Structure.md          # FILE NÀY
 │   ├── MVP_Plan.md                   # kế hoạch theo bước, các quyết định Q1..Qn
+│   ├── Deploy.md                     # hướng dẫn triển khai production từng bước, việc định kỳ, sự cố thường gặp
 │   └── adr/                          # quyết định kiến trúc: NNNN-<ten>.md
 │
 ├── shared/                           # dùng chung cho api và web; chỉ sửa ở đây
@@ -56,7 +60,7 @@ dailydiary/
     │   ├── .claude/skills/           # api-conventions, fastapi-backend
     │   ├── pyproject.toml  uv.lock  .python-version
     │   ├── .env.example              # .env [không commit]
-    │   ├── Dockerfile  .dockerignore # (B4) build từ gốc repo để mang theo shared/
+    │   ├── Dockerfile                # build từ gốc repo để mang theo shared/; chạy migration rồi uvicorn
     │   ├── app/
     │   │   ├── main.py               # create_app(), lifespan, middleware, gắn router
     │   │   ├── core/                 # hạ tầng dùng chung, KHÔNG chứa nghiệp vụ
@@ -67,7 +71,7 @@ dailydiary/
     │   │   │   ├── rate_limit.py     # slowapi limiter + handler 429
     │   │   │   ├── catalog.py        # đọc shared/icons.json (danh sách bộ icon, bộ mặc định)
     │   │   │   ├── text.py           # chuẩn hóa NFC, norm từ khóa không dấu
-    │   │   │   ├── security.py       # cookie phiên, get_current_user, CSRF
+    │   │   │   ├── security.py       # cookie phiên, get_current_user, CSRF, header bảo mật (HSTS, nosniff, chặn iframe)
     │   │   │   ├── oauth.py          # Authlib Google
     │   │   │   ├── mailer.py         # gửi email qua SMTP (Gmail thật, Mailpit local), chạy ngoài event loop: góp ý, thư xác nhận xóa tài khoản
     │   │   │   └── storage.py        # boto3: ký URL PUT/GET, kiểm tra object, xóa theo lô (báo lỗi từng key); dependency S3 / OptionalS3
@@ -102,7 +106,7 @@ dailydiary/
         ├── package.json  package-lock.json  .npmrc  .oxlintrc.json  components.json
         ├── vite.config.ts  playwright.config.ts  tsconfig.json  tsconfig.app.json  tsconfig.node.json
         ├── index.html  .env.example
-        ├── public/                   # file tĩnh phục vụ nguyên trạng (favicon Jotly)
+        ├── public/                   # file tĩnh phục vụ nguyên trạng: favicon, _headers (header bảo mật, cache cho Cloudflare Pages)
         ├── scripts/                  # công cụ chạy tay, không vào bản build: subset_fonts.py (tạo font tự host trong src/assets/fonts/)
         ├── e2e/                      # smoke test Playwright: <luồng>.spec.ts; session.ts (đăng nhập thử)
         └── src/
@@ -292,7 +296,7 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 - Bỏ khỏi kế hoạch: `routers/export` và tính năng xuất dữ liệu (21/10/2026).
 - Thêm vào ngoài kế hoạch ban đầu: chia sẻ một trang (ADR 0005), Thùng rác, chính sách quyền riêng tư, tác vụ sao lưu,
   Mailpit trong `docker-compose.yml`.
-- Còn chờ: `apps/api/Dockerfile` (B4), `apps/api/scripts/seed_demo.py` (B14).
+- Còn chờ: `apps/api/scripts/seed_demo.py` (B14).
 
 ## Lịch sử thay đổi
 
@@ -328,3 +332,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 28 | 24/10/2026 | Bước 14 (chính sách quyền riêng tư): `features/legal/PrivacyPolicy.tsx` (+ test), `routes/PrivacyPage.tsx` (/privacy); link "Chính sách quyền riêng tư" ở Landing, đăng nhập, Hồ sơ, trang chia sẻ trỏ tới /privacy |
 | 29 | 24/10/2026 | Rà soát tài liệu so với code: viết lại `README.md`, `apps/api/.env.example`, `apps/web/.env.example`; `docker-compose.yml` tạo thêm bucket `dailydiary-backups`; bỏ `features/auth/.gitkeep`; sửa mô tả `entry/`, `lib/image.ts` trong cây |
 | 30 | 25/10/2026 | Thêm mục "Khung dự án ban đầu" (mốc 0 `e06edd2`, mốc 1 `f8b1097`) và bảng so sánh với hiện tại; đổi tên mục cây thành "Cây thư mục hiện tại" |
+| 31 | 25/10/2026 | Bước 14 (triển khai): `docs/Deploy.md`, `apps/api/Dockerfile` (bỏ nhãn (B4)), `.dockerignore` ở gốc repo (ngữ cảnh build là gốc), `render.yaml`, `.github/workflows/jobs.yml`, `apps/web/public/_headers`; `core/security.py` thêm `SecurityHeadersMiddleware`, `tests/api/test_security_headers.py` |

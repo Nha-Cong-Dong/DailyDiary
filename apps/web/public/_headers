@@ -1,0 +1,19 @@
+# Header cho Cloudflare Pages (https://developers.cloudflare.com/pages/configuration/headers/), Vite chép nguyên vào dist/.
+# CSP đang ở chế độ Report-Only: trình duyệt chỉ báo vi phạm trong Console, không chặn. Kiểm tra trên production
+# (đăng nhập, ảnh, HEIC, chia sẻ) không còn vi phạm thì đổi tên header thành Content-Security-Policy.
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://*.r2.cloudflarestorage.com; connect-src 'self' https://api.jotly.io.vn https://*.r2.cloudflarestorage.com; font-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://api.jotly.io.vn
+
+# File build có mã băm trong tên: cache lâu dài.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Trang chia sẻ công khai: không gửi Referer (đường dẫn chứa token), không cho máy tìm kiếm lập chỉ mục.
+/s/*
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
