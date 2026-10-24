@@ -2,6 +2,7 @@ import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-q
 
 // Đăng xuất và đăng nhập thử: dùng ở cả trang đăng nhập (features/auth) lẫn Hồ sơ (features/profile).
 import { API_URL, csrfToken, toApiError, api } from '@/api/client'
+import { forgetLogin } from './analytics'
 import { ME_KEY, type Me } from './profile'
 import { clearDraftsFor } from './storage'
 
@@ -25,6 +26,8 @@ export function isSignedOutState(state: unknown): boolean {
  * đang mở: /me tải lại → 401 → trang chủ đổi sang bản chưa đăng nhập.
  */
 export function forgetSignedInUser(client: QueryClient) {
+  // Đăng nhập lại trong cùng tab (cùng hay khác người) là một lần `login` mới.
+  forgetLogin()
   client.getMutationCache().clear()
   // Dữ liệu nhật ký: gỡ hẳn (không tải lại, tránh một loạt 401 vô ích); các màn đọc chúng sẽ rời đi theo /me.
   client.removeQueries({ predicate: (q) => q.queryKey[0] !== ME_KEY[0] })

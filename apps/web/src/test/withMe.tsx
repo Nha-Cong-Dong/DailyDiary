@@ -3,6 +3,7 @@ import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router'
 import { vi } from 'vitest'
 import type { components } from '@/api/schema'
+import { tierLimits } from '@/lib/limits'
 import { ME_KEY, type Me } from '@/lib/profile'
 import { matches } from '@/lib/text'
 
@@ -47,11 +48,13 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
  * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}), Year in Pixels (GET /pixels/{year}),
  * tìm kiếm (GET /search, GET /keywords/top), sub icon hay dùng (GET /sub-icons/top),
  * xóa dữ liệu / tài khoản (GET /me/data-summary, DELETE /entries, DELETE /me), góp ý (POST /feedback).
+ * GET /me/data-summary có dung lượng ảnh: `usedBytes` (mặc định 0; sửa `storage.usedBytes` giữa test được), hạn mức
+ * và ngưỡng cảnh báo theo cấp tài khoản trong shared/limits.json.
  * Ảnh: xóa và sắp xếp lại.
  * Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
-export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
+export function mockApi(me: Me, entries: Record<string, EntryOut> = {}, storage: { usedBytes: number } = { usedBytes: 0 }) {
   const deleted: Record<string, EntryOut> = {}
   let signedIn = true
   let tick = 0
@@ -78,7 +81,16 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
     if (path === '/me/data-summary') {
       const live = Object.values(entries)
       const pages = live.length
-      return json({ pages, photos: live.reduce((n, e) => n + e.photos.length, 0), share_links: 0, trash: Object.keys(deleted).length })
+      const { quota_bytes, warn_ratio } = tierLimits(me.account_tier).storage
+      return json({
+        pages,
+        photos: live.reduce((n, e) => n + e.photos.length, 0),
+        share_links: 0,
+        trash: Object.keys(deleted).length,
+        used_bytes: storage.usedBytes,
+        quota_bytes,
+        warn_ratio,
+      })
     }
     if (path === '/entries/trash') {
       const at = new Date().toISOString()

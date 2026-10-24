@@ -29,7 +29,8 @@ async def list_month(
 
 
 @router.delete("", response_model=WipeOut)
-@limiter.limit(rate_limit("write"))
+# Không hoàn tác được và kéo theo dọn cả thư mục ảnh trong nền: hạn mức riêng, chặt hơn "write".
+@limiter.limit(rate_limit("destructive"))
 async def wipe_journal(
     request: Request, body: WipeIn, user: CurrentUser, db: Db, s3: OptionalS3, background: BackgroundTasks
 ) -> WipeOut:

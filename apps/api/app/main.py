@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.core.errors import register_error_handlers
 from app.core.limits import get_limits
 from app.core.logging import RequestLogMiddleware, configure_logging
+from app.core.observability import init_sentry
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.core.security import verify_csrf
 from app.core.storage import make_storage
@@ -54,6 +55,7 @@ def create_app() -> FastAPI:
         # Request ghi có cookie phiên phải đúng Origin và X-CSRF-Token (core/security.py).
         dependencies=[Depends(verify_csrf)],
     )
+    init_sentry(app)  # SENTRY_DSN trống thì không làm gì; phải gọi trước các add_middleware bên dưới
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)

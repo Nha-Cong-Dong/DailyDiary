@@ -5,6 +5,7 @@ import { BottomSheet } from '@/components/diary/BottomSheet'
 import { DayPeek } from '@/components/diary/DayPeek'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { useTrackView } from '@/lib/analytics'
 import { scoreLabel, type Score } from '@/lib/catalog'
 import { timeIn, todayIn, useNow } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
@@ -64,6 +65,8 @@ export function Timeline() {
   const timer = useRef<number | undefined>(undefined)
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
+  // Phân tích (Bước 13): mỗi tháng tính một lần mỗi lần mở màn, khi tháng đó đã tải xong; không gửi tháng nào.
+  useTrackView('calendar_viewed', !isError && data?.month === wanted ? wanted : null, wanted === monthOf(today))
 
   if (isPending || calendar.isPending)
     return (

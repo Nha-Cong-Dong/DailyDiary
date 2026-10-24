@@ -1,5 +1,6 @@
 import { api, toApiError } from '@/api/client'
 import type { UploadPhoto } from '@/components/diary/usePhotoUploads'
+import { track } from '@/lib/analytics'
 import type { DateString } from '@/lib/date'
 import { preparePhoto } from '@/lib/image'
 import { toDayEntry, type DayEntry, type EntryOut } from './entries'
@@ -58,6 +59,7 @@ export function makeUploadPhoto(date: DateString, onEntry?: (entry: DayEntry) =>
       signal,
     })
     if (done.error || !done.data) throw toApiError(done.response, done.error)
+    track('photo_uploaded')
     onProgress(1)
     const entry = toDayEntry(done.data)
     onEntry?.(entry)

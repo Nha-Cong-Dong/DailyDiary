@@ -3,8 +3,10 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi.responses import RedirectResponse
 from httpx import ASGITransport, AsyncClient
+from limits import parse_many
 
 from app.core import config
+from app.core.limits import rate_limit
 from app.core.oauth import oauth
 from app.core.rate_limit import limiter
 from app.core.security import CSRF_COOKIE, SESSION_COOKIE, hash_token
@@ -149,6 +151,20 @@ async def test_login_is_rate_limited_per_ip(anon, google):
         limiter.enabled = False
     assert codes[:5] == [302] * 5
     assert codes[5] == 429
+
+
+async def test_logout_is_rate_limited_per_ip(anon):
+    """Đăng xuất không cần đăng nhập mà vẫn ghi DB: giới hạn theo IP (ip_rate_limits.logout)."""
+    allowed = parse_many(rate_limit("logout"))[0].amount
+    limiter.enabled = True
+    limiter.reset()
+    try:
+        codes = [(await anon.post("/auth/logout")).status_code for _ in range(allowed + 1)]
+    finally:
+        limiter.reset()
+        limiter.enabled = False
+    assert codes[:allowed] == [204] * allowed
+    assert codes[allowed] == 429
 
 
 # --- Đăng nhập thử (chỉ local/test) ---

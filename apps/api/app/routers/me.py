@@ -31,7 +31,9 @@ async def update_me(request: Request, body: MeUpdate, user: CurrentUser, db: Db,
 
 
 @router.post("/avatar/upload-url", response_model=AvatarUploadOut)
-@limiter.limit(rate_limit("photo_upload"))
+# Ảnh đại diện không tính vào hạn mức dung lượng, bản tải lên mà không xác nhận vẫn nằm trong kho:
+# hạn mức riêng, chặt hơn "photo_upload" (đổi ảnh đại diện vài lần là đủ).
+@limiter.limit(rate_limit("avatar_upload"))
 async def create_avatar_upload(
     request: Request, body: PhotoUploadIn, user: CurrentUser, s3: S3
 ) -> AvatarUploadOut:
@@ -42,12 +44,14 @@ async def create_avatar_upload(
 @router.get("/data-summary", response_model=DataSummaryOut)
 @limiter.limit(rate_limit("read"))
 async def data_summary(request: Request, user: CurrentUser, db: Db) -> DataSummaryOut:
-    """Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản."""
+    """Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản; dung lượng ảnh đã dùng,
+    hạn mức và ngưỡng cảnh báo (Hồ sơ và ô ảnh hiện cảnh báo khi đạt `warn_ratio`)."""
     return await account_service.data_summary(db, user)
 
 
 @router.delete("", status_code=204)
-@limiter.limit(rate_limit("write"))
+# Không hoàn tác được (như DELETE /entries); vẫn đủ cho lượt bị đòi đăng nhập lại rồi xóa.
+@limiter.limit(rate_limit("destructive"))
 async def delete_account(
     request: Request,
     response: Response,

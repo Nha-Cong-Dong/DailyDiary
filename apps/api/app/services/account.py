@@ -32,6 +32,7 @@ from app.db import collections as c
 from app.schemas.account import DataSummaryOut, WipeOut
 from app.schemas.users import User
 from app.services.entries import ACTIVE
+from app.services.photos import used_bytes
 
 logger = logging.getLogger("dailydiary.account")
 
@@ -77,14 +78,23 @@ async def log_deletion(
 
 
 async def data_summary(db: AsyncDatabase, user: User) -> DataSummaryOut:
-    days = get_limits().tier(user.account_tier).entry.restore_days
+    limits = get_limits().tier(user.account_tier)
     pages, photos = await _totals(db, {"user_id": user.id, **ACTIVE})
     shares = await db[c.SHARE_LINKS].count_documents({"user_id": user.id})
-    since = datetime.now(UTC) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=limits.entry.restore_days)
     trash = await db[c.ENTRIES].count_documents(
         {"user_id": user.id, "deleted_at": {"$ne": None, "$gte": since}}
     )
-    return DataSummaryOut(pages=pages, photos=photos, share_links=shares, trash=trash)
+    return DataSummaryOut(
+        pages=pages,
+        photos=photos,
+        share_links=shares,
+        trash=trash,
+        # Cùng hàm với lúc chặn tải ảnh, để thanh dung lượng và lỗi STORAGE_QUOTA không lệch nhau.
+        used_bytes=await used_bytes(db, user.id),
+        quota_bytes=limits.storage.quota_bytes,
+        warn_ratio=limits.storage.warn_ratio,
+    )
 
 
 async def wipe_journal(db: AsyncDatabase, user: User) -> WipeOut:

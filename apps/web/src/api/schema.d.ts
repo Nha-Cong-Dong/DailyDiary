@@ -387,7 +387,8 @@ export interface paths {
         };
         /**
          * Data Summary
-         * @description Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản.
+         * @description Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản; dung lượng ảnh đã dùng,
+         *     hạn mức và ngưỡng cảnh báo (Hồ sơ và ô ảnh hiện cảnh báo khi đạt `warn_ratio`).
          */
         get: operations["data_summary_me_data_summary_get"];
         put?: never;
@@ -607,17 +608,24 @@ export interface components {
         };
         /**
          * DataSummaryOut
-         * @description GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số).
+         * @description GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số) và dung lượng ảnh
+         *     đã dùng so với hạn mức (mục 4.5 của đặc tả: cảnh báo khi đạt `warn_ratio`).
          */
         DataSummaryOut: {
             /** Pages */
             pages: number;
             /** Photos */
             photos: number;
+            /** Quota Bytes */
+            quota_bytes: number;
             /** Share Links */
             share_links: number;
             /** Trash */
             trash: number;
+            /** Used Bytes */
+            used_bytes: number;
+            /** Warn Ratio */
+            warn_ratio: number;
         };
         /**
          * DeleteAccountIn

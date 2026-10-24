@@ -1,11 +1,23 @@
 import json
 
 import pytest
+from limits import parse_many
 
 from app.core.config import settings
 from app.core.limits import get_limits, load_limits, rate_limit
 
-USER_RATE_NAMES = {"read", "me", "autosave", "write", "photo_upload", "feedback", "search"}
+USER_RATE_NAMES = {
+    "read",
+    "me",
+    "autosave",
+    "write",
+    "destructive",
+    "photo_upload",
+    "avatar_upload",
+    "feedback",
+    "search",
+}
+IP_RATE_NAMES = {"login", "logout", "share_view"}
 
 
 def test_shared_limits_load_and_match_spec():
@@ -21,6 +33,30 @@ def test_shared_limits_load_and_match_spec():
     assert beta.storage.warn_ratio == 0.8
     assert rate_limit("login") == "5/minute"
     assert rate_limit("photo_upload") == "10/minute;50/day"
+    assert rate_limit("share_view") == "60/minute"
+    assert rate_limit("read") == "30/minute"
+    assert rate_limit("me") == "120/minute"
+    assert rate_limit("write") == "10/minute"
+    assert int(rate_limit("autosave").split("/")[0]) in range(15, 21)
+
+
+def _per_minute(rate: str) -> int:
+    return next(item.amount for item in parse_many(rate) if item.GRANULARITY.name == "minute")
+
+
+def test_dangerous_actions_are_stricter_than_their_base_group():
+    """Thao tác không hoàn tác (xóa dữ liệu/tài khoản) chặt hơn "write"; ảnh đại diện (không tính hạn mức
+    dung lượng) chặt hơn ảnh nhật ký; mọi nhóm có tác động lâu dài đều có trần theo ngày."""
+    for tier in get_limits().tiers.values():
+        rates = tier.rate_limits
+        assert _per_minute(rates["destructive"]) < _per_minute(rates["write"])
+        assert _per_minute(rates["avatar_upload"]) < _per_minute(rates["photo_upload"])
+        for name in ("destructive", "photo_upload", "avatar_upload", "feedback"):
+            assert any(item.GRANULARITY.name == "day" for item in parse_many(rates[name])), name
+
+
+def test_ip_rate_limit_names():
+    assert set(get_limits().ip_rate_limits) == IP_RATE_NAMES
 
 
 def test_every_tier_defines_the_same_rate_limit_names():

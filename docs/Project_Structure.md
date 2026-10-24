@@ -67,7 +67,8 @@ dailydiary/
     │   │   │   ├── security.py       # cookie phiên, get_current_user, CSRF
     │   │   │   ├── oauth.py          # Authlib Google
     │   │   │   ├── mailer.py         # gửi email qua SMTP (Gmail thật, Mailpit local), chạy ngoài event loop: góp ý, thư xác nhận xóa tài khoản
-    │   │   │   └── storage.py        # boto3: ký URL PUT/GET, kiểm tra object; dependency S3 / OptionalS3
+    │   │   │   ├── observability.py  # Sentry backend (tắt khi không có SENTRY_DSN); lọc body/query/cookie/header/thông điệp lỗi
+    │   │   │   └── storage.py        # boto3: ký URL PUT/GET, kiểm tra object, xóa theo lô (báo lỗi từng key); dependency S3 / OptionalS3
     │   │   ├── db/
     │   │   │   ├── client.py         # AsyncMongoClient, dependency Db
     │   │   │   ├── collections.py    # tên collection
@@ -75,20 +76,24 @@ dailydiary/
     │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_entries_norm_backfill.py, m0008_feedback_emailed_at.py, m0009_deletion_log.py, m0010_<mo_ta>.py ...
     │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py, account.py, feedback.py)
     │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py,
-    │   │   │                         # account.py: xóa toàn bộ dữ liệu, xóa tài khoản, dọn kho; feedback.py)
+    │   │   │                         # account.py: xóa toàn bộ dữ liệu, xóa tài khoản, dọn kho; feedback.py;
+    │   │   │                         # maintenance.py: dọn thùng rác quá hạn, không theo một người dùng)
     │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, calendar, pixels,
     │   │   │                         # search (/search, /keywords/top, /sub-icons/top), shares (F-10: chủ trang + /public/shares);
     │   │   │                         # feedback (POST /feedback)
-    │   │   └── jobs/                 # purge_accounts.py (làm nốt xóa tài khoản dang dở); (B13) dọn bài xóa mềm, sao lưu
+    │   │   └── jobs/                 # tác vụ định kỳ: uv run python -m app.jobs.run <tên> (run.py);
+    │   │                             # purge_accounts.py (làm nốt xóa tài khoản dang dở), backup_db.py (sao lưu + khôi phục DB),
+    │   │                             # backup_photos.py (chép ảnh tăng dần sang kho sao lưu), blobstore.py (giao diện kho sao lưu)
     │   ├── scripts/                  # công cụ chạy tay, dùng môi trường của api (uv run python scripts/...)
     │   │   ├── export_openapi.py     # xuất OpenAPI cho web (npm run gen:api, CI kiểm tra lệch)
     │   │   └── seed_demo.py          # (B14) nạp dữ liệu mẫu 3 tháng vào DB local
     │   └── tests/
     │       ├── conftest.py           # DB *_test, client, make_client (phiên đăng nhập), alice/bob
-    │       ├── fakes.py              # kho ảnh giả (FakeStorage) + byte đầu WebP/JPEG/PNG mẫu
+    │       ├── fakes.py              # kho ảnh giả (FakeStorage), kho sao lưu giả (FakeBlobStore) + byte đầu WebP/JPEG/PNG mẫu
     │       ├── unit/                 # hàm thuần, không cần DB
     │       ├── db/                   # migration, index, validator
-    │       └── api/                  # test_<router>.py: thành công, dữ liệu sai, truy cập chéo
+    │       ├── api/                  # test_<router>.py: thành công, dữ liệu sai, truy cập chéo
+    │       └── jobs/                 # test_<tác vụ>.py; test_minio_integration.py tự skip khi không có MinIO
     │
     └── web/                          # Frontend: React + Vite + TypeScript
         ├── .claude/skills/           # web-conventions
@@ -116,8 +121,8 @@ dailydiary/
             │   │                     # tóm tắt tháng; thiết kế B5-Landing-Signed)
             │   ├── auth/             # trang đăng nhập + trạng thái lỗi (loginState.ts), RequireAuth (bảo vệ route)
             │   ├── profile/          # 3 bước lần đầu, Hồ sơ & cài đặt (giao diện; components/ vì ≥ 6 component);
-            │   │                     # PATCH /me; xóa toàn bộ dữ liệu, xóa tài khoản (confirm.ts, useJournalData.ts;
-            │   │                     # bản thử, API ở B12)
+            │   │                     # PATCH /me; xóa toàn bộ dữ liệu, xóa tài khoản (confirm.ts, useJournalData.ts);
+            │   │                     # dung lượng ảnh (components/StorageUsage.tsx)
             │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù (giao diện, lưu tạm trong tab:
             │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; uploadPhoto.ts giả lập tới B7); bản điện thoại B10; useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột,
             │   │                     # components/ConflictDialog.tsx);
@@ -147,7 +152,9 @@ dailydiary/
             │                         # profile.ts (GET/PATCH /me), session.ts (đăng xuất, đăng nhập thử), text.ts (bỏ dấu, tô sáng),
             │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
             │                         # image.ts (kiểm tra loại/kích thước ảnh), online.ts (trạng thái mạng);
-            │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`)
+            │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`);
+            │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh),
+            │                         # sentry.ts (Sentry web, lọc URL/breadcrumb), analytics.ts (Umami: 7 sự kiện, pageview đã làm sạch)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn)
             └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me và API nhật ký khi render test),
                                       # demoApi.ts (giả API chia sẻ)
@@ -208,3 +215,4 @@ dailydiary/
 | 22 | 23/10/2026 | Bước 12 (góp ý): `core/mailer.py`, `routers|schemas|services/feedback.py` (bỏ nhãn (B12) ở feedback), migration `m0008_feedback_emailed_at.py`, `tests/api/test_feedback.py`; web `features/feedback/` (bỏ `.gitkeep`), `e2e/feedback.spec.ts`; Mailpit trong `docker-compose.yml` |
 | 23 | 24/10/2026 | Bước 12 (xóa dữ liệu/tài khoản): `schemas|services/account.py`, `app/jobs/__init__.py`, `app/jobs/purge_accounts.py`, `tests/api/test_account.py`; `core/storage.py` thêm `list_keys`/`delete_prefix`; web `features/profile/useJournalData.ts` dùng API, `DeleteData.test.tsx`, `e2e/account.spec.ts` |
 | 24 | 24/10/2026 | Bổ sung xóa dữ liệu: migration `m0009_deletion_log.py` (collection `deletion_log`), `core/mailer.py` + cấu hình SMTP + Mailpit (chép nguyên từ nhánh góp ý), `features/entry/Trash.tsx`, `Trash.test.tsx`, `routes/TrashPage.tsx` |
+| 25 | 24/10/2026 | Bước 13 (vận hành, phần làm được ở local): `core/observability.py`, `services/maintenance.py`, `app/jobs/run.py`, `backup_db.py`, `backup_photos.py`, `blobstore.py` (bỏ nhãn (B13) ở `jobs/`), `tests/jobs/`, `tests/unit/test_observability.py`, `test_storage.py`; thư viện `sentry-sdk`, `@sentry/react`; web `lib/sentry.ts`, `lib/analytics.ts`, `lib/usage.ts` (+ test), `features/profile/components/StorageUsage.tsx` |

@@ -94,7 +94,12 @@ async def google_callback(request: Request, db: Db):
 
 
 @router.post("/logout", status_code=204)
-async def logout(db: Db, response: Response, token: str | None = Cookie(None, alias=SESSION_COOKIE)) -> None:
+# Không cần đăng nhập mà mỗi lần gọi đều ghi DB: giới hạn theo IP như đăng nhập, nới hơn vì mạng chung
+# (trường, công ty) có nhiều người cùng IP.
+@limiter.limit(rate_limit("logout"), key_func=get_remote_address)
+async def logout(
+    request: Request, db: Db, response: Response, token: str | None = Cookie(None, alias=SESSION_COOKIE)
+) -> None:
     await destroy_session(db, response, token)
 
 

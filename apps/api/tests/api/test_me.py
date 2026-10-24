@@ -1,9 +1,11 @@
 from uuid import uuid4
 
 import pytest
+from limits import parse_many
 
 from app.core.catalog import get_flag_colors
-from app.core.limits import get_limits
+from app.core.limits import get_limits, rate_limit
+from app.core.rate_limit import limiter
 from app.db import collections as c
 from tests.fakes import PNG, WEBP
 
@@ -161,3 +163,19 @@ async def test_bob_cannot_use_alice_avatar_upload(alice, bob, s3):
     )
     assert r.status_code == 422  # key dựng từ phiên của Bob, không trỏ tới file của Alice
     assert key in s3.objects
+
+
+async def test_avatar_upload_url_has_its_own_stricter_rate_limit(alice):
+    """Ảnh đại diện không tính hạn mức dung lượng nên xin URL tải lên bị giới hạn chặt hơn ảnh nhật ký."""
+    allowed = parse_many(rate_limit("avatar_upload"))[0].amount
+    assert allowed < parse_many(rate_limit("photo_upload"))[0].amount
+    limiter.enabled = True
+    limiter.reset()
+    try:
+        for _ in range(allowed):
+            r = await alice.post("/me/avatar/upload-url", json={"content_type": "image/webp"})
+            assert r.status_code == 200
+        r = await alice.post("/me/avatar/upload-url", json={"content_type": "image/webp"})
+        assert r.status_code == 429 and r.json()["error"]["code"] == "RATE_LIMITED"
+    finally:
+        limiter.reset()

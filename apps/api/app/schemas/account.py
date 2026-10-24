@@ -4,7 +4,8 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class DataSummaryOut(BaseModel):
-    """GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số)."""
+    """GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số) và dung lượng ảnh
+    đã dùng so với hạn mức (mục 4.5 của đặc tả: cảnh báo khi đạt `warn_ratio`)."""
 
     # Trang chưa xóa (trang trong thùng rác 30 ngày cũng bị xóa nhưng không đếm ở đây).
     pages: int
@@ -12,6 +13,12 @@ class DataSummaryOut(BaseModel):
     share_links: int
     # Trang trong thùng rác còn khôi phục được (GET /entries/trash).
     trash: int
+    # Byte ảnh nhật ký đang chiếm (ảnh chính + ảnh thu nhỏ), cùng cách tính với lúc chặn tải ảnh
+    # (STORAGE_QUOTA): gồm cả trang trong thùng rác vì ảnh còn trong kho tới khi dọn. Ảnh đại diện không tính.
+    used_bytes: int
+    # Hạn mức và ngưỡng cảnh báo (0–1) theo cấp tài khoản, lấy từ shared/limits.json (`storage`).
+    quota_bytes: int
+    warn_ratio: float
 
 
 class WipeIn(BaseModel):

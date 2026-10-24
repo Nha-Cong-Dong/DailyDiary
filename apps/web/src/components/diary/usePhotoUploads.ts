@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ApiError } from '@/api/client'
 import { checkPhoto, isHeic } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
 import type { PhotoItem } from './PhotoViewer'
@@ -10,9 +11,24 @@ export type UploadTile =
   | { key: string; status: 'done'; photo: PhotoItem; previewUrl?: string }
   | { key: string; status: 'uploading'; file: File; previewUrl?: string; progress: number }
   | { key: string; status: 'failed'; file: File; previewUrl?: string }
-  | { key: string; status: 'rejected'; name: string; reason: 'type' | 'size' }
+  | { key: string; status: 'rejected'; name: string; reason: RejectReason }
 
-/** Ô bị từ chối (sai định dạng, quá lớn) không tính vào số ảnh của trang. */
+/**
+ * Lý do một ảnh không vào trang. Trên máy: `type` sai định dạng, `size` quá lớn. Máy chủ từ chối (422):
+ * `quota` hết dung lượng (STORAGE_QUOTA), `photo_limit` trang đã đủ ảnh (ENTRY_LIMIT_PHOTOS, vd. thêm ở tab khác).
+ * Thử lại cũng không qua nên không có nút Thử lại, khác lỗi mạng.
+ */
+export type RejectReason = 'type' | 'size' | 'quota' | 'photo_limit'
+
+/** Lỗi tải ảnh mà máy chủ từ chối vì hạn mức; lỗi khác (mạng, kho ảnh…) trả null để còn thử lại. */
+export function serverRejection(error: unknown): Extract<RejectReason, 'quota' | 'photo_limit'> | null {
+  if (!(error instanceof ApiError)) return null
+  if (error.code === 'STORAGE_QUOTA') return 'quota'
+  if (error.code === 'ENTRY_LIMIT_PHOTOS') return 'photo_limit'
+  return null
+}
+
+/** Ô bị từ chối (sai định dạng, quá lớn, hết dung lượng, đủ ảnh) không tính vào số ảnh của trang. */
 export function countsTowardLimit(tile: UploadTile): boolean {
   return tile.status !== 'rejected'
 }
@@ -96,8 +112,16 @@ export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto, { onR
         controller.signal,
       ).then(
         (photo) => patch(key, (t) => (t.status === 'uploading' ? { key, status: 'done', photo, previewUrl: t.previewUrl } : t)),
-        () => {
-          if (!controller.signal.aborted) patch(key, (t) => (t.status === 'uploading' ? { key, status: 'failed', file, previewUrl: t.previewUrl } : t))
+        (error: unknown) => {
+          if (controller.signal.aborted) return
+          const reason = serverRejection(error)
+          patch(key, (t) =>
+            t.status !== 'uploading'
+              ? t
+              : reason
+                ? { key, status: 'rejected', name: file.name, reason }
+                : { key, status: 'failed', file, previewUrl: t.previewUrl },
+          )
         },
       ).finally(() => controllers.current.delete(key))
     },

@@ -192,7 +192,7 @@
         "type": "object"
       },
       "DataSummaryOut": {
-        "description": "GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số).",
+        "description": "GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số) và dung lượng ảnh\nđã dùng so với hạn mức (mục 4.5 của đặc tả: cảnh báo khi đạt `warn_ratio`).",
         "properties": {
           "pages": {
             "title": "Pages",
@@ -202,6 +202,10 @@
             "title": "Photos",
             "type": "integer"
           },
+          "quota_bytes": {
+            "title": "Quota Bytes",
+            "type": "integer"
+          },
           "share_links": {
             "title": "Share Links",
             "type": "integer"
@@ -209,13 +213,24 @@
           "trash": {
             "title": "Trash",
             "type": "integer"
+          },
+          "used_bytes": {
+            "title": "Used Bytes",
+            "type": "integer"
+          },
+          "warn_ratio": {
+            "title": "Warn Ratio",
+            "type": "number"
           }
         },
         "required": [
           "pages",
           "photos",
           "share_links",
-          "trash"
+          "trash",
+          "used_bytes",
+          "quota_bytes",
+          "warn_ratio"
         ],
         "title": "DataSummaryOut",
         "type": "object"
@@ -3095,7 +3110,7 @@
     },
     "/me/data-summary": {
       "get": {
-        "description": "Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản.",
+        "description": "Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản; dung lượng ảnh đã dùng,\nhạn mức và ngưỡng cảnh báo (Hồ sơ và ô ảnh hiện cảnh báo khi đạt `warn_ratio`).",
         "operationId": "data_summary_me_data_summary_get",
         "parameters": [
           {
