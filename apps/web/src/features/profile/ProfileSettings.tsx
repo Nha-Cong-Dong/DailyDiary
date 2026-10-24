@@ -1,5 +1,5 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { ChevronRight, CircleCheck, Eraser, Link2, LogOut, Lock, Mail, Trash2 } from 'lucide-react'
+import { ApiError, googleLoginUrl } from '@/api/client'
+import { ArchiveRestore, ChevronRight, CircleCheck, Eraser, Link2, Lock, LogOut, Mail, Trash2 } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BottomSheet } from '@/components/diary/BottomSheet'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { tierLimits } from '@/lib/limits'
 import { useProfile, useUpdateProfile, useUploadAvatar } from '@/lib/profile'
-import { useLogout } from '@/lib/session'
+import { SIGNED_OUT, useLogout } from '@/lib/session'
 import { setThemePreference, useThemePreference, type ThemePreference } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { AvatarField } from './components/AvatarField'
@@ -106,7 +106,8 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
   const [initialTimeZone] = useState(() => profile.timeZone)
   const { data: summary } = useDataSummary()
   const deleteAccount = useDeleteAccount()
-  const client = useQueryClient()
+  // Phiên đăng nhập đã quá 10 phút: máy chủ đòi đăng nhập lại trước khi xóa tài khoản (403 REAUTH_REQUIRED).
+  const needsReauth = deleteAccount.error instanceof ApiError && deleteAccount.error.code === 'REAUTH_REQUIRED'
   const wipe = useWipeJournal(onClearShares)
   const [dataOpen, setDataOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
@@ -354,12 +355,18 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
             type="button"
             className={phoneRow}
             disabled={logout.isPending}
-            onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true }) })}
+            onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
           >
             <LogOut className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Đăng xuất</span>
             <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
           </button>
+          <Link to="/profile/trash" className={phoneRow}>
+            <ArchiveRestore className="size-5 shrink-0" aria-hidden="true" />
+            <span className="flex-1 font-semibold">Thùng rác</span>
+            {summary?.trash ? <span className="text-sm text-muted-foreground tabular-nums">{summary.trash} trang</span> : null}
+            <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+          </Link>
           <button type="button" className={cn(phoneRow, 'text-destructive')} onClick={() => setDataOpen(true)}>
             <Eraser className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Xóa toàn bộ dữ liệu</span>
@@ -376,9 +383,19 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
               size="sm"
               className="h-10 px-3.5"
               disabled={logout.isPending}
-              onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true }) })}
+              onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
             >
               <LogOut aria-hidden="true" /> Đăng xuất
+            </Button>
+          </Row>
+          <Row
+            title="Thùng rác"
+            hint={`Trang đã xóa nằm ở đây ${tierLimits().entry.restore_days} ngày, khôi phục được.${summary?.trash ? ` Đang có ${summary.trash} trang.` : ''}`}
+          >
+            <Button asChild variant="secondary" size="sm" className="h-10 px-3.5">
+              <Link to="/profile/trash">
+                <ArchiveRestore aria-hidden="true" /> Mở thùng rác
+              </Link>
             </Button>
           </Row>
           <div className="flex flex-col gap-[22px] border-t-[1.5px] border-dashed border-border pt-[22px]">
@@ -403,7 +420,16 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
           <CircleCheck className="size-4" aria-hidden="true" /> Đã xóa toàn bộ dữ liệu. Trang Hôm nay đang chờ bạn.
         </p>
       ) : null}
-      {wipe.isError || deleteAccount.isError ? (
+      {needsReauth ? (
+        <div role="alert" className="-mt-3 flex flex-wrap items-center gap-3 rounded-[14px] border-[1.5px] border-line bg-card px-4 py-3 max-sm:-mt-2">
+          <p className="min-w-0 flex-1 text-sm leading-[22px]">
+            Để bảo vệ tài khoản, hãy đăng nhập lại bằng Google rồi xóa trong vòng 10 phút. Chưa có gì bị xóa.
+          </p>
+          <Button asChild variant="secondary" size="sm" className="h-10 px-3.5">
+            <a href={googleLoginUrl(profile.timeZone, '/profile')}>Đăng nhập lại</a>
+          </Button>
+        </div>
+      ) : wipe.isError || deleteAccount.isError ? (
         <p role="alert" className="-mt-3 px-1 text-sm font-medium text-destructive max-sm:-mt-2 max-sm:text-[13px]">
           {wipe.isError ? 'Chưa xóa được dữ liệu.' : 'Chưa xóa được tài khoản.'} Kiểm tra kết nối rồi thử lại; chưa có gì bị xóa.
         </p>
@@ -454,11 +480,8 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
       />
       <AccountDeletedDialog
         open={accountGone}
-        onHome={() => {
-          // Máy chủ đã xóa phiên và cookie; xóa nốt cache của người vừa xóa tài khoản rồi về trang chủ.
-          client.clear()
-          navigate('/', { replace: true })
-        }}
+        // Máy chủ đã xóa phiên và cookie; trang chủ bỏ nốt dữ liệu trong bộ nhớ (cờ SIGNED_OUT).
+        onHome={() => navigate('/', { replace: true, state: SIGNED_OUT })}
       />
     </div>
   )

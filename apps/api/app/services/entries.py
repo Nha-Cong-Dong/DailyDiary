@@ -27,6 +27,7 @@ from app.schemas.entries import (
     EntryPhotoOut,
     EntrySummaryOut,
     EntryWrite,
+    TrashItemOut,
 )
 from app.schemas.users import User
 
@@ -257,3 +258,38 @@ async def restore_entry(db: AsyncDatabase, user: User, day: date, storage: Stora
     if doc is None:
         raise _not_found()
     return entry_out(doc, storage)
+
+
+async def list_trash(db: AsyncDatabase, user: User) -> list[TrashItemOut]:
+    """Trang đã xóa mềm còn trong hạn khôi phục, xóa gần nhất trước (màn Thùng rác trong Hồ sơ)."""
+    days = get_limits().tier(user.account_tier).entry.restore_days
+    since = datetime.now(UTC) - timedelta(days=days)
+    rows = await (
+        await db[c.ENTRIES].aggregate(
+            [
+                {"$match": {"user_id": user.id, "deleted_at": {"$ne": None, "$gte": since}}},
+                {"$sort": {"deleted_at": -1}},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "entry_date": 1,
+                        "score": 1,
+                        "title": 1,
+                        "deleted_at": 1,
+                        "photo_count": {"$size": {"$ifNull": ["$photos", []]}},
+                    }
+                },
+            ]
+        )
+    ).to_list()
+    return [
+        TrashItemOut(
+            entry_date=date.fromisoformat(r["entry_date"]),
+            score=r["score"],
+            title=r.get("title"),
+            photo_count=r["photo_count"],
+            deleted_at=r["deleted_at"],
+            restore_until=r["deleted_at"] + timedelta(days=days),
+        )
+        for r in rows
+    ]

@@ -50,6 +50,11 @@ describe('Trang chủ', () => {
     expect(screen.getByRole('menuitem', { name: /Dòng thời gian/ })).toHaveAttribute('href', '/timeline')
     fireEvent.click(logout)
     await waitFor(() => expect(calls.some((c) => c.path === '/auth/logout')).toBe(true))
+    // Đăng xuất ngay tại trang chủ: trang đổi sang bản chưa đăng nhập, không còn tên người cũ.
+    // Chuỗi đăng xuất → chuyển trang → tải lại /me → vẽ lại: khi cả bộ test chạy song song có thể quá 1 giây.
+    expect(await screen.findAllByRole('link', { name: 'Tiếp tục với Google' }, { timeout: 5000 })).toHaveLength(2)
+    expect(screen.queryByText(/Minh An/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Tài khoản của/ })).not.toBeInTheDocument()
   })
 
   it('đã đăng nhập: tóm tắt tháng đọc lịch tháng (GET /calendar), chuỗi ngày lấy từ backend', async () => {

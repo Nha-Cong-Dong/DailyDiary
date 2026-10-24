@@ -1,10 +1,13 @@
 import unicodedata
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
+from pymongo.errors import WriteError
 
+from app.core.config import settings
 from app.db import collections as c
+from app.routers import me as me_router
 from app.services import account as account_service
 from app.services import users as user_service
 from tests.api.test_photos import _key, _upload
@@ -58,7 +61,12 @@ async def _fill(client, db, s3) -> dict:
 
 async def test_data_summary(alice, db, s3):
     await _fill(alice, db, s3)
-    assert (await alice.get("/me/data-summary")).json() == {"pages": 2, "photos": 1, "share_links": 1}
+    assert (await alice.get("/me/data-summary")).json() == {
+        "pages": 2,
+        "photos": 1,
+        "share_links": 1,
+        "trash": 1,
+    }
 
 
 async def test_wipe_keeps_account_settings_avatar_and_feedback(alice, bob, db, s3):
@@ -199,3 +207,108 @@ async def test_dev_login_reports_pending_deletion(anon, db):
     anon.cookies.clear()  # lần đăng nhập trên đã gắn cookie phiên
     r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
     assert r.status_code == 403 and r.json()["error"]["code"] == "ACCOUNT_DELETED"
+
+
+async def test_delete_account_needs_recent_login(alice, db, s3):
+    await _fill(alice, db, s3)
+    old = datetime.now(UTC) - account_service.REAUTH_WINDOW - timedelta(minutes=1)
+    await db[c.USER_SESSIONS].update_many({"user_id": alice.user["_id"]}, {"$set": {"created_at": old}})
+    r = await alice.request("DELETE", "/me", json={"confirm_email": "alice@example.com"})
+    assert r.status_code == 403 and r.json()["error"]["code"] == "REAUTH_REQUIRED"
+    assert (await alice.get("/me")).status_code == 200  # không có gì bị xóa
+    assert await db[c.ENTRIES].count_documents({"user_id": alice.user["_id"]}) == 3
+    # Xóa dữ liệu (giữ tài khoản) không đòi đăng nhập lại.
+    assert (await alice.request("DELETE", "/entries", json={"confirm": "XÓA"})).status_code == 200
+
+
+async def test_deletion_log_has_counts_but_nothing_personal(alice, bob, db, s3):
+    await _fill(alice, db, s3)
+    await _fill(bob, db, s3)
+    await alice.request("DELETE", "/entries", json={"confirm": "XÓA"})
+    await bob.request("DELETE", "/me", json={"confirm_email": "bob@example.com"})
+    logs = await db[c.DELETION_LOG].find({}, {"_id": 0, "at": 0}).sort("kind", -1).to_list()
+    # Xóa dữ liệu đếm cả trang trong thùng rác (3 trang); xóa tài khoản đếm cả góp ý đã ẩn danh.
+    assert logs == [
+        {"kind": "journal", "pages": 3, "photos": 1, "share_links": 1},
+        {"kind": "account", "pages": 3, "photos": 1, "share_links": 1, "feedback_anonymized": 1},
+    ]
+    text = str(await db[c.DELETION_LOG].find().to_list())
+    for secret in ("alice", "bob", str(alice.user["_id"]), str(bob.user["_id"])):
+        assert secret not in text
+    with pytest.raises(WriteError):  # validator chặn trường lạ, vd. user_id
+        await db[c.DELETION_LOG].insert_one(
+            {
+                "_id": uuid4(),
+                "kind": "account",
+                "at": datetime.now(UTC),
+                "pages": 0,
+                "photos": 0,
+                "share_links": 0,
+                "user_id": uuid4(),
+            }
+        )
+
+
+@pytest.fixture
+def outbox(monkeypatch):
+    sent = []
+
+    async def fake_send(mail):
+        sent.append(mail)
+        return True
+
+    monkeypatch.setattr(settings, "smtp_host", "smtp.test")
+    monkeypatch.setattr(settings, "feedback_to_email", "owner@jotly.test")
+    monkeypatch.setattr(me_router, "send_mail", fake_send)
+    return sent
+
+
+async def test_account_deleted_email_goes_to_owner_without_journal_content(alice, db, s3, outbox):
+    await _fill(alice, db, s3)
+    await db[c.ENTRIES].update_many({"user_id": alice.user["_id"]}, {"$set": {"title": "Bí mật tuyệt đối"}})
+    assert (
+        await alice.request("DELETE", "/me", json={"confirm_email": "alice@example.com"})
+    ).status_code == 204
+    (mail,) = outbox
+    assert mail.to == "alice@example.com"
+    assert mail.subject == "Tài khoản Jotly của bạn đã được xóa"
+    assert mail.reply_to == ("Jotly", "owner@jotly.test")
+    assert "3 trang nhật ký" in mail.body and "7 ngày" in mail.body
+    assert "Bí mật" not in mail.body
+
+
+async def test_no_email_for_dev_login_accounts_or_without_smtp(make_client, db, s3, outbox, monkeypatch):
+    dev = await make_client("dev-user@example.com", google_sub="dev:dev-user@example.com")
+    assert (
+        await dev.request("DELETE", "/me", json={"confirm_email": "dev-user@example.com"})
+    ).status_code == 204
+    assert outbox == []
+    monkeypatch.setattr(settings, "smtp_host", None)
+    real = await make_client("real@example.com")
+    assert (
+        await real.request("DELETE", "/me", json={"confirm_email": "real@example.com"})
+    ).status_code == 204
+    assert outbox == []
+
+
+async def test_trash_lists_restorable_pages_newest_deleted_first(alice, bob, db):
+    for day in DAYS:
+        await alice.put(f"/entries/{day}", json={"score": 4, "title": f"Trang {day}"})
+    await alice.delete(f"/entries/{DAYS[0]}")
+    await alice.delete(f"/entries/{DAYS[1]}")
+    expired = datetime.now(UTC) - timedelta(days=31)
+    await db[c.ENTRIES].update_one(
+        {"user_id": alice.user["_id"], "entry_date": DAYS[0]}, {"$set": {"deleted_at": expired}}
+    )
+    items = (await alice.get("/entries/trash")).json()
+    assert [i["entry_date"] for i in items] == [DAYS[1]]  # quá 30 ngày thì không còn khôi phục được
+    assert items[0]["title"] == f"Trang {DAYS[1]}" and "content" not in items[0]
+    assert (await bob.get("/entries/trash")).json() == []
+    assert (await alice.get("/me/data-summary")).json()["trash"] == 1
+
+    assert (await alice.post(f"/entries/{DAYS[1]}/restore")).status_code == 200
+    assert (await alice.get("/entries/trash")).json() == []
+
+
+async def test_trash_needs_login(anon):
+    assert (await anon.get("/entries/trash")).status_code == 401

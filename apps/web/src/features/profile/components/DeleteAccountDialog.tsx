@@ -80,7 +80,7 @@ export function DeleteDataDialog({
       role="alertdialog"
       danger
       title="Xóa toàn bộ dữ liệu?"
-      description={`${pageCount !== undefined ? `${pageCount} trang` : 'Mọi trang'}, kèm mọi điểm, ${photoCount ? `${photoCount} ảnh` : 'ảnh'} và link chia sẻ, sẽ bị xóa vĩnh viễn (cả trang đang trong thùng rác). Tài khoản, cài đặt và ảnh đại diện vẫn giữ để bạn viết tiếp.`}
+      description={`${pageCount !== undefined ? `${pageCount} trang` : 'Mọi trang'}, kèm mọi điểm, ${photoCount ? `${photoCount} ảnh` : 'ảnh'} và link chia sẻ, sẽ bị xóa vĩnh viễn (cả trang đang trong thùng rác). Tài khoản, cài đặt và ảnh đại diện vẫn giữ để bạn viết tiếp. Bản sao lưu tự động có thể còn dữ liệu tối đa 7 ngày rồi bị ghi đè.`}
       showDescription
       className="md:max-w-[min(460px,calc(100%-2rem))]"
     >
@@ -144,8 +144,9 @@ export function DeleteAccountDialog({
         <li>Hồ sơ, ảnh đại diện, bộ icon, múi giờ và cài đặt</li>
       </ul>
       <p className="text-sm leading-[22px] text-muted-foreground">
-        Góp ý bạn từng gửi được giữ lại nhưng không còn tên hay email của bạn. Tài khoản Google của bạn không bị ảnh
-        hưởng; đăng nhập lại sau này sẽ bắt đầu một cuốn nhật ký mới.
+        Góp ý bạn từng gửi được giữ lại nhưng không còn tên hay email của bạn. Bản sao lưu tự động có thể còn dữ liệu
+        tối đa 7 ngày rồi bị ghi đè, không dùng để khôi phục tài khoản. Tài khoản Google của bạn không bị ảnh hưởng;
+        đăng nhập lại sau này sẽ bắt đầu một cuốn nhật ký mới. Jotly gửi email xác nhận về {email} sau khi xóa.
       </p>
       <ConfirmField
         label={

@@ -44,6 +44,7 @@ export const router = createBrowserRouter([
               { path: 'timeline', lazy: async () => ({ Component: (await import('./TimelinePage')).TimelinePage }) },
               { path: 'profile', lazy: async () => ({ Component: (await import('./ProfilePage')).ProfilePage }) },
               { path: 'profile/shares', lazy: async () => ({ Component: (await import('./SharedListPage')).SharedListPage }) },
+              { path: 'profile/trash', lazy: async () => ({ Component: (await import('./TrashPage')).TrashPage }) },
             ],
           },
         ],

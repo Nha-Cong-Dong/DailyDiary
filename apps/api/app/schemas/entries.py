@@ -110,3 +110,14 @@ class EntryMonthOut(BaseModel):
 
     month: str
     entries: list[EntrySummaryOut]
+
+
+class TrashItemOut(BaseModel):
+    """Một trang trong thùng rác: đủ để nhận ra trang (không có nội dung), kèm hạn khôi phục."""
+
+    entry_date: date
+    score: int
+    title: str | None
+    photo_count: int
+    deleted_at: datetime
+    restore_until: datetime

@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useLogout } from '@/lib/session'
+import { SIGNED_OUT, useLogout } from '@/lib/session'
 
 type Props = {
   name: string
@@ -65,7 +65,7 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
         <DropdownMenuItem
           variant="destructive"
           disabled={logout.isPending}
-          onSelect={() => logout.mutate(undefined, { onSettled: () => navigate('/') })}
+          onSelect={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
         >
           <LogOut aria-hidden="true" />
           Đăng xuất

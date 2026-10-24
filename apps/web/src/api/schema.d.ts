@@ -34,6 +34,9 @@ export interface paths {
         /**
          * Google Login
          * @description Bắt đầu đăng nhập. Frontend mở trang này trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng.
+         *
+         *     `next`: chỉ nhận đường trong RETURN_PATHS (đăng nhập lại để xác nhận xóa tài khoản rồi quay về Hồ sơ);
+         *     giá trị khác bị bỏ qua, không bao giờ chuyển hướng tới địa chỉ client tự đặt.
          */
         get: operations["google_login_auth_google_login_get"];
         put?: never;
@@ -106,6 +109,28 @@ export interface paths {
          *     Gửi `{"confirm": "XÓA"}`. Ảnh trong kho được dọn trong nền ngay sau khi trả lời.
          */
         delete: operations["wipe_journal_entries_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Trash
+         * @description Thùng rác: trang đã xóa còn khôi phục được (khôi phục bằng POST /entries/{date}/restore).
+         *
+         *     Khai báo trước /{day} để "trash" không bị hiểu là một ngày.
+         */
+        get: operations["list_trash_entries_trash_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -571,6 +596,8 @@ export interface components {
             photos: number;
             /** Share Links */
             share_links: number;
+            /** Trash */
+            trash: number;
         };
         /**
          * DeleteAccountIn
@@ -1090,6 +1117,33 @@ export interface components {
             /** Icons */
             icons: components["schemas"]["SubIconCount"][];
         };
+        /**
+         * TrashItemOut
+         * @description Một trang trong thùng rác: đủ để nhận ra trang (không có nội dung), kèm hạn khôi phục.
+         */
+        TrashItemOut: {
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Photo Count */
+            photo_count: number;
+            /**
+             * Restore Until
+             * Format: date-time
+             */
+            restore_until: string;
+            /** Score */
+            score: number;
+            /** Title */
+            title: string | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -1156,6 +1210,7 @@ export interface operations {
         parameters: {
             query?: {
                 tz?: string | null;
+                next?: string | null;
             };
             header?: never;
             path?: never;
@@ -1302,6 +1357,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WipeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_trash_entries_trash_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrashItemOut"][];
                 };
             };
             /** @description Validation Error */

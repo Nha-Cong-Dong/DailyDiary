@@ -1,6 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Request, Response
 
 from app.core.limits import rate_limit
+from app.core.mailer import send_mail
 from app.core.rate_limit import limiter
 from app.core.security import CurrentUser, clear_session_cookies
 from app.core.storage import S3, OptionalS3
@@ -42,7 +43,7 @@ async def create_avatar_upload(
 @limiter.limit(rate_limit("read"))
 async def data_summary(request: Request, user: CurrentUser, db: Db) -> DataSummaryOut:
     """Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản."""
-    return await account_service.data_summary(db, user.id)
+    return await account_service.data_summary(db, user)
 
 
 @router.delete("", status_code=204)
@@ -59,6 +60,10 @@ async def delete_account(
     """Xóa tài khoản (F-07): gửi `{"confirm_email": <email tài khoản>}`. Đăng xuất mọi thiết bị ngay;
     ảnh trong kho và hồ sơ được dọn trong nền. Góp ý giữ nội dung nhưng ẩn danh.
     """
-    await account_service.delete_account(db, user, body.confirm_email)
+    mail = await account_service.delete_account(
+        db, user, body.confirm_email, getattr(request.state, "session_started", None)
+    )
     clear_session_cookies(response)
     background.add_task(account_service.purge_account, db, s3, user.id)
+    if mail:
+        background.add_task(send_mail, mail)

@@ -97,6 +97,8 @@ async def get_current_user(
         _set_cookies(response, token, request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(32))
 
     request.state.user_id = str(doc["_id"])  # key_func của rate limit đọc giá trị này
+    # Lúc đăng nhập của phiên này: thao tác nhạy cảm (xóa tài khoản) đòi phiên còn mới (services/account.py).
+    request.state.session_started = session["created_at"]
     return User.from_doc(doc)
 
 

@@ -539,6 +539,19 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
   nhập rồi job làm nốt, đăng nhập lại là tài khoản mới); 2 test Vitest; e2e trên MinIO thật (link ảnh 404, link chia sẻ
   404, đăng nhập lại trống). Backend 250; Vitest 168; e2e 49/49.
 
+**Bổ sung (24/10/2026), theo các gợi ý người dùng chọn (gợi ý 1–2 ghi vào Bước 13):**
+- Thùng rác: `GET /entries/trash` + màn Hồ sơ › Thùng rác (khôi phục từng trang); `data-summary` có thêm `trash`.
+- Email xác nhận sau khi xóa tài khoản (nền, `core/mailer.py` chép nguyên từ nhánh góp ý để gộp không xung đột): số
+  lượng đã xóa, ghi chú góp ý ẩn danh và bản sao lưu 7 ngày, Reply-To về `FEEDBACK_TO_EMAIL`. Không gửi khi chưa cấu hình
+  SMTP hoặc với tài khoản đăng nhập thử (`google_sub` bắt đầu bằng `dev:`, không có hộp thư thật).
+- Đăng nhập lại trước khi xóa tài khoản: phiên quá 10 phút → 403 `REAUTH_REQUIRED`; Hồ sơ hiện nút "Đăng nhập lại"
+  (`/auth/google/login?next=/profile`, `next` chỉ nhận đúng `/profile`). Xóa dữ liệu (giữ tài khoản) không đòi.
+- `deletion_log` (migration `m0009`, `additionalProperties: false`): loại, thời điểm, số lượng; không có user_id/email.
+- Sao lưu: hộp thoại xóa, email xác nhận và đặc tả ghi rõ dữ liệu đã xóa còn trong bản sao lưu tối đa 7 ngày.
+- Test: backend 258 (thêm phiên cũ bị chặn, deletion_log không có dữ liệu cá nhân + validator chặn user_id, email đúng
+  người nhận và không có nội dung, không gửi cho tài khoản thử/không SMTP, thùng rác lọc hạn 30 ngày và theo người dùng,
+  `next` chỉ nhận /profile); Vitest 171; e2e 50/50 (có ca thùng rác khôi phục).
+
 ---
 
 ## Bước 13 – Vận hành
@@ -548,7 +561,10 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 - Sentry cho frontend và backend, có `before_send` lọc nội dung nhật ký.
 - PostHog hoặc Umami với 7 sự kiện ở mục 4.7, không gửi nội dung.
 - Tác vụ định kỳ:
-  - dọn bài xóa mềm sau 30 ngày, kèm ảnh và link chia sẻ của bài đó;
+  - dọn bài xóa mềm sau 30 ngày, kèm ảnh và link chia sẻ của bài đó (ghi nhớ 24/10/2026: xóa ảnh theo key của
+    từng trang bằng `Storage.delete`, cùng mẫu với `services/account.py`; ghi một dòng vào `deletion_log`);
+  - đặt lịch chạy `python -m app.jobs.purge_accounts` (mỗi giờ) để không còn tài khoản kẹt ở trạng thái "đang chờ xóa"
+    (ghi nhớ 24/10/2026);
   - sao lưu DB lúc 00:00, 08:00, 16:00 giờ Việt Nam, giữ 7 ngày (sao lưu của gói hosting, hoặc tác vụ `mongodump`);
   - sao chép ảnh sang kho khác.
 - Rà lại và tinh chỉnh toàn bộ rate limit.

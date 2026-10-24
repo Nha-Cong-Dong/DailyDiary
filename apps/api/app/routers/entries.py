@@ -9,7 +9,7 @@ from app.core.security import CurrentUser
 from app.core.storage import OptionalS3
 from app.db.client import Db
 from app.schemas.account import WipeIn, WipeOut
-from app.schemas.entries import EntryDeletedOut, EntryMonthOut, EntryOut, EntryWrite
+from app.schemas.entries import EntryDeletedOut, EntryMonthOut, EntryOut, EntryWrite, TrashItemOut
 from app.services import account as account_service
 from app.services import entries as entry_service
 
@@ -42,6 +42,16 @@ async def wipe_journal(
     out = await account_service.wipe_journal(db, user)
     background.add_task(account_service.purge_journal_photos, s3, user.id)
     return out
+
+
+@router.get("/trash", response_model=list[TrashItemOut])
+@limiter.limit(rate_limit("read"))
+async def list_trash(request: Request, user: CurrentUser, db: Db) -> list[TrashItemOut]:
+    """Thùng rác: trang đã xóa còn khôi phục được (khôi phục bằng POST /entries/{date}/restore).
+
+    Khai báo trước /{day} để "trash" không bị hiểu là một ngày.
+    """
+    return await entry_service.list_trash(db, user)
 
 
 @router.get("/{day}", response_model=EntryOut)

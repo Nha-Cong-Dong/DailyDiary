@@ -199,3 +199,22 @@ async def test_production_requires_session_secret(monkeypatch):
     monkeypatch.setattr(config.settings, "session_secret", None)
     with pytest.raises(RuntimeError, match="SESSION_SECRET"):
         create_app()
+
+
+async def test_login_can_return_to_profile_only(anon, db, google):
+    """Đăng nhập lại để xác nhận xóa tài khoản rồi quay về Hồ sơ; `next` khác danh sách bị bỏ qua."""
+    await _login(anon)
+    await db[c.USERS].update_one({"google_sub": "g-123"}, {"$set": {"onboarded_at": datetime.now(UTC)}})
+    await anon.get("/auth/google/login", params={"next": "/profile"})
+    r = await anon.get("/auth/google/callback", params={"code": "x", "state": "y"})
+    assert r.headers["location"].endswith("/profile")
+    for bad in ("https://evil.example", "//evil.example", "/today/../admin", "/profile?x=1"):
+        await anon.get("/auth/google/login", params={"next": bad})
+        r = await anon.get("/auth/google/callback", params={"code": "x", "state": "y"})
+        assert r.headers["location"].endswith("/today"), bad
+
+
+async def test_new_user_goes_to_onboarding_even_with_next(anon, google):
+    await anon.get("/auth/google/login", params={"next": "/profile"})
+    r = await anon.get("/auth/google/callback", params={"code": "x", "state": "y"})
+    assert r.headers["location"].endswith("/onboarding")

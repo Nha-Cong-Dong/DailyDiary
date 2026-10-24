@@ -187,6 +187,16 @@ Quy tắc:
   Chốt 23–24/10/2026: góp ý **giữ nội dung nhưng ẩn danh** (`user_id` thay bằng mã ngẫu nhiên, không còn tên/email);
   dọn xong thì đăng nhập lại bằng cùng Google tạo **tài khoản mới, trống**; trong lúc đang dọn thì báo "đang chờ xóa".
   Ảnh trong kho dọn trong nền; dở dang thì `python -m app.jobs.purge_accounts` làm nốt.
+  Bổ sung 24/10/2026: chỉ xóa được khi phiên đăng nhập **trong 10 phút gần nhất** (quá thì báo 403 `REAUTH_REQUIRED`,
+  giao diện có nút "Đăng nhập lại" quay về Hồ sơ); xóa xong gửi **email xác nhận** tới chính chủ (không chứa nội dung
+  nhật ký; tài khoản đăng nhập thử không có hộp thư thật thì không gửi).
+- **Thùng rác** (24/10/2026, thiết kế chưa có): Hồ sơ › Thùng rác liệt kê trang đã xóa còn trong `entry.restore_days`
+  ngày (`GET /entries/trash`), khôi phục từng trang.
+- **Ghi nhận việc xóa** (24/10/2026): collection `deletion_log` chỉ lưu loại thao tác, thời điểm, số lượng — không có
+  `user_id`, email hay nội dung — để thống kê và chứng minh việc xóa đã diễn ra.
+- **Sao lưu và dữ liệu đã xóa** (24/10/2026): bản sao lưu tự động giữ 7 ngày rồi bị ghi đè, nên dữ liệu đã xóa có thể
+  còn trong bản sao lưu tối đa 7 ngày; không dùng bản sao lưu để khôi phục tài khoản đã xóa. Hộp thoại xóa, email xác
+  nhận và Chính sách quyền riêng tư (khi viết) đều ghi rõ điều này.
 - ~~**Xuất dữ liệu**~~: bỏ khỏi sản phẩm theo thiết kế (21/10/2026); Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu".
 - **Góp ý**: form ngắn trong app, lưu vào collection `feedback`.
 
@@ -228,7 +238,7 @@ Quy tắc:
 | Yêu cầu                   | Thông số                                                                              |
 | ------------------------- | ------------------------------------------------------------------------------------- |
 | Sao lưu cơ sở dữ liệu     | Mỗi 8 tiếng theo giờ cố định của hệ thống: 00:00, 08:00, 16:00 giờ Việt Nam           |
-| Thời gian giữ bản sao lưu | 7 ngày (21 bản)                                                                       |
+| Thời gian giữ bản sao lưu | 7 ngày (21 bản); dữ liệu người dùng đã xóa còn trong bản sao lưu tối đa 7 ngày, không dùng để khôi phục |
 | Sao lưu ảnh               | Sao chép định kỳ sang nơi lưu trữ khác (sao lưu cơ sở dữ liệu không bao gồm file ảnh) |
 | Kiểm tra khôi phục        | Thử khôi phục ít nhất 1 lần trước khi mời người dùng                                  |
 | Múi giờ                   | `entry_date` là ngày địa phương của người dùng; mọi mốc thời gian khác lưu dạng UTC   |
@@ -431,6 +441,10 @@ user_items                                -- chuẩn bị cho giai đoạn 2–3
 feedback
   _id, user_id, message, created_at
   anonymized        bool (tùy chọn)       -- người gửi đã xóa tài khoản: user_id thay bằng mã ngẫu nhiên, chỉ giữ nội dung
+
+deletion_log                              -- mỗi lần xóa; KHÔNG có user_id/email/nội dung (validator chặn trường lạ)
+  _id, kind ("journal" | "account" | "trash"), at (date), pages, photos, share_links, feedback_anonymized (tùy chọn)
+  INDEX (at)
 ```
 
 Nguyên tắc:
@@ -445,7 +459,8 @@ Nguyên tắc:
 
 | Phương thức | Đường dẫn                           | Mô tả                                                                  |
 | ----------- | ----------------------------------- | ---------------------------------------------------------------------- |
-| GET         | `/auth/google/login`                | Chuyển hướng sang Google                                               |
+| GET         | `/auth/google/login?tz=&next=`      | Chuyển hướng sang Google; `next` chỉ nhận `/profile` (đăng nhập lại để xác nhận xóa tài khoản) |
+| GET         | `/entries/trash`                    | Thùng rác: trang đã xóa còn khôi phục được, xóa gần nhất trước        |
 | GET         | `/auth/google/callback`             | Nhận kết quả, tạo/cập nhật người dùng, đặt cookie phiên                |
 | POST        | `/auth/logout`                      | Đăng xuất                                                              |
 | GET         | `/me`                               | Lấy hồ sơ                                                              |

@@ -48,6 +48,18 @@ class Settings(BaseSettings):
     s3_access_key: str | None = None
     s3_secret_key: str | None = None
 
+    # Bước 12 (góp ý): gửi email góp ý về hộp thư của chủ sản phẩm qua SMTP. Thiếu SMTP_HOST hoặc
+    # FEEDBACK_TO_EMAIL thì chỉ lưu vào collection `feedback`, không gửi.
+    # Gmail: smtp.gmail.com:587, STARTTLS, App Password.
+    # Local: Mailpit trong docker-compose.yml (localhost:1025, không TLS, không đăng nhập; xem thư ở :8025).
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_starttls: bool = True
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    mail_from: str | None = None  # để trống = SMTP_USER
+    feedback_to_email: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

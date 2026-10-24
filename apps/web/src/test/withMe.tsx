@@ -52,6 +52,7 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
  */
 export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
   const deleted: Record<string, EntryOut> = {}
+  let signedIn = true
   let tick = 0
   const calls: { method: string; path: string; body: unknown; csrf: string | null }[] = []
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
@@ -61,17 +62,29 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
     calls.push({ method: request.method, path, body, csrf: request.headers.get('X-CSRF-Token') })
     const json = (data: unknown, status = 200) =>
       new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } })
-    if (path === '/me' && request.method === 'GET') return json(me)
+    if (path === '/me' && request.method === 'GET') {
+      return signedIn ? json(me) : json({ error: { code: 'AUTH_REQUIRED', message: 'Bạn cần đăng nhập' } }, 401)
+    }
     if (path === '/me' && request.method === 'PATCH') {
       const patch = body as Record<string, unknown>
       Object.assign(me, patch, patch.onboarded ? { onboarded: true } : {})
       return json(me)
     }
-    if (path === '/auth/logout') return new Response(null, { status: 204 })
+    if (path === '/auth/logout') {
+      signedIn = false // như máy chủ thật: phiên đã hủy, /me trả 401
+      return new Response(null, { status: 204 })
+    }
     if (path === '/me/data-summary') {
       const live = Object.values(entries)
       const pages = live.length
-      return json({ pages, photos: live.reduce((n, e) => n + e.photos.length, 0), share_links: 0 })
+      return json({ pages, photos: live.reduce((n, e) => n + e.photos.length, 0), share_links: 0, trash: Object.keys(deleted).length })
+    }
+    if (path === '/entries/trash') {
+      const at = new Date().toISOString()
+      const until = new Date(Date.now() + 30 * 86_400_000).toISOString()
+      return json(
+        Object.values(deleted).map((e) => ({ entry_date: e.entry_date, score: e.score, title: e.title, photo_count: e.photos.length, deleted_at: at, restore_until: until })),
+      )
     }
     if (path === '/entries' && request.method === 'DELETE') {
       const pages = Object.keys(entries).length

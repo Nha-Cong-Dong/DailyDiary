@@ -205,12 +205,17 @@
           "share_links": {
             "title": "Share Links",
             "type": "integer"
+          },
+          "trash": {
+            "title": "Trash",
+            "type": "integer"
           }
         },
         "required": [
           "pages",
           "photos",
-          "share_links"
+          "share_links",
+          "trash"
         ],
         "title": "DataSummaryOut",
         "type": "object"
@@ -1561,6 +1566,55 @@
         "title": "TopSubIconsOut",
         "type": "object"
       },
+      "TrashItemOut": {
+        "description": "Một trang trong thùng rác: đủ để nhận ra trang (không có nội dung), kèm hạn khôi phục.",
+        "properties": {
+          "deleted_at": {
+            "format": "date-time",
+            "title": "Deleted At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "restore_until": {
+            "format": "date-time",
+            "title": "Restore Until",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "photo_count",
+          "deleted_at",
+          "restore_until"
+        ],
+        "title": "TrashItemOut",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -1670,7 +1724,7 @@
     },
     "/auth/google/login": {
       "get": {
-        "description": "Bắt đầu đăng nhập. Frontend mở trang này trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng.",
+        "description": "Bắt đầu đăng nhập. Frontend mở trang này trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng.\n\n`next`: chỉ nhận đường trong RETURN_PATHS (đăng nhập lại để xác nhận xóa tài khoản rồi quay về Hồ sơ);\ngiá trị khác bị bỏ qua, không bao giờ chuyển hướng tới địa chỉ client tự đặt.",
         "operationId": "google_login_auth_google_login_get",
         "parameters": [
           {
@@ -1687,6 +1741,22 @@
                 }
               ],
               "title": "Tz"
+            }
+          },
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next"
             }
           }
         ],
@@ -1945,6 +2015,60 @@
           }
         },
         "summary": "List Month",
+        "tags": [
+          "entries"
+        ]
+      }
+    },
+    "/entries/trash": {
+      "get": {
+        "description": "Thùng rác: trang đã xóa còn khôi phục được (khôi phục bằng POST /entries/{date}/restore).\n\nKhai báo trước /{day} để \"trash\" không bị hiểu là một ngày.",
+        "operationId": "list_trash_entries_trash_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrashItemOut"
+                  },
+                  "title": "Response List Trash Entries Trash Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Trash",
         "tags": [
           "entries"
         ]

@@ -10,6 +10,8 @@ class DataSummaryOut(BaseModel):
     pages: int
     photos: int
     share_links: int
+    # Trang trong thùng rác còn khôi phục được (GET /entries/trash).
+    trash: int
 
 
 class WipeIn(BaseModel):

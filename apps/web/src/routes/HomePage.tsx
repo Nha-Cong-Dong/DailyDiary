@@ -1,3 +1,6 @@
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useLocation } from 'react-router'
 import { saveErrorMessage, useSaveEntry } from '@/features/entry/entries'
 import { draftOf, toWrite } from '@/features/entry/entryDraft'
 import { useDay } from '@/features/entry/useDay'
@@ -6,10 +9,22 @@ import { useShareCount } from '@/features/share/useShares'
 import type { Score } from '@/lib/catalog'
 import { todayIn } from '@/lib/date'
 import { toProfile, useMe } from '@/lib/profile'
+import { forgetSignedInUser, isSignedOutState } from '@/lib/session'
 
 /** Trang chủ "/": ai cũng vào được; đã đăng nhập thì Landing đổi sang bản có lời chào và menu tài khoản. */
 export function HomePage() {
-  const { data: me } = useMe()
+  const client = useQueryClient()
+  const location = useLocation()
+  // Vừa đăng xuất / xóa tài khoản (lib/session.ts › SIGNED_OUT): trang chủ không nằm trong RequireAuth nên bỏ dữ liệu ở
+  // đây an toàn; /me tải lại → 401 → hiện bản chưa đăng nhập. Chạy theo location.key: đăng xuất ngay tại "/" cũng chạy.
+  const signedOut = isSignedOutState(location.state)
+  useEffect(() => {
+    if (signedOut) forgetSignedInUser(client)
+  }, [client, signedOut, location.key])
+  const { data } = useMe()
+  // Vừa đăng xuất: hiện ngay bản chưa đăng nhập, không dựng bản có tài khoản từ hồ sơ cũ còn trong cache (tránh gọi
+  // lịch, trang hôm nay, link chia sẻ chỉ để nhận 401).
+  const me = signedOut ? undefined : data
   const shareCount = useShareCount(Boolean(me))
   if (!me) return <Landing />
   const p = toProfile(me)

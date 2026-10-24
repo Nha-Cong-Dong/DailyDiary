@@ -95,6 +95,22 @@ test.describe('xóa dữ liệu (chạy một lần trên máy tính)', () => {
       .toBe(200)
     const me = await (await page.request.get(`${API}/me`)).json()
     expect(me.joined_at).not.toBe(firstJoined)
-    expect(await (await page.request.get(`${API}/me/data-summary`)).json()).toEqual({ pages: 0, photos: 0, share_links: 0 })
+    expect(await (await page.request.get(`${API}/me/data-summary`)).json()).toEqual({ pages: 0, photos: 0, share_links: 0, trash: 0 })
+  })
+
+  test('thùng rác: trang vừa xóa nằm trong thùng rác, khôi phục thì quay lại', async ({ page }) => {
+    await devLogin(page, `e2e-trash-${Date.now()}@example.com`)
+    const day = todayInVietnam()
+    const h = await headers(page)
+    await page.request.put(`${API}/entries/${day}`, { headers: h, data: { score: 3, title: 'Lỡ tay xóa' } })
+    expect((await page.request.delete(`${API}/entries/${day}`, { headers: h })).ok()).toBe(true)
+
+    await page.goto('/profile')
+    await page.getByRole('link', { name: 'Mở thùng rác' }).click()
+    await expect(page.getByRole('heading', { name: 'Thùng rác' })).toBeVisible()
+    await page.getByRole('button', { name: /Khôi phục trang/ }).click()
+    await expect(page.getByText(/Đã khôi phục trang/)).toBeVisible()
+    await expect(page.getByText('Thùng rác trống')).toBeVisible()
+    expect((await (await page.request.get(`${API}/entries/${day}`)).json()).title).toBe('Lỡ tay xóa')
   })
 })
