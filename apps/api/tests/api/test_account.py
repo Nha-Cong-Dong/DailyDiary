@@ -3,12 +3,19 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
+from httpx import ASGITransport, AsyncClient
+from limits import parse_many
 from pymongo.errors import WriteError
 
 from app.core.config import settings
+from app.core.limits import get_limits, rate_limit
+from app.core.rate_limit import limiter
 from app.db import collections as c
+from app.db.client import get_db
+from app.main import create_app
 from app.routers import me as me_router
 from app.services import account as account_service
+from app.services import photos as photo_service
 from app.services import users as user_service
 from tests.api.test_photos import _key, _upload
 from tests.fakes import WEBP
@@ -61,12 +68,63 @@ async def _fill(client, db, s3) -> dict:
 
 async def test_data_summary(alice, db, s3):
     await _fill(alice, db, s3)
+    storage = get_limits().tier("beta").storage
     assert (await alice.get("/me/data-summary")).json() == {
         "pages": 2,
         "photos": 1,
         "share_links": 1,
         "trash": 1,
+        # Một ảnh = ảnh chính + ảnh thu nhỏ; ảnh đại diện và ảnh tải lên chưa xác nhận không tính.
+        "used_bytes": len(WEBP) * 2,
+        "quota_bytes": storage.quota_bytes,
+        "warn_ratio": storage.warn_ratio,
     }
+
+
+async def test_storage_usage_counts_trash_and_only_own_photos(alice, bob, db, s3):
+    """Dung lượng tính cả ảnh của trang trong thùng rác (ảnh còn trong kho); không lẫn ảnh người khác."""
+    for day in DAYS[:2]:
+        assert (await alice.put(f"/entries/{day}", json={"score": 4})).status_code == 200
+        _, r = await _upload(alice, s3, day=day)
+        assert r.status_code == 200
+    assert (await bob.put(f"/entries/{DAYS[0]}", json={"score": 2})).status_code == 200
+    await _upload(bob, s3, day=DAYS[0])
+    assert (await alice.delete(f"/entries/{DAYS[1]}")).status_code == 200
+
+    summary = (await alice.get("/me/data-summary")).json()
+    assert summary["photos"] == 1  # chỉ đếm trang chưa xóa
+    assert summary["used_bytes"] == len(WEBP) * 4  # 2 ảnh × (chính + thu nhỏ), gồm trang trong thùng rác
+    assert (await bob.get("/me/data-summary")).json()["used_bytes"] == len(WEBP) * 2
+    # Xóa dữ liệu thì dung lượng về 0.
+    assert (await alice.request("DELETE", "/entries", json={"confirm": "XÓA"})).status_code == 200
+    assert (await alice.get("/me/data-summary")).json()["used_bytes"] == 0
+
+
+async def test_storage_usage_matches_the_upload_quota(alice, s3, monkeypatch):
+    """Đạt ngưỡng cảnh báo rồi chạm hạn mức: số liệu trả về khớp với lúc API chặn tải ảnh (STORAGE_QUOTA)."""
+    assert (await alice.put(f"/entries/{DAYS[0]}", json={"score": 4})).status_code == 200
+    await _upload(alice, s3, day=DAYS[0])
+    used = len(WEBP) * 2
+    real = get_limits()
+    tier = real.tier("beta")
+
+    def with_quota(quota: int) -> None:
+        small = tier.model_copy(update={"storage": tier.storage.model_copy(update={"quota_bytes": quota})})
+        fake = real.model_copy(update={"tiers": {**real.tiers, "beta": small}})
+        monkeypatch.setattr(account_service, "get_limits", lambda: fake)
+        monkeypatch.setattr(photo_service, "get_limits", lambda: fake)
+
+    with_quota(int(used / tier.storage.warn_ratio))  # vừa đúng ngưỡng cảnh báo
+    s = (await alice.get("/me/data-summary")).json()
+    assert s["used_bytes"] / s["quota_bytes"] >= s["warn_ratio"] > (s["used_bytes"] - 1) / s["quota_bytes"]
+    r = await alice.post(f"/entries/{DAYS[0]}/photos/upload-url", json={"content_type": "image/webp"})
+    assert r.status_code == 200  # mới cảnh báo, chưa chặn
+
+    with_quota(used)
+    s = (await alice.get("/me/data-summary")).json()
+    assert s["used_bytes"] == s["quota_bytes"] == used
+    r = await alice.post(f"/entries/{DAYS[0]}/photos/upload-url", json={"content_type": "image/webp"})
+    assert r.status_code == 422 and r.json()["error"]["code"] == "STORAGE_QUOTA"
 
 
 async def test_wipe_keeps_account_settings_avatar_and_feedback(alice, bob, db, s3):
@@ -198,15 +256,28 @@ async def test_deletes_need_login_and_csrf(anon, alice):
     ).status_code == 403
 
 
-async def test_dev_login_reports_pending_deletion(anon, db):
-    r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
-    assert r.status_code == 200
-    await db[c.USERS].update_one(
-        {"google_sub": "dev:x@example.com"}, {"$set": {"deleted_at": datetime.now(UTC)}}
-    )
-    anon.cookies.clear()  # lần đăng nhập trên đã gắn cookie phiên
-    r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
-    assert r.status_code == 403 and r.json()["error"]["code"] == "ACCOUNT_DELETED"
+async def test_dev_login_reports_pending_deletion(db, monkeypatch):
+    # /auth/dev-login chỉ được đăng ký khi bật DEV_LOGIN lúc tạo app: bật ngay trong test, không dựa vào
+    # .env của máy chạy (CI không đặt DEV_LOGIN nên route trả 404).
+    monkeypatch.setattr(settings, "dev_login", True)
+    monkeypatch.setattr(settings, "env", "test")
+    app = create_app()
+    app.dependency_overrides[get_db] = lambda: db
+    limiter.enabled = False
+    try:
+        transport = ASGITransport(app=app)
+        origin = {"Origin": settings.frontend_origins[0]}
+        async with AsyncClient(transport=transport, base_url="http://test", headers=origin) as anon:
+            r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
+            assert r.status_code == 200
+            await db[c.USERS].update_one(
+                {"google_sub": "dev:x@example.com"}, {"$set": {"deleted_at": datetime.now(UTC)}}
+            )
+            anon.cookies.clear()  # lần đăng nhập trên đã gắn cookie phiên
+            r = await anon.post("/auth/dev-login", json={"email": "x@example.com"})
+            assert r.status_code == 403 and r.json()["error"]["code"] == "ACCOUNT_DELETED"
+    finally:
+        limiter.enabled = True
 
 
 async def test_delete_account_needs_recent_login(alice, db, s3):
@@ -312,3 +383,40 @@ async def test_trash_lists_restorable_pages_newest_deleted_first(alice, bob, db)
 
 async def test_trash_needs_login(anon):
     assert (await anon.get("/entries/trash")).status_code == 401
+
+
+def _first_window(name: str) -> int:
+    return parse_many(rate_limit(name))[0].amount
+
+
+async def test_wipe_has_stricter_destructive_rate_limit(alice):
+    allowed = _first_window("destructive")
+    assert allowed < _first_window("write")
+    limiter.enabled = True
+    limiter.reset()
+    try:
+        for _ in range(allowed):
+            assert (await alice.request("DELETE", "/entries", json={"confirm": "XÓA"})).status_code == 200
+        r = await alice.request("DELETE", "/entries", json={"confirm": "XÓA"})
+        assert r.status_code == 429 and r.json()["error"]["code"] == "RATE_LIMITED"
+        assert "Retry-After" in r.headers
+    finally:
+        limiter.reset()
+
+
+async def test_delete_account_is_rate_limited(alice, bob):
+    allowed = _first_window("destructive")
+    limiter.enabled = True
+    limiter.reset()
+    try:
+        for _ in range(allowed):  # gõ sai email: tới service mới bị từ chối, vẫn tính lượt
+            r = await alice.request("DELETE", "/me", json={"confirm_email": "sai@example.com"})
+            assert r.status_code == 422
+        r = await alice.request("DELETE", "/me", json={"confirm_email": "alice@example.com"})
+        assert r.status_code == 429
+        assert (await alice.get("/me")).status_code == 200  # chưa bị xóa
+        # Hạn mức tính theo từng người dùng: Bob không bị ảnh hưởng.
+        r = await bob.request("DELETE", "/me", json={"confirm_email": "sai@example.com"})
+        assert r.status_code == 422
+    finally:
+        limiter.reset()

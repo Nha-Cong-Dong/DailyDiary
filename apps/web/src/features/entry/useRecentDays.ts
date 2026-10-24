@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
 import type { Score } from '@/lib/catalog'
 import { addDays, type DateString } from '@/lib/date'
@@ -46,8 +46,9 @@ async function monthRows(month: string): Promise<Row[]> {
   return data.days.map((d) => ({ entry_date: d.entry_date, score: d.score as Score, sub_icon: d.sub_icon }))
 }
 
-export function useRecentDays(today: DateString) {
-  return useQuery<RecentDaysData>({
+/** Cấu hình truy vấn, dùng chung cho hook và tải trước theo route (routes/prefetch.ts). */
+export const recentDaysQuery = (today: DateString) =>
+  queryOptions<RecentDaysData>({
     queryKey: ['entries', 'recent', today],
     queryFn: async () => {
       const months = [...new Set([addDays(today, -6).slice(0, 7), today.slice(0, 7)])]
@@ -55,4 +56,7 @@ export function useRecentDays(today: DateString) {
       return recentDaysFrom(rows, today)
     },
   })
+
+export function useRecentDays(today: DateString) {
+  return useQuery(recentDaysQuery(today))
 }

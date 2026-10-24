@@ -591,6 +591,31 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 
 **Bạn cần:** tài khoản Sentry và công cụ phân tích.
 
+**Kết quả phần A (24/10/2026, làm được ở local; chưa xong bước):**
+- Hạn mức: `GET /me/data-summary` thêm `used_bytes`, `quota_bytes`, `warn_ratio` (cùng cách tính với lúc chặn
+  `STORAGE_QUOTA`). Hồ sơ › Nhật ký có thanh dung lượng; ô tải ảnh cảnh báo từ 80%, báo "Hết dung lượng" / "Đủ ảnh"
+  thay cho "Lỗi mạng".
+- Sentry và Umami: đã làm rồi **tạm gỡ** (24/10/2026, theo yêu cầu; sẽ thêm lại sau). Bản đã làm nằm trong commit
+  `dd35f04`: Sentry backend (`core/observability.py`, `sentry-sdk`) và web (`lib/sentry.ts`, `@sentry/react`) lọc
+  theo danh sách cho phép, có test; Umami (`lib/analytics.ts`) 7 sự kiện, pageview đã làm sạch. Cách lọc/đếm: đặc tả 4.7.
+- Tác vụ: `uv run python -m app.jobs.run <purge_accounts|purge_trash|backup_db|backup_photos|restore_db>`.
+  - `purge_trash` (`services/maintenance.py`): hạn theo cấp tài khoản; xóa ảnh → link → trang (có điều kiện
+    `deleted_at` không đổi); kho lỗi thì giữ trang; ghi `deletion_log` loại "trash".
+  - `backup_db`: Python thuần (không cần `mongodump`), BSON thô → tar.gz → kho sao lưu `db/YYYY/MM/DD/...`, giữ
+    `BACKUP_KEEP` (21) bản. `restore_db --target <db>`: chạy migration rồi nạp; từ chối DB đang chạy hoặc DB có dữ
+    liệu nếu không có `--force`.
+  - `backup_photos`: chép tăng dần sang `photos/`, xóa bản sao của ảnh đã mất quá 7 ngày (manifest `_missing.json`).
+  - `Storage.delete` giờ báo lỗi khi S3 từ chối từng key (trước đây bỏ qua `Errors`, có thể để ảnh mồ côi).
+- Rate limit: thêm nhóm `destructive` (xóa toàn bộ dữ liệu, xóa tài khoản), `avatar_upload`, `logout` (theo IP); góp
+  ý thêm trần 20/ngày. Bảng: đặc tả 4.4.
+- Phần B (24/10/2026): kho sao lưu Backblaze B2 (khác nhà cung cấp kho ảnh). Đã chạy thử trên DB local: `backup_db`
+  (1738 document), `backup_photos` (16 ảnh), `restore_db` vào DB phụ, số document 8 collection khớp.
+- Còn lại: đặt lịch (purge_accounts mỗi giờ; purge_trash, backup_photos mỗi ngày; backup_db 01:00, 09:00, 17:00 UTC)
+  và sao lưu chính thức trên production — làm ở Bước 14 sau khi chọn hosting. Hoãn: thêm lại Sentry + Umami (khôi phục
+  từ `dd35f04`), DSN 2 project, gây lỗi thử trên Sentry thật.
+- Ghi nhớ: ảnh tải lên mà không xác nhận (ảnh nhật ký, ảnh đại diện) nằm lại trong kho và không tính hạn mức; cần tác
+  vụ dọn object mồ côi.
+
 ---
 
 ## Bước 14 – Hoàn thiện và triển khai production
@@ -605,6 +630,25 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 **Skill:** `/seed-demo-data 3` (script ở `apps/api/scripts/seed_demo.py`), `/deploy`, `securitymaxxing:ship-check`.
 
 **Hoàn thành khi:** Lighthouse đạt chỉ tiêu; checklist `/deploy` qua hết; không còn lỗi chặn từ `ship-check`.
+
+**Tiến độ hiệu năng (24/10/2026, đo ở local):** Lighthouse mobile (mô phỏng 4G chậm, CPU ×4), bản build phục vụ qua
+HTTP/2 + brotli như CDN, cookie thật. Điểm 92–97, TBT < 100 ms, CLS ≤ 0,02 (đạt). LCP: /login 2,3 s, /pixels 2,6 s,
+các màn khác 2,9–3,1 s (trước: 4,1–4,7 s qua HTTP/1.1, chưa tối ưu) — chưa đạt 2,5 s; đo lại trên production.
+- Đã làm: trang chủ và /login tải lười (gói JS đầu 193 → ~155 KB gzip); gọi /me ngay lúc mở app; loader tải trước dữ
+  liệu của màn (`routes/prefetch.ts`) song song với chunk; font tự host đã cắt (`scripts/subset_fonts.py`: Be Vietnam
+  Pro 136 → 91 KB, 8 → 4 file; Young Serif 27 → 3 KB), preload font của tiêu đề và chữ thường.
+- Đã thử, không giúp: bỏ hiệu ứng mờ dần (giữ nguyên thiết kế). Không làm: thay `date-fns-tz` bằng Intl (chỉ ~8 KB,
+  trái quy ước trong skill date-timezone-rules).
+- Phần còn lại chủ yếu là JS lõi (react-dom, react-router, TanStack Query ≈ 110 KB gzip) và font Lora (giữ bản
+  fontsource vì giấy phép có Reserved Font Name).
+
+**Chính sách quyền riêng tư (24/10/2026):** trang công khai `/privacy` (`features/legal/PrivacyPolicy.tsx`), nội dung
+đối chiếu với code (dữ liệu lưu, cookie, log, sao lưu, xóa); người dùng từ 16 tuổi; liên hệ qua email. Link ở Landing,
+đăng nhập, Hồ sơ, trang chia sẻ. Còn phải làm:
+- Điền nhà cung cấp máy chủ/DB/kho ảnh (đang để `[...]`) khi chọn hosting; thêm lại Sentry/Umami thì sửa mục 1, 4, 5.
+- Rà soát pháp lý theo quy định bảo vệ dữ liệu cá nhân của Việt Nam trước khi ra mắt công khai (đặc tả 4.1), gồm việc
+  chuyển dữ liệu ra nước ngoài (sao lưu ở Canada).
+- Trang Điều khoản sử dụng: vẫn để giữ chỗ.
 
 ---
 

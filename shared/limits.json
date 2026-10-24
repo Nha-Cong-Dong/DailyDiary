@@ -3,6 +3,7 @@
   "default_tier": "beta",
   "ip_rate_limits": {
     "login": "5/minute",
+    "logout": "20/minute",
     "share_view": "60/minute"
   },
   "tiers": {
@@ -47,8 +48,10 @@
         "me": "120/minute",
         "autosave": "20/minute",
         "write": "10/minute",
+        "destructive": "3/minute;10/day",
         "photo_upload": "10/minute;50/day",
-        "feedback": "5/minute",
+        "avatar_upload": "5/minute;20/day",
+        "feedback": "5/minute;20/day",
         "search": "60/minute"
       }
     },
@@ -93,8 +96,10 @@
         "me": "120/minute",
         "autosave": "20/minute",
         "write": "10/minute",
+        "destructive": "3/minute;10/day",
         "photo_upload": "10/minute;50/day",
-        "feedback": "5/minute",
+        "avatar_upload": "5/minute;20/day",
+        "feedback": "5/minute;20/day",
         "search": "60/minute"
       }
     },
@@ -139,8 +144,10 @@
         "me": "120/minute",
         "autosave": "20/minute",
         "write": "10/minute",
+        "destructive": "3/minute;10/day",
         "photo_upload": "10/minute;50/day",
-        "feedback": "5/minute",
+        "avatar_upload": "5/minute;20/day",
+        "feedback": "5/minute;20/day",
         "search": "60/minute"
       }
     }

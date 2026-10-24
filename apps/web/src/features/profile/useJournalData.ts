@@ -1,25 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
-import type { components } from '@/api/schema'
 import { useProfile } from '@/lib/profile'
 import { clearDraftsFor } from '@/lib/storage'
 
-export type DataSummary = components['schemas']['DataSummaryOut']
-
 /**
- * Những gì sẽ mất khi xóa (GET /me/data-summary): số trang, ảnh, link chia sẻ. Key dưới ['entries'] nên viết/xóa
- * một trang thì đếm lại.
+ * Những gì sẽ mất khi xóa (GET /me/data-summary): số trang, ảnh, link chia sẻ, kèm dung lượng ảnh. Hook nằm ở lib/usage.ts
+ * vì ô ảnh (components/diary) cũng dùng.
  */
-export function useDataSummary() {
-  return useQuery<DataSummary>({
-    queryKey: ['entries', 'data-summary'],
-    queryFn: async () => {
-      const { data, error, response } = await api.GET('/me/data-summary')
-      if (error || !data) throw toApiError(response, error)
-      return data
-    },
-  })
-}
+export { useDataSummary, type DataSummary } from '@/lib/usage'
 
 /**
  * Xóa toàn bộ dữ liệu (DELETE /entries, gửi "XÓA"): mọi trang, link chia sẻ, ảnh nhật ký; giữ tài khoản và cài đặt.

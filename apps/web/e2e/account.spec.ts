@@ -95,7 +95,13 @@ test.describe('xóa dữ liệu (chạy một lần trên máy tính)', () => {
       .toBe(200)
     const me = await (await page.request.get(`${API}/me`)).json()
     expect(me.joined_at).not.toBe(firstJoined)
-    expect(await (await page.request.get(`${API}/me/data-summary`)).json()).toEqual({ pages: 0, photos: 0, share_links: 0, trash: 0 })
+    expect(await (await page.request.get(`${API}/me/data-summary`)).json()).toMatchObject({
+      pages: 0,
+      photos: 0,
+      share_links: 0,
+      trash: 0,
+      used_bytes: 0,
+    })
   })
 
   test('thùng rác: trang vừa xóa nằm trong thùng rác, khôi phục thì quay lại', async ({ page }) => {

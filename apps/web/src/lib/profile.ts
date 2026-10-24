@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, ApiError, toApiError } from '@/api/client'
+import { queryOptions, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { api, ApiError, csrfToken, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
 import { defaultIconSetId, presetFlag } from './catalog'
 import { prepareAvatar } from './image'
@@ -65,9 +65,19 @@ export function shouldRetryMe(failureCount: number, error: unknown): boolean {
 
 export const meRetryDelay = (attempt: number) => Math.min(2000 * 2 ** attempt, 15_000)
 
+export const meQuery = queryOptions({ queryKey: ME_KEY, queryFn: fetchMe, staleTime: 5 * 60_000 })
+
 // Cách thử lại của /me đặt ở QueryClient của app (lib/query.ts) để test dùng client riêng, không thử lại.
 export function useMe() {
-  return useQuery({ queryKey: ME_KEY, queryFn: fetchMe, staleTime: 5 * 60_000 })
+  return useQuery(meQuery)
+}
+
+/**
+ * Gọi /me ngay lúc mở app, song song với tải chunk của route (Bước 14, LCP), thay vì chờ màn đầu tiên vẽ xong.
+ * Chỉ gọi khi có cookie `dd_csrf` (dấu hiệu đã đăng nhập): khách lần đầu không tốn thêm request 401.
+ */
+export function prefetchMe(client: QueryClient) {
+  if (csrfToken()) void client.prefetchQuery(meQuery)
 }
 
 /** Hồ sơ hiện tại; trong vùng đã đăng nhập (RequireAuth) luôn có dữ liệu thật. */

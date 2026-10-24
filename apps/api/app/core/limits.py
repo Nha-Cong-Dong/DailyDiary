@@ -115,8 +115,9 @@ def get_limits() -> Limits:
 def rate_limit(name: str) -> str:
     """Chuỗi rate limit (vd "10/minute;50/day") theo tên, dùng cho @limiter.limit(...).
 
-    Tên theo người dùng (read, autosave, write, photo_upload, feedback) lấy theo cấp mặc định;
-    tên theo IP (login) lấy từ ip_rate_limits. Tên sai sẽ báo lỗi ngay lúc import router.
+    Tên theo người dùng (read, me, autosave, write, destructive, photo_upload, avatar_upload, feedback,
+    search) lấy theo cấp mặc định; tên theo IP (login, logout, share_view) lấy từ ip_rate_limits.
+    Tên sai sẽ báo lỗi ngay lúc import router.
     """
     limits = get_limits()
     if name in limits.ip_rate_limits:

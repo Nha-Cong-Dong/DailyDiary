@@ -60,6 +60,16 @@ class Settings(BaseSettings):
     mail_from: str | None = None  # để trống = SMTP_USER
     feedback_to_email: str | None = None
 
+    # Bước 13 — sao lưu. Kho sao lưu riêng (nên khác nhà cung cấp với kho ảnh chính), chuẩn S3.
+    # Để trống BACKUP_S3_BUCKET = tác vụ sao lưu báo "chưa cấu hình" và thoát, không làm gì.
+    # Local: bucket phụ trên MinIO (vd. dailydiary-backups) với cùng khóa minioadmin.
+    backup_s3_endpoint_url: str | None = None
+    backup_s3_region: str = "us-east-1"
+    backup_s3_bucket: str | None = None
+    backup_s3_access_key: str | None = None
+    backup_s3_secret_key: str | None = None
+    backup_keep: int = 21  # bản sao lưu DB giữ lại: 3 bản/ngày × 7 ngày (đặc tả 4.2)
+
 
 @lru_cache
 def get_settings() -> Settings:

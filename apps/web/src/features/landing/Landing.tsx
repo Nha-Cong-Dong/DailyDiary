@@ -502,13 +502,13 @@ export function Landing({ account }: { account?: LandingAccount }) {
             <span className="ml-2 text-[13px] text-muted-foreground">Jot it down, keep it forever.</span>
           </div>
           <div className="flex flex-wrap gap-5 text-[13px]">
-            {/* Chờ nội dung điều khoản và chính sách thật trước khi ra mắt. */}
+            {/* Chờ nội dung điều khoản thật trước khi ra mắt. */}
             <a href="#" className="link-underline">
               [Điều khoản sử dụng]
             </a>
-            <a href="#" className="link-underline">
-              [Chính sách quyền riêng tư]
-            </a>
+            <Link to="/privacy" className="link-underline">
+              Chính sách quyền riêng tư
+            </Link>
             <span className="text-muted-foreground">© 2026 Jotly</span>
           </div>
         </div>

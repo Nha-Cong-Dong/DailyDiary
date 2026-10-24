@@ -38,6 +38,31 @@ def make_s3_client(endpoint_url: str | None):
     )
 
 
+class DeleteFailed(Exception):
+    """S3 nhận delete_objects nhưng từ chối một số key (vd. AccessDenied). Chỉ giữ số lượng, không key."""
+
+    def __init__(self, failed: int) -> None:
+        super().__init__(f"Không xóa được {failed} object")
+        self.failed = failed
+
+
+def delete_keys(client, bucket: str, keys: tuple[str, ...] | list[str]) -> None:
+    """Xóa theo lô (delete_objects nhận tối đa 1000 key mỗi lần, giới hạn của S3). Chạy trong thread.
+
+    Với `Quiet=True`, S3 trả 200 kể cả khi từng key bị từ chối và chỉ liệt kê chúng ở `Errors`; bỏ qua thì
+    người gọi tưởng đã xóa xong rồi xóa document, để lại ảnh mồ côi. Key không tồn tại không bị coi là lỗi.
+    """
+    failed = 0
+    for i in range(0, len(keys), 1000):
+        batch = keys[i : i + 1000]
+        resp = client.delete_objects(
+            Bucket=bucket, Delete={"Objects": [{"Key": k} for k in batch], "Quiet": True}
+        )
+        failed += len(resp.get("Errors") or [])
+    if failed:
+        raise DeleteFailed(failed)
+
+
 class Storage:
     def __init__(self, client, presign_client, bucket: str):
         self.client = client
@@ -80,14 +105,8 @@ class Storage:
         return await anyio.to_thread.run_sync(read)
 
     async def delete(self, *keys: str) -> None:
-        # delete_objects nhận tối đa 1000 key mỗi lần (giới hạn của S3).
-        for i in range(0, len(keys), 1000):
-            batch = keys[i : i + 1000]
-            await anyio.to_thread.run_sync(
-                lambda b=batch: self.client.delete_objects(
-                    Bucket=self.bucket, Delete={"Objects": [{"Key": k} for k in b], "Quiet": True}
-                )
-            )
+        if keys:
+            await anyio.to_thread.run_sync(delete_keys, self.client, self.bucket, keys)
 
     async def list_keys(self, prefix: str) -> list[str]:
         """Mọi key bắt đầu bằng `prefix` (đọc hết các trang của list_objects_v2)."""

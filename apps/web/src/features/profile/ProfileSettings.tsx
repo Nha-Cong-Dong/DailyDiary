@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { AvatarField } from './components/AvatarField'
 import { AccountDeletedDialog, DeleteAccountDialog, DeleteDataDialog } from './components/DeleteAccountDialog'
 import { IconSetPicker } from './components/IconSetPicker'
+import { StorageUsage } from './components/StorageUsage'
 import { CustomFlagColors } from './components/CustomFlagColors'
 import { TimeZoneField } from './components/TimeZoneField'
 import { useDataSummary, useDeleteAccount, useWipeJournal } from './useJournalData'
@@ -275,6 +276,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
             }}
           />
         </div>
+        <StorageUsage />
       </Section>
 
       <Section id={`${ids}-look`} title="Giao diện" delay={0.12}>
@@ -461,9 +463,9 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         <a href="#" className="link-underline">
           [Điều khoản sử dụng]
         </a>
-        <a href="#" className="link-underline">
-          [Chính sách quyền riêng tư]
-        </a>
+        <Link to="/privacy" className="link-underline">
+          Chính sách quyền riêng tư
+        </Link>
         <span>Jotly · bản dev</span>
       </footer>
 

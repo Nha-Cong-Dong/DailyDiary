@@ -269,6 +269,15 @@ Quy tắc:
 | Đăng nhập           | 5 lần/phút/IP                  |
 | Đọc hồ sơ (`GET /me`) | 120 request/phút/người       |
 | Mở trang chia sẻ công khai (F-10) | 60 lần/phút/IP   |
+| Xóa toàn bộ dữ liệu / xóa tài khoản | 3 lần/phút, 10 lần/ngày/người |
+| Xin URL tải ảnh đại diện | 5 lần/phút, 20 lần/ngày/người |
+| Góp ý (gửi email về hộp thư Jotly) | 5 lần/phút, 20 lần/ngày/người |
+| Đăng xuất | 20 lần/phút/IP |
+
+Ba dòng xóa, ảnh đại diện, góp ý thêm ở Bước 13: thao tác không hoàn tác hoặc tốn tài nguyên ngoài (dọn kho, ảnh
+không tính hạn mức, hạn mức SMTP) nên chặt hơn "tạo/xóa nhật ký" và có trần theo ngày. Giá trị nằm trong
+`shared/limits.json`. Slowapi đếm trong bộ nhớ (`RATE_LIMIT_STORAGE_URI=memory://`), chỉ đúng khi chạy một tiến trình;
+chạy nhiều worker hoặc nhiều instance thì đổi sang Redis.
 
 Các con số là mức trần chống lạm dụng, không phải mức sử dụng dự kiến. Điều chỉnh sau tuần thử nghiệm đầu tiên dựa trên log.
 
@@ -276,7 +285,7 @@ Các con số là mức trần chống lạm dụng, không phải mức sử d�
 
 | Hạng mục                     | Thông số                                                |
 | ---------------------------- | ------------------------------------------------------- |
-| Hạn mức mỗi người dùng       | 500 MB trong giai đoạn thử nghiệm; cảnh báo khi đạt 80% |
+| Hạn mức mỗi người dùng       | 500 MB trong giai đoạn thử nghiệm; cảnh báo khi đạt 80% (Hồ sơ và ô tải ảnh); tính cả ảnh trong thùng rác, không tính ảnh đại diện |
 | Ước tính trường hợp xấu nhất | 10 ảnh × 0,5 MB × 365 ngày ≈ 1,8 GB/người/năm           |
 
 Theo dõi tổng dung lượng ảnh hằng tuần và đối chiếu với giới hạn gói dịch vụ đang dùng.
@@ -291,6 +300,16 @@ Theo dõi tổng dung lượng ảnh hằng tuần và đối chiếu với gi�
 
 - Bắt lỗi: Sentry (frontend và backend).
 - Phân tích hành vi ở mức sự kiện, không thu thập nội dung: PostHog hoặc Umami. Sự kiện chính: `login`, `entry_created`, `entry_updated`, `photo_uploaded`, `calendar_viewed`, `pixels_viewed`, `search_used`.
+- Đã chọn (Bước 13): Umami (không cookie). Sentry và Umami tắt khi chưa đặt DSN/địa chỉ script.
+- Hiện **tạm gỡ** khỏi code (24/10/2026), sẽ thêm lại theo đúng các quy tắc dưới (bản đã làm: commit `dd35f04`).
+  - Sentry chỉ gửi loại lỗi, stack (không biến cục bộ), URL đã bỏ query và che token chia sẻ, mã người dùng nội bộ.
+    Không gửi body, query, cookie, header (trừ user-agent), breadcrumb click/gõ phím/console. Backend bỏ cả thông điệp
+    lỗi; web giữ thông điệp đã làm sạch (bỏ URL query, đoạn trong ngoặc kép, cắt 200 ký tự). Sentry React v11 dùng
+    `dataCollection` thay cho `sendDefaultPii`: phải tắt từng mục.
+  - Umami: pageview tự gửi với đường dẫn đã làm sạch (`/s/:token`, ngày → `:date`, không query); props chỉ là boolean
+    hoặc giá trị liệt kê (`search_used`: có lọc hay không, số kết quả theo khoảng 0 / 1-5 / 6-20 / 21+). `login` = lần
+    đầu `/me` thành công trong phiên của tab; `entry_updated` tối đa một lần mỗi 30 phút cho mỗi trang.
+  - Có CSP thì phải cho phép host của Sentry và Umami.
 
 ---
 
