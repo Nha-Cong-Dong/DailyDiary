@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions, useQuery } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
 import type { Score } from '@/lib/catalog'
@@ -45,10 +45,16 @@ export function useMonth(month: MonthString, today: DateString) {
   const { timeZone } = useProfile()
   const { data: me } = useMe()
   const joined = me ? todayIn(timeZone, new Date(me.joined_at)) : today
-  return useQuery<MonthData>({
-    queryKey: ['entries', 'month', month],
-    queryFn: async () => ({ month, joined, entries: await fetchMonth(month) }),
+  return useQuery({
+    ...monthQuery(month, joined),
     placeholderData: keepPreviousData,
     select: (d) => ({ ...d, joined }),
   })
 }
+
+/** Cấu hình truy vấn, dùng chung cho hook và tải trước theo route (routes/prefetch.ts). */
+export const monthQuery = (month: MonthString, joined: DateString) =>
+  queryOptions<MonthData>({
+    queryKey: ['entries', 'month', month],
+    queryFn: async () => ({ month, joined, entries: await fetchMonth(month) }),
+  })

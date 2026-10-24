@@ -13,7 +13,7 @@ test('trang /dev/ui kết nối được API', async ({ page }) => {
 })
 
 // Trang công khai và trang trong app (đăng nhập thử trước).
-const PUBLIC = ['/', '/login', '/dev/ui']
+const PUBLIC = ['/', '/login', '/privacy', '/dev/ui']
 const APP = ['/today', '/onboarding', '/day/2026-10-18', '/pixels', '/search', '/profile']
 
 for (const path of [...PUBLIC, ...APP]) {

@@ -51,9 +51,9 @@ export function PublicFrame({ title, cta = true, children }: { title: string; ct
             <a href="#" className="link-underline">
               [Điều khoản sử dụng]
             </a>
-            <a href="#" className="link-underline">
-              [Chính sách quyền riêng tư]
-            </a>
+            <Link to="/privacy" className="link-underline">
+              Chính sách quyền riêng tư
+            </Link>
           </div>
         </div>
       </footer>

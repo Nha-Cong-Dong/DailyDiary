@@ -62,6 +62,9 @@ const pad = (n: number) => String(n).padStart(2, '0')
 /** Đường dẫn ghi bù trang của một ngày đã qua (thiết kế B9 · Ghi bù). */
 export const writePath = (date: DateString) => `/day/${date}/backfill`
 
+/** Tháng hợp lệ trên URL (?m=2026-09). */
+export const isMonth = (m: string | null): m is MonthString => !!m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m)
+
 export function monthOf(date: DateString): MonthString {
   return date.slice(0, 7)
 }

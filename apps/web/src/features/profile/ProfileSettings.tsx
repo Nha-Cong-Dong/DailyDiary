@@ -463,9 +463,9 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         <a href="#" className="link-underline">
           [Điều khoản sử dụng]
         </a>
-        <a href="#" className="link-underline">
-          [Chính sách quyền riêng tư]
-        </a>
+        <Link to="/privacy" className="link-underline">
+          Chính sách quyền riêng tư
+        </Link>
         <span>Jotly · bản dev</span>
       </footer>
 

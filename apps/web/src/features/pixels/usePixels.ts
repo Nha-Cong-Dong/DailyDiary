@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions, useQuery } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
 import type { Score } from '@/lib/catalog'
 import { addDays, todayIn, type DateString } from '@/lib/date'
@@ -29,6 +29,17 @@ export function decodeYear(year: number, scores: string, flags: Record<string, s
   return { days, flags: flagByDate }
 }
 
+/** Cấu hình truy vấn (dữ liệu thô), dùng chung cho hook và tải trước theo route (routes/prefetch.ts). */
+export const pixelsQuery = (year: number) =>
+  queryOptions({
+    queryKey: ['pixels', year],
+    queryFn: async () => {
+      const { data, error, response } = await api.GET('/pixels/{year}', { params: { path: { year } } })
+      if (error || !data) throw toApiError(response, error)
+      return data
+    },
+  })
+
 /**
  * Year in Pixels một năm (GET /pixels/{year}, F-03: một request, vài KB). Key ['pixels', year] theo web-conventions;
  * lưu một trang thì entries.ts làm mới ['pixels'].
@@ -39,12 +50,7 @@ export function usePixels(year: number, today: DateString) {
   const { data: me } = useMe()
   const joined = me ? todayIn(timeZone, new Date(me.joined_at)) : today
   return useQuery({
-    queryKey: ['pixels', year],
-    queryFn: async () => {
-      const { data, error, response } = await api.GET('/pixels/{year}', { params: { path: { year } } })
-      if (error || !data) throw toApiError(response, error)
-      return data
-    },
+    ...pixelsQuery(year),
     placeholderData: keepPreviousData,
     select: (d): PixelsData => ({
       year: d.year,

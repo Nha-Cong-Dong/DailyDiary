@@ -100,20 +100,25 @@ dailydiary/
         ├── vite.config.ts  playwright.config.ts  tsconfig.json  tsconfig.app.json  tsconfig.node.json
         ├── index.html  .env.example
         ├── public/                   # file tĩnh phục vụ nguyên trạng (favicon Jotly)
+        ├── scripts/                  # công cụ chạy tay, không vào bản build: subset_fonts.py (tạo font tự host trong src/assets/fonts/)
         ├── e2e/                      # smoke test Playwright: <luồng>.spec.ts; session.ts (đăng nhập thử)
         └── src/
             ├── main.tsx  App.tsx  index.css  vite-env.d.ts
+            ├── assets/
+            │   └── fonts/            # [sinh bằng scripts/subset_fonts.py] Be Vietnam Pro 400–700, Young Serif (chữ logo)
+            │                         # đã cắt còn ký tự tiếng Việt + Latin; OFL-*.txt (giấy phép). Lora vẫn lấy từ fontsource
             ├── api/
             │   ├── client.ts         # openapi-fetch, credentials: "include"
             │   ├── openapi.json      # [sinh tự động] từ scripts/export_openapi.py
             │   └── schema.d.ts       # [sinh tự động] npm run gen:api
-            ├── routes/               # router.tsx, RootLayout.tsx (+ RootLoading), ErrorPage.tsx (lỗi route), <Tên>Page.tsx
+            ├── routes/               # router.tsx (createRouter(queryClient)), prefetch.ts (loader tải trước dữ liệu của màn khi có /me),
+            │                         # RootLayout.tsx (+ RootLoading), ErrorPage.tsx (lỗi route), <Tên>Page.tsx
             │                         # (mỏng, ghép từ features; ghép feature với nhau ở đây, vd. DayPage = entry + share, HomePage = landing + share);
             │                         # route có khung riêng trên điện thoại khai báo handle.phoneChrome ('tabs' | 'none');
             │                         # trong bản build: LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage,
             │                         # DayPage (/day/:date), DayEditPage (/day/:date/edit), BackfillPage (/day/:date/backfill),
             │                         # SharePage (/s/:token), SharedListPage (/profile/shares), TrashPage (/profile/trash), TimelinePage (/timeline), PixelsPage (/pixels),
-            │                         # SearchPage (/search); chỉ có khi chạy dev: DevUiPage (/dev/ui)
+            │                         # SearchPage (/search), PrivacyPage (/privacy, công khai); chỉ có khi chạy dev: DevUiPage (/dev/ui)
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
             │   ├── landing/          # trang chủ /: bản giới thiệu cho người chưa đăng nhập và bản đã đăng nhập (menu tài khoản,
@@ -135,7 +140,8 @@ dailydiary/
             │   ├── search/           # tìm theo từ khóa + bộ lọc; GET /search (chờ ngừng gõ 300 ms, Xem thêm theo cursor), /keywords/top
             │   ├── share/            # Chia sẻ một trang (F-10, thiết kế B8): hộp thoại, trang người nhận, trang đang chia sẻ,
             │   │                     # link đã tắt; kiểu lấy từ schema.d.ts, dữ liệu mẫu demoShares.ts; components/
-            │   └── feedback/         # form góp ý (FeedbackDialog, useSendFeedback); trang Hồ sơ ghép vào
+            │   ├── feedback/         # form góp ý (FeedbackDialog, useSendFeedback); trang Hồ sơ ghép vào
+            │   └── legal/            # trang pháp lý công khai: PrivacyPolicy.tsx (chính sách quyền riêng tư, đặc tả 4.1; email liên hệ)
             ├── components/
             │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên> (đã chỉnh theo hệ thiết kế;
             │   │                     # có dialog, alert-dialog, switch, dropdown-menu; button có biến thể cta)
@@ -153,7 +159,8 @@ dailydiary/
             │                         # image.ts (kiểm tra loại/kích thước ảnh), online.ts (trạng thái mạng);
             │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`);
             │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh)
-            ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn)
+            ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn),
+            │                         # fonts.css (@font-face cho font tự host trong assets/fonts/)
             └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me và API nhật ký khi render test),
                                       # demoApi.ts (giả API chia sẻ)
 ```
@@ -215,3 +222,5 @@ dailydiary/
 | 24 | 24/10/2026 | Bổ sung xóa dữ liệu: migration `m0009_deletion_log.py` (collection `deletion_log`), `core/mailer.py` + cấu hình SMTP + Mailpit (chép nguyên từ nhánh góp ý), `features/entry/Trash.tsx`, `Trash.test.tsx`, `routes/TrashPage.tsx` |
 | 25 | 24/10/2026 | Bước 13 (vận hành, phần làm được ở local): `core/observability.py`, `services/maintenance.py`, `app/jobs/run.py`, `backup_db.py`, `backup_photos.py`, `blobstore.py` (bỏ nhãn (B13) ở `jobs/`), `tests/jobs/`, `tests/unit/test_observability.py`, `test_storage.py`; thư viện `sentry-sdk`, `@sentry/react`; web `lib/sentry.ts`, `lib/analytics.ts`, `lib/usage.ts` (+ test), `features/profile/components/StorageUsage.tsx` |
 | 26 | 24/10/2026 | Tạm gỡ Sentry và Umami (sẽ thêm lại sau): xóa `core/observability.py`, `tests/unit/test_observability.py`, web `lib/sentry.ts`, `lib/analytics.ts` (+ test); bỏ thư viện `sentry-sdk`, `@sentry/react` |
+| 27 | 24/10/2026 | Bước 14 (hiệu năng): `apps/web/scripts/subset_fonts.py`, `src/assets/fonts/` (font tự host + OFL), `src/styles/fonts.css`, `src/routes/prefetch.ts` (+ test); bỏ `@fontsource/be-vietnam-pro`, `@fontsource/young-serif`; trang chủ và /login tải lười |
+| 28 | 24/10/2026 | Bước 14 (chính sách quyền riêng tư): `features/legal/PrivacyPolicy.tsx` (+ test), `routes/PrivacyPage.tsx` (/privacy); link "Chính sách quyền riêng tư" ở Landing, đăng nhập, Hồ sơ, trang chia sẻ trỏ tới /privacy |

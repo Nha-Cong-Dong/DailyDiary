@@ -16,6 +16,7 @@ import {
   buildMonth,
   cutAfterEntries,
   decimal,
+  isMonth,
   monthBounds,
   monthLabel,
   monthOf,
@@ -39,7 +40,6 @@ const SCORE_BG: Record<Score, string> = {
   5: 'bg-score-5',
 }
 const delay = (s: number) => ({ animationDelay: `${s.toFixed(2)}s` }) as CSSProperties
-const isMonth = (m: string | null): m is MonthString => !!m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m)
 /** Điện thoại (dưới 768 px, thiết kế B10): bấm một ngày mở bảng xem nhanh thay vì cuộn tới trang. */
 const isPhone = () => !(window.matchMedia?.('(min-width: 768px)').matches ?? true)
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
