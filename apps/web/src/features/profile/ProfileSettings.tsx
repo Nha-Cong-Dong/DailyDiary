@@ -1,5 +1,5 @@
 import { ApiError, googleLoginUrl } from '@/api/client'
-import { ArchiveRestore, ChevronRight, CircleCheck, Eraser, Link2, Lock, LogOut, Mail, Trash2 } from 'lucide-react'
+import { ArchiveRestore, ChevronRight, CircleCheck, Eraser, Link2, Lock, LogOut, Mail, MessageSquare, Trash2 } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BottomSheet } from '@/components/diary/BottomSheet'
@@ -88,9 +88,11 @@ type ProfileSettingsProps = {
   shareCount?: number
   /** Tắt mọi link chia sẻ khi xóa dữ liệu hoặc tài khoản (trang ghép từ features/share). */
   onClearShares?: () => void
+  /** Mở form góp ý (trang ghép từ features/feedback); không có thì ẩn mục Góp ý. */
+  onFeedback?: () => void
 }
 
-export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: ProfileSettingsProps) {
+export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeedback }: ProfileSettingsProps) {
   const profile = useProfile()
   const save = useUpdateProfile()
   const logout = useLogout()
@@ -347,6 +349,23 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
           )}
         </div>
       </Section>
+
+      {onFeedback ? (
+        <Section id={`${ids}-feedback`} title="Góp ý" delay={0.18}>
+          <button type="button" className={cn(phoneRow, 'sm:hidden')} onClick={onFeedback}>
+            <MessageSquare className="size-5 shrink-0" aria-hidden="true" />
+            <span className="flex-1 font-semibold">Góp ý cho Jotly</span>
+            <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+          </button>
+          <div className="max-sm:hidden">
+            <Row title="Góp ý cho Jotly" hint="Báo lỗi hoặc đề xuất tính năng. Jotly trả lời qua email tài khoản của bạn.">
+              <Button variant="secondary" size="sm" className="h-10 px-3.5" onClick={onFeedback}>
+                <MessageSquare aria-hidden="true" /> Gửi góp ý
+              </Button>
+            </Row>
+          </div>
+        </Section>
+      ) : null}
 
       <Section id={`${ids}-account`} title="Tài khoản" delay={0.2}>
         {/* Điện thoại: danh sách dòng bấm được (thiết kế B10). */}

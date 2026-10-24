@@ -24,6 +24,7 @@ from app.db.migrations import (
     m0005_user_custom_flag_colors,
     m0006_user_avatar_key,
     m0007_entries_norm_backfill,
+    m0008_feedback_emailed_at,
     m0009_deletion_log,
 )
 
@@ -35,6 +36,7 @@ MIGRATIONS = [
     m0005_user_custom_flag_colors,
     m0006_user_avatar_key,
     m0007_entries_norm_backfill,
+    m0008_feedback_emailed_at,
     m0009_deletion_log,
 ]
 

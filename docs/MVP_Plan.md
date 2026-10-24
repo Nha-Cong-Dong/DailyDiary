@@ -35,7 +35,7 @@
 | 10   | Year in Pixels (F-03) — xong 23/10/2026                                                         | 10              | 9         |
 | 11   | Tìm kiếm theo từ khóa (F-05) — xong 23/10/2026                                                  | 11              | 5         |
 | 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
-| 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026)              | 11              | 7         |
+| 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026) — xong 24/10/2026 | 11              | 7         |
 | 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
 | 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
 | 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo                             | 14              | 14        |
@@ -521,6 +521,22 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 **Skill:** `privacy-check`, `securitymaxxing:authz`.
 
 **Hoàn thành khi:** sau khi xóa tài khoản, DB không còn document nào của user và kho ảnh không còn object nào; sau khi xóa toàn bộ dữ liệu, tài khoản vẫn đăng nhập được và không còn trang, ảnh, link nào.
+
+**Kết quả — góp ý (23/10/2026, nhánh `feat/user-feedback`):**
+- Chốt với người dùng: gửi qua Gmail SMTP (App Password); form mở từ Hồ sơ (mục "Góp ý") và menu tài khoản; thư kèm email
+  tài khoản người gửi làm Reply-To (form báo trước điều này).
+- Backend: `POST /feedback` lưu vào `feedback` (NFC, tối đa `feedback.message_max`, rate limit `feedback` 5/phút) rồi gửi
+  thư trong nền (`BackgroundTasks`, `core/mailer.py` chạy `smtplib` ngoài event loop); gửi được thì ghi `emailed_at`
+  (migration `m0008`). Thiếu `SMTP_HOST`/`FEEDBACK_TO_EMAIL` thì chỉ lưu. Lỗi gửi chỉ log loại exception; nội dung góp ý không
+  vào log (có test). `EmailMessage` chặn chèn header.
+- Local/CI: Mailpit (`axllent/mailpit:v1.29.4`) bắt thư, xem ở http://localhost:8025; job e2e của CI chạy Mailpit.
+- Test: 14 test API (lưu + gửi, không SMTP, gửi lỗi, dữ liệu sai, giới hạn độ dài, gắn đúng người gửi, cần đăng nhập +
+  CSRF, rate limit, không log, chặn header); 2 test Vitest; e2e gửi từ Hồ sơ rồi đọc thư thật trong Mailpit (Reply-To, nội
+  dung). Backend 250; Vitest 168; e2e 48/48.
+- **Việc của người dùng khi triển khai:** bật xác minh 2 bước cho Gmail gửi, tạo App Password, điền `SMTP_HOST=smtp.gmail.com`,
+  `SMTP_PORT=587`, `SMTP_STARTTLS=true`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `FEEDBACK_TO_EMAIL` trên hosting.
+- Xóa tài khoản (chốt 23/10/2026, xem đoạn dưới): góp ý được giữ nhưng ẩn danh, không xóa; thư đã gửi về hộp thư thì không
+  thu hồi được.
 
 **Kết quả — xóa dữ liệu / tài khoản (24/10/2026, nhánh `feat/account-deletion`):**
 - Chốt với người dùng: đăng nhập lại sau khi xóa → tài khoản mới; xóa tài khoản giữ góp ý nhưng ẩn danh; thêm

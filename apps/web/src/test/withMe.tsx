@@ -46,7 +46,8 @@ export function makeEntry(entry_date: string, overrides: Partial<EntryOut> = {})
  * Nhật ký (`entries`, theo ngày) làm giống backend: 404 khi chưa có, 409 khi `updated_at` lệch hoặc tạo trùng,
  * xóa mềm và khôi phục. Tháng (GET /entries?month): tóm tắt mới nhất trước; lịch (GET /calendar/{y}/{m}), Year in Pixels (GET /pixels/{year}),
  * tìm kiếm (GET /search, GET /keywords/top), sub icon hay dùng (GET /sub-icons/top),
- * xóa dữ liệu / tài khoản (GET /me/data-summary, DELETE /entries, DELETE /me). Ảnh: xóa và sắp xếp lại.
+ * xóa dữ liệu / tài khoản (GET /me/data-summary, DELETE /entries, DELETE /me), góp ý (POST /feedback).
+ * Ảnh: xóa và sắp xếp lại.
  * Chia sẻ: chưa có link nào.
  * Trả về danh sách request đã gửi để test kiểm tra.
  */
@@ -93,6 +94,7 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}) {
       return json({ pages, photos: 0, share_links: 0 })
     }
     if (path === '/me' && request.method === 'DELETE') return new Response(null, { status: 204 })
+    if (path === '/feedback' && request.method === 'POST') return json({ received: true }, 201)
     if (path === '/search' && request.method === 'GET') {
       // Bản gọn của backend: khớp chuỗi con (lib/text, cùng quy tắc có dấu/không dấu), lọc điểm, có ảnh; một trang.
       const params = new URL(request.url).searchParams
