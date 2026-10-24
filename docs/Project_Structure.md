@@ -67,7 +67,6 @@ dailydiary/
     │   │   │   ├── security.py       # cookie phiên, get_current_user, CSRF
     │   │   │   ├── oauth.py          # Authlib Google
     │   │   │   ├── mailer.py         # gửi email qua SMTP (Gmail thật, Mailpit local), chạy ngoài event loop: góp ý, thư xác nhận xóa tài khoản
-    │   │   │   ├── observability.py  # Sentry backend (tắt khi không có SENTRY_DSN); lọc body/query/cookie/header/thông điệp lỗi
     │   │   │   └── storage.py        # boto3: ký URL PUT/GET, kiểm tra object, xóa theo lô (báo lỗi từng key); dependency S3 / OptionalS3
     │   │   ├── db/
     │   │   │   ├── client.py         # AsyncMongoClient, dependency Db
@@ -153,8 +152,7 @@ dailydiary/
             │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
             │                         # image.ts (kiểm tra loại/kích thước ảnh), online.ts (trạng thái mạng);
             │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`);
-            │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh),
-            │                         # sentry.ts (Sentry web, lọc URL/breadcrumb), analytics.ts (Umami: 7 sự kiện, pageview đã làm sạch)
+            │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn)
             └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me và API nhật ký khi render test),
                                       # demoApi.ts (giả API chia sẻ)
@@ -216,3 +214,4 @@ dailydiary/
 | 23 | 24/10/2026 | Bước 12 (xóa dữ liệu/tài khoản): `schemas|services/account.py`, `app/jobs/__init__.py`, `app/jobs/purge_accounts.py`, `tests/api/test_account.py`; `core/storage.py` thêm `list_keys`/`delete_prefix`; web `features/profile/useJournalData.ts` dùng API, `DeleteData.test.tsx`, `e2e/account.spec.ts` |
 | 24 | 24/10/2026 | Bổ sung xóa dữ liệu: migration `m0009_deletion_log.py` (collection `deletion_log`), `core/mailer.py` + cấu hình SMTP + Mailpit (chép nguyên từ nhánh góp ý), `features/entry/Trash.tsx`, `Trash.test.tsx`, `routes/TrashPage.tsx` |
 | 25 | 24/10/2026 | Bước 13 (vận hành, phần làm được ở local): `core/observability.py`, `services/maintenance.py`, `app/jobs/run.py`, `backup_db.py`, `backup_photos.py`, `blobstore.py` (bỏ nhãn (B13) ở `jobs/`), `tests/jobs/`, `tests/unit/test_observability.py`, `test_storage.py`; thư viện `sentry-sdk`, `@sentry/react`; web `lib/sentry.ts`, `lib/analytics.ts`, `lib/usage.ts` (+ test), `features/profile/components/StorageUsage.tsx` |
+| 26 | 24/10/2026 | Tạm gỡ Sentry và Umami (sẽ thêm lại sau): xóa `core/observability.py`, `tests/unit/test_observability.py`, web `lib/sentry.ts`, `lib/analytics.ts` (+ test); bỏ thư viện `sentry-sdk`, `@sentry/react` |

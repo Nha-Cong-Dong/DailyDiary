@@ -301,6 +301,7 @@ Theo dõi tổng dung lượng ảnh hằng tuần và đối chiếu với gi�
 - Bắt lỗi: Sentry (frontend và backend).
 - Phân tích hành vi ở mức sự kiện, không thu thập nội dung: PostHog hoặc Umami. Sự kiện chính: `login`, `entry_created`, `entry_updated`, `photo_uploaded`, `calendar_viewed`, `pixels_viewed`, `search_used`.
 - Đã chọn (Bước 13): Umami (không cookie). Sentry và Umami tắt khi chưa đặt DSN/địa chỉ script.
+- Hiện **tạm gỡ** khỏi code (24/10/2026), sẽ thêm lại theo đúng các quy tắc dưới (bản đã làm: commit `dd35f04`).
   - Sentry chỉ gửi loại lỗi, stack (không biến cục bộ), URL đã bỏ query và che token chia sẻ, mã người dùng nội bộ.
     Không gửi body, query, cookie, header (trừ user-agent), breadcrumb click/gõ phím/console. Backend bỏ cả thông điệp
     lỗi; web giữ thông điệp đã làm sạch (bỏ URL query, đoạn trong ngoặc kép, cắt 200 ký tự). Sentry React v11 dùng

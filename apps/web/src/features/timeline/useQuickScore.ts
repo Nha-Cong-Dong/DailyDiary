@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import { track } from '@/lib/analytics'
 import type { Score } from '@/lib/catalog'
 import type { DateString } from '@/lib/date'
 
@@ -18,11 +17,7 @@ export function useQuickScore() {
   }
   return {
     async save(date: DateString, score: Score) {
-      const { response } = await api.PUT('/entries/{day}', {
-        params: { path: { day: date } },
-        body: { score, keywords: [], updated_at: null },
-      })
-      if (response.ok) track('entry_created')
+      await api.PUT('/entries/{day}', { params: { path: { day: date } }, body: { score, keywords: [], updated_at: null } })
       refresh()
     },
     async undo(date: DateString) {

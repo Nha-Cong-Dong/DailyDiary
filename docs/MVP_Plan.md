@@ -595,9 +595,9 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 - Hạn mức: `GET /me/data-summary` thêm `used_bytes`, `quota_bytes`, `warn_ratio` (cùng cách tính với lúc chặn
   `STORAGE_QUOTA`). Hồ sơ › Nhật ký có thanh dung lượng; ô tải ảnh cảnh báo từ 80%, báo "Hết dung lượng" / "Đủ ảnh"
   thay cho "Lỗi mạng".
-- Sentry backend (`core/observability.py`, `sentry-sdk`) và web (`lib/sentry.ts`, `@sentry/react`), lọc theo danh
-  sách cho phép; test gây lỗi thật với transport giả, đối chứng khi tắt bộ lọc thì lọt đủ chuỗi nhạy cảm.
-- Umami (`lib/analytics.ts`): 7 sự kiện, kiểm tra tên/props lúc chạy, pageview đã làm sạch. Cách đếm: đặc tả 4.7.
+- Sentry và Umami: đã làm rồi **tạm gỡ** (24/10/2026, theo yêu cầu; sẽ thêm lại sau). Bản đã làm nằm trong commit
+  `dd35f04`: Sentry backend (`core/observability.py`, `sentry-sdk`) và web (`lib/sentry.ts`, `@sentry/react`) lọc
+  theo danh sách cho phép, có test; Umami (`lib/analytics.ts`) 7 sự kiện, pageview đã làm sạch. Cách lọc/đếm: đặc tả 4.7.
 - Tác vụ: `uv run python -m app.jobs.run <purge_accounts|purge_trash|backup_db|backup_photos|restore_db>`.
   - `purge_trash` (`services/maintenance.py`): hạn theo cấp tài khoản; xóa ảnh → link → trang (có điều kiện
     `deleted_at` không đổi); kho lỗi thì giữ trang; ghi `deletion_log` loại "trash".
@@ -608,9 +608,9 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
   - `Storage.delete` giờ báo lỗi khi S3 từ chối từng key (trước đây bỏ qua `Errors`, có thể để ảnh mồ côi).
 - Rate limit: thêm nhóm `destructive` (xóa toàn bộ dữ liệu, xóa tài khoản), `avatar_upload`, `logout` (theo IP); góp
   ý thêm trần 20/ngày. Bảng: đặc tả 4.4.
-- Còn lại (phần B, cần tài khoản của bạn): DSN Sentry 2 project, Umami, bucket sao lưu (khác nhà cung cấp kho ảnh),
-  đặt lịch (purge_accounts mỗi giờ; purge_trash, backup_photos mỗi ngày; backup_db 01:00, 09:00, 17:00 UTC), chạy
-  sao lưu đầu tiên và thử khôi phục, gây lỗi thử trên Sentry thật.
+- Còn lại (phần B, cần tài khoản của bạn): bucket sao lưu (khác nhà cung cấp kho ảnh), đặt lịch (purge_accounts mỗi
+  giờ; purge_trash, backup_photos mỗi ngày; backup_db 01:00, 09:00, 17:00 UTC), chạy sao lưu đầu tiên và thử khôi
+  phục. Hoãn: thêm lại Sentry + Umami (khôi phục từ `dd35f04`), DSN 2 project, gây lỗi thử trên Sentry thật.
 - Ghi nhớ: ảnh tải lên mà không xác nhận (ảnh nhật ký, ảnh đại diện) nằm lại trong kho và không tính hạn mức; cần tác
   vụ dọn object mồ côi.
 

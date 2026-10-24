@@ -2,7 +2,6 @@ import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-q
 import { api, ApiError, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
 import type { PhotoItem } from '@/components/diary/PhotoViewer'
-import { track, trackThrottled } from '@/lib/analytics'
 import type { Score } from '@/lib/catalog'
 import type { DateString } from '@/lib/date'
 
@@ -66,7 +65,6 @@ function refreshSummaries(client: QueryClient, date: DateString) {
 }
 
 type SaveArgs = { date: DateString; body: EntryWrite }
-const ENTRY_UPDATED_EVERY_MS = 30 * 60_000
 
 /**
  * Lần lưu gần nhất của chính tab này cho mỗi ngày: bản nó dựa vào (`from`, null = tạo mới) và bản nó tạo ra (`to`).
@@ -107,10 +105,6 @@ export function useSaveEntry(date: DateString) {
       const { data, error, response } = await api.PUT('/entries/{day}', { params: { path: { day: date } }, body: sent })
       if (error || !data) throw toApiError(response, error)
       lastSaved.set(date, { from: sent.updated_at ?? null, to: data.updated_at })
-      // Phân tích (Bước 13): không gửi ngày hay nội dung. Tự động lưu gọi PUT vài giây một lần khi đang gõ
-      // → `entry_updated` tính tối đa một lần mỗi 30 phút cho mỗi ngày.
-      if (sent.updated_at) trackThrottled(date, ENTRY_UPDATED_EVERY_MS, 'entry_updated')
-      else track('entry_created')
       return toDayEntry(data)
     },
     onSuccess: (entry, { date }) => {

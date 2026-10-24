@@ -8,7 +8,6 @@ import { PixelLegend } from '@/components/diary/PixelCell'
 import type { PixelFilter } from '@/components/diary/pixelFilter'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { useTrackView } from '@/lib/analytics'
 import { scoreLabel, type Score } from '@/lib/catalog'
 import { longDateLabel, todayIn, useNow, type DateString } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
@@ -119,8 +118,6 @@ export function YearPixels() {
   const [colorBy, setColorBy] = useColorBy()
   const byFlag = colorBy === 'flag'
   const { data, isPending, isError } = usePixels(year, today)
-  // Phân tích (Bước 13): mỗi năm tính một lần mỗi lần mở màn, khi năm đó đã tải xong; không gửi năm nào.
-  useTrackView('pixels_viewed', !isError && data?.year === year ? String(year) : null, year === Number(today.slice(0, 4)))
 
   if (isPending) return <p role="status" className="text-muted-foreground">Đang tải Year in Pixels…</p>
   if (isError)

@@ -60,10 +60,6 @@ class Settings(BaseSettings):
     mail_from: str | None = None  # để trống = SMTP_USER
     feedback_to_email: str | None = None
 
-    # Bước 13 (vận hành) — Sentry backend. Để trống SENTRY_DSN = tắt hẳn (local, test, CI).
-    sentry_dsn: str | None = None
-    sentry_traces_sample_rate: float = 0.0
-
     # Bước 13 — sao lưu. Kho sao lưu riêng (nên khác nhà cung cấp với kho ảnh chính), chuẩn S3.
     # Để trống BACKUP_S3_BUCKET = tác vụ sao lưu báo "chưa cấu hình" và thoát, không làm gì.
     # Local: bucket phụ trên MinIO (vd. dailydiary-backups) với cùng khóa minioadmin.

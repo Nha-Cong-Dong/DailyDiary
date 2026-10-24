@@ -1,8 +1,6 @@
-import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { ApiError } from '@/api/client'
 import { PageLoading, ServerErrorState } from '@/components/layout/PageStates'
-import { forgetLogin, trackLoginOnce } from '@/lib/analytics'
 import { useMe } from '@/lib/profile'
 import { cn } from '@/lib/utils'
 import type { LoginState } from './loginState'
@@ -15,13 +13,6 @@ export function RequireAuth({ allowNotOnboarded = false }: { allowNotOnboarded?:
   const location = useLocation()
   // /onboarding nằm ngoài khung app nên tự thêm lề.
   const bare = allowNotOnboarded && 'mx-auto max-w-[1120px] px-4 py-8 sm:px-[clamp(16px,4vw,40px)]'
-  const signedIn = Boolean(data) && !error
-  const signedOut = error instanceof ApiError && error.status === 401
-  // Phân tích (Bước 13): `login` = lần đầu /me thành công trong phiên của tab (xem lib/analytics.ts).
-  useEffect(() => {
-    if (signedIn) trackLoginOnce()
-    else if (signedOut) forgetLogin()
-  }, [signedIn, signedOut])
 
   if (isPending) return <PageLoading className={cn(bare)} />
   if (error) {
