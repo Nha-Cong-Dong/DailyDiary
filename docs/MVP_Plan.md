@@ -4,7 +4,7 @@
 | -------------- | ----------------------------------------------------------------------------------- |
 | **Trạng thái** | Xong bước 1–3, 5–12, 11b; bước 13 xong phần làm được ở local (Sentry/Umami hoãn); đang bước 14 (24/10/2026) |
 | **Ngày lập**   | 16/10/2026                                                                          |
-| **Căn cứ**     | `docs/Project_Specs.md` v1.0 (mục 3–7), skill trong `.claude/` và `apps/*/.claude/` |
+| **Căn cứ**     | `docs/Project_Specs.md` v2.0, `docs/Roadmap.md`, skill trong `.claude/` và `apps/*/.claude/` |
 
 ## Cách làm
 
@@ -16,11 +16,11 @@
   và việc bạn cần chuẩn bị.
 - Rate limit, kiểm tra quyền riêng tư và test truy cập chéo tài khoản làm **ngay trong bước viết endpoint**,
   không để dồn tới cuối.
-- Cột "Ngày (mục 7.4)" chỉ để đối chiếu với kế hoạch 2 tuần trong đặc tả.
+- Cột "Ngày (Roadmap 2.4)" chỉ để đối chiếu với kế hoạch 2 tuần ban đầu (`Roadmap.md` mục 2.4).
 
 ## Tổng quan
 
-| Bước | Nội dung                                                                                        | Ngày (mục 7.4)  | Phụ thuộc |
+| Bước | Nội dung                                                                                        | Ngày (Roadmap 2.4)  | Phụ thuộc |
 | ---- | ----------------------------------------------------------------------------------------------- | --------------- | --------- |
 | 0    | Chuẩn bị môi trường và chốt quyết định                                                          | trước ngày 1    | –         |
 | 1    | Nền móng: monorepo, Docker, DB, khung API/web, CI                                               | 1–2             | 0         |
@@ -40,13 +40,13 @@
 | 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
 | 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo                             | 14              | 14        |
 
-Những điểm khác với mục 7.4 và lý do:
+Những điểm khác với kế hoạch 2 tuần (Roadmap 2.4) và lý do:
 - **F-06 tách khỏi F-01.** Tự động lưu (IndexedDB, thử lại, xử lý xung đột 409) đủ phức tạp để làm thành một bước riêng.
 - **CI làm ngay ở bước 1**, để mọi bước sau đều có lint, test và build tự động.
 - **Triển khai thử sớm (bước 4).** Cookie giữa hai tên miền, CORS, redirect OAuth và HTTPS là phần dễ hỏng nhất.
   Nếu đợi tới ngày 13 mới phát hiện thì sẽ quá muộn.
 - **Rate limit không gom vào ngày 12.** Endpoint nào được viết thì gắn limit luôn. Bước 13 chỉ còn tinh chỉnh.
-- **Bổ sung các việc đặc tả yêu cầu nhưng mục 7.4 chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
+- **Bổ sung các việc đặc tả yêu cầu nhưng kế hoạch 2 tuần chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
   sao lưu DB mỗi 8 giờ, sao lưu ảnh, trang chính sách quyền riêng tư, nhận ảnh HEIC, sắp xếp và xóa ảnh.
 
 ---
@@ -81,7 +81,7 @@ Bước này không viết code. Mục tiêu là chốt các quyết định ả
 | Mã   | Câu hỏi                                                                                                                                             | Đề xuất                                                                                        |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Q4   | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đã chốt (Bước 1–3): làm cả bốn (`core/security.py`, `core/storage.py`)                          |
-| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 10) | Đã chốt (23/10/2026): giữ 6 bộ main icon hiện tại (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`) và danh sách 47 sub icon hiện tại trong `shared/icons.json`. Thêm main/sub icon mới sau khi sản phẩm hoàn thiện (xem Ngoài phạm vi MVP) |
+| Q5   | Số bộ biểu tượng chính, danh sách sub icon (đặc tả mục 7) | Đã chốt (23/10/2026): giữ 6 bộ main icon hiện tại (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`) và danh sách 47 sub icon hiện tại trong `shared/icons.json`. Thêm main/sub icon mới sau khi sản phẩm hoàn thiện (xem Ngoài phạm vi MVP) |
 | Q6   | Bảng màu cờ hiệu 8 hay 12 màu | Đã chốt (23/10/2026): giữ 8 màu pastel (`blush`…`lavender`, có `hex` và `hex_dark`) và cho người dùng thêm màu tùy chỉnh chọn từ bảng pha màu; nhật ký lưu `hex` (`#RRGGBB`), giao diện tối tra `hex_dark` cho màu có sẵn |
 | Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Đã chốt (Bước 7): cho tải ảnh riêng hoặc gỡ ảnh (`POST /me/avatar/upload-url`, `AvatarField`)   |
 | Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Đã chốt: dùng bước 2 (canvas thiết kế Jotly)                                                   |
@@ -196,9 +196,8 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - `apps/api/Dockerfile` (build từ gốc repo để mang theo `shared/`); biến môi trường trên hosting.
 - Bước `python -m app.db.migrate` trong pipeline triển khai, chạy bằng **user migration riêng** (`dbAdmin` + `readWrite`
   trên `dailydiary`); API chạy bằng user chỉ có `readWrite` (user này không được `collMod`, nên không chạy migration được).
-  Đã tạo DB beta trên Atlas M0 (Singapore, cluster0.auszmkf) ngày 21/10/2026; đã chạy đủ `0001`–`0004` bằng user
-  `jotly_migrate` (chạy lại báo không có migration mới). User của app hiện là `readWriteAnyDatabase` — nên thu hẹp
-  về `readWrite@dailydiary`.
+  Đã tạo DB beta trên Atlas M0 (Singapore, cluster0.auszmkf) ngày 21/10/2026; tới 25/10/2026 đã chạy đủ
+  `0001`–`0009` bằng user `jotly_migrate`. User của app đã thu hẹp về `readWrite@dailydiary` (25/10/2026).
 - Máy dev có tên chứa emoji làm dnspython không tra được SRV: ở máy này dùng chuỗi `mongodb://` liệt kê 3 máy
   (xem `apps/api/.env.beta`, không commit); hosting dùng chuỗi `mongodb+srv://` gốc.
 - Tự động triển khai khi merge vào `main`.
@@ -656,7 +655,7 @@ các màn khác 2,9–3,1 s (trước: 4,1–4,7 s qua HTTP/1.1, chưa tối ưu
 
 **Hạ tầng và triển khai (25/10/2026):** chốt Render Free (Singapore, Docker) cho API, Cloudflare Pages cho web, Atlas M0,
 Cloudflare R2 cho ảnh, GitHub Actions cron cho tác vụ, tên miền `jotly.io.vn` (web) + `api.jotly.io.vn`. Code: `render.yaml`,
-`apps/api/Dockerfile` (migration rồi uvicorn; đã chạy thử image ở chế độ production), `.github/workflows/jobs.yml`,
+`apps/api/Dockerfile` (chỉ uvicorn; migration chạy tay bằng `jotly_migrate`; đã chạy thử image ở chế độ production); dùng lại DB beta Atlas của Bước 4, `.github/workflows/jobs.yml`,
 `apps/web/public/_headers` (CSP Report-Only), middleware header bảo mật ở API; trang `/privacy` điền nhà cung cấp.
 Còn lại (bạn làm theo `docs/Deploy.md`): DNS, Atlas, R2, OAuth production, Render, Pages, GitHub Secrets, kiểm tra
 production, sao lưu chính thức + thử khôi phục; sau đó chạy `/deploy` và `securitymaxxing:ship-check`.
@@ -680,7 +679,7 @@ production, sao lưu chính thức + thử khôi phục; sau đó chạy `/deplo
 ## Ngoài phạm vi MVP
 
 Theo mục 2.2 của đặc tả: nhật ký chung và bình luận (chia sẻ một trang qua link đã vào MVP ở Bước 11b), đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
-ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (mục 7.2) chỉ được chuẩn bị qua dữ liệu
+ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (`Roadmap.md` mục 2.2–2.3) chỉ được chuẩn bị qua dữ liệu
 (`user_items`, `account_tier`, `joined_at`), không xây giao diện.
 
 Thêm main icon (bộ mới) và sub icon mới: làm sau khi sản phẩm hoàn thiện (chốt Q5, 23/10/2026).

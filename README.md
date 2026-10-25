@@ -227,7 +227,8 @@ Cây đầy đủ và quy ước đặt file là **nguồn duy nhất** ở [`do
 
 | Tài liệu | Nội dung |
 | --- | --- |
-| [`docs/Project_Specs.md`](docs/Project_Specs.md) | Đặc tả sản phẩm: tính năng, yêu cầu bảo mật/hiệu năng, mô hình dữ liệu |
+| [`docs/Project_Specs.md`](docs/Project_Specs.md) | Đặc tả hệ thống hiện tại: màn hình, tính năng, bảo mật, hiệu năng, dữ liệu, API, triển khai |
+| [`docs/Roadmap.md`](docs/Roadmap.md) | Định hướng: bối cảnh, lộ trình, kiếm tiền, rủi ro, nhật ký quyết định |
 | [`docs/MVP_Plan.md`](docs/MVP_Plan.md) | Kế hoạch 15 bước và kết quả từng bước |
 | [`docs/Project_Structure.md`](docs/Project_Structure.md) | Cây thư mục chuẩn, khung ban đầu và lịch sử thay đổi |
 | [`docs/Deploy.md`](docs/Deploy.md) | Triển khai production từng bước, việc định kỳ, sự cố thường gặp |

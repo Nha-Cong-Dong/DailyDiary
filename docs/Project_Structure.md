@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 31 (25/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 32 (25/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -44,10 +44,11 @@ dailydiary/
 │   └── jobs.yml                      # cron mỗi giờ: purge_accounts, backup_db, purge_trash, backup_photos (production)
 │
 ├── docs/
-│   ├── Project_Specs.md              # đặc tả sản phẩm
+│   ├── Project_Specs.md              # đặc tả hệ thống hiện tại (màn hình, tính năng, phi tính năng, kiến trúc, vận hành)
 │   ├── Project_Structure.md          # FILE NÀY
 │   ├── MVP_Plan.md                   # kế hoạch theo bước, các quyết định Q1..Qn
 │   ├── Deploy.md                     # hướng dẫn triển khai production từng bước, việc định kỳ, sự cố thường gặp
+│   ├── Roadmap.md                    # định hướng: bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định
 │   └── adr/                          # quyết định kiến trúc: NNNN-<ten>.md
 │
 ├── shared/                           # dùng chung cho api và web; chỉ sửa ở đây
@@ -60,7 +61,7 @@ dailydiary/
     │   ├── .claude/skills/           # api-conventions, fastapi-backend
     │   ├── pyproject.toml  uv.lock  .python-version
     │   ├── .env.example              # .env [không commit]
-    │   ├── Dockerfile                # build từ gốc repo để mang theo shared/; chạy migration rồi uvicorn
+    │   ├── Dockerfile                # build từ gốc repo để mang theo shared/; chỉ chạy uvicorn (migration chạy tay, docs/Deploy.md)
     │   ├── app/
     │   │   ├── main.py               # create_app(), lifespan, middleware, gắn router
     │   │   ├── core/                 # hạ tầng dùng chung, KHÔNG chứa nghiệp vụ
@@ -333,3 +334,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 29 | 24/10/2026 | Rà soát tài liệu so với code: viết lại `README.md`, `apps/api/.env.example`, `apps/web/.env.example`; `docker-compose.yml` tạo thêm bucket `dailydiary-backups`; bỏ `features/auth/.gitkeep`; sửa mô tả `entry/`, `lib/image.ts` trong cây |
 | 30 | 25/10/2026 | Thêm mục "Khung dự án ban đầu" (mốc 0 `e06edd2`, mốc 1 `f8b1097`) và bảng so sánh với hiện tại; đổi tên mục cây thành "Cây thư mục hiện tại" |
 | 31 | 25/10/2026 | Bước 14 (triển khai): `docs/Deploy.md`, `apps/api/Dockerfile` (bỏ nhãn (B4)), `.dockerignore` ở gốc repo (ngữ cảnh build là gốc), `render.yaml`, `.github/workflows/jobs.yml`, `apps/web/public/_headers`; `core/security.py` thêm `SecurityHeadersMiddleware`, `tests/api/test_security_headers.py` |
+| 32 | 25/10/2026 | Viết lại `Project_Specs.md` (bản 2.0) chỉ mô tả hệ thống hiện tại; tách bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định sang `docs/Roadmap.md` |

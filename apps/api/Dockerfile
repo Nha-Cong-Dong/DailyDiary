@@ -1,7 +1,8 @@
 # Image backend Jotly. Build từ GỐC repo để mang theo shared/ (limits.json, icons.json, flag_colors.json):
 #   docker build -f apps/api/Dockerfile -t jotly-api .
-# Chạy: migration (chạy lại an toàn) rồi uvicorn. Chỉ đúng khi có MỘT instance (Render Free): nhiều instance thì
-# chuyển migration sang bước triển khai riêng. Cấu hình qua biến môi trường (apps/api/.env.example), không có file .env.
+# Chỉ chạy uvicorn. Migration KHÔNG chạy ở đây: user DB của app chỉ có readWrite (không có collMod); migration chạy
+# tay bằng user riêng `jotly_migrate` trước khi deploy code cần nó (docs/Deploy.md). Cấu hình qua biến môi trường
+# (apps/api/.env.example), không có file .env.
 
 FROM python:3.12.14-slim-bookworm
 
@@ -28,4 +29,4 @@ USER jotly
 
 EXPOSE 8000
 # --proxy-headers: lấy IP thật từ proxy của nền tảng (rate limit theo IP). Container chỉ nhận traffic qua proxy đó.
-CMD ["sh", "-c", "python -m app.db.migrate && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]

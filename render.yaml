@@ -32,11 +32,12 @@ services:
       - key: SESSION_SECRET
         generateValue: true
 
-      # Cơ sở dữ liệu (MongoDB Atlas, Singapore). Chuỗi mongodb+srv://… của user chỉ có quyền readWrite trên DB jotly.
+      # Cơ sở dữ liệu: cluster Atlas M0 Singapore có sẵn từ Bước 4 (cluster0.auszmkf). Chuỗi mongodb+srv://… của user
+      # app (chỉ readWrite trên dailydiary). Migration chạy tay bằng user jotly_migrate, không chạy trong container.
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_DB
-        value: jotly
+        value: dailydiary
 
       # Web và CORS
       - key: FRONTEND_URL

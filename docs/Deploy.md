@@ -16,7 +16,7 @@
 | ----------------- | ------------------------- | ------------------------------- | ------- |
 | Web               | Cloudflare Pages          | `https://jotly.io.vn`           | 0       |
 | API               | Render (Free, Singapore)  | `https://api.jotly.io.vn`       | 0 (ngủ sau 15 phút) |
-| Cơ sở dữ liệu     | MongoDB Atlas M0          | Singapore                       | 0       |
+| Cơ sở dữ liệu     | MongoDB Atlas M0 (có sẵn) | Singapore, DB `dailydiary`      | 0       |
 | Kho ảnh           | Cloudflare R2             | bucket `jotly-photos`           | 0 tới 10 GB (cần thẻ thanh toán) |
 | Kho sao lưu       | Backblaze B2              | bucket đã tạo ở Bước 13         | 0 tới 10 GB |
 | Tác vụ định kỳ    | GitHub Actions            | workflow `Jobs`, mỗi giờ        | 0       |
@@ -28,9 +28,12 @@ Web và API cùng tên miền gốc `jotly.io.vn` (`io.vn` nằm trong Public Su
 ## Thứ tự
 
 ```
-1 DNS → 2 Atlas → 3 R2 → 4 Google OAuth → 5 merge vào main → 6 Render → 7 Cloudflare Pages
+1 DNS → 2 Atlas (dùng lại, chạy migration) → 3 R2 → 4 Google OAuth → 5 merge vào main → 6 Render → 7 Cloudflare Pages
       → 8 GitHub Secrets + chạy thử tác vụ → 9 kiểm tra production → 10 sao lưu chính thức + thử khôi phục
 ```
+
+**Tiến độ (25/10/2026):** Bước 1 — nameserver đã về Cloudflare (còn kiểm tra SSL Full (strict), Always Use HTTPS).
+Bước 2 — xong 2.1, 2.3; còn xác nhận Network Access (2.2). Bước 3 trở đi chưa làm.
 
 ---
 
@@ -42,18 +45,31 @@ Web và API cùng tên miền gốc `jotly.io.vn` (`io.vn` nằm trong Public Su
 3. Chờ Cloudflare báo **Active** (vài phút tới vài giờ).
 4. SSL/TLS → Overview → chế độ **Full (strict)**. SSL/TLS → Edge Certificates → bật **Always Use HTTPS**.
 
-## 2. MongoDB Atlas
+## 2. MongoDB Atlas — dùng lại cluster có sẵn
 
-1. Tạo project `Jotly` → **Create cluster** → **M0 (Free)** → provider **AWS**, region **Singapore (ap-southeast-1)**.
-   Nếu M0 không có Singapore, chọn vùng gần nhất có M0 rồi báo lại để sửa trang `/privacy` và đặc tả.
-2. **Database Access** → Add user `jotly-app`, mật khẩu dài (tạo ngẫu nhiên), quyền **Specific privileges**:
-   `readWrite` trên DB `jotly` **và** `dbAdmin` trên DB `jotly` (migration dùng `collMod` để cập nhật validator).
-3. **Network Access** → Add IP → `0.0.0.0/0`. Render Free và GitHub Actions không có IP cố định; bù lại bằng user riêng,
-   mật khẩu dài, quyền chỉ trên DB `jotly`.
-4. **Connect → Drivers** → chép chuỗi `mongodb+srv://jotly-app:<password>@…/?retryWrites=true&w=majority&appName=…`
-   (thay `<password>`). Đây là `MONGODB_URI`. Tên DB không nằm trong chuỗi: đặt bằng `MONGODB_DB=jotly`.
+Không tạo cluster mới: Bước 4 (21/10/2026) đã tạo **Atlas M0, Singapore, `cluster0.auszmkf`**, DB `dailydiary`, với hai user
+(chuỗi kết nối ở `apps/api/.env.beta` và `.env.migrate` trên máy bạn, không commit). Kiểm tra 25/10/2026: đã chạy
+**đủ migration 0001–0009**; user app đã thu hẹp về `readWrite@dailydiary` (bước 2.1, 2.3 xong).
 
-M0 không có sao lưu tự động: tác vụ `backup_db` lo việc này (mục 8, 10).
+| User | Dùng cho | Quyền cần có |
+| --- | --- | --- |
+| `vuongtribach_jotly` | API (Render) và tác vụ (GitHub Actions) | **chỉ** `readWrite` trên `dailydiary` |
+| `jotly_migrate` | Chạy migration từ máy bạn | `dbAdmin` + `readWrite` trên `dailydiary` |
+
+1. **Thu hẹp quyền user app:** Atlas → Database Access → `vuongtribach_jotly` → Edit → bỏ `readWriteAnyDatabase`,
+   thêm Specific privilege `readWrite` @ `dailydiary`. (User app không cần, và không nên có, quyền tạo validator/index.)
+2. **Network Access:** thêm `0.0.0.0/0` nếu chưa có — Render Free và GitHub Actions không có IP cố định.
+3. **Chạy migration còn chờ** bằng `jotly_migrate`, từ máy bạn (Claude chạy được, sau khi bạn xác nhận):
+   ```powershell
+   cd apps/api
+   # .env.migrate dùng chuỗi mongodb:// liệt kê 3 máy (máy này không tra được SRV)
+   $env:PYTHONUTF8 = "1"; uv run --env-file .env.migrate python -m app.db.migrate
+   ```
+4. **Chuỗi kết nối cho Render và GitHub:** Atlas → Connect → Drivers → chuỗi `mongodb+srv://vuongtribach_jotly:<password>@cluster0.auszmkf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
+   (thay `<password>`). Đây là `MONGODB_URI`; tên DB đặt riêng bằng `MONGODB_DB=dailydiary` (đã có trong `render.yaml`).
+
+M0 không có sao lưu tự động: tác vụ `backup_db` lo việc này (mục 8, 10). **Mỗi lần có migration mới:** chạy lại bước 2.3
+trước khi merge code cần nó.
 
 ## 3. Cloudflare R2 (kho ảnh)
 
@@ -106,7 +122,7 @@ Merge nhánh đang làm vào `main` và chờ CI xanh trước khi sang bước 
    | `FEEDBACK_TO_EMAIL` | Hộp thư nhận góp ý |
 
    `SESSION_SECRET` Render tự sinh. Các biến còn lại đã có giá trị trong `render.yaml`.
-3. **Apply** → chờ build và deploy. Log phải có dòng migration và `Application startup complete`.
+3. **Apply** → chờ build và deploy. Log phải có `Application startup complete` (migration đã chạy ở bước 2.3).
    Kiểm tra `https://jotly-api.onrender.com/health` → `{"status":"ok","db":"ok"}`.
 4. Service → **Settings → Custom Domains**: `api.jotly.io.vn` đã có sẵn từ `render.yaml`; Render cho một đích CNAME.
    Cloudflare DNS → **Add record**: `CNAME` · tên `api` · đích `jotly-api.onrender.com` · **Proxy status: DNS only**
@@ -179,6 +195,7 @@ Lịch tự chạy mỗi giờ (phút 17). Repo công khai: không có commit 60
 | --- | --- |
 | Mỗi tuần | Xem tab Actions (Jobs có đỏ không), dung lượng R2/B2, Atlas (giới hạn 512 MB của M0) |
 | Mỗi tháng | Thử khôi phục một bản sao lưu vào DB local |
+| Khi có migration mới | Chạy bước 2.3 trước khi merge vào `main` |
 | Khi đổi khóa | Cập nhật đồng thời Render và GitHub Secrets |
 | Khi có người dùng thật | Cân nhắc Render Starter (không ngủ) và Atlas có sao lưu tự động |
 
@@ -190,7 +207,7 @@ Lịch tự chạy mỗi giờ (phút 17). Repo công khai: không có commit 60
 | `redirect_uri_mismatch` ở Google | `GOOGLE_REDIRECT_URI` khác URI đã khai ở Google Console |
 | Tải ảnh lỗi "CORS" | CORS của bucket R2 thiếu `https://jotly.io.vn` hoặc phương thức `PUT` |
 | Ảnh lỗi `SignatureDoesNotMatch` | `S3_PUBLIC_ENDPOINT_URL` sai, hoặc đồng hồ máy lệch |
-| Render deploy lỗi ở migration | User DB thiếu quyền `dbAdmin` trên `jotly` |
+| API báo lỗi validator hoặc thiếu index | Chưa chạy migration mới bằng `jotly_migrate` (bước 2.3) |
 | `ServerSelectionTimeoutError` | Atlas Network Access chưa có `0.0.0.0/0`, hoặc sai mật khẩu trong `MONGODB_URI` |
 | API chậm ~1 phút lần đầu | Render Free đang ngủ — bình thường với gói này |
 | Workflow Jobs không tự chạy | Lịch bị tắt sau 60 ngày không commit; hoặc cron GitHub trễ |
