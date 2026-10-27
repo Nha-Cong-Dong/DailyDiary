@@ -14,7 +14,9 @@ concurrency:
 
 jobs:
   api:
-    runs-on: ubuntu-latest
+    # Ghim 24.04: ubuntu-latest đã lên Ubuntu 26 (kernel >= 6.19) và mongo:8.0.34 không khởi động được trên đó
+    # (SERVER-121912). Bỏ ghim khi MongoDB có bản vá và đã nâng image.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: apps/api
@@ -79,7 +81,7 @@ jobs:
       - run: npm run build
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # xem chú thích ở job api
     needs: [api, web]
     services:
       mongo:
