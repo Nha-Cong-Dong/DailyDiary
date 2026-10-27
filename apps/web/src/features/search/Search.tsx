@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, ChevronDown, ArrowRight, Image, Search as SearchIcon, X } from 'lucide-react'
-import { useDeferredValue, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { Link } from 'react-router'
 import { BottomSheet } from '@/components/diary/BottomSheet'
 import { MoodMark } from '@/components/diary/MoodMark'
@@ -7,13 +7,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { flagHex, scoreLabel, SCORES, type Score } from '@/lib/catalog'
 import { longDateLabel, shortDateLabel, todayIn, useNow } from '@/lib/date'
-import type { DemoEntry } from '@/lib/demo'
 import { useProfile } from '@/lib/profile'
 import { highlight, matches, snippet } from '@/lib/text'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { NO_FILTERS, PERIODS, type SearchFilters } from './searchEntries'
-import { useHasEntries, useRecentPages, useSearch, useTopKeywords } from './useSearch'
+import { useDebounced, useHasEntries, useRecentPages, useSearch, useTopKeywords, type SearchHit } from './useSearch'
+
+type RecentPage = { entry_date: string; title: string | null; score: Score; sub_icon: string | null }
 
 const SCORE_SWATCH: Record<Score, string> = {
   1: 'bg-score-1',
@@ -59,7 +60,7 @@ function IdleSuggestions({
   onPick,
 }: {
   top: string[]
-  recent: DemoEntry[]
+  recent: RecentPage[]
   iconSetId: string
   onPick: (k: string) => void
 }) {
@@ -117,7 +118,7 @@ function IdleSuggestions({
   )
 }
 
-function ResultCard({ e, q, iconSetId, index }: { e: DemoEntry; q: string; iconSetId: string; index: number }) {
+function ResultCard({ e, q, iconSetId, index }: { e: SearchHit; q: string; iconSetId: string; index: number }) {
   const dark = useDarkMode()
   const body = e.content ? snippet(e.content, q) : null
   return (
@@ -147,9 +148,9 @@ function ResultCard({ e, q, iconSetId, index }: { e: DemoEntry; q: string; iconS
             <span>
               {longDateLabel(e.entry_date)} · Điểm {e.score} · {scoreLabel(iconSetId, e.score)}
             </span>
-            {e.photos.length ? (
+            {e.photo_count ? (
               <span className="inline-flex items-center gap-1">
-                <Image className="size-3.5" aria-hidden="true" /> {e.photos.length} ảnh
+                <Image className="size-3.5" aria-hidden="true" /> {e.photo_count} ảnh
               </span>
             ) : null}
           </span>
@@ -192,16 +193,18 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
   const id = useId()
   const [q, setQ] = useState(initialQuery)
   const [filters, setFilters] = useState<SearchFilters>(NO_FILTERS)
-  const deferredQ = useDeferredValue(q)
-  const query = deferredQ.trim()
-  const { data, isError } = useSearch(deferredQ, filters, today)
+  // Chỉ gửi khi ngừng gõ 300 ms; bấm từ khóa gợi ý thì cũng đi qua đây.
+  const settledQ = useDebounced(q)
+  const query = settledQ.trim()
+  const search = useSearch(settledQ, filters)
+  const { data, isError } = search
   const { data: top = [] } = useTopKeywords()
   // Người dùng mới chưa có trang nào: bỏ bộ lọc, hiện màn trống (thiết kế B9).
-  const { data: hasEntries = true } = useHasEntries()
+  const { data: hasEntries = true } = useHasEntries(today)
   const { data: recent = [] } = useRecentPages(today)
   const filtersOn = filters.scores.length > 0 || filters.period !== 'all' || filters.withPhotos
   const results = data?.results ?? []
-  const hidden = (data?.matched ?? 0) - results.length
+  const hidden = (data?.matched ?? 0) - (data?.total ?? 0)
 
   const [sheet, setSheet] = useState<'score' | 'period' | null>(null)
   const periodLabel = PERIODS.find((p) => p.id === filters.period)?.label ?? ''
@@ -404,15 +407,25 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
               <>
                 <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
                   <strong className="font-semibold text-foreground">
-                    {results.length} kết quả cho “{query}”
+                    {data.total} kết quả cho “{query}”
                   </strong>
                   {hidden > 0 && filtersOn ? ` · ${hidden} trang khác bị ẩn bởi bộ lọc` : ''}
                 </p>
                 <ul className="flex flex-col gap-2.5 md:gap-3.5">
                   {results.map((e, i) => (
-                    <ResultCard key={e.entry_date} e={e} q={query} iconSetId={iconSetId} index={i} />
+                    <ResultCard key={e.entry_date} e={e} q={query} iconSetId={iconSetId} index={i % 10} />
                   ))}
                 </ul>
+                {search.hasNextPage ? (
+                  <Button
+                    variant="outline"
+                    className="h-11 self-center"
+                    disabled={search.isFetchingNextPage}
+                    onClick={() => void search.fetchNextPage()}
+                  >
+                    {search.isFetchingNextPage ? 'Đang tải…' : `Xem thêm ${data.total - results.length} kết quả cũ hơn`}
+                  </Button>
+                ) : null}
               </>
             ) : data.matched > 0 ? (
               <div className="flex flex-col items-center gap-3 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">

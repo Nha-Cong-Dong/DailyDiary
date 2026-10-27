@@ -34,6 +34,9 @@ export interface paths {
         /**
          * Google Login
          * @description Bắt đầu đăng nhập. Frontend mở trang này trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng.
+         *
+         *     `next`: chỉ nhận đường trong RETURN_PATHS (đăng nhập lại để xác nhận xóa tài khoản rồi quay về Hồ sơ);
+         *     giá trị khác bị bỏ qua, không bao giờ chuyển hướng tới địa chỉ client tự đặt.
          */
         get: operations["google_login_auth_google_login_get"];
         put?: never;
@@ -55,6 +58,188 @@ export interface paths {
         put?: never;
         /** Logout */
         post: operations["logout_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/calendar/{year}/{month}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Month
+         * @description Lịch + thống kê tháng trong một request: ngày, điểm, sub icon, cờ, số ảnh.
+         *
+         *     Không có tiêu đề, nội dung hay từ khóa.
+         */
+        get: operations["read_month_calendar__year___month__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Month
+         * @description Dòng thời gian một tháng: mọi trang chưa xóa, mới nhất trước, chỉ đoạn đầu nội dung và số ảnh.
+         */
+        get: operations["list_month_entries_get"];
+        put?: never;
+        post?: never;
+        /**
+         * Wipe Journal
+         * @description Xóa toàn bộ dữ liệu (F-07): mọi trang (cả thùng rác), link chia sẻ, ảnh nhật ký.
+         *
+         *     Giữ tài khoản và cài đặt.
+         *
+         *     Gửi `{"confirm": "XÓA"}`. Ảnh trong kho được dọn trong nền ngay sau khi trả lời.
+         */
+        delete: operations["wipe_journal_entries_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Trash
+         * @description Thùng rác: trang đã xóa còn khôi phục được (khôi phục bằng POST /entries/{date}/restore).
+         *
+         *     Khai báo trước /{day} để "trash" không bị hiểu là một ngày.
+         */
+        get: operations["list_trash_entries_trash_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{day}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Entry
+         * @description Nhật ký của một ngày. 404 khi chưa ghi hoặc đã xóa.
+         */
+        get: operations["read_entry_entries__day__get"];
+        /**
+         * Save Entry
+         * @description Tạo hoặc cập nhật. Gửi kèm `updated_at` đã nhận để phát hiện xung đột (409).
+         *
+         *     Không cho ghi ngày tương lai theo múi giờ hồ sơ (422).
+         */
+        put: operations["save_entry_entries__day__put"];
+        post?: never;
+        /**
+         * Delete Entry
+         * @description Xóa mềm; khôi phục được tới `restore_until`.
+         */
+        delete: operations["delete_entry_entries__day__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{day}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Upload
+         * @description Xác nhận ảnh đã tải lên kho: kiểm tra tồn tại, dung lượng, định dạng rồi gắn vào trang.
+         */
+        post: operations["confirm_upload_entries__day__photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{day}/photos/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Reorder Photos
+         * @description Sắp xếp lại: gửi đủ id ảnh của trang theo thứ tự mới.
+         */
+        patch: operations["reorder_photos_entries__day__photos_order_patch"];
+        trace?: never;
+    };
+    "/entries/{day}/photos/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Upload
+         * @description Xin hai presigned PUT (ảnh chính, ảnh thu nhỏ) cho trang đã có. 422 khi đủ ảnh hoặc hết dung lượng.
+         */
+        post: operations["create_upload_entries__day__photos_upload_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/entries/{day}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore Entry
+         * @description Hoàn tác xóa (còn trong hạn khôi phục).
+         */
+        post: operations["restore_entry_entries__day__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -89,6 +274,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Feedback
+         * @description Lưu góp ý rồi gửi email về hộp thư của Jotly trong nền (lỗi gửi thư không làm hỏng request).
+         */
+        post: operations["send_feedback_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -98,6 +303,26 @@ export interface paths {
         };
         /** Health */
         get: operations["health_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/keywords/top": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Top Keywords
+         * @description 6 từ khóa dùng nhiều nhất của chính người dùng.
+         */
+        get: operations["top_keywords_keywords_top_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -117,14 +342,101 @@ export interface paths {
         get: operations["read_me_me_get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Account
+         * @description Xóa tài khoản (F-07): gửi `{"confirm_email": <email tài khoản>}`. Đăng xuất mọi thiết bị ngay;
+         *     ảnh trong kho và hồ sơ được dọn trong nền. Góp ý giữ nội dung nhưng ẩn danh.
+         */
+        delete: operations["delete_account_me_delete"];
         options?: never;
         head?: never;
         /**
          * Update Me
-         * @description Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, gỡ ảnh đại diện, đánh dấu xong lần đầu.
+         * @description Sửa tên, múi giờ (chỉ áp dụng cho các ngày sau đó), bộ icon, màu cờ tùy chỉnh,
+         *     đổi hoặc gỡ ảnh đại diện, đánh dấu xong lần đầu.
          */
         patch: operations["update_me_me_patch"];
+        trace?: never;
+    };
+    "/me/avatar/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Avatar Upload
+         * @description Presigned PUT cho ảnh đại diện đã cắt vuông và nén trên trình duyệt; tải xong gửi PATCH /me.
+         */
+        post: operations["create_avatar_upload_me_avatar_upload_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/data-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data Summary
+         * @description Số trang, ảnh, link chia sẻ sẽ mất khi xóa dữ liệu hoặc xóa tài khoản; dung lượng ảnh đã dùng,
+         *     hạn mức và ngưỡng cảnh báo (Hồ sơ và ô ảnh hiện cảnh báo khi đạt `warn_ratio`).
+         */
+        get: operations["data_summary_me_data_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/photos/{photo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Photo
+         * @description Xóa ảnh khỏi trang và khỏi kho.
+         */
+        delete: operations["delete_photo_photos__photo_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pixels/{year}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Year
+         * @description Điểm cả năm (chuỗi gọn), cờ hiệu, ngày ghi bù, chuỗi ngày và các năm có dữ liệu. Không có nội dung.
+         */
+        get: operations["read_year_pixels__year__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/public/shares/{token}": {
@@ -139,6 +451,28 @@ export interface paths {
          * @description Trang người nhận xem, không cần đăng nhập. Mọi lý do không mở được đều trả cùng một 404.
          */
         get: operations["read_public_share_public_shares__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search
+         * @description Tìm trong tiêu đề, nội dung, từ khóa; lọc điểm (nhiều mức), khoảng thời gian, chỉ ngày có ảnh.
+         *
+         *     Mới nhất trước, `pagination.search_page_size` kết quả mỗi trang; `cursor` = `next_cursor` của lần trước.
+         */
+        get: operations["search_search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -167,10 +501,300 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sub-icons/top": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Top Sub Icons
+         * @description Sub icon dùng nhiều nhất của chính người dùng (hàng "hay dùng" ở Sửa trang / Ghi bù).
+         */
+        get: operations["top_sub_icons_sub_icons_top_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AvatarUploadIn */
+        AvatarUploadIn: {
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "image/webp" | "image/jpeg";
+            /**
+             * Upload Id
+             * Format: uuid
+             */
+            upload_id: string;
+        };
+        /**
+         * AvatarUploadOut
+         * @description POST /me/avatar/upload-url. Tải xong thì gửi PATCH /me {avatar_upload: {...}} để dùng ảnh.
+         */
+        AvatarUploadOut: {
+            /** Expires In */
+            expires_in: number;
+            /** Headers */
+            headers: {
+                [key: string]: string;
+            };
+            /**
+             * Upload Id
+             * Format: uuid
+             */
+            upload_id: string;
+            /** Upload Url */
+            upload_url: string;
+        };
+        /**
+         * CalendarDayOut
+         * @description Một ngày đã ghi trong lịch tháng: không có tiêu đề, nội dung hay từ khóa.
+         */
+        CalendarDayOut: {
+            /** Backfilled */
+            backfilled: boolean;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+        };
+        /**
+         * CalendarOut
+         * @description GET /calendar/{year}/{month}: một request cho lịch + thống kê tháng (F-02).
+         */
+        CalendarOut: {
+            /** Days */
+            days: components["schemas"]["CalendarDayOut"][];
+            /** Month */
+            month: string;
+            stats: components["schemas"]["CalendarStatsOut"];
+        };
+        /** CalendarStatsOut */
+        CalendarStatsOut: {
+            /** Average */
+            average: number | null;
+            /** Current Streak */
+            current_streak: number;
+            /** Distribution */
+            distribution: number[];
+            /** Longest Streak */
+            longest_streak: number;
+            /** Photo Days */
+            photo_days: number;
+            /** Photos */
+            photos: number;
+            /** Recorded */
+            recorded: number;
+        };
+        /**
+         * DataSummaryOut
+         * @description GET /me/data-summary: những gì sẽ mất khi xóa (để hộp thoại báo đúng con số) và dung lượng ảnh
+         *     đã dùng so với hạn mức (mục 4.5 của đặc tả: cảnh báo khi đạt `warn_ratio`).
+         */
+        DataSummaryOut: {
+            /** Pages */
+            pages: number;
+            /** Photos */
+            photos: number;
+            /** Quota Bytes */
+            quota_bytes: number;
+            /** Share Links */
+            share_links: number;
+            /** Trash */
+            trash: number;
+            /** Used Bytes */
+            used_bytes: number;
+            /** Warn Ratio */
+            warn_ratio: number;
+        };
+        /**
+         * DeleteAccountIn
+         * @description DELETE /me: phải gửi đúng email của tài khoản (so ở service, không phân biệt hoa thường).
+         */
+        DeleteAccountIn: {
+            /** Confirm Email */
+            confirm_email: string;
+        };
+        /**
+         * EntryDeletedOut
+         * @description Kết quả xóa mềm: khôi phục được bằng POST /entries/{date}/restore trước `restore_until`.
+         */
+        EntryDeletedOut: {
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /**
+             * Restore Until
+             * Format: date-time
+             */
+            restore_until: string;
+        };
+        /**
+         * EntryMonthOut
+         * @description GET /entries?month=YYYY-MM: mọi trang chưa xóa của tháng, mới nhất trước (tối đa 31).
+         */
+        EntryMonthOut: {
+            /** Entries */
+            entries: components["schemas"]["EntrySummaryOut"][];
+            /** Month */
+            month: string;
+        };
+        /** EntryOut */
+        EntryOut: {
+            /** Content */
+            content: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photos */
+            photos: components["schemas"]["EntryPhotoOut"][];
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * EntryPhotoOut
+         * @description Ảnh của một ngày. `url`/`thumb_url` là link ký có hạn ~1 giờ (null khi kho ảnh chưa cấu hình).
+         */
+        EntryPhotoOut: {
+            /** Height */
+            height: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Position */
+            position: number;
+            /** Thumb Url */
+            thumb_url?: string | null;
+            /** Url */
+            url?: string | null;
+            /** Width */
+            width: number;
+        };
+        /**
+         * EntrySummaryOut
+         * @description Một trang trong Dòng thời gian theo tháng: không có nội dung đầy đủ, chỉ đoạn đầu và số ảnh.
+         */
+        EntrySummaryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Excerpt */
+            excerpt: string | null;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * EntryWrite
+         * @description PUT /entries/{date}: tạo hoặc cập nhật nhật ký một ngày (F-01).
+         *
+         *     Giới hạn độ dài và số từ khóa phụ thuộc cấp tài khoản nên kiểm tra ở service (shared/limits.json).
+         */
+        EntryWrite: {
+            /** Content */
+            content?: string | null;
+            /** Flag Color */
+            flag_color?: string | null;
+            /** Keywords */
+            keywords?: string[];
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /**
+         * FeedbackIn
+         * @description POST /feedback. Độ dài tối đa kiểm ở service theo limits.json (feedback.message_max).
+         */
+        FeedbackIn: {
+            /** Message */
+            message: string;
+        };
+        /**
+         * FeedbackOut
+         * @description Đã nhận góp ý. Email gửi trong nền, nên không báo gửi thư thành công hay chưa.
+         */
+        FeedbackOut: {
+            /**
+             * Received
+             * @default true
+             */
+            received: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -195,6 +819,8 @@ export interface components {
             account_tier: "beta" | "free" | "premium";
             /** Avatar Url */
             avatar_url: string | null;
+            /** Custom Flag Colors */
+            custom_flag_colors: string[];
             /** Display Name */
             display_name: string;
             /** Email */
@@ -218,8 +844,11 @@ export interface components {
          *     Độ dài tên kiểm ở service, theo limits.json của cấp tài khoản.
          */
         MeUpdate: {
+            avatar_upload?: components["schemas"]["AvatarUploadIn"] | null;
             /** Avatar Url */
             avatar_url?: null;
+            /** Custom Flag Colors */
+            custom_flag_colors?: string[] | null;
             /** Display Name */
             display_name?: string | null;
             /** Icon Set Id */
@@ -228,6 +857,108 @@ export interface components {
             onboarded?: true | null;
             /** Timezone */
             timezone?: string | null;
+        };
+        /**
+         * PhotoConfirmIn
+         * @description POST /entries/{date}/photos: xác nhận đã tải xong. Backend tự dựng key từ phiên + ngày + photo_id.
+         */
+        PhotoConfirmIn: {
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "image/webp" | "image/jpeg";
+            /** Height */
+            height: number;
+            /**
+             * Photo Id
+             * Format: uuid
+             */
+            photo_id: string;
+            /** Width */
+            width: number;
+        };
+        /**
+         * PhotoOrderIn
+         * @description PATCH /entries/{date}/photos/order: đủ mọi ảnh của trang, theo thứ tự mới.
+         */
+        PhotoOrderIn: {
+            /** Photo Ids */
+            photo_ids: string[];
+        };
+        /**
+         * PhotoUploadIn
+         * @description POST /entries/{date}/photos/upload-url.
+         */
+        PhotoUploadIn: {
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "image/webp" | "image/jpeg";
+        };
+        /**
+         * PhotoUploadOut
+         * @description Hai presigned PUT (ảnh chính + ảnh thu nhỏ). PUT phải gửi đúng `headers`, không kèm cookie.
+         */
+        PhotoUploadOut: {
+            /** Expires In */
+            expires_in: number;
+            /** Headers */
+            headers: {
+                [key: string]: string;
+            };
+            /**
+             * Photo Id
+             * Format: uuid
+             */
+            photo_id: string;
+            /** Thumb Upload Url */
+            thumb_upload_url: string;
+            /** Upload Url */
+            upload_url: string;
+        };
+        /**
+         * PixelsOut
+         * @description GET /pixels/{year}: Year in Pixels trong một request, dạng gọn để cả năm chỉ vài KB (F-03).
+         *
+         *     Ngày thứ i của năm (0 = 1/1) ứng với ký tự `scores[i]`: "1".."5" là điểm, "0" là chưa ghi.
+         */
+        PixelsOut: {
+            /** Backfilled */
+            backfilled: number[];
+            /** Flags */
+            flags: {
+                [key: string]: string;
+            };
+            /** Scores */
+            scores: string;
+            stats: components["schemas"]["PixelsStatsOut"];
+            /** Year */
+            year: number;
+            /** Years */
+            years: number[];
+        };
+        /** PixelsStatsOut */
+        PixelsStatsOut: {
+            /** Current Streak */
+            current_streak: number;
+            /** Longest Streak */
+            longest_streak: number;
+        };
+        /**
+         * PublicPhotoOut
+         * @description Ảnh trên trang chia sẻ: chỉ link ký và kích thước, không có id hay key trong kho.
+         */
+        PublicPhotoOut: {
+            /** Height */
+            height: number;
+            /** Thumb Url */
+            thumb_url: string;
+            /** Url */
+            url: string;
+            /** Width */
+            width: number;
         };
         /**
          * PublicShareOut
@@ -250,12 +981,53 @@ export interface components {
             keywords?: string[] | null;
             /** Photo Count */
             photo_count?: number | null;
+            /** Photos */
+            photos?: components["schemas"]["PublicPhotoOut"][] | null;
             /** Score */
             score?: number | null;
             /** Sub Icon */
             sub_icon?: string | null;
             /** Title */
             title?: string | null;
+        };
+        /**
+         * SearchHitOut
+         * @description Một trang khớp: tiêu đề, đoạn trích quanh chỗ khớp (không phải cả nội dung), từ khóa.
+         */
+        SearchHitOut: {
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Excerpt */
+            excerpt: string | null;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Keywords */
+            keywords: string[];
+            /** Photo Count */
+            photo_count: number;
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+        };
+        /**
+         * SearchOut
+         * @description GET /search. `matched`: số trang khớp từ khóa trước khi áp bộ lọc (để báo trang bị bộ lọc ẩn).
+         */
+        SearchOut: {
+            /** Matched */
+            matched: number;
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Results */
+            results: components["schemas"]["SearchHitOut"][];
+            /** Total */
+            total: number;
         };
         /**
          * ShareOut
@@ -369,6 +1141,56 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** SubIconCount */
+        SubIconCount: {
+            /** Count */
+            count: number;
+            /** Icon */
+            icon: string;
+        };
+        /**
+         * TopKeywordsOut
+         * @description GET /keywords/top: từ khóa dùng nhiều nhất của chính người dùng (gộp theo dạng không dấu).
+         */
+        TopKeywordsOut: {
+            /** Keywords */
+            keywords: string[];
+        };
+        /**
+         * TopSubIconsOut
+         * @description GET /sub-icons/top: sub icon dùng nhiều nhất của chính người dùng, nhiều trước.
+         */
+        TopSubIconsOut: {
+            /** Icons */
+            icons: components["schemas"]["SubIconCount"][];
+        };
+        /**
+         * TrashItemOut
+         * @description Một trang trong thùng rác: đủ để nhận ra trang (không có nội dung), kèm hạn khôi phục.
+         */
+        TrashItemOut: {
+            /**
+             * Deleted At
+             * Format: date-time
+             */
+            deleted_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Photo Count */
+            photo_count: number;
+            /**
+             * Restore Until
+             * Format: date-time
+             */
+            restore_until: string;
+            /** Score */
+            score: number;
+            /** Title */
+            title: string | null;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -381,6 +1203,26 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /**
+         * WipeIn
+         * @description DELETE /entries: phải gửi đúng chữ "XÓA" (backend kiểm tra lại, không chỉ dựa vào giao diện).
+         */
+        WipeIn: {
+            /** Confirm */
+            confirm: string;
+        };
+        /**
+         * WipeOut
+         * @description Đã xóa bao nhiêu (ảnh trong kho được dọn trong nền ngay sau đó).
+         */
+        WipeOut: {
+            /** Pages */
+            pages: number;
+            /** Photos */
+            photos: number;
+            /** Share Links */
+            share_links: number;
         };
     };
     responses: never;
@@ -415,6 +1257,7 @@ export interface operations {
         parameters: {
             query?: {
                 tz?: string | null;
+                next?: string | null;
             };
             header?: never;
             path?: never;
@@ -459,6 +1302,387 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_month_calendar__year___month__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+                month: number;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_month_entries_get: {
+        parameters: {
+            query: {
+                /** @description Tháng YYYY-MM */
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryMonthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    wipe_journal_entries_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WipeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WipeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_trash_entries_trash_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrashItemOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_entry_entries__day__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_entry_entries__day__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_entry_entries__day__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryDeletedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_upload_entries__day__photos_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_photos_entries__day__photos_order_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_upload_entries__day__photos_upload_url_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoUploadIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoUploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_entry_entries__day__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -572,6 +1796,41 @@ export interface operations {
             };
         };
     };
+    send_feedback_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -588,6 +1847,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthOut"];
+                };
+            };
+        };
+    };
+    top_keywords_keywords_top_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopKeywordsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -611,6 +1901,39 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MeOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_account_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -658,6 +1981,136 @@ export interface operations {
             };
         };
     };
+    create_avatar_upload_me_avatar_upload_url_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoUploadIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvatarUploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_summary_me_data_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_photo_photos__photo_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_year_pixels__year__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                year: number;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PixelsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_public_share_public_shares__token__get: {
         parameters: {
             query?: never;
@@ -689,6 +2142,44 @@ export interface operations {
             };
         };
     };
+    search_search_get: {
+        parameters: {
+            query: {
+                /** @description Từ khóa (không ghi log) */
+                q: string;
+                score?: number[] | null;
+                period?: "month" | "3m" | "year" | "all";
+                has_photo?: boolean;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_shares_shares_get: {
         parameters: {
             query?: never;
@@ -707,6 +2198,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SharedEntryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    top_sub_icons_sub_icons_top_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopSubIconsOut"];
                 };
             };
             /** @description Validation Error */

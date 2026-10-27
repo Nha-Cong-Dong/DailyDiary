@@ -10,7 +10,9 @@ Skill này nói **cách viết** các phần nền của `apps/api`. Quy ước 
 nằm trong skill **api-conventions**. Đọc skill đó trước; ở đây chỉ dùng lại, không nhắc lại.
 Cây thư mục chuẩn: `docs/Project_Structure.md`. Mô hình dữ liệu: `docs/Project_Specs.md` mục 5.4.
 
-Mã nguồn mẫu đầy đủ nằm trong `references/`. Chỉ mở file liên quan tới việc đang làm:
+Mã nguồn mẫu đầy đủ nằm trong `references/`. Đó là **mẫu**, tên có thể khác code thật: kho ảnh là đối tượng
+`Storage` ở `app.state.storage` (dependency `S3`/`get_storage`), DB là `Db`, upsert người dùng ở
+`services/users.upsert_google_user`. Chỉ mở file liên quan tới việc đang làm:
 
 | Đang làm | Đọc |
 | --- | --- |
@@ -33,10 +35,11 @@ Mã nguồn mẫu đầy đủ nằm trong `references/`. Chỉ mở file liên 
 ```python
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    get_limits()  # đọc và kiểm tra shared/limits.json ngay khi khởi động
     client = make_client(settings.mongodb_uri)
     app.state.db = client[settings.mongodb_db]
-    app.state.s3 = make_s3_client(settings.s3_endpoint_url)
-    app.state.s3_presign = make_s3_client(settings.s3_public_endpoint_url)
+    # Storage (core/storage.py) giữ cả hai client S3: gọi kho và ký URL; None khi chưa cấu hình kho.
+    app.state.storage = make_storage()
     try:
         yield
     finally:
@@ -58,7 +61,8 @@ async def lifespan(app: FastAPI):
   tra kiểu, **không** đưa dict từ request vào (`{"title": {"$ne": None}}` sẽ thành toán tử).
 - Ghi một ngày = một thao tác trên một document: `find_one_and_update(..., upsert=True,
   return_document=ReturnDocument.AFTER)`. Điều kiện nghiệp vụ đưa vào filter để kiểm tra nguyên tử
-  (vd. `"updated_at": known` phát hiện xung đột, `"photos.9": {"$exists": False}` giới hạn 10 ảnh).
+  (vd. `"updated_at": known` phát hiện xung đột; ảnh dùng khóa lạc quan: filter kèm nguyên mảng `photos` đã đọc,
+  `modified_count == 0` thì đọc lại và thử lại — xem `services/photos.py`).
 - MVP không dùng transaction. Thao tác nhiều collection (xóa tài khoản) viết theo thứ tự để chạy lại được.
 - Tìm kiếm từ khóa: `re.escape` chuỗi đã chuẩn hóa, regex neo đầu `^`, phân biệt hoa thường
   (đã chuẩn hóa về chữ thường), để MongoDB dùng được index và không bị ReDoS.
@@ -166,7 +170,7 @@ Code đầy đủ trong `references/auth-google-cookie.md`.
 - Backend tự tạo key từ `user_id` theo mẫu `storage_key` trong đặc tả. Ở bước xác nhận, backend dựng
   lại key từ `photo_id` của client, không nhận key thô từ client.
 - Xác nhận: `head_object` lấy `ContentLength`; đọc 16 byte đầu (`Range="bytes=0-15"`) để kiểm tra
-  magic bytes JPEG/PNG/WebP; không đạt thì `delete_object` rồi trả lỗi.
+  magic bytes JPEG/WebP (chỉ nhận hai loại này; trình duyệt đã nén sang WebP/JPEG); không đạt thì `delete_object` rồi trả lỗi.
 - `generate_presigned_url` chỉ ký cục bộ, không gọi mạng. Còn `head_object`, `get_object`,
   `delete_object` là I/O chặn, phải chạy qua `anyio.to_thread.run_sync`, nếu không cả event loop bị treo.
 - Link xem ảnh: `get_object` presigned, `ExpiresIn=3600` (theo đặc tả, khoảng 1 giờ).
@@ -175,7 +179,8 @@ Code đầy đủ trong `references/auth-google-cookie.md`.
 ## 8. Test: pytest + httpx AsyncClient
 
 - `AsyncClient(transport=ASGITransport(app=app), base_url="http://test")`. `ASGITransport`
-  **không chạy lifespan**, nên test phải override `get_db` (và `get_s3`) bằng `app.dependency_overrides`.
+  **không chạy lifespan**, nên test phải override `get_db` bằng `app.dependency_overrides` và gắn kho giả trực tiếp
+  (`app.state.storage = FakeStorage()`, xem `tests/conftest.py`); dependency kho là `get_storage` / `get_optional_storage`.
 - Dùng plugin `anyio` theo tài liệu FastAPI (`@pytest.mark.anyio`, fixture `anyio_backend`
   trả `"asyncio"`, scope session). Không trộn với pytest-asyncio; bản 1.x của nó đã bỏ fixture `event_loop`.
 - DB test là MongoDB thật (container compose), không dùng mongomock, vì validator, index unique, TTL và

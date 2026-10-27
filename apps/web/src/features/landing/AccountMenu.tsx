@@ -1,4 +1,4 @@
-import { LayoutGrid, Link2, List, LogOut, Pencil, Settings } from 'lucide-react'
+import { LayoutGrid, Link2, List, LogOut, MessageSquare, Pencil, Settings } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { Avatar } from '@/components/layout/Avatar'
 import {
@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useLogout } from '@/lib/session'
+import { SIGNED_OUT, useLogout } from '@/lib/session'
 
 type Props = {
   name: string
@@ -28,6 +28,7 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
     { to: '/pixels', label: 'Year in Pixels', icon: LayoutGrid },
     { to: '/profile/shares', label: 'Trang đang chia sẻ', icon: Link2, count: shareCount },
     { to: '/profile', label: 'Hồ sơ & cài đặt', icon: Settings },
+    { to: '/profile', label: 'Góp ý cho Jotly', icon: MessageSquare, state: { feedback: true } },
   ]
   return (
     <DropdownMenu modal={false}>
@@ -47,8 +48,8 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
         </div>
         <div className="flex flex-col gap-0.5 py-1">
           {items.map((item) => (
-            <DropdownMenuItem key={item.to} asChild>
-              <Link to={item.to}>
+            <DropdownMenuItem key={item.label} asChild>
+              <Link to={item.to} state={item.state}>
                 <item.icon aria-hidden="true" />
                 <span className="flex-1">{item.label}</span>
                 {item.tag ? <span className="text-xs text-muted-foreground">{item.tag}</span> : null}
@@ -65,7 +66,7 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
         <DropdownMenuItem
           variant="destructive"
           disabled={logout.isPending}
-          onSelect={() => logout.mutate(undefined, { onSettled: () => navigate('/') })}
+          onSelect={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
         >
           <LogOut aria-hidden="true" />
           Đăng xuất

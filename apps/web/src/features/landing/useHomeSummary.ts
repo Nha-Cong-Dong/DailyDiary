@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { api, toApiError } from '@/api/client'
 import type { Score } from '@/lib/catalog'
 import { addDays, todayIn, type DateString } from '@/lib/date'
 
@@ -34,18 +35,22 @@ export function summarize(recordedDays: Iterable<RecordedDay>, today: DateString
 }
 
 /**
- * Chưa có API nhật ký (Bước 5) nên ở dev đọc dữ liệu mẫu, còn bản build trả null (trang chủ hiện câu chung).
- * Import động trong nhánh DEV để dữ liệu mẫu không vào bản build.
+ * Tóm tắt tháng hiện tại từ lịch tháng (GET /calendar/{year}/{month}): ngày đã ghi lấy từ lịch, chuỗi ngày lấy từ
+ * backend (trang ghi bù không nối chuỗi, chuỗi vắt qua tháng) để khớp với Dòng thời gian và Year in Pixels.
+ * Chỉ gọi khi đã đăng nhập (`enabled`); chưa đăng nhập thì trang chủ là trang giới thiệu.
  */
-export function useHomeSummary(timeZone: string) {
+export function useHomeSummary(timeZone: string, enabled = true) {
   const today = todayIn(timeZone)
+  const [year, month] = today.split('-').map(Number)
   return useQuery<HomeSummary | null>({
     queryKey: ['entries', 'home-summary', today],
     queryFn: async () => {
-      if (!import.meta.env.DEV) return null
-      const { demoEntries } = await import('@/lib/demo')
-      return summarize(demoEntries(), today)
+      const { data, error, response } = await api.GET('/calendar/{year}/{month}', { params: { path: { year, month } } })
+      if (error || !data) throw toApiError(response, error)
+      const days = data.days.map((d) => ({ entry_date: d.entry_date, score: d.score as Score, sub_icon: d.sub_icon }))
+      return { ...summarize(days, today), streak: data.stats.current_streak }
     },
+    enabled,
   })
 }
 

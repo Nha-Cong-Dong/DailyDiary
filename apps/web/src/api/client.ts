@@ -49,7 +49,10 @@ export function toApiError(response: Response, body: unknown): ApiError {
   return new ApiError(response.status, err?.code ?? 'HTTP_ERROR', err?.message ?? 'Có lỗi xảy ra, vui lòng thử lại')
 }
 
-/** Đường dẫn bắt đầu đăng nhập Google: mở trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng. */
-export function googleLoginUrl(timeZone: string): string {
-  return `${API_URL}/auth/google/login?${new URLSearchParams({ tz: timeZone })}`
+/**
+ * Đường dẫn bắt đầu đăng nhập Google: mở trực tiếp (không fetch) để cookie dd_oauth đi trọn vòng.
+ * `next`: quay về trang này sau khi đăng nhập (backend chỉ nhận "/profile": đăng nhập lại để xác nhận xóa tài khoản).
+ */
+export function googleLoginUrl(timeZone: string, next?: '/profile'): string {
+  return `${API_URL}/auth/google/login?${new URLSearchParams({ tz: timeZone, ...(next ? { next } : {}) })}`
 }

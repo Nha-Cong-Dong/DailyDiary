@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { api, toApiError } from '@/api/client'
 import { subIcons } from '@/lib/catalog'
 
 export const FREQUENT_COUNT = 8
@@ -19,16 +20,16 @@ export function frequentSubIcons(used: (string | null)[], catalog: string[] = su
 }
 
 /**
- * Hàng "hay dùng" ở Sửa trang / Ghi bù. Ở dev đếm trên dữ liệu mẫu; bản build chưa có API (Bước 5) nên lấy đầu
- * danh mục. Khi có API thì đếm từ các trang của chính người dùng.
+ * Hàng "hay dùng" ở Sửa trang / Ghi bù: đếm trên các trang của chính người dùng (GET /sub-icons/top),
+ * thiếu thì lấy đầu danh mục. Key dưới ['entries'] nên lưu một trang thì đếm lại.
  */
 export function useFrequentSubIcons() {
   return useQuery<string[]>({
     queryKey: ['entries', 'sub-icons'],
     queryFn: async () => {
-      if (!import.meta.env.DEV) return frequentSubIcons([])
-      const { demoEntries } = await import('@/lib/demo')
-      return frequentSubIcons(demoEntries().map((e) => e.sub_icon))
+      const { data, error, response } = await api.GET('/sub-icons/top')
+      if (error || !data) throw toApiError(response, error)
+      return frequentSubIcons(data.icons.flatMap(({ icon, count }) => Array<string>(count).fill(icon)))
     },
     staleTime: 5 * 60_000,
   })

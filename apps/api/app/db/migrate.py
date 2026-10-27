@@ -16,9 +16,29 @@ from pymongo.asynchronous.database import AsyncDatabase
 from app.core.config import settings
 from app.db import collections as c
 from app.db.client import make_client
-from app.db.migrations import m0001_initial, m0002_user_icon_set_onboarded, m0003_share_links
+from app.db.migrations import (
+    m0001_initial,
+    m0002_user_icon_set_onboarded,
+    m0003_share_links,
+    m0004_entries_icon_set_norm,
+    m0005_user_custom_flag_colors,
+    m0006_user_avatar_key,
+    m0007_entries_norm_backfill,
+    m0008_feedback_emailed_at,
+    m0009_deletion_log,
+)
 
-MIGRATIONS = [m0001_initial, m0002_user_icon_set_onboarded, m0003_share_links]
+MIGRATIONS = [
+    m0001_initial,
+    m0002_user_icon_set_onboarded,
+    m0003_share_links,
+    m0004_entries_icon_set_norm,
+    m0005_user_custom_flag_colors,
+    m0006_user_avatar_key,
+    m0007_entries_norm_backfill,
+    m0008_feedback_emailed_at,
+    m0009_deletion_log,
+]
 
 
 async def run_migrations(db: AsyncDatabase) -> list[str]:

@@ -8,7 +8,7 @@ import { Avatar } from '@/components/layout/Avatar'
 import { GoogleMark } from '@/components/layout/GoogleMark'
 import { Logo } from '@/components/layout/Logo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
-import { flagColors, flagHex } from '@/lib/catalog'
+import { flagColors, flagHex, type Score } from '@/lib/catalog'
 import { tierLimits } from '@/lib/limits'
 import { browserTimeZone, todayIn } from '@/lib/date'
 import { useDarkMode } from '@/lib/theme'
@@ -31,6 +31,15 @@ export type LandingAccount = {
   iconSetId: string
   timeZone: string
   shareCount: number
+  /** Chấm điểm nhanh cho hôm nay (lưu thật qua API, routes/HomePage ghép từ feature entry). */
+  quickScore?: QuickScore
+}
+
+export type QuickScore = {
+  value: Score | null
+  onPick: (score: Score) => void
+  saving: boolean
+  error: string | null
 }
 
 const wrap = 'mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,40px)]'
@@ -395,7 +404,7 @@ function Privacy() {
  * nay, menu tài khoản, chấm điểm nhanh cho hôm nay và Year in Pixels "của bạn".
  */
 export function Landing({ account }: { account?: LandingAccount }) {
-  const { data } = useHomeSummary(account?.timeZone ?? browserTimeZone())
+  const { data } = useHomeSummary(account?.timeZone ?? browserTimeZone(), Boolean(account))
   const summary = account ? data : undefined
   const todayWritten = Boolean(summary?.todayWritten)
   return (
@@ -418,12 +427,12 @@ export function Landing({ account }: { account?: LandingAccount }) {
               {account ? (
                 <OneTapDemo
                   iconSetId={account.iconSetId}
-                  // Chưa có API nhật ký (Bước 5): giống màn Hôm nay, chỉ là bản thử.
-                  status={(score, label) => (
-                    <>
-                      Đã lưu cho hôm nay: điểm {score} · {label}. <span className="text-faint">Bản thử, chưa lưu.</span>
-                    </>
-                  )}
+                  value={account.quickScore?.value ?? null}
+                  onChange={account.quickScore?.onPick}
+                  status={(score, label) =>
+                    account.quickScore?.error ??
+                    (account.quickScore?.saving ? 'Đang lưu…' : `Đã lưu cho hôm nay: điểm ${score} · ${label}.`)
+                  }
                   footer={
                     <Link to="/today" className="link-underline self-start text-[15px] font-semibold">
                       Viết thêm cho hôm nay
@@ -493,13 +502,13 @@ export function Landing({ account }: { account?: LandingAccount }) {
             <span className="ml-2 text-[13px] text-muted-foreground">Jot it down, keep it forever.</span>
           </div>
           <div className="flex flex-wrap gap-5 text-[13px]">
-            {/* Chờ nội dung điều khoản và chính sách thật trước khi ra mắt. */}
+            {/* Chờ nội dung điều khoản thật trước khi ra mắt. */}
             <a href="#" className="link-underline">
               [Điều khoản sử dụng]
             </a>
-            <a href="#" className="link-underline">
-              [Chính sách quyền riêng tư]
-            </a>
+            <Link to="/privacy" className="link-underline">
+              Chính sách quyền riêng tư
+            </Link>
             <span className="text-muted-foreground">© 2026 Jotly</span>
           </div>
         </div>

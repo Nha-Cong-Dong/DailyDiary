@@ -3,13 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DayPage } from '@/routes/DayPage'
 import { SharedListPage } from '@/routes/SharedListPage'
 import { SharePage } from '@/routes/SharePage'
-import { renderWithMe } from '@/test/withMe'
+import { mockDemoApi } from '@/test/demoApi'
+import { makeMe, renderWithMe } from '@/test/withMe'
 import { resetDemoShares } from './demoShares'
 
 const SEEDED = 'k7Qm2xPaR4vT9cLwn2Hs8e' // link mẫu của trang 18/10
 
 beforeEach(() => {
   resetDemoShares()
+  mockDemoApi(makeMe())
   Object.defineProperty(navigator, 'clipboard', { value: { writeText: vi.fn(async () => {}) }, configurable: true })
 })
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { ApiError } from '@/api/client'
 import { tierLimits } from '@/lib/limits'
-import { countsTowardLimit, planAdd, type UploadTile } from './usePhotoUploads'
+import { countsTowardLimit, planAdd, serverRejection, type UploadTile } from './usePhotoUploads'
 
 const max = tierLimits().photos.per_day_max
 const jpg = (name: string, size = 1000) => new File([new Uint8Array(size)], name, { type: 'image/jpeg' })
@@ -29,5 +30,18 @@ describe('planAdd', () => {
     expect(plan.started).toHaveLength(1)
     expect(plan.skipped).toBe(2)
     expect(plan.tiles.filter(countsTowardLimit)).toHaveLength(max)
+  })
+})
+
+describe('serverRejection', () => {
+  it('hết dung lượng và đủ ảnh là máy chủ từ chối; lỗi khác vẫn là lỗi để thử lại', () => {
+    expect(serverRejection(new ApiError(422, 'STORAGE_QUOTA', 'x'))).toBe('quota')
+    expect(serverRejection(new ApiError(422, 'ENTRY_LIMIT_PHOTOS', 'x'))).toBe('photo_limit')
+    expect(serverRejection(new ApiError(429, 'RATE_LIMITED', 'x'))).toBeNull()
+    expect(serverRejection(new Error('Lỗi mạng khi tải ảnh'))).toBeNull()
+  })
+
+  it('ô bị máy chủ từ chối không tính vào số ảnh của trang', () => {
+    expect(countsTowardLimit({ key: 'k', status: 'rejected', name: 'a.jpg', reason: 'quota' })).toBe(false)
   })
 })

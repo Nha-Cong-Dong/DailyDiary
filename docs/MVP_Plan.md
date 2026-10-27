@@ -2,9 +2,9 @@
 
 |                |                                                                                     |
 | -------------- | ----------------------------------------------------------------------------------- |
-| **Trạng thái** | Đã duyệt; chốt Q1–Q3 (16/10/2026), Q11–Q13 (17/10/2026); xong bước 3 (21/10/2026) |
+| **Trạng thái** | Xong bước 1–3, 5–12, 11b; bước 13 xong phần làm được ở local (Sentry/Umami hoãn); đang bước 14 (24/10/2026) |
 | **Ngày lập**   | 16/10/2026                                                                          |
-| **Căn cứ**     | `docs/Project_Specs.md` v0.1 (mục 3–6), skill trong `.claude/` và `apps/*/.claude/` |
+| **Căn cứ**     | `docs/Project_Specs.md` v2.0, `docs/Roadmap.md`, skill trong `.claude/` và `apps/*/.claude/` |
 
 ## Cách làm
 
@@ -16,37 +16,37 @@
   và việc bạn cần chuẩn bị.
 - Rate limit, kiểm tra quyền riêng tư và test truy cập chéo tài khoản làm **ngay trong bước viết endpoint**,
   không để dồn tới cuối.
-- Cột "Ngày (mục 6.1)" chỉ để đối chiếu với kế hoạch 2 tuần trong đặc tả.
+- Cột "Ngày (Roadmap 2.4)" chỉ để đối chiếu với kế hoạch 2 tuần ban đầu (`Roadmap.md` mục 2.4).
 
 ## Tổng quan
 
-| Bước | Nội dung                                                                                        | Ngày (mục 6.1)  | Phụ thuộc |
+| Bước | Nội dung                                                                                        | Ngày (Roadmap 2.4)  | Phụ thuộc |
 | ---- | ----------------------------------------------------------------------------------------------- | --------------- | --------- |
 | 0    | Chuẩn bị môi trường và chốt quyết định                                                          | trước ngày 1    | –         |
 | 1    | Nền móng: monorepo, Docker, DB, khung API/web, CI                                               | 1–2             | 0         |
 | 2    | Hướng giao diện và hệ thống thành phần                                                          | 1–2             | 1         |
-| 3    | Đăng nhập Google, hồ sơ, múi giờ (F-04)                                                         | 3               | 1         |
-| 4    | *(Tùy chọn, khuyên làm)* Triển khai thử bản khung lên beta                                      | sớm hơn ngày 13 | 3         |
-| 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng)                                           | 4–5             | 3         |
-| 6    | Tự động lưu và trạng thái đồng bộ (F-06)                                                        | 4–5             | 5         |
-| 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh)                                | 6–7             | 5         |
-| 8    | Dòng thời gian (F-02, phần danh sách)                                                           | 6–7             | 5, 7      |
-| 9    | Lịch tháng và thống kê tháng (F-02)                                                             | 8–9             | 5         |
-| 10   | Year in Pixels (F-03)                                                                           | 10              | 9         |
-| 11   | Tìm kiếm theo từ khóa (F-05)                                                                    | 11              | 5         |
-| 11b  | Chia sẻ một trang qua link (F-10, ADR 0005; backend phần link làm sớm 21/10/2026)               | –               | 5, 7      |
-| 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026)              | 11              | 7         |
-| 13   | Vận hành: hạn mức dung lượng, Sentry, phân tích, tác vụ định kỳ, sao lưu                        | 12              | 7, 12     |
+| 3    | Đăng nhập Google, hồ sơ, múi giờ (F-04) — xong 21/10/2026                                      | 3               | 1         |
+| 4    | *(Tùy chọn)* Triển khai thử bản khung lên beta — làm dở: có DB beta, chưa hosting (gộp vào 14)   | sớm hơn ngày 13 | 3         |
+| 5    | Viết, sửa, xóa nhật ký (F-01, phần chữ và biểu tượng) — xong 21/10/2026                        | 4–5             | 3         |
+| 6    | Tự động lưu và trạng thái đồng bộ (F-06) — xong 21/10/2026                                     | 4–5             | 5         |
+| 7    | Ảnh: nén, presigned URL, xác nhận, sắp xếp, xóa (F-01, phần ảnh) — xong 23/10/2026             | 6–7             | 5         |
+| 8    | Dòng thời gian (F-02, phần danh sách) — xong 23/10/2026                                        | 6–7             | 5, 7      |
+| 9    | Lịch tháng và thống kê tháng (F-02) — xong 23/10/2026                                          | 8–9             | 5         |
+| 10   | Year in Pixels (F-03) — xong 23/10/2026                                                         | 10              | 9         |
+| 11   | Tìm kiếm theo từ khóa (F-05) — xong 23/10/2026                                                  | 11              | 5         |
+| 11b  | Chia sẻ một trang qua link (F-10, ADR 0005) — xong 23/10/2026                                   | –               | 5, 7      |
+| 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026) — xong 24/10/2026 | 11              | 7         |
+| 13   | Vận hành: hạn mức, tác vụ định kỳ, sao lưu — xong phần local 24/10/2026; Sentry/phân tích hoãn   | 12              | 7, 12     |
 | 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
 | 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo                             | 14              | 14        |
 
-Những điểm khác với mục 6.1 và lý do:
+Những điểm khác với kế hoạch 2 tuần (Roadmap 2.4) và lý do:
 - **F-06 tách khỏi F-01.** Tự động lưu (IndexedDB, thử lại, xử lý xung đột 409) đủ phức tạp để làm thành một bước riêng.
 - **CI làm ngay ở bước 1**, để mọi bước sau đều có lint, test và build tự động.
 - **Triển khai thử sớm (bước 4).** Cookie giữa hai tên miền, CORS, redirect OAuth và HTTPS là phần dễ hỏng nhất.
   Nếu đợi tới ngày 13 mới phát hiện thì sẽ quá muộn.
 - **Rate limit không gom vào ngày 12.** Endpoint nào được viết thì gắn limit luôn. Bước 13 chỉ còn tinh chỉnh.
-- **Bổ sung các việc đặc tả yêu cầu nhưng mục 6.1 chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
+- **Bổ sung các việc đặc tả yêu cầu nhưng kế hoạch 2 tuần chưa xếp lịch:** tác vụ dọn bài xóa mềm sau 30 ngày (kèm ảnh),
   sao lưu DB mỗi 8 giờ, sao lưu ảnh, trang chính sách quyền riêng tư, nhận ảnh HEIC, sắp xếp và xóa ảnh.
 
 ---
@@ -76,23 +76,23 @@ Bước này không viết code. Mục tiêu là chốt các quyết định ả
 | Q12 | (17/10/2026) Cố định cây khung dự án | Cây chuẩn duy nhất ở `docs/Project_Structure.md` (ADR 0004); file mới phải đặt đúng chỗ, đổi cấu trúc thì sửa file đó cùng commit |
 | Q13 | (17/10/2026) Gỡ CLI `shadcn` khỏi dự án (lỗ hổng `braces` không có bản vá) | CSS của shadcn được chép vào `src/styles/shadcn-tailwind.css`; thêm component bằng `npx shadcn@4.22.0 add <tên>`; không chạy `npm audit fix --force` |
 
-**Quyết định còn mở** (★ là chặn bước 1):
+**Quyết định trước đây còn mở** (nay đã chốt gần hết, giữ để tra cứu):
 
 | Mã   | Câu hỏi                                                                                                                                             | Đề xuất                                                                                        |
 | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Q4 ★ | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đồng ý cả bốn, rồi bổ sung vào đặc tả mục 5.4 và `api-conventions`                             |
-| Q5   | Số bộ biểu tượng chính, danh sách sub icon (mục 9)                                                                                                  | Đã chốt ở bước 2: 6 bộ (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`); sub icon vẫn là danh sách tạm khoảng 40 emoji, chốt trước bước 5 |
-| Q6   | Bảng màu cờ hiệu 8 hay 12 màu                                                                                                                       | Đã chốt ở bước 2: 8 màu pastel (`blush`…`lavender`), mỗi màu có `hex` và `hex_dark`; nhật ký lưu `hex`, giao diện tối tra `hex_dark` |
-| Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Không, chỉ dùng ảnh Google (bớt một luồng upload)                                              |
-| Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Dùng bước 2                                                                                    |
-| Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Thay bằng skill `run` (chạy app, chụp màn hình) cộng một bộ smoke test Playwright tạo ở bước 1 |
-| Q10  | Làm bước 4 (triển khai thử sớm) không? Nếu có thì cần chốt hosting và kho ảnh trước bước 4                                                          | Có                                                                                             |
+| Q4   | Duyệt các điểm thiết kế từ skill `fastapi-backend`: bảng `user_sessions`, mã lỗi `403 CSRF_FAILED`, cookie `dd_csrf`, biến `S3_PUBLIC_ENDPOINT_URL` | Đã chốt (Bước 1–3): làm cả bốn (`core/security.py`, `core/storage.py`)                          |
+| Q5   | Số bộ biểu tượng chính, danh sách sub icon (đặc tả mục 7) | Đã chốt (23/10/2026): giữ 6 bộ main icon hiện tại (`sprout` mặc định, `face`, `moon`, `sakura`, `sun`, `bean`) và danh sách 47 sub icon hiện tại trong `shared/icons.json`. Thêm main/sub icon mới sau khi sản phẩm hoàn thiện (xem Ngoài phạm vi MVP) |
+| Q6   | Bảng màu cờ hiệu 8 hay 12 màu | Đã chốt (23/10/2026): giữ 8 màu pastel (`blush`…`lavender`, có `hex` và `hex_dark`) và cho người dùng thêm màu tùy chỉnh chọn từ bảng pha màu; nhật ký lưu `hex` (`#RRGGBB`), giao diện tối tra `hex_dark` cho màu có sẵn |
+| Q7   | Cho đổi ảnh đại diện ở MVP không?                                                                                                                   | Đã chốt (Bước 7): cho tải ảnh riêng hoặc gỡ ảnh (`POST /me/avatar/upload-url`, `AvatarField`)   |
+| Q8   | Phác thảo Figma (ngày 1–2): bạn tự làm, hay thay bằng bước 2 (Claude đề xuất hướng giao diện bằng skill `frontend-design`, bạn duyệt)?              | Đã chốt: dùng bước 2 (canvas thiết kế Jotly)                                                   |
+| Q9   | Skill `implement-feature` gọi `/verify`, nhưng lệnh này chưa tồn tại                                                                                | Đã chốt: dùng skill `run` + smoke test Playwright (`apps/web/e2e/`)                            |
+| Q10  | Làm bước 4 (triển khai thử sớm) không? Nếu có thì cần chốt hosting và kho ảnh trước bước 4                                                          | Làm dở (DB beta); hosting chốt ở Bước 14                                                       |
 
 **Bạn cần chuẩn bị:**
 - Google Cloud: OAuth client (Web), redirect URI `http://localhost:8000/auth/google/callback`, consent screen
   ở chế độ Testing, và danh sách email người dùng thử. *(Cần trước bước 3.)*
 - MongoDB thật (vd. MongoDB Atlas, khu vực Singapore), tài khoản hosting và kho ảnh, kèm các khóa (Q2; Claude sẽ hỏi khi tới bước). *(Cần trước bước 4.)*
-- Tài khoản Sentry, PostHog hoặc Umami. *(Cần trước bước 13.)*
+- Tài khoản Sentry và Umami. *(Hoãn: cần khi thêm lại Sentry/Umami.)*
 
 ---
 
@@ -194,7 +194,12 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 **Phạm vi:**
 - Kết nối MongoDB và kho ảnh thật do bạn cung cấp (ưu tiên khu vực Singapore).
 - `apps/api/Dockerfile` (build từ gốc repo để mang theo `shared/`); biến môi trường trên hosting.
-- Bước `python -m app.db.migrate` trong pipeline triển khai.
+- Bước `python -m app.db.migrate` trong pipeline triển khai, chạy bằng **user migration riêng** (`dbAdmin` + `readWrite`
+  trên `dailydiary`); API chạy bằng user chỉ có `readWrite` (user này không được `collMod`, nên không chạy migration được).
+  Đã tạo DB beta trên Atlas M0 (Singapore, cluster0.auszmkf) ngày 21/10/2026; tới 25/10/2026 đã chạy đủ
+  `0001`–`0009` bằng user `jotly_migrate`. User của app đã thu hẹp về `readWrite@dailydiary` (25/10/2026).
+- Máy dev có tên chứa emoji làm dnspython không tra được SRV: ở máy này dùng chuỗi `mongodb://` liệt kê 3 máy
+  (xem `apps/api/.env.beta`, không commit); hosting dùng chuỗi `mongodb+srv://` gốc.
 - Tự động triển khai khi merge vào `main`.
 - Thêm redirect URI production vào Google Console.
 - Kiểm tra cookie và CORS giữa hai subdomain.
@@ -233,7 +238,29 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Test truy cập chéo tài khoản trả 404.
 - Trên điện thoại 360 px, ghi được một ngày chỉ bằng 1–2 lần chạm.
 
-**Bạn cần:** chốt Q5 và Q6.
+**Bạn cần:** chốt Q5 và Q6 (đã chốt 23/10/2026).
+
+**Bổ sung theo Q6 (23/10/2026) — màu cờ tùy chỉnh:**
+- `users.custom_flag_colors` (migration `m0005`), sửa qua `PATCH /me` (thay cả danh sách); tối đa
+  `profile.custom_flag_colors_max` = 8 trong `limits.json` (422 `FLAG_COLORS_LIMIT`); không trùng 8 màu có sẵn.
+- `flag_color` của nhật ký nhận mọi `#RRGGBB` (gỡ màu khỏi danh sách thì bài cũ vẫn tự lưu được).
+- Web: ô "+" trong `FlagPicker` mở bảng pha màu của hệ thống (`input type=color`), chọn xong thì thêm vào hồ sơ và
+  gắn luôn; Hồ sơ › Nhật ký › "Màu cờ riêng" để gỡ. Giao diện tối: màu tùy chỉnh trừ 25 mỗi kênh (cách pha của 8 màu).
+- Test: backend 140 xanh (thêm `/me`, nhật ký, `m0005`); Vitest 162; e2e 38/38 (`--workers=1`), có ca thêm màu → tải lại
+  → gỡ trong Hồ sơ ở cả 2 khổ màn.
+
+**Kết quả backend (21/10/2026):**
+- `routers/entries.py`, `services/entries.py`, `schemas/entries.py`, `core/text.py` (NFC, `keyword_norm`), migration
+  `m0004` (bỏ `icon_set_id` khỏi bắt buộc, thêm `title_norm`/`content_norm`), `entry.restore_days` trong `limits.json`.
+- PUT dùng hạn mức `autosave` (20/phút) vì Bước 6 tự lưu qua đúng endpoint này; xóa/khôi phục dùng `write` (10/phút).
+- Ngày tương lai → 422 `ENTRY_FUTURE_DATE` theo múi giờ hồ sơ; xung đột → 409 `ENTRY_CONFLICT` (cả khi tạo mới mà ngày
+  đó vừa được tạo ở nơi khác); truy cập chéo → 404. Chia sẻ dùng chung hàm đọc nhật ký của service này.
+- Sub icon (Q5): người dùng chốt 47 emoji hiện có trong `shared/icons.json` (21/10/2026); backend từ chối emoji
+  ngoài danh sách. Đổi danh sách = sửa file đó (kiểm tra bài cũ còn dùng emoji bị bỏ).
+- 128 test backend xanh (42 test mới: mốc 23:59/00:01/06:00 Việt Nam, Los Angeles, giới hạn, NFC, xóa/khôi phục,
+  xung đột, truy cập chéo, CSRF, rate limit).
+- Web nối API thật (137 test Vitest, e2e `entry.spec.ts`). Kiểm ở 360×740: **một lần chạm** vào điểm là đã lưu
+  (PUT 200, tải lại vẫn còn); nút điểm 61×82 px, không cuộn ngang.
 
 ---
 
@@ -254,6 +281,24 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - tắt mạng, gõ, bật mạng lại → dữ liệu tự đồng bộ;
 - sửa ở 2 tab → hiện hộp thoại chọn bản;
 - F5 khi chưa đồng bộ → không mất chữ.
+
+**Kết quả (21/10/2026):**
+- `lib/storage.ts`: nháp IndexedDB qua `idb` 8.0.4, khóa `SHA-256(email):ngày` (/me không trả id; không lưu email gốc);
+  xóa khi đăng xuất và khi xóa dữ liệu; IndexedDB lỗi/bị chặn thì app vẫn chạy, chỉ mất lớp nháp.
+- `lib/autosave.ts`: nháp sau 1 s, đồng bộ sau 4 s, khi chuyển tab (`visibilitychange`), `pagehide`, rời màn, nút Lưu;
+  chỉ gửi khi khác bản đã đồng bộ; thử lại 2, 4, 8… s (tối đa 60 s), có mạng lại thì thử ngay; 422 dừng kèm câu báo;
+  409 → hộp thoại chọn bản. Gửi dồn: gõ tiếp trong lúc đang gửi thì gửi bản mới ngay sau.
+- `features/entry/useAutosave.ts` + `ConflictDialog` + `components/diary/SyncStatus.tsx`: Hôm nay và Ghi bù tự lưu;
+  Sửa trang cũ chỉ ghi nháp, lên máy chủ khi bấm "Lưu thay đổi". Mở màn gặp nháp cùng gốc → nạp lại và lưu; nháp dựa
+  trên bản cũ hơn máy chủ → hộp thoại chọn bản. Cảnh báo khi đóng tab còn thay đổi chưa đồng bộ.
+- Lệnh lưu dùng `networkMode: 'always'` (mất mạng báo lỗi ngay để hiện "Chưa đồng bộ", không bị TanStack Query tạm dừng).
+- Khôi phục câu "vẫn được giữ trên trình duyệt này và sẽ tự lưu khi có mạng" ở thanh ngoại tuyến và màn hết phiên;
+  "Đã có mạng lại" báo số trang vừa tự lưu.
+- Rate limit autosave giữ 20/phút (Bước 5); với 4 s ngừng gõ, một người gõ liên tục gửi tối đa ~15 lần/phút.
+- Test: Vitest `autosave.test.ts` (12, fake timers), `storage.test.ts` (4, `fake-indexeddb`), màn Hôm nay/Sửa (tự lưu
+  sau 4 s, khôi phục nháp, xung đột cả hai lựa chọn) — 156 test xanh. e2e `autosave.spec.ts` (4 ca × 2 khổ màn: mất
+  mạng rồi có mạng lại, 2 tab, F5, F5 khi máy chủ chưa nhận) — cả bộ e2e 36/36 xanh với `--workers=1`.
+- Đã gặp và sửa: React StrictMode (dev) gỡ rồi gắn lại effect làm tắt bộ máy (`attach()` khi gắn lại).
 
 ---
 
@@ -284,6 +329,26 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Có test cho: ảnh thứ 11 bị từ chối, file giả định dạng, file quá lớn, B không xác nhận hoặc xóa được ảnh của A.
 - Ảnh không mở được nếu không có link ký.
 
+**Kết quả (23/10/2026):**
+- Backend: `core/storage.py` (boto3, hai client ký/gọi kho, I/O qua `anyio.to_thread`), `routers|schemas|services/photos.py`.
+  Nhận `image/webp` (và `image/jpeg` khi trình duyệt không mã hóa được WebP); key do backend dựng
+  `{user_id}/YYYY/MM/DD/{id}[_thumb].ext`. Xác nhận: tồn tại, ≤ `main_max_bytes`/`thumb_max_bytes`, magic bytes, cạnh
+  ≤ 1920 px; sai thì xóa object. Mảng `photos` đổi bằng khóa lạc quan (so khớp nguyên mảng) nên hai lần xác nhận cùng
+  lúc không vượt 10 ảnh. Hạn mức 500 MB tính cả trang đã xóa mềm. Upload-url và xác nhận dùng `photo_upload`
+  (10/phút; 50/ngày), sắp xếp/xóa dùng `write`. Ảnh không đổi `updated_at` (tự lưu chữ không bị 409). Xóa ảnh bỏ luôn
+  ảnh khỏi link chia sẻ; ghi đè ngày đã xóa mềm xóa ảnh cũ khỏi kho. Trang chia sẻ công khai trả link ký cho ảnh đã chọn.
+- Ảnh đại diện: `POST /me/avatar/upload-url` + `PATCH /me {avatar_upload}`; `users.avatar_key` (migration `m0006`);
+  thay/gỡ thì xóa ảnh cũ khỏi kho.
+- Web: `preparePhoto` (lib/image.ts) — `browser-image-compression` (không dùng worker vì worker tải script từ CDN),
+  HEIC giải mã bằng `heic-to` tải lười (Safari giải mã sẵn); `uploadPhoto.ts` PUT bằng XHR để có tiến độ.
+  Hôm nay: nút Ảnh bật khi trang đã có, thêm/bỏ là lưu ngay, tải song song xong thì chốt lại thứ tự đã chọn.
+  Sửa trang cũ: ảnh mới gắn ngay khi tải xong; bỏ ảnh/thứ tự chốt khi bấm Lưu thay đổi; Hủy/rời trang thì xóa ảnh vừa
+  thêm. Trang ngày, trình xem ảnh, hộp thoại Chia sẻ, trang chia sẻ công khai hiện ảnh thật.
+- Kiểm tra: backend 171 test (ảnh thứ 11 — cả khi xác nhận chen ngang, file giả định dạng, quá lớn, quá rộng, chưa
+  tải, hạn mức, B không xác nhận/xóa/sắp xếp ảnh của A); Vitest 166; e2e 41/41 (`--workers=1`) có ca trên MinIO
+  thật: ảnh 2400 px → 1920 px, tải xong < 5 s, link ký 200, link không ký 403, bỏ ảnh thì kho trả 404.
+- Chưa kiểm tra: tệp HEIC thật từ iPhone (không tạo được trong test) và trên điện thoại thật.
+
 ---
 
 ## Bước 8 – Dòng thời gian (F-02, phần danh sách)
@@ -302,6 +367,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Có trạng thái đang tải, lỗi, rỗng.
 
 **Hoàn thành khi:** có test phân trang (không trùng, không sót bài, bỏ qua bài đã xóa mềm) và test truy cập chéo tài khoản; Lighthouse cho LCP dưới 2,5 giây.
+
+**Kết quả (23/10/2026):**
+- Làm theo thiết kế B8: `GET /entries?month=YYYY-MM` (thay `?cursor=&limit=`). Một aggregate theo index
+  `(user_id, entry_date)`, mới nhất trước, bỏ bài xóa mềm; không trả nội dung đầy đủ — `excerpt` 300 ký tự cắt ngay trong
+  MongoDB, `photo_count` thay cho mảng ảnh. Rate limit `read`. Tháng sai dạng → 422.
+- Web: `useMonth` đọc API (tháng nhỏ nhất = tháng của `joined_at` theo múi giờ hồ sơ); chấm điểm nhanh trên Dòng thời
+  gian dùng PUT/DELETE thật; dải "7 ngày qua" ở Hôm nay đọc cùng endpoint (thêm tháng trước khi vắt tháng).
+  `/timeline` vào bản build (trước đây chỉ có ở dev). Thẻ trang hiện số ảnh, không hiện ảnh thu nhỏ (theo thiết kế B8).
+- Test: "phân trang" theo tháng — đi qua 36 tháng không trùng, không sót (ngày 29/2, đầu/cuối tháng, cuối năm), bỏ bài
+  xóa mềm, B không thấy tháng của A, tháng sai dạng; backend 183 test; Vitest 166; e2e 43/43 (`--workers=1`).
+- Lighthouse trên bản build (`vite preview`), tài khoản 23 trang: **máy tính LCP 1,1 s, CLS 0,005 — đạt**. Cấu hình di
+  động mô phỏng (CPU ×4, 4G chậm): LCP 4,7 s; màn Hôm nay 4,6 s và Hồ sơ 4,7 s cũng vậy, nên đây là phần khởi động của
+  cả app (JS chính ~186 KB, chuỗi tải nối tiếp JS → /me → trang → API, 5 tệp phông), chưa tối ưu ở bước này.
+- Để lại cho Bước 9 (đã làm, xem Bước 9): chuỗi ngày chưa áp quy tắc ghi bù và chuỗi vắt qua tháng.
 
 ---
 
@@ -322,6 +401,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Test chuỗi liên tiếp kéo qua ranh giới tháng, test tháng 2 năm nhuận.
 - Payload không chứa `content` hay `title`.
 
+**Kết quả (23/10/2026):**
+- `GET /calendar/{year}/{month}` (`routers|schemas|services/calendar.py`): ngày, điểm, sub icon, cờ, số ảnh, `backfilled`
+  + thống kê (số ngày đã ghi, trung bình, phân bố 1–5, ảnh, chuỗi dài nhất trong tháng, chuỗi hiện tại). Không có
+  tiêu đề, nội dung, từ khóa. Rate limit `read`; tháng/năm sai → 422.
+- Ghi bù = `created_at` theo múi giờ hồ sơ rơi sau `entry_date`: vẫn tô màu, không nối chuỗi. Chuỗi hiện tại tính lùi từ
+  hôm nay (chưa ghi thì từ hôm qua), vắt qua tháng, đọc lần lượt và dừng ở chỗ đứt đầu tiên. Chốt: "dài nhất" tính
+  trong tháng đang xem (thiết kế ghi "Dài nhất tháng").
+- Hai truy vấn đều dùng index `uq_user_date`, không sắp xếp trong bộ nhớ (đã `explain`). Thời gian xử lý ~18 ms với
+  tháng 23 trang.
+- Web: Dòng thời gian lấy chuỗi từ `/calendar` (song song với `/entries?month`); dải "7 ngày qua" ở Hôm nay đọc
+  `/calendar` (nhẹ hơn, không có đoạn nội dung). Biểu đồ "Nhịp tháng" vẽ tay theo thiết kế B8, không dùng Recharts.
+- Test: 17 test lịch (chuỗi vắt tháng, 29/2/2024, ghi bù, 23:59 / 00:01 / 06:00 giờ Việt Nam, Los Angeles, hôm nay
+  chưa ghi, xóa mềm, truy cập chéo, payload không có tiêu đề/nội dung); backend 200; Vitest 166; e2e 43/43.
+
 ---
 
 ## Bước 10 – Year in Pixels (F-03)
@@ -335,6 +428,20 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 - Payload chỉ vài KB.
 
 **Hoàn thành khi:** có test năm nhuận 366 ô, test chỉ trả các năm có dữ liệu, kích thước payload dưới 10 KB, dùng được trên điện thoại.
+
+**Kết quả (23/10/2026):**
+- `GET /pixels/{year}` (`routers|schemas|services/pixels.py`) dạng gọn: `scores` là chuỗi 365/366 ký tự, `flags`
+  (chỉ số ngày → hex) và `backfilled` chỉ liệt kê ngày có, `years` là các năm có trang chưa xóa, `stats` chuỗi dài
+  nhất trong năm và chuỗi hiện tại (quy tắc ghi bù như Bước 9). Không có tiêu đề/nội dung. Rate limit `read`.
+- Web: `usePixels` đọc API và giải dạng gọn; xem nhanh ngày đọc `GET /entries/{day}`; `/pixels` vào bản build.
+  Ô có trang luôn hiện kể cả trước ngày bắt đầu dùng (giống Dòng thời gian).
+- Chế độ tô theo màu cờ (người dùng chọn, 23/10/2026): nút "Tô ô theo: Điểm | Cờ hiệu" trên bảng (thiết kế B7 chưa có,
+  thêm theo yêu cầu). Ô có cờ mang màu cờ (bản tối khi giao diện tối), có trang mà không cờ là ô viền; chú thích liệt kê
+  cờ dùng trong năm + số ngày (màu riêng kèm mã màu); bộ lọc theo điểm ẩn ở chế độ này. Nhớ lựa chọn trên trình duyệt
+  (`localStorage`, như chế độ sáng/tối).
+- Test: năm nhuận 366 ký tự (29/2 là ngày thứ 60), chỉ năm có trang chưa xóa của chính người dùng, cả năm ghi đủ + cờ mỗi
+  ngày + nửa năm ghi bù vẫn dưới 10 KB, chuỗi bỏ qua ghi bù, truy cập chéo; backend 209; Vitest 167; e2e 45/45
+  (có ca 360 px: chạm ô mở bảng xem nhanh).
 
 ---
 
@@ -354,6 +461,26 @@ Xem trực tiếp trên một trang `/dev/ui` trong app.
 
 **Hoàn thành khi:** có test tiếng Việt có dấu và không dấu, test chuỗi con, test ký tự regex, test truy cập chéo tài khoản;
 p95 dưới 500 ms với dữ liệu mẫu.
+
+**Kết quả (23/10/2026):**
+- `GET /search` + `GET /keywords/top` (`routers|schemas|services/search.py`). Có dấu → regex `i` trên `title`, `content`,
+  `keywords.keyword` (đã thử: MongoDB gập hoa/thường đúng cho chữ có dấu); không dấu → `title_norm`, `content_norm`,
+  `keywords.norm`. `q` qua `re.escape`, bộ lọc luôn có `user_id` của phiên. Trả `excerpt` 240 ký tự quanh chỗ khớp (không trả
+  cả nội dung), `matched` (trước bộ lọc), `total` (sau bộ lọc), `next_cursor`; 30 kết quả/trang. Khoảng thời gian theo
+  "hôm nay" của người dùng. Rate limit mới `search` 60/phút (limits.json).
+- Migration `m0007`: điền `title_norm`/`content_norm` cho trang còn thiếu (chạy lại không đổi gì).
+- **Quyền riêng tư:** phát hiện log DEBUG của PyMongo ghi nguyên câu lệnh và kết quả (từ khóa, tiêu đề) → `configure_logging`
+  luôn để logger `pymongo` ở WARNING; có test bật DEBUG mà log không chứa từ khóa hay tiêu đề. Đã kiểm tra log thật của API sau
+  e2e: có dòng `GET /search`, không có từ khóa. Frontend giữ từ khóa trong state, không lên URL.
+- Web: `useSearch` (useInfiniteQuery, chờ ngừng gõ 300 ms, "Xem thêm N kết quả cũ hơn"), từ khóa hay dùng, trang gần đây,
+  màn trống người mới đều đọc API; `/search` vào bản build. Bỏ hàm tìm phía trình duyệt (`searchEntries.ts` chỉ còn bộ lọc).
+- Test: 26 test tìm kiếm (có dấu/không dấu, hoa thường, chuỗi con, 7 chuỗi ký tự regex, đoạn trích, bộ lọc, phân trang 35
+  trang không trùng không sót, xóa mềm, truy cập chéo, log, tham số sai, từ khóa hay dùng, m0007); backend 235; Vitest 164;
+  e2e 47/47.
+- Hiệu năng: 365 trang (~620 ký tự/trang), 55 lần tìm trộn từ khóa và bộ lọc: **p50 33 ms, p95 61 ms**; `/keywords/top` 46 ms.
+- Bổ sung cùng ngày: hàng "sub icon hay dùng" ở Sửa / Ghi bù đọc `GET /sub-icons/top` (đếm trên trang chưa xóa của chính
+  người dùng); tóm tắt trang chủ khi đã đăng nhập đọc `GET /calendar` (chuỗi ngày từ backend, khớp Dòng thời gian), chỉ gọi
+  khi đã đăng nhập. Chỉ còn Hồ sơ (đếm trang, xóa dữ liệu) dùng dữ liệu mẫu — Bước 12.
 
 ---
 
@@ -375,6 +502,10 @@ nhận xem `/s/:token`, "Trang đang chia sẻ" trong Hồ sơ, màn "Trang này
 **Hoàn thành khi:** người nhận chỉ thấy đúng phần được chọn; tắt link, xóa mềm trang hoặc xóa tài khoản thì link trả
 màn chung; có test truy cập chéo và test rate limit cho trang công khai.
 
+**Kết quả (xong 23/10/2026):** giao diện nối API thật; `/s/:token` và `/profile/shares` vào bản build; ảnh công khai
+qua link ký 1 giờ, chỉ ảnh được chọn; xóa toàn bộ dữ liệu / tài khoản / dọn thùng rác xóa luôn `share_links`; trang
+công khai gửi `noindex`, `no-store`, `no-referrer`; test truy cập chéo và rate limit trong `tests/api/test_shares.py`.
+
 ---
 
 ## Bước 12 – Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09)
@@ -394,6 +525,52 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 
 **Hoàn thành khi:** sau khi xóa tài khoản, DB không còn document nào của user và kho ảnh không còn object nào; sau khi xóa toàn bộ dữ liệu, tài khoản vẫn đăng nhập được và không còn trang, ảnh, link nào.
 
+**Kết quả — góp ý (23/10/2026, nhánh `feat/user-feedback`):**
+- Chốt với người dùng: gửi qua Gmail SMTP (App Password); form mở từ Hồ sơ (mục "Góp ý") và menu tài khoản; thư kèm email
+  tài khoản người gửi làm Reply-To (form báo trước điều này).
+- Backend: `POST /feedback` lưu vào `feedback` (NFC, tối đa `feedback.message_max`, rate limit `feedback` 5/phút) rồi gửi
+  thư trong nền (`BackgroundTasks`, `core/mailer.py` chạy `smtplib` ngoài event loop); gửi được thì ghi `emailed_at`
+  (migration `m0008`). Thiếu `SMTP_HOST`/`FEEDBACK_TO_EMAIL` thì chỉ lưu. Lỗi gửi chỉ log loại exception; nội dung góp ý không
+  vào log (có test). `EmailMessage` chặn chèn header.
+- Local/CI: Mailpit (`axllent/mailpit:v1.29.4`) bắt thư, xem ở http://localhost:8025; job e2e của CI chạy Mailpit.
+- Test: 14 test API (lưu + gửi, không SMTP, gửi lỗi, dữ liệu sai, giới hạn độ dài, gắn đúng người gửi, cần đăng nhập +
+  CSRF, rate limit, không log, chặn header); 2 test Vitest; e2e gửi từ Hồ sơ rồi đọc thư thật trong Mailpit (Reply-To, nội
+  dung). Backend 250; Vitest 168; e2e 48/48.
+- **Việc của người dùng khi triển khai:** bật xác minh 2 bước cho Gmail gửi, tạo App Password, điền `SMTP_HOST=smtp.gmail.com`,
+  `SMTP_PORT=587`, `SMTP_STARTTLS=true`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `FEEDBACK_TO_EMAIL` trên hosting.
+- Xóa tài khoản (chốt 23/10/2026, xem đoạn dưới): góp ý được giữ nhưng ẩn danh, không xóa; thư đã gửi về hộp thư thì không
+  thu hồi được.
+
+**Kết quả — xóa dữ liệu / tài khoản (24/10/2026, nhánh `feat/account-deletion`):**
+- Chốt với người dùng: đăng nhập lại sau khi xóa → tài khoản mới; xóa tài khoản giữ góp ý nhưng ẩn danh; thêm
+  `GET /me/data-summary`.
+- `DELETE /entries` (`{confirm: "XÓA"}`): xóa mọi trang (cả thùng rác), link chia sẻ; nền: xóa mọi object `{user_id}/`
+  trừ `{user_id}/avatar/` (dọn cả ảnh mồ côi). Giữ tài khoản, phiên, cài đặt, ảnh đại diện, góp ý.
+- `DELETE /me` (`{confirm_email}`): đặt `deleted_at` → xóa mọi phiên, trang, link, `user_items`; góp ý đổi `user_id` sang mã
+  ngẫu nhiên + `anonymized: true` (không đổi validator — tránh đè migration `feedback` của nhánh góp ý); xóa cookie; nền:
+  xóa mọi object `{user_id}/` rồi mới xóa document `users`. Kho lỗi → giữ `deleted_at`, `app/jobs/purge_accounts.py` làm nốt
+  (chạy lại an toàn). `/auth/dev-login` gặp tài khoản đang chờ xóa → 403 `ACCOUNT_DELETED` (trước là 500).
+- `core/storage.py`: `list_keys` (phân trang `list_objects_v2`), `delete` theo lô 1000, `delete_prefix(keep=…)`.
+- Web: hộp thoại báo đúng số trang/ảnh/link (`useDataSummary`), gọi API thật, xóa nháp IndexedDB; xóa tài khoản xong hiện
+  màn "Tài khoản đã được xóa", "Về trang chủ" mới xóa cache. Bỏ chữ "Bản thử".
+- Test: 14 test API (đúng tiêu chí: sau xóa tài khoản mọi collection không còn `user_id`, kho không còn object; sau xóa dữ
+  liệu tài khoản dùng tiếp, ảnh đại diện còn; Bob không bị đụng; xác nhận sai 422; cần đăng nhập + CSRF; chờ xóa chặn đăng
+  nhập rồi job làm nốt, đăng nhập lại là tài khoản mới); 2 test Vitest; e2e trên MinIO thật (link ảnh 404, link chia sẻ
+  404, đăng nhập lại trống). Backend 250; Vitest 168; e2e 49/49.
+
+**Bổ sung (24/10/2026), theo các gợi ý người dùng chọn (gợi ý 1–2 ghi vào Bước 13):**
+- Thùng rác: `GET /entries/trash` + màn Hồ sơ › Thùng rác (khôi phục từng trang); `data-summary` có thêm `trash`.
+- Email xác nhận sau khi xóa tài khoản (nền, `core/mailer.py` chép nguyên từ nhánh góp ý để gộp không xung đột): số
+  lượng đã xóa, ghi chú góp ý ẩn danh và bản sao lưu 7 ngày, Reply-To về `FEEDBACK_TO_EMAIL`. Không gửi khi chưa cấu hình
+  SMTP hoặc với tài khoản đăng nhập thử (`google_sub` bắt đầu bằng `dev:`, không có hộp thư thật).
+- Đăng nhập lại trước khi xóa tài khoản: phiên quá 10 phút → 403 `REAUTH_REQUIRED`; Hồ sơ hiện nút "Đăng nhập lại"
+  (`/auth/google/login?next=/profile`, `next` chỉ nhận đúng `/profile`). Xóa dữ liệu (giữ tài khoản) không đòi.
+- `deletion_log` (migration `m0009`, `additionalProperties: false`): loại, thời điểm, số lượng; không có user_id/email.
+- Sao lưu: hộp thoại xóa, email xác nhận và đặc tả ghi rõ dữ liệu đã xóa còn trong bản sao lưu tối đa 7 ngày.
+- Test: backend 258 (thêm phiên cũ bị chặn, deletion_log không có dữ liệu cá nhân + validator chặn user_id, email đúng
+  người nhận và không có nội dung, không gửi cho tài khoản thử/không SMTP, thùng rác lọc hạn 30 ngày và theo người dùng,
+  `next` chỉ nhận /profile); Vitest 171; e2e 50/50 (có ca thùng rác khôi phục).
+
 ---
 
 ## Bước 13 – Vận hành
@@ -403,7 +580,10 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 - Sentry cho frontend và backend, có `before_send` lọc nội dung nhật ký.
 - PostHog hoặc Umami với 7 sự kiện ở mục 4.7, không gửi nội dung.
 - Tác vụ định kỳ:
-  - dọn bài xóa mềm sau 30 ngày, kèm ảnh và link chia sẻ của bài đó;
+  - dọn bài xóa mềm sau 30 ngày, kèm ảnh và link chia sẻ của bài đó (ghi nhớ 24/10/2026: xóa ảnh theo key của
+    từng trang bằng `Storage.delete`, cùng mẫu với `services/account.py`; ghi một dòng vào `deletion_log`);
+  - đặt lịch chạy `python -m app.jobs.purge_accounts` (mỗi giờ) để không còn tài khoản kẹt ở trạng thái "đang chờ xóa"
+    (ghi nhớ 24/10/2026);
   - sao lưu DB lúc 00:00, 08:00, 16:00 giờ Việt Nam, giữ 7 ngày (sao lưu của gói hosting, hoặc tác vụ `mongodump`);
   - sao chép ảnh sang kho khác.
 - Rà lại và tinh chỉnh toàn bộ rate limit.
@@ -413,6 +593,31 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 **Hoàn thành khi:** gây lỗi thử, sự kiện Sentry không chứa nội dung bài; tác vụ dọn dẹp có test; sao lưu đầu tiên đã chạy.
 
 **Bạn cần:** tài khoản Sentry và công cụ phân tích.
+
+**Kết quả phần A (24/10/2026, làm được ở local; chưa xong bước):**
+- Hạn mức: `GET /me/data-summary` thêm `used_bytes`, `quota_bytes`, `warn_ratio` (cùng cách tính với lúc chặn
+  `STORAGE_QUOTA`). Hồ sơ › Nhật ký có thanh dung lượng; ô tải ảnh cảnh báo từ 80%, báo "Hết dung lượng" / "Đủ ảnh"
+  thay cho "Lỗi mạng".
+- Sentry và Umami: đã làm rồi **tạm gỡ** (24/10/2026, theo yêu cầu; sẽ thêm lại sau). Bản đã làm nằm trong commit
+  `dd35f04`: Sentry backend (`core/observability.py`, `sentry-sdk`) và web (`lib/sentry.ts`, `@sentry/react`) lọc
+  theo danh sách cho phép, có test; Umami (`lib/analytics.ts`) 7 sự kiện, pageview đã làm sạch. Cách lọc/đếm: đặc tả 4.7.
+- Tác vụ: `uv run python -m app.jobs.run <purge_accounts|purge_trash|backup_db|backup_photos|restore_db>`.
+  - `purge_trash` (`services/maintenance.py`): hạn theo cấp tài khoản; xóa ảnh → link → trang (có điều kiện
+    `deleted_at` không đổi); kho lỗi thì giữ trang; ghi `deletion_log` loại "trash".
+  - `backup_db`: Python thuần (không cần `mongodump`), BSON thô → tar.gz → kho sao lưu `db/YYYY/MM/DD/...`, giữ
+    `BACKUP_KEEP` (21) bản. `restore_db --target <db>`: chạy migration rồi nạp; từ chối DB đang chạy hoặc DB có dữ
+    liệu nếu không có `--force`.
+  - `backup_photos`: chép tăng dần sang `photos/`, xóa bản sao của ảnh đã mất quá 7 ngày (manifest `_missing.json`).
+  - `Storage.delete` giờ báo lỗi khi S3 từ chối từng key (trước đây bỏ qua `Errors`, có thể để ảnh mồ côi).
+- Rate limit: thêm nhóm `destructive` (xóa toàn bộ dữ liệu, xóa tài khoản), `avatar_upload`, `logout` (theo IP); góp
+  ý thêm trần 20/ngày. Bảng: đặc tả 4.4.
+- Phần B (24/10/2026): kho sao lưu Backblaze B2 (khác nhà cung cấp kho ảnh). Đã chạy thử trên DB local: `backup_db`
+  (1738 document), `backup_photos` (16 ảnh), `restore_db` vào DB phụ, số document 8 collection khớp.
+- Còn lại: đặt lịch (purge_accounts mỗi giờ; purge_trash, backup_photos mỗi ngày; backup_db 01:00, 09:00, 17:00 UTC)
+  và sao lưu chính thức trên production — làm ở Bước 14 sau khi chọn hosting. Hoãn: thêm lại Sentry + Umami (khôi phục
+  từ `dd35f04`), DSN 2 project, gây lỗi thử trên Sentry thật.
+- Ghi nhớ: ảnh tải lên mà không xác nhận (ảnh nhật ký, ảnh đại diện) nằm lại trong kho và không tính hạn mức; cần tác
+  vụ dọn object mồ côi.
 
 ---
 
@@ -428,6 +633,32 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 **Skill:** `/seed-demo-data 3` (script ở `apps/api/scripts/seed_demo.py`), `/deploy`, `securitymaxxing:ship-check`.
 
 **Hoàn thành khi:** Lighthouse đạt chỉ tiêu; checklist `/deploy` qua hết; không còn lỗi chặn từ `ship-check`.
+
+**Tiến độ hiệu năng (24/10/2026, đo ở local):** Lighthouse mobile (mô phỏng 4G chậm, CPU ×4), bản build phục vụ qua
+HTTP/2 + brotli như CDN, cookie thật. Điểm 92–97, TBT < 100 ms, CLS ≤ 0,02 (đạt). LCP: /login 2,3 s, /pixels 2,6 s,
+các màn khác 2,9–3,1 s (trước: 4,1–4,7 s qua HTTP/1.1, chưa tối ưu) — chưa đạt 2,5 s; đo lại trên production.
+- Đã làm: trang chủ và /login tải lười (gói JS đầu 193 → ~155 KB gzip); gọi /me ngay lúc mở app; loader tải trước dữ
+  liệu của màn (`routes/prefetch.ts`) song song với chunk; font tự host đã cắt (`scripts/subset_fonts.py`: Be Vietnam
+  Pro 136 → 91 KB, 8 → 4 file; Young Serif 27 → 3 KB), preload font của tiêu đề và chữ thường.
+- Đã thử, không giúp: bỏ hiệu ứng mờ dần (giữ nguyên thiết kế). Không làm: thay `date-fns-tz` bằng Intl (chỉ ~8 KB,
+  trái quy ước trong skill date-timezone-rules).
+- Phần còn lại chủ yếu là JS lõi (react-dom, react-router, TanStack Query ≈ 110 KB gzip) và font Lora (giữ bản
+  fontsource vì giấy phép có Reserved Font Name).
+
+**Chính sách quyền riêng tư (24/10/2026):** trang công khai `/privacy` (`features/legal/PrivacyPolicy.tsx`), nội dung
+đối chiếu với code (dữ liệu lưu, cookie, log, sao lưu, xóa); người dùng từ 16 tuổi; liên hệ qua email. Link ở Landing,
+đăng nhập, Hồ sơ, trang chia sẻ. Còn phải làm:
+- Điền nhà cung cấp máy chủ/DB/kho ảnh (đang để `[...]`) khi chọn hosting; thêm lại Sentry/Umami thì sửa mục 1, 4, 5.
+- Rà soát pháp lý theo quy định bảo vệ dữ liệu cá nhân của Việt Nam trước khi ra mắt công khai (đặc tả 4.1), gồm việc
+  chuyển dữ liệu ra nước ngoài (sao lưu ở Canada).
+- Trang Điều khoản sử dụng: vẫn để giữ chỗ.
+
+**Hạ tầng và triển khai (25/10/2026):** chốt Render Free (Singapore, Docker) cho API, Cloudflare Pages cho web, Atlas M0,
+Cloudflare R2 cho ảnh, GitHub Actions cron cho tác vụ, tên miền `jotly.io.vn` (web) + `api.jotly.io.vn`. Code: `render.yaml`,
+`apps/api/Dockerfile` (chỉ uvicorn; migration chạy tay bằng `jotly_migrate`; đã chạy thử image ở chế độ production); dùng lại DB beta Atlas của Bước 4, `.github/workflows/jobs.yml`,
+`apps/web/public/_headers` (CSP Report-Only), middleware header bảo mật ở API; trang `/privacy` điền nhà cung cấp.
+Còn lại (bạn làm theo `docs/Deploy.md`): DNS, Atlas, R2, OAuth production, Render, Pages, GitHub Secrets, kiểm tra
+production, sao lưu chính thức + thử khôi phục; sau đó chạy `/deploy` và `securitymaxxing:ship-check`.
 
 ---
 
@@ -448,5 +679,7 @@ Xuất dữ liệu (`GET /export`) đã bỏ theo thiết kế Hồ sơ ngày 21
 ## Ngoài phạm vi MVP
 
 Theo mục 2.2 của đặc tả: nhật ký chung và bình luận (chia sẻ một trang qua link đã vào MVP ở Bước 11b), đăng nhập Facebook, theme và sticker, AI, PWA và thông báo đẩy,
-ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (mục 6.2) chỉ được chuẩn bị qua dữ liệu
+ứng dụng di động, thanh toán. Mọi việc thuộc giai đoạn 2–3 (`Roadmap.md` mục 2.2–2.3) chỉ được chuẩn bị qua dữ liệu
 (`user_items`, `account_tier`, `joined_at`), không xây giao diện.
+
+Thêm main icon (bộ mới) và sub icon mới: làm sau khi sản phẩm hoàn thiện (chốt Q5, 23/10/2026).

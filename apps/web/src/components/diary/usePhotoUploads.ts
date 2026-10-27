@@ -1,18 +1,34 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ApiError } from '@/api/client'
 import { checkPhoto, isHeic } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
 import type { PhotoItem } from './PhotoViewer'
 
-/** Tải một ảnh lên; gọi `onProgress` với 0–1, trả ảnh đã lưu. Bản thật (presigned URL) có ở Bước 7. */
+/** Tải một ảnh lên; gọi `onProgress` với 0–1, trả ảnh đã lưu (features/entry/uploadPhoto.ts). */
 export type UploadPhoto = (file: File, onProgress: (ratio: number) => void, signal: AbortSignal) => Promise<PhotoItem>
 
 export type UploadTile =
   | { key: string; status: 'done'; photo: PhotoItem; previewUrl?: string }
   | { key: string; status: 'uploading'; file: File; previewUrl?: string; progress: number }
   | { key: string; status: 'failed'; file: File; previewUrl?: string }
-  | { key: string; status: 'rejected'; name: string; reason: 'type' | 'size' }
+  | { key: string; status: 'rejected'; name: string; reason: RejectReason }
 
-/** Ô bị từ chối (sai định dạng, quá lớn) không tính vào số ảnh của trang. */
+/**
+ * Lý do một ảnh không vào trang. Trên máy: `type` sai định dạng, `size` quá lớn. Máy chủ từ chối (422):
+ * `quota` hết dung lượng (STORAGE_QUOTA), `photo_limit` trang đã đủ ảnh (ENTRY_LIMIT_PHOTOS, vd. thêm ở tab khác).
+ * Thử lại cũng không qua nên không có nút Thử lại, khác lỗi mạng.
+ */
+export type RejectReason = 'type' | 'size' | 'quota' | 'photo_limit'
+
+/** Lỗi tải ảnh mà máy chủ từ chối vì hạn mức; lỗi khác (mạng, kho ảnh…) trả null để còn thử lại. */
+export function serverRejection(error: unknown): Extract<RejectReason, 'quota' | 'photo_limit'> | null {
+  if (!(error instanceof ApiError)) return null
+  if (error.code === 'STORAGE_QUOTA') return 'quota'
+  if (error.code === 'ENTRY_LIMIT_PHOTOS') return 'photo_limit'
+  return null
+}
+
+/** Ô bị từ chối (sai định dạng, quá lớn, hết dung lượng, đủ ảnh) không tính vào số ảnh của trang. */
 export function countsTowardLimit(tile: UploadTile): boolean {
   return tile.status !== 'rejected'
 }
@@ -54,14 +70,19 @@ export function planAdd(
 }
 
 function previewOf(file: File): string | undefined {
-  // HEIC: Chrome/Edge/Firefox không vẽ được trong <img> nên để ô màu kèm tên tệp (bản nén WebP có ở Bước 7).
+  // HEIC: Chrome/Edge/Firefox không vẽ được trong <img> nên để ô màu kèm tên tệp; xong thì hiện ảnh thu nhỏ.
   if (isHeic(file)) return undefined
   // jsdom (test) không có createObjectURL.
   return typeof URL.createObjectURL === 'function' ? URL.createObjectURL(file) : undefined
 }
 
+type Options = {
+  /** Bỏ một ảnh đã lưu: màn tự lưu (Hôm nay) xóa ngay trên máy chủ; màn Sửa để tới lúc bấm Lưu. */
+  onRemoveDone?: (photo: PhotoItem) => void
+}
+
 /** Trạng thái ô ảnh của một trang: thêm, bỏ, thử lại; tự hủy request và thu hồi ảnh xem trước khi rời trang. */
-export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto) {
+export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto, { onRemoveDone }: Options = {}) {
   const [tiles, setTiles] = useState<UploadTile[]>(() => initial.map((photo) => ({ key: photo.id, status: 'done', photo })))
   const [note, setNote] = useState<string | null>(null)
   const seq = useRef(0)
@@ -91,8 +112,16 @@ export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto) {
         controller.signal,
       ).then(
         (photo) => patch(key, (t) => (t.status === 'uploading' ? { key, status: 'done', photo, previewUrl: t.previewUrl } : t)),
-        () => {
-          if (!controller.signal.aborted) patch(key, (t) => (t.status === 'uploading' ? { key, status: 'failed', file, previewUrl: t.previewUrl } : t))
+        (error: unknown) => {
+          if (controller.signal.aborted) return
+          const reason = serverRejection(error)
+          patch(key, (t) =>
+            t.status !== 'uploading'
+              ? t
+              : reason
+                ? { key, status: 'rejected', name: file.name, reason }
+                : { key, status: 'failed', file, previewUrl: t.previewUrl },
+          )
         },
       ).finally(() => controllers.current.delete(key))
     },
@@ -116,11 +145,16 @@ export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto) {
     [run, tiles],
   )
 
-  const remove = useCallback((key: string) => {
-    controllers.current.get(key)?.abort()
-    setTiles((list) => list.filter((t) => t.key !== key))
-    setNote(null)
-  }, [])
+  const remove = useCallback(
+    (key: string) => {
+      controllers.current.get(key)?.abort()
+      const tile = tiles.find((t) => t.key === key)
+      if (tile?.status === 'done') onRemoveDone?.(tile.photo)
+      setTiles((list) => list.filter((t) => t.key !== key))
+      setNote(null)
+    },
+    [onRemoveDone, tiles],
+  )
 
   const retry = useCallback(
     (key: string) => {

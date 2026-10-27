@@ -12,6 +12,8 @@ import { scoreLabel, type Score } from '@/lib/catalog'
 import { longDateLabel, todayIn, useNow, type DateString } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
 import { cn } from '@/lib/utils'
+import { ColorByToggle, FlagLegend } from './ColorByFlag'
+import { useColorBy } from './useColorBy'
 import { useDayPreview, usePixels } from './usePixels'
 import { YearEmpty } from './YearEmpty'
 import { YearGrid } from './YearGrid'
@@ -113,6 +115,8 @@ export function YearPixels() {
   const [filter, setFilter] = useState<PixelFilter | null>(null)
   const [highlight, setHighlight] = useState<PixelFilter | null>(null)
   const [sheet, setSheet] = useState<DateString | null>(null)
+  const [colorBy, setColorBy] = useColorBy()
+  const byFlag = colorBy === 'flag'
   const { data, isPending, isError } = usePixels(year, today)
 
   if (isPending) return <p role="status" className="text-muted-foreground">Đang tải Year in Pixels…</p>
@@ -123,7 +127,8 @@ export function YearPixels() {
       </Alert>
     )
 
-  const s = yearStats(year, data.days, today, data.joined)
+  // Chuỗi ngày lấy từ backend (ghi bù không nối chuỗi); các số khác tính từ lưới.
+  const s = { ...yearStats(year, data.days, today, data.joined), longestStreak: data.longestStreak, currentStreak: data.currentStreak }
   // Người dùng mới, chưa chấm điểm ngày nào: màn trống B9.
   if (data.years.length === 0 && year === Number(today.slice(0, 4)))
     return <YearEmpty year={year} grid={s.grid} today={today} iconSetId={iconSetId} />
@@ -147,6 +152,13 @@ export function YearPixels() {
     setHighlight(null)
     setSelected(y === Number(today.slice(0, 4)) ? today : null)
     setSheet(null)
+  }
+
+  function changeColorBy(next: typeof colorBy) {
+    // Bộ lọc theo điểm chỉ có ở chế độ tô theo điểm.
+    setFilter(null)
+    setHighlight(null)
+    setColorBy(next)
   }
 
   function pick(date: DateString) {
@@ -230,7 +242,9 @@ export function YearPixels() {
         ))}
       </dl>
 
-      <div className="flex flex-col gap-2 md:hidden">
+      <ColorByToggle value={colorBy} onChange={changeColorBy} className="-mb-2 self-start md:-mb-4" />
+
+      <div className={cn('flex flex-col gap-2 md:hidden', byFlag && 'hidden')}>
         <PixelLegend
           className="-mx-4 flex-nowrap overflow-x-auto pl-4 [scrollbar-width:none] after:block after:w-3 after:shrink-0 after:content-[''] [&::-webkit-scrollbar]:hidden [&_button]:h-9 [&_button]:border-border [&_button]:whitespace-nowrap [&_button[aria-pressed=true]]:border-line [&_button[aria-pressed=true]]:bg-secondary"
           active={filter}
@@ -258,9 +272,12 @@ export function YearPixels() {
           today={today}
           selected={selected}
           onSelect={pick}
-          focus={highlight ?? filter}
+          focus={byFlag ? null : (highlight ?? filter)}
+          colorBy={colorBy}
+          flags={data.flags}
         />
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-border pt-3.5 max-md:hidden">
+        {byFlag ? <FlagLegend flags={data.flags} written={s.recorded} className="border-t-[1.5px] border-dashed border-border pt-3.5" /> : null}
+        <div className={cn('flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-border pt-3.5 max-md:hidden', byFlag && 'hidden')}>
           <PixelLegend
             active={filter}
             onToggle={(k) => setFilter((f) => (f === k ? null : k))}

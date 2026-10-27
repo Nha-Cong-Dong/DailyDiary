@@ -1,6 +1,6 @@
 import { AlertCircle, FlaskConical, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { googleLoginUrl } from '@/api/client'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { Avatar } from '@/components/layout/Avatar'
@@ -38,7 +38,7 @@ const COPY: Record<Mode, { title: string; text: string; button: string }> = {
   error: { title: 'Chưa đăng nhập được', text: '', button: 'Thử lại với Google' },
   expired: {
     title: 'Phiên đăng nhập đã hết hạn',
-    text: 'Đăng nhập lại để tiếp tục.',
+    text: 'Đăng nhập lại để tiếp tục. Những gì bạn đang viết vẫn được giữ trên trình duyệt này.',
     button: 'Đăng nhập lại với Google',
   },
 }
@@ -173,14 +173,14 @@ export function Login() {
 
           <p className="mt-1.5 text-xs leading-[18px] text-muted-foreground">
             Khi tiếp tục, bạn đồng ý với{' '}
-            {/* Chờ nội dung điều khoản và chính sách thật trước khi ra mắt (MVP Bước 14). */}
+            {/* Chờ nội dung điều khoản thật trước khi ra mắt (MVP Bước 14). */}
             <a href="#" className="link-underline">
               [Điều khoản sử dụng]
             </a>{' '}
             và{' '}
-            <a href="#" className="link-underline">
-              [Chính sách quyền riêng tư]
-            </a>
+            <Link to="/privacy" className="link-underline">
+              Chính sách quyền riêng tư
+            </Link>
             .
           </p>
 

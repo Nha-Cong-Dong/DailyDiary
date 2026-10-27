@@ -1,0 +1,84 @@
+# Render Blueprint — backend Jotly (https://render.com/docs/blueprint-spec)
+# Tạo: Render Dashboard → New → Blueprint → chọn repo này. Biến `sync: false` Render hỏi một lần lúc tạo (khóa bí mật,
+# không nằm trong repo); sửa sau ở Dashboard → jotly-api → Environment.
+# Web chạy ở Cloudflare Pages (https://jotly.io.vn), tác vụ định kỳ ở GitHub Actions (.github/workflows/jobs.yml).
+
+services:
+  - type: web
+    name: jotly-api
+    runtime: docker
+    plan: free # ngủ sau 15 phút không dùng, lần đầu mở lại chờ ~1 phút; đổi sang starter để luôn bật
+    region: singapore # không đổi được sau khi tạo
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass # chỉ deploy khi CI trên main qua
+    buildFilter:
+      paths:
+        - apps/api/**
+        - shared/**
+        - render.yaml
+      ignoredPaths:
+        - apps/api/tests/**
+    domains:
+      - api.jotly.io.vn
+    envVars:
+      - key: ENV
+        value: production
+      - key: DEV_LOGIN
+        value: "false"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: SESSION_SECRET
+        generateValue: true
+
+      # Cơ sở dữ liệu: cluster Atlas M0 Singapore có sẵn từ Bước 4 (cluster0.auszmkf). Chuỗi mongodb+srv://… của user
+      # app (chỉ readWrite trên dailydiary). Migration chạy tay bằng user jotly_migrate, không chạy trong container.
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: dailydiary
+
+      # Web và CORS
+      - key: FRONTEND_URL
+        value: https://jotly.io.vn
+      - key: FRONTEND_ORIGINS
+        value: '["https://jotly.io.vn"]'
+
+      # Google OAuth (client "Web application", redirect URI phải khớp tuyệt đối)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        value: https://api.jotly.io.vn/auth/google/callback
+
+      # Kho ảnh (Cloudflare R2: endpoint https://<account_id>.r2.cloudflarestorage.com, region auto)
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_PUBLIC_ENDPOINT_URL
+        sync: false
+      - key: S3_REGION
+        value: auto
+      - key: S3_BUCKET
+        value: jotly-photos
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+
+      # Email qua Gmail SMTP (App Password)
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_STARTTLS
+        value: "true"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: FEEDBACK_TO_EMAIL
+        sync: false

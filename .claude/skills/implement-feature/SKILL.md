@@ -1,6 +1,6 @@
 ---
 name: implement-feature
-description: Làm một tính năng DailyDiary theo mã trong đặc tả (F-01 ... F-09), cả backend và frontend.
+description: Làm một tính năng DailyDiary theo mã trong đặc tả (F-01 … F-10; F-08 xuất dữ liệu đã bỏ), cả backend và frontend.
 disable-model-invocation: true
 argument-hint: "[mã tính năng, vd F-03]"
 ---

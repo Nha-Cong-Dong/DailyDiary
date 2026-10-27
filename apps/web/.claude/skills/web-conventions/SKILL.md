@@ -18,7 +18,10 @@ Cây thư mục chuẩn và quy ước bên trong thư mục feature: `docs/Proj
 
 ## Gọi API
 - Chỉ qua TanStack Query (`useQuery`, `useMutation`); key dạng `['entries', date]`, `['calendar', year, month]`, `['pixels', year]`.
-- Sau khi lưu nhật ký, invalidate key lịch tháng và pixels của năm tương ứng.
+- Sau khi lưu nhật ký, invalidate toàn bộ `['calendar']`, `['pixels']` và các key `['entries', …]` khác ngày vừa lưu
+  (chuỗi ngày vắt qua tháng/năm nên không chỉ tháng/năm tương ứng; xem `features/entry/entries.ts` › `refreshSummaries`).
+- Cấu hình truy vấn tách thành hàm `xxxQuery(...)` (`queryOptions`) dùng chung cho hook và tải trước theo route
+  (`routes/prefetch.ts`), để key chỉ khai báo một chỗ.
 
 ## Tự động lưu
 - Ghi nháp vào IndexedDB sau 1 giây ngừng gõ; đồng bộ sau 3–5 giây, khi blur/rời trang; chỉ gửi khi có thay đổi.

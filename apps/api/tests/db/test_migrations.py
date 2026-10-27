@@ -141,3 +141,59 @@ async def test_m0003_share_links_indexes_validator_and_idempotent(db):
         await db[c.SHARE_LINKS].insert_one(
             {**link, "_id": uuid4(), "token": "c" * 22, "user_id": uuid4(), "show_title": "yes"}
         )
+
+
+async def test_m0004_entries_no_longer_require_icon_set_and_accept_norm_fields(db):
+    from app.db.migrations import m0004_entries_icon_set_norm as m4
+
+    await m4.up(db)  # chạy lại không lỗi
+    doc = _entry(uuid4())
+    doc.pop("icon_set_id", None)
+    doc.update(title_norm="chieu mua", content_norm=None)
+    await db[c.ENTRIES].insert_one(doc)
+    bad = _entry(uuid4())
+    bad["title_norm"] = 123
+    with pytest.raises(WriteError):
+        await db[c.ENTRIES].insert_one(bad)
+
+
+async def test_m0005_backfills_custom_flag_colors_and_validator(db):
+    from app.db.migrations import m0005_user_custom_flag_colors as m5
+
+    old = {
+        "_id": uuid4(),
+        "google_sub": "sub-flags",
+        "email": "flags@example.com",
+        "display_name": "Flags",
+        "timezone": "Asia/Ho_Chi_Minh",
+        "account_tier": "beta",
+        "joined_at": datetime.now(UTC),
+    }
+    await db[c.USERS].insert_one(old)
+    await m5.up(db)
+    await m5.up(db)  # chạy lại không đổi gì
+    assert (await db[c.USERS].find_one({"_id": old["_id"]}))["custom_flag_colors"] == []
+    for bad in (["red"], ["#3a7bd5"], "#3A7BD5"):  # sai dạng, chữ thường, không phải mảng
+        with pytest.raises(WriteError):
+            await db[c.USERS].insert_one(
+                {**old, "_id": uuid4(), "google_sub": f"sub-{bad}", "custom_flag_colors": bad}
+            )
+
+
+async def test_m0006_avatar_key_validator(db):
+    from app.db.migrations import m0006_user_avatar_key as m6
+
+    await m6.up(db)  # chạy lại không lỗi
+    user = {
+        "_id": uuid4(),
+        "google_sub": "sub-avatar",
+        "email": "avatar@example.com",
+        "display_name": "Avatar",
+        "timezone": "Asia/Ho_Chi_Minh",
+        "account_tier": "beta",
+        "joined_at": datetime.now(UTC),
+        "avatar_key": None,
+    }
+    await db[c.USERS].insert_one(user)
+    with pytest.raises(WriteError):
+        await db[c.USERS].insert_one({**user, "_id": uuid4(), "google_sub": "sub-avatar-2", "avatar_key": 5})

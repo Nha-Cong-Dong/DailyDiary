@@ -1,4 +1,4 @@
-# Môi trường local: MongoDB + MinIO (giả lập kho ảnh S3).
+# Môi trường local: MongoDB, MinIO (giả lập kho ảnh và kho sao lưu S3), Mailpit (bắt email).
 # Chạy: docker compose up -d
 name: dailydiary
 
@@ -39,7 +39,7 @@ services:
       timeout: 3s
       retries: 30
 
-  # Tạo bucket riêng tư (không cho đọc công khai), chạy xong thì thoát.
+  # Tạo bucket riêng tư (không cho đọc công khai): ảnh và sao lưu (Bước 13). Chạy xong thì thoát.
   minio-init:
     image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
     depends_on:
@@ -49,9 +49,19 @@ services:
       /bin/sh -c "
       mc alias set local http://minio:9000 minioadmin minioadmin &&
       mc mb --ignore-existing local/dailydiary-photos &&
-      mc anonymous set none local/dailydiary-photos
+      mc anonymous set none local/dailydiary-photos &&
+      mc mb --ignore-existing local/dailydiary-backups &&
+      mc anonymous set none local/dailydiary-backups
       "
     restart: "no"
+
+  # Bắt mọi email gửi ra khi chạy local (góp ý, Bước 12): SMTP ở :1025, xem thư ở http://localhost:8025.
+  # Không gửi ra Internet; môi trường thật dùng Gmail SMTP (apps/api/.env.example).
+  mailpit:
+    image: axllent/mailpit:v1.29.4
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
 
 volumes:
   mongodata:

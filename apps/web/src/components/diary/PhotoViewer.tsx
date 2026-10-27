@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PHOTO_TINTS } from './photoTints'
 
-export type PhotoItem = { id: string; label: string }
-
-// Ảnh thật có ở Bước 7 (link xem có thời hạn). Trước đó ô ảnh là khung giữ chỗ cùng tông màu nhẹ.
+/**
+ * Ảnh trong một trang. `url`/`thumbUrl` là link ký có hạn ~1 giờ (Bước 7); không có (dữ liệu mẫu, kho ảnh chưa
+ * cấu hình) thì ô ảnh là khung giữ chỗ cùng tông màu nhẹ kèm `label`.
+ */
+export type PhotoItem = { id: string; label: string; url?: string | null; thumbUrl?: string | null; width?: number; height?: number }
 
 /** Ô ảnh thu nhỏ 4:3 trong trang ngày; bấm để mở trình xem. `className` đổi tỉ lệ/ô lưới theo màn. */
 export function PhotoTile({
@@ -28,13 +30,19 @@ export function PhotoTile({
       aria-label={`Mở ảnh ${index + 1} trên ${total}`}
       onClick={onOpen}
       className={cn(
-        'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+        'relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
         PHOTO_TINTS[index % PHOTO_TINTS.length],
         className,
       )}
     >
-      <Image className="size-6" aria-hidden="true" />
-      <span className="text-xs">{photo.label}</span>
+      {photo.thumbUrl ? (
+        <img src={photo.thumbUrl} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
+      ) : (
+        <>
+          <Image className="size-6" aria-hidden="true" />
+          <span className="text-xs">{photo.label}</span>
+        </>
+      )}
     </button>
   )
 }
@@ -85,7 +93,16 @@ export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) 
             >
               <ChevronLeft aria-hidden="true" />
             </Button>
-            {open ? (
+            {open && photos[index].url ? (
+              <img
+                key={index}
+                src={photos[index].url!}
+                alt={`Ảnh ${index + 1} trên ${total}`}
+                width={photos[index].width}
+                height={photos[index].height}
+                className="col-span-2 row-start-1 max-h-[78vh] w-full min-w-0 animate-rise rounded-[18px] border-[1.5px] border-[#FEF7EC] object-contain sm:col-span-1 sm:col-start-2"
+              />
+            ) : open ? (
               <div
                 key={index}
                 className={cn(

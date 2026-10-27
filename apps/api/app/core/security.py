@@ -15,6 +15,8 @@ from uuid import UUID
 
 from fastapi import Cookie, Depends, Request, Response
 from pymongo.asynchronous.database import AsyncDatabase
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.config import settings
 from app.core.errors import ApiError
@@ -64,6 +66,10 @@ async def create_session(db: AsyncDatabase, response: Response, user_id: UUID) -
 async def destroy_session(db: AsyncDatabase, response: Response, token: str | None) -> None:
     if token:
         await db[c.USER_SESSIONS].delete_one({"_id": hash_token(token)})
+    clear_session_cookies(response)
+
+
+def clear_session_cookies(response: Response) -> None:
     # delete_cookie phải truyền đúng path/domain/samesite/secure như lúc set,
     # nếu không trình duyệt giữ cookie lại.
     for name, http_only in ((SESSION_COOKIE, True), (CSRF_COOKIE, False)):
@@ -93,6 +99,8 @@ async def get_current_user(
         _set_cookies(response, token, request.cookies.get(CSRF_COOKIE) or secrets.token_urlsafe(32))
 
     request.state.user_id = str(doc["_id"])  # key_func của rate limit đọc giá trị này
+    # Lúc đăng nhập của phiên này: thao tác nhạy cảm (xóa tài khoản) đòi phiên còn mới (services/account.py).
+    request.state.session_started = session["created_at"]
     return User.from_doc(doc)
 
 
@@ -113,3 +121,35 @@ async def verify_csrf(request: Request) -> None:
     header = request.headers.get(CSRF_HEADER)
     if not cookie or not header or not secrets.compare_digest(cookie, header):
         raise ApiError(403, "CSRF_FAILED", "Yêu cầu không hợp lệ")
+
+
+class SecurityHeadersMiddleware:
+    """Header bảo mật cho mọi response (đặc tả 4.1), kể cả lỗi 4xx/5xx.
+
+    Không ghi đè header route đã đặt (trang chia sẻ công khai đặt `Referrer-Policy: no-referrer`).
+    HSTS chỉ bật khi chạy sau HTTPS thật (ngoài local/test).
+    """
+
+    def __init__(self, app: ASGIApp, *, hsts: bool) -> None:
+        self.app = app
+        self.headers = {
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "DENY",
+            "referrer-policy": "strict-origin-when-cross-origin",
+        }
+        if hsts:
+            self.headers["strict-transport-security"] = "max-age=31536000; includeSubDomains"
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        async def send_wrapper(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                for name, value in self.headers.items():
+                    headers.setdefault(name, value)
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)

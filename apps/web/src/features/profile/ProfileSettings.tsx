@@ -1,4 +1,5 @@
-import { ChevronRight, CircleCheck, Eraser, Link2, LogOut, Lock, Mail, Trash2 } from 'lucide-react'
+import { ApiError, googleLoginUrl } from '@/api/client'
+import { ArchiveRestore, ChevronRight, CircleCheck, Eraser, Link2, Lock, LogOut, Mail, MessageSquare, Trash2 } from 'lucide-react'
 import { useId, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BottomSheet } from '@/components/diary/BottomSheet'
@@ -6,15 +7,17 @@ import { Avatar } from '@/components/layout/Avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { tierLimits } from '@/lib/limits'
-import { useProfile, useUpdateProfile } from '@/lib/profile'
-import { useLogout } from '@/lib/session'
+import { useProfile, useUpdateProfile, useUploadAvatar } from '@/lib/profile'
+import { SIGNED_OUT, useLogout } from '@/lib/session'
 import { setThemePreference, useThemePreference, type ThemePreference } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { AvatarField } from './components/AvatarField'
 import { AccountDeletedDialog, DeleteAccountDialog, DeleteDataDialog } from './components/DeleteAccountDialog'
 import { IconSetPicker } from './components/IconSetPicker'
+import { StorageUsage } from './components/StorageUsage'
+import { CustomFlagColors } from './components/CustomFlagColors'
 import { TimeZoneField } from './components/TimeZoneField'
-import { usePageCount, useWipeJournal } from './useJournalData'
+import { useDataSummary, useDeleteAccount, useWipeJournal } from './useJournalData'
 
 const THEMES: { id: ThemePreference; label: string }[] = [
   { id: 'light', label: 'Sáng' },
@@ -75,7 +78,7 @@ function Row({ title, hint, children, danger }: { title: string; hint: string; c
 
 /**
  * Trang Hồ sơ & cài đặt (thiết kế B7, bản điện thoại B10). Tên, bộ icon, múi giờ, gỡ ảnh lưu qua PATCH /me.
- * Chưa có: tải ảnh mới (Bước 7), xóa dữ liệu và xóa tài khoản thật (Bước 12; ở đây là bản thử trên dữ liệu mẫu).
+ * Ảnh đại diện tải lên kho ảnh (Bước 7). Chưa có: xóa dữ liệu và xóa tài khoản thật (Bước 12; ở đây là bản thử trên dữ liệu mẫu).
  * Mục Tài khoản theo canvas (quyết định 21/10/2026): không có xuất dữ liệu; "Xóa toàn bộ dữ liệu" gõ "XÓA";
  * "Xóa tài khoản" gõ đúng email. English vẫn khóa (giữ như code, cùng quyết định với Landing).
  */
@@ -86,15 +89,16 @@ type ProfileSettingsProps = {
   shareCount?: number
   /** Tắt mọi link chia sẻ khi xóa dữ liệu hoặc tài khoản (trang ghép từ features/share). */
   onClearShares?: () => void
+  /** Mở form góp ý (trang ghép từ features/feedback); không có thì ẩn mục Góp ý. */
+  onFeedback?: () => void
 }
 
-export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: ProfileSettingsProps) {
+export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeedback }: ProfileSettingsProps) {
   const profile = useProfile()
   const save = useUpdateProfile()
   const logout = useLogout()
   const navigate = useNavigate()
-  // Ảnh vừa chọn chỉ để xem trước trong trình duyệt; undefined = dùng ảnh đang lưu.
-  const [preview, setPreview] = useState<string | null | undefined>(undefined)
+  const avatar = useUploadAvatar()
   const theme = useThemePreference()
   const ids = useId()
   const [name, setName] = useState(profile.displayName)
@@ -103,7 +107,10 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
   const [timeZone, setTimeZone] = useState(profile.timeZone)
   // Múi giờ lúc mở trang: đổi khác đi thì nhắc "chỉ áp dụng từ ngày đang viết".
   const [initialTimeZone] = useState(() => profile.timeZone)
-  const pageCount = usePageCount()
+  const { data: summary } = useDataSummary()
+  const deleteAccount = useDeleteAccount()
+  // Phiên đăng nhập đã quá 10 phút: máy chủ đòi đăng nhập lại trước khi xóa tài khoản (403 REAUTH_REQUIRED).
+  const needsReauth = deleteAccount.error instanceof ApiError && deleteAccount.error.code === 'REAUTH_REQUIRED'
   const wipe = useWipeJournal(onClearShares)
   const [dataOpen, setDataOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
@@ -113,7 +120,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
   const [editOpen, setEditOpen] = useState(false)
   const maxName = tierLimits().profile.display_name_max
   const dirty = name.trim() !== profile.displayName
-  const avatarSrc = preview !== undefined ? preview : profile.avatarUrl
+  const avatarSrc = profile.avatarUrl
 
   function saveName(onDone?: () => void) {
     const trimmed = name.trim()
@@ -137,10 +144,16 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
     )
   }
 
-  function changeAvatar(src: string | null) {
-    if (src) return setPreview(src)
-    setPreview(undefined)
-    if (profile.avatarUrl) save.mutate({ avatar_url: null })
+  const avatarProps = {
+    name: name || profile.displayName,
+    src: avatarSrc,
+    busy: avatar.isPending,
+    uploadError: avatar.isError ? 'Chưa đổi được ảnh. Kiểm tra kết nối rồi thử lại.' : null,
+    onPick: (file: File) => avatar.mutate(file),
+    onRemove: () => {
+      avatar.reset()
+      if (profile.avatarUrl) save.mutate({ avatar_url: null })
+    },
   }
 
   function openEdit(open: boolean) {
@@ -204,12 +217,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
       </div>
 
       <Section id={`${ids}-profile`} title="Hồ sơ" delay={0.04} className="max-sm:hidden">
-        <AvatarField name={name || profile.displayName} src={avatarSrc} onChange={changeAvatar} />
-        {preview ? (
-          <p role="status" className="-mt-3 text-[13px] leading-5 text-muted-foreground">
-            Đang xem trước. Lưu ảnh mới lên máy chủ có ở Bước 7.
-          </p>
-        ) : null}
+        <AvatarField {...avatarProps} />
         {nameField(`${ids}-name`)}
         <div className="flex flex-col gap-2">
           <span id={`${ids}-mail`} className="text-sm leading-[22px] font-semibold">
@@ -257,6 +265,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
             className="max-sm:flex max-sm:gap-3 max-sm:overflow-x-auto max-sm:px-4 max-sm:pt-3.5 max-sm:pb-2.5 max-sm:[scrollbar-width:none] max-sm:[&>button]:w-[176px] max-sm:[&>button]:flex-none"
           />
         </div>
+        <CustomFlagColors />
         <div className="max-sm:px-4 max-sm:pt-3.5 max-sm:pb-4">
           <TimeZoneField
             value={timeZone}
@@ -267,6 +276,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
             }}
           />
         </div>
+        <StorageUsage />
       </Section>
 
       <Section id={`${ids}-look`} title="Giao diện" delay={0.12}>
@@ -342,6 +352,23 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
         </div>
       </Section>
 
+      {onFeedback ? (
+        <Section id={`${ids}-feedback`} title="Góp ý" delay={0.18}>
+          <button type="button" className={cn(phoneRow, 'sm:hidden')} onClick={onFeedback}>
+            <MessageSquare className="size-5 shrink-0" aria-hidden="true" />
+            <span className="flex-1 font-semibold">Góp ý cho Jotly</span>
+            <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+          </button>
+          <div className="max-sm:hidden">
+            <Row title="Góp ý cho Jotly" hint="Báo lỗi hoặc đề xuất tính năng. Jotly trả lời qua email tài khoản của bạn.">
+              <Button variant="secondary" size="sm" className="h-10 px-3.5" onClick={onFeedback}>
+                <MessageSquare aria-hidden="true" /> Gửi góp ý
+              </Button>
+            </Row>
+          </div>
+        </Section>
+      ) : null}
+
       <Section id={`${ids}-account`} title="Tài khoản" delay={0.2}>
         {/* Điện thoại: danh sách dòng bấm được (thiết kế B10). */}
         <div className={cn('flex flex-col sm:hidden', dashedBetween)}>
@@ -349,12 +376,18 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
             type="button"
             className={phoneRow}
             disabled={logout.isPending}
-            onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true }) })}
+            onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
           >
             <LogOut className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Đăng xuất</span>
             <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
           </button>
+          <Link to="/profile/trash" className={phoneRow}>
+            <ArchiveRestore className="size-5 shrink-0" aria-hidden="true" />
+            <span className="flex-1 font-semibold">Thùng rác</span>
+            {summary?.trash ? <span className="text-sm text-muted-foreground tabular-nums">{summary.trash} trang</span> : null}
+            <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+          </Link>
           <button type="button" className={cn(phoneRow, 'text-destructive')} onClick={() => setDataOpen(true)}>
             <Eraser className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Xóa toàn bộ dữ liệu</span>
@@ -371,9 +404,19 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
               size="sm"
               className="h-10 px-3.5"
               disabled={logout.isPending}
-              onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true }) })}
+              onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
             >
               <LogOut aria-hidden="true" /> Đăng xuất
+            </Button>
+          </Row>
+          <Row
+            title="Thùng rác"
+            hint={`Trang đã xóa nằm ở đây ${tierLimits().entry.restore_days} ngày, khôi phục được.${summary?.trash ? ` Đang có ${summary.trash} trang.` : ''}`}
+          >
+            <Button asChild variant="secondary" size="sm" className="h-10 px-3.5">
+              <Link to="/profile/trash">
+                <ArchiveRestore aria-hidden="true" /> Mở thùng rác
+              </Link>
             </Button>
           </Row>
           <div className="flex flex-col gap-[22px] border-t-[1.5px] border-dashed border-border pt-[22px]">
@@ -385,7 +428,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
                 <Eraser aria-hidden="true" /> Xóa dữ liệu
               </Button>
             </Row>
-            <Row title="Xóa tài khoản" hint="Xóa mọi trang, link chia sẻ và hồ sơ của bạn. Jotly không còn lưu gì về bạn." danger>
+            <Row title="Xóa tài khoản" hint="Xóa mọi trang, link chia sẻ và hồ sơ của bạn. Jotly không còn lưu gì gắn với bạn." danger>
               <Button variant="destructive" size="sm" className="h-10 px-3.5" onClick={() => setAccountOpen(true)}>
                 <Trash2 aria-hidden="true" /> Xóa tài khoản
               </Button>
@@ -396,7 +439,20 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
       {wiped ? (
         <p role="status" className="-mt-3 inline-flex items-center gap-2 px-1 text-sm text-muted-foreground max-sm:-mt-2 max-sm:text-[13px]">
           <CircleCheck className="size-4" aria-hidden="true" /> Đã xóa toàn bộ dữ liệu. Trang Hôm nay đang chờ bạn.
-          <span className="sr-only">Bản thử trên dữ liệu mẫu.</span>
+        </p>
+      ) : null}
+      {needsReauth ? (
+        <div role="alert" className="-mt-3 flex flex-wrap items-center gap-3 rounded-[14px] border-[1.5px] border-line bg-card px-4 py-3 max-sm:-mt-2">
+          <p className="min-w-0 flex-1 text-sm leading-[22px]">
+            Để bảo vệ tài khoản, hãy đăng nhập lại bằng Google rồi xóa trong vòng 10 phút. Chưa có gì bị xóa.
+          </p>
+          <Button asChild variant="secondary" size="sm" className="h-10 px-3.5">
+            <a href={googleLoginUrl(profile.timeZone, '/profile')}>Đăng nhập lại</a>
+          </Button>
+        </div>
+      ) : wipe.isError || deleteAccount.isError ? (
+        <p role="alert" className="-mt-3 px-1 text-sm font-medium text-destructive max-sm:-mt-2 max-sm:text-[13px]">
+          {wipe.isError ? 'Chưa xóa được dữ liệu.' : 'Chưa xóa được tài khoản.'} Kiểm tra kết nối rồi thử lại; chưa có gì bị xóa.
         </p>
       ) : null}
       <p className="mx-1 -mt-1.5 text-xs leading-[18px] text-muted-foreground sm:hidden">
@@ -407,15 +463,15 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
         <a href="#" className="link-underline">
           [Điều khoản sử dụng]
         </a>
-        <a href="#" className="link-underline">
-          [Chính sách quyền riêng tư]
-        </a>
+        <Link to="/privacy" className="link-underline">
+          Chính sách quyền riêng tư
+        </Link>
         <span>Jotly · bản dev</span>
       </footer>
 
       {/* Chỉ mở từ thẻ hồ sơ trên điện thoại (thiết kế B10). */}
       <BottomSheet open={editOpen} onOpenChange={openEdit} title="Sửa hồ sơ">
-        <AvatarField name={name || profile.displayName} src={avatarSrc} onChange={changeAvatar} />
+        <AvatarField {...avatarProps} />
         {nameField(`${ids}-name-sheet`)}
         <div className="grid grid-cols-2 gap-2.5">
           <Button variant="outline" className="press h-[50px] rounded-[14px] text-[15px] font-medium" onClick={() => openEdit(false)}>
@@ -430,21 +486,23 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares }: Prof
       <DeleteDataDialog
         open={dataOpen}
         onOpenChange={setDataOpen}
-        pageCount={pageCount}
+        pageCount={summary?.pages}
+        photoCount={summary?.photos}
         onConfirm={() => wipe.mutate(undefined, { onSuccess: () => setWiped(true) })}
       />
       <DeleteAccountDialog
         open={accountOpen}
         onOpenChange={setAccountOpen}
         email={profile.email}
-        pageCount={pageCount}
-        shareCount={shareCount}
-        onConfirm={() => wipe.mutate(undefined, { onSuccess: () => setAccountGone(true) })}
+        pageCount={summary?.pages}
+        photoCount={summary?.photos}
+        shareCount={summary?.share_links ?? shareCount}
+        onConfirm={() => deleteAccount.mutate(undefined, { onSuccess: () => setAccountGone(true) })}
       />
-      {/* Bản thử: "xóa" tài khoản = xóa dữ liệu mẫu rồi đăng xuất khi bấm Về trang chủ (API thật ở Bước 12). */}
       <AccountDeletedDialog
         open={accountGone}
-        onHome={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true }) })}
+        // Máy chủ đã xóa phiên và cookie; trang chủ bỏ nốt dữ liệu trong bộ nhớ (cờ SIGNED_OUT).
+        onHome={() => navigate('/', { replace: true, state: SIGNED_OUT })}
       />
     </div>
   )

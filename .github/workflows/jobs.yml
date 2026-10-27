@@ -1,0 +1,94 @@
+name: Jobs
+
+# Tác vụ vận hành trên production (đặc tả mục 6). Một lịch mỗi giờ; bước "Chọn tác vụ" quyết định giờ nào chạy gì:
+#   mọi giờ          purge_accounts  (hoàn tất xóa tài khoản)
+#   01, 09, 17 UTC   backup_db       (= 08:00, 16:00, 00:00 giờ Việt Nam; giữ BACKUP_KEEP bản)
+#   19 UTC           purge_trash, backup_photos (= 02:00 giờ Việt Nam)
+# Lưu ý: cron của GitHub có thể trễ vài phút tới vài chục phút; repo công khai không có commit 60 ngày thì GitHub tự
+# tắt lịch (bật lại ở tab Actions). Chạy tay: Actions → Jobs → Run workflow.
+# Khóa đặt ở Settings → Secrets and variables → Actions (danh sách ở env bên dưới).
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Tác vụ (auto = theo giờ như lịch)
+        type: choice
+        default: auto
+        options: [auto, purge_accounts, purge_trash, backup_db, backup_photos]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jobs
+  cancel-in-progress: false
+
+jobs:
+  run:
+    if: github.repository == 'Nha-Cong-Dong/DailyDiary'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      # Action ghim theo commit SHA (workflow này cầm khóa production): tag có thể bị dời, SHA thì không.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - run: uv python install 3.12 && uv sync --locked --no-dev
+
+      - name: Chọn tác vụ
+        id: pick
+        env:
+          ASKED: ${{ inputs.task || 'auto' }}
+        run: |
+          if [ "$ASKED" != "auto" ]; then
+            tasks="$ASKED"
+          else
+            hour=$(date -u +%H)
+            tasks="purge_accounts"
+            case "$hour" in 01|09|17) tasks="$tasks backup_db" ;; esac
+            [ "$hour" = "19" ] && tasks="$tasks purge_trash backup_photos"
+          fi
+          echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
+          echo "Tác vụ: $tasks"
+
+      # Chạy hết các tác vụ đã chọn rồi mới báo lỗi, để một tác vụ hỏng không chặn tác vụ khác (vd sao lưu).
+      # Khóa production chỉ có ở bước này, các bước cài đặt phía trên không thấy.
+      - name: Chạy
+        env:
+          TASKS: ${{ steps.pick.outputs.tasks }}
+          ENV: production
+          PYTHONUTF8: "1"
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: dailydiary
+          S3_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
+          S3_REGION: auto
+          S3_BUCKET: jotly-photos
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          BACKUP_S3_ENDPOINT_URL: ${{ secrets.BACKUP_S3_ENDPOINT_URL }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_ACCESS_KEY: ${{ secrets.BACKUP_S3_ACCESS_KEY }}
+          BACKUP_S3_SECRET_KEY: ${{ secrets.BACKUP_S3_SECRET_KEY }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: "587"
+          SMTP_STARTTLS: "true"
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          FEEDBACK_TO_EMAIL: ${{ secrets.FEEDBACK_TO_EMAIL }}
+        run: |
+          failed=""
+          for t in $TASKS; do
+            echo "::group::$t"
+            uv run --no-dev python -m app.jobs.run "$t" || failed="$failed $t"
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then echo "::error::Lỗi:$failed"; exit 1; fi

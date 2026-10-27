@@ -6,7 +6,7 @@ import { addDays, type DateString } from './date'
  * DỮ LIỆU MẪU, chỉ dùng cho các màn chạy ở dev (thiết kế B7) khi chưa có API (Bước 5, 9–12).
  * Tên trường theo Project_Specs 5.4 để lúc nối API chỉ cần đổi queryFn. Không có dữ liệu người dùng thật.
  */
-export type DemoPhoto = { id: string; label: string }
+export type DemoPhoto = { id: string; label: string; thumbUrl?: string | null }
 
 export type DemoEntry = {
   entry_date: DateString

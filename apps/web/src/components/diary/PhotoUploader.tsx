@@ -1,10 +1,12 @@
-import { Image, ImageOff, ImagePlus, RotateCw, X } from 'lucide-react'
-import { useId, useRef, useState, type DragEvent } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Image, ImageOff, ImagePlus, RotateCw, TriangleAlert, X } from 'lucide-react'
+import { useEffect, useId, useRef, useState, type DragEvent } from 'react'
 import { megabytesLabel, photoAccept, photoFormatsLabel } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
+import { DATA_SUMMARY_KEY, storageUsage, useDataSummary, usagePercent } from '@/lib/usage'
 import { cn } from '@/lib/utils'
 import { PHOTO_TINTS } from './photoTints'
-import { countsTowardLimit, type PhotoUploads, type UploadTile } from './usePhotoUploads'
+import { countsTowardLimit, type PhotoUploads, type RejectReason, type UploadTile } from './usePhotoUploads'
 
 // Điện thoại: ô vuông theo lưới 4 cột (B10). Máy tính: ô 96px xếp hàng (B9).
 const tileBase =
@@ -31,10 +33,15 @@ function ProgressRing({ progress }: { progress: number }) {
   )
 }
 
-function RejectedText({ reason }: { reason: 'type' | 'size' }) {
-  const max = megabytesLabel(tierLimits().photos.source_max_bytes)
-  const [title, detail] =
-    reason === 'size' ? ['Ảnh quá lớn', `Quá ${max}`] : ['Sai định dạng', 'Không hỗ trợ']
+const REJECTED: Record<RejectReason, () => [string, string]> = {
+  size: () => ['Ảnh quá lớn', `Quá ${megabytesLabel(tierLimits().photos.source_max_bytes)}`],
+  type: () => ['Sai định dạng', 'Không hỗ trợ'],
+  quota: () => ['Hết dung lượng', 'Chưa lưu ảnh'],
+  photo_limit: () => ['Đủ ảnh', `Tối đa ${tierLimits().photos.per_day_max} ảnh`],
+}
+
+function RejectedText({ reason }: { reason: RejectReason }) {
+  const [title, detail] = REJECTED[reason]()
   return (
     <>
       <ImageOff className="size-5 text-destructive" aria-hidden="true" />
@@ -46,7 +53,7 @@ function RejectedText({ reason }: { reason: 'type' | 'size' }) {
 
 function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: number; onRemove: () => void; onRetry: () => void }) {
   const tint = PHOTO_TINTS[index % PHOTO_TINTS.length]
-  const preview = tile.status !== 'rejected' ? tile.previewUrl : undefined
+  const preview = tile.status === 'rejected' ? undefined : (tile.previewUrl ?? (tile.status === 'done' ? (tile.photo.thumbUrl ?? undefined) : undefined))
   const name = tile.status === 'done' ? tile.photo.label : tile.status === 'rejected' ? tile.name : tile.file.name
   return (
     <li
@@ -118,7 +125,8 @@ type PhotoUploaderProps = {
 
 /**
  * Ô ảnh trong một trang (thiết kế B9 · Tải ảnh lên): Thêm ảnh hoặc kéo tệp vào khung, mỗi ô có trạng thái
- * đang tải / xong / lỗi mạng (thử lại) / quá lớn / sai định dạng; đủ ảnh thì ô Thêm ảnh chuyển xám.
+ * đang tải / xong / lỗi mạng (thử lại) / quá lớn / sai định dạng / hết dung lượng / đủ ảnh; đủ ảnh thì ô Thêm ảnh
+ * chuyển xám. Dung lượng ảnh đạt ngưỡng cảnh báo (`warn_ratio`, mục 4.5 của đặc tả) thì hiện thêm một dòng cảnh báo.
  */
 export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderProps) {
   const { per_day_max, source_max_bytes } = tierLimits().photos
@@ -127,7 +135,10 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
   const [dragging, setDragging] = useState(false)
   const count = uploads.tiles.filter(countsTowardLimit).length
   const full = count >= per_day_max
-  const rejected = uploads.tiles.some((t) => t.status === 'rejected')
+  const rejected = new Set(uploads.tiles.flatMap((t) => (t.status === 'rejected' ? [t.reason] : [])))
+  const { data: summary } = useDataSummary()
+  const usage = summary ? storageUsage(summary) : null
+  useRefreshUsage(uploads.tiles)
 
   function onDrop(e: DragEvent) {
     e.preventDefault()
@@ -140,9 +151,13 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
     ? uploads.note
     : full
       ? `Đã đủ ${per_day_max} ảnh. Bỏ bớt ảnh để thêm ảnh mới.`
-      : rejected
-        ? `Chỉ nhận ${photoFormatsLabel()}, mỗi ảnh tối đa ${megabytesLabel(source_max_bytes)}. Bấm × để bỏ ô báo lỗi.`
-        : 'Jotly lưu bản đã nén; ảnh gốc vẫn nằm trên máy của bạn.'
+      : rejected.has('quota')
+        ? 'Ảnh chưa được lưu vì đã hết dung lượng. Bấm × để bỏ ô báo lỗi.'
+        : rejected.has('photo_limit')
+          ? `Trang này đã đủ ${per_day_max} ảnh. Bấm × để bỏ ô báo lỗi.`
+          : rejected.size
+            ? `Chỉ nhận ${photoFormatsLabel()}, mỗi ảnh tối đa ${megabytesLabel(source_max_bytes)}. Bấm × để bỏ ô báo lỗi.`
+            : 'Jotly lưu bản đã nén; ảnh gốc vẫn nằm trên máy của bạn.'
 
   return (
     <div className={cn('flex flex-col gap-2.5', className)}>
@@ -211,9 +226,35 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
           </li>
         </ul>
       </div>
+      {usage?.warn ? (
+        <p className="flex items-start gap-1.5 text-[13px] leading-5 font-medium text-destructive">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>
+            {usage.full
+              ? `Đã hết dung lượng ảnh (${usage.label}). Bỏ bớt ảnh trong các trang cũ để thêm ảnh mới.`
+              : `Dung lượng ảnh: ${usage.label} (${usagePercent(usage)}%). Sắp hết chỗ cho ảnh mới.`}
+          </span>
+        </p>
+      ) : null}
       <p role="status" className="min-h-5 text-[13px] leading-5 text-muted-foreground">
         {note}
       </p>
     </div>
   )
+}
+
+/**
+ * Đọc lại dung lượng ảnh (GET /me/data-summary) khi số ảnh đã lưu đổi hoặc máy chủ báo hết dung lượng, để dòng cảnh
+ * báo ở đây và trong Hồ sơ khớp thực tế. Lần hiển thị đầu không đọc lại (useDataSummary đã đọc).
+ */
+function useRefreshUsage(tiles: UploadTile[]) {
+  const client = useQueryClient()
+  const done = tiles.filter((t) => t.status === 'done').length
+  const quotaHits = tiles.filter((t) => t.status === 'rejected' && t.reason === 'quota').length
+  const seen = useRef({ done, quotaHits })
+  useEffect(() => {
+    if (seen.current.done === done && seen.current.quotaHits === quotaHits) return
+    seen.current = { done, quotaHits }
+    void client.invalidateQueries({ queryKey: DATA_SUMMARY_KEY })
+  }, [client, done, quotaHits])
 }

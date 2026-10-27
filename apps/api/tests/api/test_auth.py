@@ -3,8 +3,10 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi.responses import RedirectResponse
 from httpx import ASGITransport, AsyncClient
+from limits import parse_many
 
 from app.core import config
+from app.core.limits import rate_limit
 from app.core.oauth import oauth
 from app.core.rate_limit import limiter
 from app.core.security import CSRF_COOKIE, SESSION_COOKIE, hash_token
@@ -151,6 +153,20 @@ async def test_login_is_rate_limited_per_ip(anon, google):
     assert codes[5] == 429
 
 
+async def test_logout_is_rate_limited_per_ip(anon):
+    """Đăng xuất không cần đăng nhập mà vẫn ghi DB: giới hạn theo IP (ip_rate_limits.logout)."""
+    allowed = parse_many(rate_limit("logout"))[0].amount
+    limiter.enabled = True
+    limiter.reset()
+    try:
+        codes = [(await anon.post("/auth/logout")).status_code for _ in range(allowed + 1)]
+    finally:
+        limiter.reset()
+        limiter.enabled = False
+    assert codes[:allowed] == [204] * allowed
+    assert codes[allowed] == 429
+
+
 # --- Đăng nhập thử (chỉ local/test) ---
 
 
@@ -199,3 +215,22 @@ async def test_production_requires_session_secret(monkeypatch):
     monkeypatch.setattr(config.settings, "session_secret", None)
     with pytest.raises(RuntimeError, match="SESSION_SECRET"):
         create_app()
+
+
+async def test_login_can_return_to_profile_only(anon, db, google):
+    """Đăng nhập lại để xác nhận xóa tài khoản rồi quay về Hồ sơ; `next` khác danh sách bị bỏ qua."""
+    await _login(anon)
+    await db[c.USERS].update_one({"google_sub": "g-123"}, {"$set": {"onboarded_at": datetime.now(UTC)}})
+    await anon.get("/auth/google/login", params={"next": "/profile"})
+    r = await anon.get("/auth/google/callback", params={"code": "x", "state": "y"})
+    assert r.headers["location"].endswith("/profile")
+    for bad in ("https://evil.example", "//evil.example", "/today/../admin", "/profile?x=1"):
+        await anon.get("/auth/google/login", params={"next": bad})
+        r = await anon.get("/auth/google/callback", params={"code": "x", "state": "y"})
+        assert r.headers["location"].endswith("/today"), bad
+
+
+async def test_new_user_goes_to_onboarding_even_with_next(anon, google):
+    await anon.get("/auth/google/login", params={"next": "/profile"})
+    r = await anon.get("/auth/google/callback", params={"code": "x", "state": "y"})
+    assert r.headers["location"].endswith("/onboarding")

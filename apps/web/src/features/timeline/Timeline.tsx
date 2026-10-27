@@ -16,6 +16,7 @@ import {
   buildMonth,
   cutAfterEntries,
   decimal,
+  isMonth,
   monthBounds,
   monthLabel,
   monthOf,
@@ -25,6 +26,7 @@ import {
 } from './monthTimeline'
 import { TimelineEmpty } from './TimelineEmpty'
 import { TimelineList } from './TimelineList'
+import { useCalendar } from './useCalendar'
 import { useMonth } from './useMonth'
 import { useQuickScore } from './useQuickScore'
 
@@ -38,7 +40,6 @@ const SCORE_BG: Record<Score, string> = {
   5: 'bg-score-5',
 }
 const delay = (s: number) => ({ animationDelay: `${s.toFixed(2)}s` }) as CSSProperties
-const isMonth = (m: string | null): m is MonthString => !!m && /^\d{4}-(0[1-9]|1[0-2])$/.test(m)
 /** Điện thoại (dưới 768 px, thiết kế B10): bấm một ngày mở bảng xem nhanh thay vì cuộn tới trang. */
 const isPhone = () => !(window.matchMedia?.('(min-width: 768px)').matches ?? true)
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
@@ -52,6 +53,7 @@ export function Timeline() {
   const asked = params.get('m')
   const wanted = isMonth(asked) ? asked : monthOf(today)
   const { data, isPending, isError } = useMonth(wanted, today)
+  const calendar = useCalendar(wanted)
   const [selected, setSelected] = useState<number | null>(null)
   const [flash, setFlash] = useState<number | null>(null)
   const [expanded, setExpanded] = useState(false)
@@ -63,13 +65,13 @@ export function Timeline() {
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
-  if (isPending)
+  if (isPending || calendar.isPending)
     return (
       <p role="status" className="text-muted-foreground">
         Đang mở dòng thời gian…
       </p>
     )
-  if (isError)
+  if (isError || calendar.isError)
     return (
       <Alert variant="destructive">
         <AlertDescription>Không tải được dòng thời gian. Thử tải lại trang.</AlertDescription>
@@ -79,7 +81,10 @@ export function Timeline() {
   const { min, max } = monthBounds(data.joined, today)
   // Khi đang tải tháng mới, giữ nguyên tháng cũ trên màn (placeholderData) thay vì nháy sang tháng rỗng.
   const month = data.month < min ? min : data.month > max ? max : data.month
-  const t = buildMonth(month, data.month === month ? data.entries : [], today, data.joined)
+  const built = buildMonth(month, data.month === month ? data.entries : [], today, data.joined)
+  // Chuỗi ngày lấy từ backend: chuỗi hiện tại vắt qua tháng, trang ghi bù không nối chuỗi (F-02).
+  const server = calendar.data.month === month ? calendar.data.stats : null
+  const t = server ? { ...built, longestStreak: server.longest_streak, currentStreak: server.current_streak } : built
   const current = month === monthOf(today)
   const todayNum = current ? Number(today.slice(8)) : null
 
