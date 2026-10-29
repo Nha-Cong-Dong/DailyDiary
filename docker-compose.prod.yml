@@ -1,0 +1,29 @@
+# Chạy backend production ngay trên máy của bạn (thay Render). Ra Internet qua Cloudflare Tunnel: dịch vụ Windows
+# `cloudflared` (đã cài, tự chạy cùng Windows) chuyển api.jotly.io.vn tới http://localhost:8000.
+# Chạy:  docker compose -f docker-compose.prod.yml up -d --build
+# Cần file bí mật (KHÔNG commit, đã bị .gitignore chặn bởi mẫu `.env.*`):
+#   apps/api/.env.prod  biến môi trường của API (mẫu: apps/api/.env.example; xem docs/Deploy.md mục 6)
+# Cổng 8000 chỉ bind vào 127.0.0.1: chỉ cloudflared trên máy này gọi được, mạng LAN và Internet không vào thẳng được.
+name: jotly-prod
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file: apps/api/.env.prod
+    environment:
+      # Giá trị cố định của production; đặt ở đây để không phụ thuộc vào file .env.prod.
+      ENV: production
+      DEV_LOGIN: "false"
+      COOKIE_SECURE: "true"
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    mem_limit: 512m # máy cá nhân hay thiếu RAM; uvicorn một tiến trình dùng ~150 MB
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 20s

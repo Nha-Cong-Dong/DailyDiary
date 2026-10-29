@@ -31,7 +31,8 @@ dailydiary/
 ├── .mcp.json                         # MCP server cho Claude Code (Context7)
 ├── .gitignore  .gitattributes  .editorconfig
 ├── docker-compose.yml                # local: MongoDB, MinIO + minio-init (bucket ảnh và sao lưu), Mailpit (bắt email)
-├── render.yaml                       # Render Blueprint: backend production (Singapore, gói free, api.jotly.io.vn)
+├── render.yaml                       # Render Blueprint: backend production (Singapore, gói free, api.jotly.io.vn) — không dùng nữa
+├── docker-compose.prod.yml           # backend production chạy trên máy cá nhân (cổng 127.0.0.1:8000), ra Internet qua dịch vụ Windows cloudflared (api.jotly.io.vn)
 ├── .dockerignore                     # ngữ cảnh build của apps/api/Dockerfile (gốc repo): chỉ apps/api + shared/
 │
 ├── .claude/                          # cấu hình Claude Code dùng chung cả repo
@@ -335,3 +336,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 30 | 25/10/2026 | Thêm mục "Khung dự án ban đầu" (mốc 0 `e06edd2`, mốc 1 `f8b1097`) và bảng so sánh với hiện tại; đổi tên mục cây thành "Cây thư mục hiện tại" |
 | 31 | 25/10/2026 | Bước 14 (triển khai): `docs/Deploy.md`, `apps/api/Dockerfile` (bỏ nhãn (B4)), `.dockerignore` ở gốc repo (ngữ cảnh build là gốc), `render.yaml`, `.github/workflows/jobs.yml`, `apps/web/public/_headers`; `core/security.py` thêm `SecurityHeadersMiddleware`, `tests/api/test_security_headers.py` |
 | 32 | 25/10/2026 | Viết lại `Project_Specs.md` (bản 2.0) chỉ mô tả hệ thống hiện tại; tách bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định sang `docs/Roadmap.md` |
+| 33 | 29/10/2026 | Chuyển backend production từ Render sang máy cá nhân: thêm `docker-compose.prod.yml` (API; tunnel là dịch vụ Windows cloudflared, không nằm trong compose); `render.yaml` giữ lại nhưng không dùng |
