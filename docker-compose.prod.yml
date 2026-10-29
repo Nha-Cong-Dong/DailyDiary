@@ -17,6 +17,9 @@ services:
       ENV: production
       DEV_LOGIN: "false"
       COOKIE_SECURE: "true"
+      # Web (jotly.io.vn) và API (api.jotly.io.vn) khác subdomain: cookie phải dùng chung domain để JS ở web đọc được
+      # dd_csrf và gửi lại qua header X-CSRF-Token. Thiếu dòng này mọi request ghi bị 403 CSRF_FAILED.
+      COOKIE_DOMAIN: jotly.io.vn
     ports:
       - "127.0.0.1:8000:8000"
     restart: unless-stopped
