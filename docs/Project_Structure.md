@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 34 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 35 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -27,6 +27,8 @@ Ký hiệu: không nhãn = đã có trên đĩa · `(Bn)` = sẽ tạo ở bư�
 dailydiary/
 ├── CLAUDE.md                         # chỉ dẫn cho Claude Code (luôn được nạp)
 ├── README.md                         # giới thiệu ngắn + cách cài đặt, chạy thử
+├── PRODUCT.md                        # người dùng, mục đích, cam kết thương hiệu (định dạng skill impeccable)
+├── DESIGN.md                         # hệ thiết kế: token màu, chữ, bóng, chuyển động, trang chủ, lộ trình giao diện
 ├── LICENSE
 ├── .mcp.json                         # MCP server cho Claude Code (Context7)
 ├── .gitignore  .gitattributes  .editorconfig
@@ -339,3 +341,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 32 | 25/10/2026 | Viết lại `Project_Specs.md` (bản 2.0) chỉ mô tả hệ thống hiện tại; tách bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định sang `docs/Roadmap.md` |
 | 33 | 29/10/2026 | Chuyển backend production từ Render sang máy cá nhân: thêm `docker-compose.prod.yml` (API; tunnel là dịch vụ Windows cloudflared, không nằm trong compose); `render.yaml` giữ lại nhưng không dùng |
 | 34 | 30/10/2026 | Chốt bản 1.0: thêm `docs/Backlog.md` (việc tồn đọng); viết lại `README.md`, cập nhật `Deploy.md`, `Project_Specs.md`, `MVP_Plan.md`, `Roadmap.md` theo hạ tầng mới (API trên máy cá nhân, Pages Direct Upload) |
+| 35 | 30/10/2026 | Hệ thiết kế 1.1: thêm `PRODUCT.md` và `DESIGN.md` ở gốc repo; `.gitignore` bỏ qua `.taste-skill/` (file tạm của skill taste-skill) |

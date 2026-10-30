@@ -23,6 +23,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+.taste-skill/
 
 # Log
 docs/Backlog.md

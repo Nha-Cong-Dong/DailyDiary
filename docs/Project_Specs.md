@@ -5,7 +5,7 @@
 | **Phiên bản**  | 1.0 — mô tả hệ thống **hiện tại**                                                                                                                                                                             |
 | **Cập nhật**   | 30/10/2026                                                                                                                                                                                                    |
 | **Trạng thái** | Bản 1.0 hoàn thành (30/10/2026), chạy production tại `https://jotly.io.vn`; việc chưa làm: [`Backlog.md`](Backlog.md) |
-| **Liên quan**  | Bối cảnh, lộ trình, kiếm tiền: [`Roadmap.md`](Roadmap.md) · Tiến độ: [`MVP_Plan.md`](MVP_Plan.md) · Cây dự án: [`Project_Structure.md`](Project_Structure.md) · Quyết định kiến trúc: [`adr/`](adr/README.md) |
+| **Liên quan**  | Bối cảnh, lộ trình, kiếm tiền: [`Roadmap.md`](Roadmap.md) · Tiến độ: [`MVP_Plan.md`](MVP_Plan.md) · Cây dự án: [`Project_Structure.md`](Project_Structure.md) · Quyết định kiến trúc: [`adr/`](adr/README.md) · Hệ thiết kế: [`DESIGN.md`](../DESIGN.md) |
 
 **Nguồn sự thật:** giới hạn số → [`shared/limits.json`](../shared/limits.json) (cấp `beta`); API →
 `apps/web/src/api/openapi.json`; cấu hình → `apps/api/app/core/config.py`. Tài liệu này lệch với chúng thì chúng đúng.

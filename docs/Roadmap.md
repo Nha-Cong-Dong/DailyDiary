@@ -168,3 +168,4 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 | 25/10/2026 | Đặc tả chỉ mô tả hệ thống hiện tại (bản 2.0); bối cảnh và định hướng tách sang file này | – |
 | 29/10/2026 | API chuyển từ Render sang Docker trên máy cá nhân + Cloudflare Tunnel; web dùng Pages Direct Upload; `COOKIE_DOMAIN=jotly.io.vn` | Bước 14, `Deploy.md` |
 | 30/10/2026 | OAuth Google In production (thương hiệu đã xác minh); **chốt bản 1.0**, việc còn lại gom vào `Backlog.md` | Bước 14–15 |
+| 30/10/2026 | Hệ thiết kế 1.1: giữ Neo Brutalism, màu sáng lấy từ logo trên nền `#FFFCF8`, font Commissioner thay Be Vietnam Pro và Lora; chuyển cảnh nối component bằng View Transitions; bản 1.1 làm B1, B2, B5, bỏ mục Tính năng và Riêng tư cũ của trang chủ | `DESIGN.md` |
