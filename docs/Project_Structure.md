@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 37 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 38 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -141,9 +141,9 @@ dailydiary/
             │   │                     # dung lượng ảnh (components/StorageUsage.tsx)
             │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù, Thùng rác (Trash.tsx); bản điện thoại B10;
             │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; useDay.ts (dayQuery); uploadPhoto.ts
-            │   │                     # (nén + PUT presigned, có tiến độ); useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts
+            │   │                     # (nén + PUT presigned, có tiến độ); useRecentDays.ts (dải tháng), useFrequentSubIcons.ts
             │   │                     # (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột, components/ConflictDialog.tsx);
-            │   │                     # components/ vì ≥ 6 component
+            │   │                     # components/ vì ≥ 6 component (có DayClock: dải 24 giờ, MonthStrip: dải tháng)
             │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
             │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10);
             │   │                     # GET /entries?month (danh sách), GET /calendar/{y}/{m} (lịch + chuỗi ngày)
@@ -345,3 +345,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 35 | 30/10/2026 | Hệ thiết kế 1.1: thêm `PRODUCT.md` và `DESIGN.md` ở gốc repo; `.gitignore` bỏ qua `.taste-skill/` (file tạm của skill taste-skill) |
 | 36 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 2 (font và token): `src/assets/fonts/` thay Be Vietnam Pro bằng `commissioner-vi.woff2` + `OFL-Commissioner.txt`; bỏ `@fontsource/lora` |
 | 37 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 4 (component nền): `components/ui/segmented.tsx` (+ test), `components/ui/card.tsx`, `components/diary/Stamp.tsx`, `components/diary/Toast.test.tsx` |
+| 38 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 5a: `features/entry/components/DayClock.tsx`, đổi tên `RecentDays.tsx` thành `MonthStrip.tsx` (+ `MonthStrip.test.tsx`), `src/lib/theme.test.ts` |

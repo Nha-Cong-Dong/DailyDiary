@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   addDays,
+  dayProgress,
   daysEndingAt,
   daysInMonth,
   daysInYear,
@@ -41,6 +42,24 @@ describe('minutesLeftToday', () => {
   it('23:59 còn 1 phút; giờ mùa hè ở Los Angeles vẫn tính tới nửa đêm địa phương', () => {
     expect(minutesLeftToday(VN, new Date('2026-10-18T16:59:00Z'))).toBe(1)
     expect(minutesLeftToday(LA, new Date('2026-07-01T06:00:00Z'))).toBe(60) // 23:00 PDT
+  })
+})
+
+describe('dayProgress (Dải 24 giờ)', () => {
+  it('23:59 và 00:01 giờ Việt Nam: gần hết ngày, rồi sang ngày mới', () => {
+    expect(dayProgress(VN, new Date('2026-10-18T16:59:00Z'))).toEqual({ elapsed: 1439, total: 1440 })
+    expect(dayProgress(VN, new Date('2026-10-18T17:01:00Z'))).toEqual({ elapsed: 1, total: 1440 })
+  })
+
+  it('06:00 sáng Việt Nam (vẫn là hôm trước theo UTC) đã qua 6 giờ của hôm nay', () => {
+    expect(dayProgress(VN, new Date('2026-10-18T23:00:00Z'))).toEqual({ elapsed: 360, total: 1440 })
+  })
+
+  it('múi giờ âm: ngày đổi giờ ở Los Angeles dài 25 giờ (tháng 11) và 23 giờ (tháng 3)', () => {
+    // 01/11/2026: lùi giờ lúc 02:00 PDT; 12:00 trưa giờ địa phương (PST, -08) là 20:00Z, đã qua 13 giờ thật.
+    expect(dayProgress(LA, new Date('2026-11-01T20:00:00Z'))).toEqual({ elapsed: 780, total: 1500 })
+    // 08/03/2026: tiến giờ lúc 02:00 PST; ngày chỉ có 23 giờ.
+    expect(dayProgress(LA, new Date('2026-03-08T20:00:00Z')).total).toBe(1380)
   })
 })
 

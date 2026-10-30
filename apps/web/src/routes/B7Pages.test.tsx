@@ -109,7 +109,10 @@ describe('Hồ sơ & cài đặt', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: 'Tối' }))
     expect(getThemePreference()).toBe('dark')
-    fireEvent.click(screen.getByRole('radio', { name: 'Theo hệ thống' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Theo giờ' }))
+    expect(getThemePreference()).toBe('hour')
+    expect(screen.getByText(/Tối từ 20:00 đến 05:00/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('radio', { name: 'Hệ thống' }))
     expect(getThemePreference()).toBe('system')
 
     // Không còn xuất dữ liệu (canvas, quyết định 21/10/2026).

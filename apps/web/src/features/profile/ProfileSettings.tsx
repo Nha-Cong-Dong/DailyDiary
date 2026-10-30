@@ -23,7 +23,8 @@ import { useDataSummary, useDeleteAccount, useWipeJournal } from './useJournalDa
 const THEMES: { value: ThemePreference; label: string }[] = [
   { value: 'light', label: 'Sáng' },
   { value: 'dark', label: 'Tối' },
-  { value: 'system', label: 'Theo hệ thống' },
+  { value: 'system', label: 'Hệ thống' },
+  { value: 'hour', label: 'Theo giờ' },
 ]
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-ring'
@@ -285,7 +286,22 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           <span id={`${ids}-theme`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
             Chế độ màu
           </span>
-          <Segmented options={THEMES} value={theme} onChange={setThemePreference} labelledBy={`${ids}-theme`} />
+          <div className="flex flex-col gap-1.5 max-sm:w-full sm:items-end">
+            <Segmented
+              options={THEMES}
+              value={theme}
+              onChange={setThemePreference}
+              labelledBy={`${ids}-theme`}
+              className="max-sm:w-full"
+            />
+            {theme === 'hour' || theme === 'system' ? (
+              <p className="text-label text-muted-foreground">
+                {theme === 'hour'
+                  ? 'Tối từ 20:00 đến 05:00 theo giờ của máy, sáng thời gian còn lại.'
+                  : 'Theo cài đặt sáng/tối của điện thoại hoặc máy tính.'}
+              </p>
+            ) : null}
+          </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:min-h-14 max-sm:px-4 max-sm:py-2">
           <label htmlFor={`${ids}-lang`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">

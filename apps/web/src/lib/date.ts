@@ -83,6 +83,18 @@ export function minutesLeftToday(timeZone: string, now: Date = new Date()): numb
   return Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 60000))
 }
 
+/**
+ * Hôm nay đã trôi qua bao nhiêu phút trên tổng số phút của ngày, theo múi giờ người dùng (Dải 24 giờ ở màn Hôm nay).
+ * Tính từ nửa đêm này tới nửa đêm sau nên ngày đổi giờ mùa hè dài 23 hoặc 25 giờ vẫn đúng.
+ */
+export function dayProgress(timeZone: string, now: Date = new Date()): { elapsed: number; total: number } {
+  const today = todayIn(timeZone, now)
+  const start = fromZonedTime(`${today}T00:00:00`, timeZone).getTime()
+  const end = fromZonedTime(`${addDays(today, 1)}T00:00:00`, timeZone).getTime()
+  const total = Math.round((end - start) / 60000)
+  return { elapsed: Math.min(total, Math.max(0, Math.floor((now.getTime() - start) / 60000))), total }
+}
+
 /** "2 giờ 56 phút". */
 export function durationLabel(minutes: number): string {
   const h = Math.floor(minutes / 60)

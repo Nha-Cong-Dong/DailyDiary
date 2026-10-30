@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { api, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
 import { MoodMark } from '@/components/diary/MoodMark'
+import { Stamp } from '@/components/diary/Stamp'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { scoreLabel, type Score } from '@/lib/catalog'
@@ -46,11 +47,11 @@ function useRestore() {
   })
 }
 
-/** "còn 12 ngày" / "hết hạn hôm nay" theo múi giờ hồ sơ. */
+/** "Còn 12 ngày" / "Hết hạn hôm nay" theo múi giờ hồ sơ. */
 function daysLeft(until: string, timeZone: string, today: string): string {
   const end = todayIn(timeZone, new Date(until))
   const days = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000)
-  return days <= 0 ? 'hết hạn hôm nay' : `còn ${days} ngày`
+  return days <= 0 ? 'Hết hạn hôm nay' : `Còn ${days} ngày`
 }
 
 /**
@@ -125,13 +126,13 @@ export function Trash() {
                   {longDateLabel(item.entry_date)} · Điểm {item.score} · {scoreLabel(iconSetId, item.score as Score)}
                 </span>
                 <span className="truncate font-heading text-lg font-bold">{item.title ?? 'Chỉ chấm điểm'}</span>
-                <span className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
+                <span className="mt-1 inline-flex flex-wrap items-center gap-2 text-label text-muted-foreground">
+                  <Stamp tone="trash">{daysLeft(item.restore_until, timeZone, today)}</Stamp>
                   {item.photo_count ? (
                     <span className="inline-flex items-center gap-1">
-                      <Image className="size-3.5" aria-hidden="true" /> {item.photo_count} ảnh ·
+                      <Image className="size-3.5" aria-hidden="true" /> {item.photo_count} ảnh
                     </span>
                   ) : null}
-                  Khôi phục được · {daysLeft(item.restore_until, timeZone, today)}
                 </span>
               </span>
               <Button

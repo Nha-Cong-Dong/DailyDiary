@@ -46,7 +46,8 @@ export function CalendarCell({
     'flex flex-col items-center justify-between rounded-sm border-[1.5px] text-foreground',
     size === 'md' ? 'min-h-[76px] px-0 pt-1.5 pb-1' : 'h-12 pt-1 pb-0.5',
     weekday && 'gap-1.5 py-2.5',
-    state === 'today' && 'border-line bg-secondary shadow-ink-sm',
+    // Hôm nay: màu đào của "bây giờ" (DESIGN.md mục 2); chữ trên đào luôn là on-accent ở cả hai chế độ.
+    state === 'today' && 'border-line bg-peach text-on-accent shadow-ink-sm',
     state === 'past' && 'border-border',
     state === 'future' && 'border-transparent',
     onClick && 'cursor-pointer hover:border-line focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
@@ -58,7 +59,7 @@ export function CalendarCell({
         'tabular-nums',
         size === 'md' ? 'text-[13px] leading-[18px]' : 'text-label leading-3',
         state === 'today' ? 'font-bold' : 'font-medium',
-        state === 'future' ? 'text-faint' : 'text-foreground',
+        state === 'future' ? 'text-faint' : state === 'today' ? 'text-on-accent' : 'text-foreground',
       )}
     >
       {day}
@@ -66,7 +67,11 @@ export function CalendarCell({
   )
   const content = (
     <>
-      {weekday ? <span className="text-label font-semibold text-muted-foreground">{weekday}</span> : null}
+      {weekday ? (
+        <span className={cn('text-label font-semibold', state === 'today' ? 'text-on-accent' : 'text-muted-foreground')}>
+          {weekday}
+        </span>
+      ) : null}
       {numberPosition === 'top' ? number : null}
       <span className={cn('flex items-center justify-center', iconClassName)} style={{ width: icon, height: icon, ...iconStyle }}>
         {score ? (
@@ -74,7 +79,10 @@ export function CalendarCell({
         ) : state === 'future' ? null : (
           <span
             aria-hidden="true"
-            className="rounded-full border-[1.5px] border-dashed border-muted-foreground"
+            className={cn(
+              'rounded-full border-[1.5px] border-dashed',
+              state === 'today' ? 'border-on-accent' : 'border-muted-foreground',
+            )}
             style={{ width: icon * 0.8, height: icon * 0.8 }}
           />
         )}

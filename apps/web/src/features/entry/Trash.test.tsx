@@ -13,7 +13,7 @@ describe('Thùng rác', () => {
     renderWithMe([{ path: '/profile/trash', Component: TrashPage }], '/profile/trash', me)
 
     const item = (await screen.findByText('Chiều mưa')).closest('li')!
-    expect(within(item).getByText(/Khôi phục được · còn 30 ngày/)).toBeInTheDocument()
+    expect(within(item).getByText('Còn 30 ngày')).toBeInTheDocument()
     fireEvent.click(within(item).getByRole('button', { name: /Khôi phục trang/ }))
 
     expect(await screen.findByText(/Đã khôi phục trang/)).toBeInTheDocument()

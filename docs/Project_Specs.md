@@ -64,7 +64,7 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 | `/privacy`                                               | Chính sách quyền riêng tư                                                               | Không     |
 | `/s/:token`                                              | Trang chia sẻ công khai                                                                 | Không     |
 | `/onboarding`                                            | 3 bước lần đầu: tên → bộ biểu tượng → múi giờ                                           | Có        |
-| `/today`                                                 | Viết trang hôm nay (tự lưu), 7 ngày qua                                                 | Có        |
+| `/today`                                                 | Viết trang hôm nay (tự lưu), dải 24 giờ, dải tháng                                      | Có        |
 | `/day/:date` · `/day/:date/edit` · `/day/:date/backfill` | Xem một ngày · Sửa trang cũ · Ghi bù                                                    | Có        |
 | `/timeline?m=YYYY-MM`                                    | Dòng thời gian + lịch + thống kê tháng                                                  | Có        |
 | `/pixels`                                                | Year in Pixels                                                                          | Có        |
@@ -115,7 +115,7 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 - Phiên 30 ngày, tự gia hạn; đăng xuất hủy phiên ngay.
 - Hồ sơ: ảnh đại diện (mặc định link ảnh Google; cho tải ảnh riêng — cắt vuông 256 px, nén ≤ 2 MB — hoặc gỡ), tên
   1–50 ký tự, múi giờ IANA (đổi chỉ áp dụng cho ngày sau đó), bộ biểu tượng (áp cho **mọi ngày**), màu cờ riêng,
-  giao diện sáng/tối/theo hệ thống. Kèm: dung lượng ảnh, Thùng rác, Trang đang chia sẻ, Góp ý, xóa dữ liệu/tài khoản.
+  giao diện sáng/tối/theo hệ thống/theo giờ (tối từ 20:00 đến 05:00 theo giờ của máy). Kèm: dung lượng ảnh, Thùng rác, Trang đang chia sẻ, Góp ý, xóa dữ liệu/tài khoản.
 
 ### F-05. Tìm kiếm
 

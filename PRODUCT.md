@@ -35,7 +35,7 @@ khai, trang chủ giới thiệu, chính sách quyền riêng tư. Điện tho�
 
 ## Capabilities and Constraints
 
-- React 19 + Vite + Tailwind CSS 4 + shadcn/ui (Radix), không thư viện animation JS. Chế độ sáng/tối/theo hệ thống.
+- React 19 + Vite + Tailwind CSS 4 + shadcn/ui (Radix), không thư viện animation JS. Chế độ sáng/tối/theo hệ thống/theo giờ.
 - Giới hạn số chỉ đọc từ `shared/limits.json`; biểu tượng và màu cờ từ `shared/icons.json`, `shared/flag_colors.json`.
 - Font phải hỗ trợ đầy đủ tiếng Việt; font tự host, cắt còn ký tự Việt + Latin (`apps/web/scripts/subset_fonts.py`).
 - Hiệu năng: LCP < 2,5 s, INP < 200 ms, CLS < 0,1 trên điện thoại.

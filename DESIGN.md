@@ -2,7 +2,7 @@
 
 |                |                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–4)                                   |
+| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–4 và 5a)                             |
 | **Cập nhật**   | 30/10/2026                                                                                        |
 | **Bản trực quan** | Trang hệ thiết kế có bản chạy thử từng component: https://claude.ai/artifact/5XQcMY3cAg23QNpz8qy4og |
 | **Liên quan**  | Người dùng, mục đích, cam kết thương hiệu: [`PRODUCT.md`](PRODUCT.md) · Màn hình và tính năng: [`docs/Project_Specs.md`](docs/Project_Specs.md) |
@@ -162,7 +162,7 @@ Tối đa ba khoảnh khắc lớn; không hiệu ứng theo chuột, không vid
 | Dải 24 giờ (DayClock) ở Hôm nay | "Còn X giờ Y phút trước khi sang ngày mới", theo múi giờ người dùng |
 | Dải tháng (MonthStrip) dưới bộ chấm điểm | chạm ngày trống đã qua để ghi bù |
 | Stamp thay `SyncStatus` | kể cả thùng rác "còn N ngày" |
-| Chế độ "Theo giờ" | tối từ 20:00 đến 05:00 theo giờ người dùng |
+| Chế độ "Theo giờ" | tối từ 20:00 đến 05:00 theo đồng hồ của máy (chế độ màu phải chạy trước khi tải hồ sơ, nên không theo múi giờ hồ sơ) |
 | Chống nháy sáng chế độ tối, `theme-color` | `index.html` |
 | Segmented dùng chung | Dòng thời gian, Hồ sơ, Tìm kiếm |
 | **B1** Chuyển cảnh nối | ô lịch → trang ngày, pixel → tháng, kết quả tìm kiếm → trang ngày |

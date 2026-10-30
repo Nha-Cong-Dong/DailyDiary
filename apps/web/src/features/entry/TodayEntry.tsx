@@ -20,7 +20,8 @@ import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
 import { ConflictDialog } from './components/ConflictDialog'
 import { KeywordEditor } from './components/KeywordEditor'
-import { RecentDays } from './components/RecentDays'
+import { DayClock } from './components/DayClock'
+import { MonthStrip } from './components/MonthStrip'
 import { toDayEntry, type DayEntry } from './entries'
 import { deletePhoto, makeUploadPhoto, reorderPhotos } from './uploadPhoto'
 import { useAutosave } from './useAutosave'
@@ -131,6 +132,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
   return (
     <div className="mx-auto flex w-full max-w-[640px] flex-col gap-[22px] md:gap-8">
       <section aria-labelledby={`${ids}-q`} className="flex flex-col gap-4 md:gap-5">
+        <DayClock timeZone={timeZone} />
         <div className="flex flex-col gap-1 md:gap-1.5">
           <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
             <span className="md:hidden">{longDateLabel(today, false)}</span>
@@ -271,7 +273,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
 
       <ConflictDialog conflict={autosave.conflict} onKeepMine={autosave.keepMine} onTakeTheirs={autosave.takeTheirs} />
 
-      <RecentDays today={today} iconSetId={iconSetId} todayScore={score} todaySub={sub} recent={recent} />
+      <MonthStrip today={today} iconSetId={iconSetId} todayScore={score} todaySub={sub} recent={recent} />
     </div>
   )
 }

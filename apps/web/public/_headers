@@ -8,7 +8,7 @@
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-u1VsuD3HwCCy9TS0jprdImeJIikg+s9PE1fUy+ub1ZA='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://*.r2.cloudflarestorage.com; connect-src 'self' https://api.jotly.io.vn https://*.r2.cloudflarestorage.com; font-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://api.jotly.io.vn
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-59/ERlvSCO+WMyuf0VIMYAdE1GM/4tZpfTKMAS4TmLQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com https://*.r2.cloudflarestorage.com; connect-src 'self' https://api.jotly.io.vn https://*.r2.cloudflarestorage.com; font-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://api.jotly.io.vn
 
 # File build có mã băm trong tên: cache lâu dài.
 /assets/*
