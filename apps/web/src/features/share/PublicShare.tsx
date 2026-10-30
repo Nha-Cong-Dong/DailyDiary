@@ -84,7 +84,7 @@ function SharedPage({ share }: { share: PublicShareData }) {
           {hasFlag ? (
             <div className="h-[120px] overflow-hidden border-b-[1.5px] border-line bg-muted max-sm:h-[88px]">
               <div
-                className="h-full animate-in delay-450 duration-800 ease-[cubic-bezier(.6,0,.3,1)] fill-mode-backwards slide-in-from-left-full"
+                className="h-full animate-in delay-450 duration-800 ease-move fill-mode-backwards slide-in-from-left-full"
                 style={{ backgroundColor: flagHex(share.flag_color!, dark) }}
               />
             </div>
@@ -160,9 +160,9 @@ function SharedPage({ share }: { share: PublicShareData }) {
         </p>
 
         <section className="reveal-on-scroll mt-8 max-sm:mt-3">
-          <div className="group/band flex flex-wrap items-center justify-between gap-5 rounded-[24px] border-[1.5px] border-line bg-primary p-[clamp(24px,4vw,36px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_var(--cta-shadow)] max-sm:flex-col max-sm:items-stretch max-sm:gap-3.5 max-sm:rounded-[20px] max-sm:px-[18px] max-sm:py-[22px] max-sm:shadow-[4px_4px_0_var(--cta-shadow)]">
+          <div className="group/band flex flex-wrap items-center justify-between gap-5 rounded-[24px] border-[1.5px] border-line bg-primary p-[clamp(24px,4vw,36px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_var(--cta-shadow)] max-sm:flex-col max-sm:items-stretch max-sm:gap-3.5 max-sm:rounded-[20px] max-sm:px-[18px] max-sm:py-[22px] max-sm:shadow-[4px_4px_0_var(--cta-shadow)]">
             <div className="flex items-center gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-3.5">
-              <span className="flex size-14 shrink-0 items-center justify-center rounded-[16px] bg-primary-foreground group-hover/band:[&_svg]:animate-wiggle max-sm:size-12 max-sm:rounded-[14px]">
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-[16px] bg-primary-foreground max-sm:size-12 max-sm:rounded-[14px]">
                 <LogoMark size={36} />
               </span>
               <div className="flex flex-col gap-0.5">

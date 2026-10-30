@@ -70,7 +70,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex min-h-11 cursor-pointer items-center gap-3 rounded-[12px] px-3 text-sm font-medium outline-hidden transition-[background-color,padding-left] duration-200 select-none focus:bg-secondary focus:pl-4 focus:[&_svg]:animate-wiggle data-inset:pl-7 data-[variant=destructive]:font-semibold data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive-soft data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "group/dropdown-menu-item relative flex min-h-11 cursor-pointer items-center gap-3 rounded-[12px] px-3 text-sm font-medium outline-hidden transition-[background-color,padding-left] duration-200 select-none focus:bg-secondary focus:pl-4 data-inset:pl-7 data-[variant=destructive]:font-semibold data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive-soft data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
         className
       )}
       {...props}

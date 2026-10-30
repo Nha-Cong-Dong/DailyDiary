@@ -248,7 +248,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                               aria-pressed={on}
                               onClick={() => apply(draft, true, on ? picked.filter((x) => x !== p.id) : [...picked, p.id])}
                               className={cn(
-                                'relative flex h-[54px] w-[72px] cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-line text-[11px] text-[#6A6255] transition-[transform,opacity,box-shadow] duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97]',
+                                'relative flex h-[54px] w-[72px] cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-line text-[11px] text-[#6A6255] transition-[transform,opacity,box-shadow] duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97]',
                                 'overflow-hidden',
                                 TINTS[i % TINTS.length],
                                 on ? 'shadow-ink-sm' : 'opacity-45',

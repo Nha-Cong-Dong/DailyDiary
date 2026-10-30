@@ -49,7 +49,7 @@ const sectionTitle = 'font-heading text-[clamp(26px,2.4vw,30px)] leading-[1.25] 
 const card = 'rounded-[20px] border-[1.5px] border-line bg-card'
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring'
 // Hiệu ứng nhỏ trong thẻ tính năng: nhấc nhẹ 2px theo đường cong chung, không nảy.
-const nudge = 'transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] group-hover/card:-translate-y-0.5'
+const nudge = 'transition-transform duration-300 ease-out group-hover/card:-translate-y-0.5'
 
 function GoogleButton({ inverted }: { inverted?: boolean }) {
   return (
@@ -100,7 +100,7 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
         <a
           href="#"
           aria-label="Jotly, trang chủ"
-          className="rounded-sm transition-transform duration-150 hover:[&_svg]:animate-wiggle active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring [&_svg]:origin-[50%_60%]"
+          className="rounded-sm transition-transform duration-150 active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring"
         >
           <Logo />
         </a>
@@ -172,7 +172,7 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
             to="/profile"
             className="group/hi inline-flex animate-rise items-center gap-2.5 self-start rounded-full border-[1.5px] border-line bg-card py-1 pr-3.5 pl-1 text-[15px] leading-[22px] font-medium transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
-            <Avatar name={account.name} src={account.avatarUrl} size={28} className="group-hover/hi:animate-wiggle" />
+            <Avatar name={account.name} src={account.avatarUrl} size={28} />
             {greeting(account.name, account.timeZone)}
           </Link>
         ) : null}
@@ -246,13 +246,13 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
         >
           <div className="h-14 border-b-[1.5px] border-line" style={{ backgroundColor: flagHex(lavender.hex, dark) }} />
           <div className="flex flex-col gap-2 px-5 pb-5">
-            <span className="-mt-[30px] flex size-[60px] items-center justify-center rounded-full border-[1.5px] border-line bg-card group-hover/tilt:[&>span>svg]:animate-wiggle">
+            <span className="-mt-[30px] flex size-[60px] items-center justify-center rounded-full border-[1.5px] border-line bg-card">
               <MoodMark
                 iconSetId={DEMO_ICON_SET}
                 score={4}
                 subIcon="😌"
                 size={44}
-                subClassName="animate-pop transition-[translate,rotate] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] group-hover/tilt:-translate-y-0.5 group-hover/tilt:-rotate-[4deg]"
+                subClassName="animate-pop transition-[translate,rotate] duration-300 ease-out group-hover/tilt:-translate-y-0.5 group-hover/tilt:-rotate-[4deg]"
                 subStyle={{ animationDelay: '1.7s' }}
               />
             </span>
@@ -312,9 +312,8 @@ function Features() {
           title="Biểu tượng cho từng ngày"
           visual={
             <div className="flex flex-wrap items-center gap-1">
-              {/* Di chuột lên thẻ: các icon nhún lần lượt như làn sóng. */}
-              {iconRow.map(([set, score], i) => (
-                <span key={set} className="group-hover/card:animate-bob" style={{ animationDelay: `${i * 0.06}s` }}>
+              {iconRow.map(([set, score]) => (
+                <span key={set}>
                   <ScoreIcon iconSetId={set} score={score} size={40} />
                 </span>
               ))}
@@ -349,7 +348,7 @@ function Features() {
                 ['Ảnh', '24'],
               ].map(([k, v]) => (
                 <div key={k} className="flex flex-col-reverse">
-                  <dd className="font-heading text-[22px] leading-[30px] font-bold group-hover/card:animate-bob">{v}</dd>
+                  <dd className="font-heading text-[22px] leading-[30px] font-bold">{v}</dd>
                   <dt className="text-xs leading-[18px] text-muted-foreground">{k}</dt>
                 </div>
               ))}
@@ -362,7 +361,7 @@ function Features() {
           title="Tìm theo từ khóa"
           visual={
             <div className="flex h-11 items-center gap-2 rounded-[12px] border-[1.5px] border-line bg-background px-3">
-              <Search className="size-[18px] text-muted-foreground group-hover/card:animate-seek" aria-hidden="true" />
+              <Search className="size-[18px] text-muted-foreground" aria-hidden="true" />
               <span className="text-[15px]">mưa</span>
             </div>
           }
@@ -387,7 +386,7 @@ function Privacy() {
       <div className="reveal-on-scroll grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-10">
         {items.map((item) => (
           <div key={item.title} className="group/pv flex flex-col gap-3">
-            <span className="flex size-11 items-center justify-center rounded-[12px] border-[1.5px] border-line bg-card shadow-ink-sm transition-[transform,box-shadow] duration-200 group-hover/pv:[transform:translate(-2px,-2px)] group-hover/pv:shadow-[5px_5px_0_var(--ink-shadow)] group-hover/pv:[&_svg]:animate-wiggle">
+            <span className="flex size-11 items-center justify-center rounded-[12px] border-[1.5px] border-line bg-card shadow-ink-sm transition-[transform,box-shadow] duration-200 group-hover/pv:[transform:translate(-2px,-2px)] group-hover/pv:shadow-[5px_5px_0_var(--ink-shadow)]">
               <item.icon className="size-5" aria-hidden="true" />
             </span>
             <h3 className="font-heading text-xl leading-7 font-semibold">{item.title}</h3>
@@ -473,7 +472,7 @@ export function Landing({ account }: { account?: LandingAccount }) {
         <Privacy />
 
         <section className={cn(wrap, 'pb-[clamp(80px,10vw,128px)]')}>
-          <div className="flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-[1.5px] border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] hover:[transform:translate(-2px,-2px)] hover:shadow-[7px_7px_0_var(--cta-shadow)]">
+          <div className="flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-[1.5px] border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-out hover:[transform:translate(-2px,-2px)] hover:shadow-[7px_7px_0_var(--cta-shadow)]">
             <h2 className="font-heading text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold text-balance">
               {account && todayWritten ? 'Hôm nay đã có một trang. Viết thêm vài dòng?' : 'Hôm nay của bạn thế nào?'}
             </h2>
@@ -498,7 +497,7 @@ export function Landing({ account }: { account?: LandingAccount }) {
       <footer className="border-t-[1.5px] border-line">
         <div className={cn(wrap, 'flex flex-wrap items-center justify-between gap-4 py-7')}>
           <div className="flex flex-wrap items-center gap-2">
-            <Logo size="sm" className="hover:[&_svg]:animate-wiggle [&_svg]:origin-[50%_60%]" />
+            <Logo size="sm" />
             <span className="ml-2 text-[13px] text-muted-foreground">Jot it down, keep it forever.</span>
           </div>
           <div className="flex flex-wrap gap-5 text-[13px]">

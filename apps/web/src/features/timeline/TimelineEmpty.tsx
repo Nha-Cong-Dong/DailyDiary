@@ -53,7 +53,7 @@ export function TimelineEmpty({ data, today }: { data: MonthTimeline; today: num
             {STEPS.map((s, i) => (
               <li
                 key={s.title}
-                className="lift flex flex-col gap-2 rounded-[16px] border-[1.5px] border-line bg-card p-4 text-left shadow-ink-sm hover:[&_svg]:animate-wiggle"
+                className="lift flex flex-col gap-2 rounded-[16px] border-[1.5px] border-line bg-card p-4 text-left shadow-ink-sm"
               >
                 <span className="flex items-center gap-2">
                   <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
@@ -90,7 +90,7 @@ export function TimelineEmpty({ data, today }: { data: MonthTimeline; today: num
                 className={cn(
                   'flex h-11 justify-center rounded-[10px] pt-1 text-[11px] leading-3 tabular-nums',
                   d.day === today
-                    ? 'animate-glow border-2 border-line bg-secondary font-bold text-foreground'
+                    ? 'border-2 border-line bg-peach font-bold text-on-accent'
                     : d.day < today
                       ? 'font-medium text-faint'
                       : 'border border-border font-medium text-muted-foreground',

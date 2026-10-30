@@ -19,7 +19,7 @@ type FlagPickerProps = {
   className?: string
 }
 
-const motion = 'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 active:scale-[.97]'
+const motion = 'transition-transform duration-200 ease-out hover:-translate-y-0.5 active:scale-[.97]'
 
 type Swatch = { hex: string; label: string }
 

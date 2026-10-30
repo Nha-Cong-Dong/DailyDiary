@@ -68,9 +68,9 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
               numberPosition="top"
               onClick={() => onSelect(d.day)}
               className={cn(
-                'min-h-[54px] pt-1 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:[transform:translateY(-2px)_scale(1.04)] active:[transform:scale(.97)] md:min-h-[60px]',
+                'min-h-[54px] pt-1 transition-transform duration-200 ease-out hover:[transform:translateY(-2px)_scale(1.04)] active:[transform:scale(.97)] md:min-h-[60px]',
                 selected === d.day && 'shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]',
-                d.kind === 'open' && 'animate-pend',
+                d.kind === 'open' && 'ring-[3px] ring-peach',
               )}
               iconClassName="animate-pop"
               iconStyle={{

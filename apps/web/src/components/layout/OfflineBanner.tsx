@@ -82,7 +82,7 @@ export function OfflineBanner() {
           </>
         ) : (
           <>
-            <WifiOff className="size-5 animate-blink" aria-hidden="true" />
+            <WifiOff className="size-5" aria-hidden="true" />
             <p className="flex-[1_1_360px] text-sm leading-[22px]">
               <strong className="font-semibold">Bạn đang ngoại tuyến.</strong> Những gì bạn viết vẫn được giữ trên trình
               duyệt này và sẽ tự lưu khi có mạng.

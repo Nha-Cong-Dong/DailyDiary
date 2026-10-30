@@ -25,7 +25,7 @@ export function OneTapDemo({ iconSetId = DEMO_ICON_SET, status, footer, value, o
   const score = controlled ? (value ?? null) : local
   const label = score ? scoreLabel(iconSetId, score) : ''
   return (
-    <div className="reveal-on-scroll lift flex w-full max-w-[500px] flex-col gap-4 rounded-[20px] border-[1.5px] border-line bg-card p-5 shadow-ink sm:p-6">
+    <div className="reveal-on-scroll lift flex w-full max-w-[500px] [--lift:4px] flex-col gap-4 rounded-[20px] border-[1.5px] border-line bg-card p-5 shadow-ink sm:p-6">
       <fieldset className="flex flex-col gap-4">
         <legend className="mb-4 font-heading text-lg leading-[26px] font-semibold">Hôm nay của bạn thế nào?</legend>
         <ScorePicker iconSetId={iconSetId} value={score} onChange={controlled ? onChange : setLocal} caption="none" />

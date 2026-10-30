@@ -50,7 +50,7 @@ export function YearEmpty({
                       className={cn(
                         'aspect-square rounded-[5px]',
                         c.date === today
-                          ? 'animate-glow border-2 border-line bg-secondary'
+                          ? 'border-2 border-line bg-peach'
                           : c.kind === 'pre'
                             ? 'border border-dashed border-faint'
                             : 'border border-border',

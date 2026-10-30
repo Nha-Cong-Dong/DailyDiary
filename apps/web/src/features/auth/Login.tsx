@@ -80,7 +80,7 @@ export function Login() {
         <a
           href="/"
           aria-label="Jotly, trang chủ"
-          className="rounded-sm hover:[&_svg]:animate-wiggle focus-visible:outline-3 focus-visible:outline-ring [&_svg]:origin-[50%_60%]"
+          className="rounded-sm focus-visible:outline-3 focus-visible:outline-ring"
         >
           <Logo size="sm" />
         </a>
@@ -93,15 +93,15 @@ export function Login() {
           <span
             key={i}
             aria-hidden="true"
-            className={cn('absolute hidden animate-float sm:block', f.className)}
-            style={{ rotate: `${f.rotate}deg`, animationDelay: `${f.delay}s` }}
+            className={cn('absolute hidden sm:block', f.className)}
+            style={{ rotate: `${f.rotate}deg` }}
           >
             <ScoreIcon iconSetId="sprout" score={f.score} size={f.size} />
           </span>
         ))}
 
         <div className="relative z-[1] flex w-full max-w-[460px] animate-land flex-col items-center gap-[18px] rounded-[28px] border-[1.5px] border-line bg-card px-[clamp(24px,5vw,44px)] pt-10 pb-8 text-center shadow-ink-lg">
-          <LogoMark size={72} className={cn('origin-[50%_80%]', mode === 'redirecting' && 'animate-writing')} />
+          <LogoMark size={72} className={cn('origin-[50%_80%]', mode === 'redirecting' && '')} />
 
           <div aria-live="polite" className="flex flex-col gap-2">
             <h1 className="text-[26px] leading-[34px] font-bold">{copy.title}</h1>
@@ -137,14 +137,7 @@ export function Login() {
                 >
                   <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
                   <span>
-                    Đang chờ Google
-                    <span aria-hidden="true">
-                      {[0, 0.15, 0.3].map((d) => (
-                        <span key={d} className="inline-block animate-dot" style={{ animationDelay: `${d}s` }}>
-                          .
-                        </span>
-                      ))}
-                    </span>
+                    Đang chờ Google…
                   </span>
                 </span>
                 <button

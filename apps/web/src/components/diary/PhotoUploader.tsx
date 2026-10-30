@@ -59,7 +59,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
     <li
       className={cn(
         tileBase,
-        'animate-pop transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5',
+        'animate-pop transition-transform duration-200 ease-out hover:-translate-y-0.5',
         tile.status === 'rejected'
           ? 'border-dashed border-destructive bg-destructive-soft p-1.5'
           : tile.status === 'failed'
@@ -214,7 +214,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
                   onClick={() => inputRef.current?.click()}
                   className={cn(
                     tileBase,
-                    'cursor-pointer border-dashed border-line bg-transparent transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+                    'cursor-pointer border-dashed border-line bg-transparent transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
                     dragging && 'border-solid bg-card',
                   )}
                 >

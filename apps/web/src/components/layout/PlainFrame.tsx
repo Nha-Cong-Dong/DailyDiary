@@ -15,7 +15,7 @@ export function PlainFrame({ children }: { children: ReactNode }) {
           <Link
             to="/"
             aria-label="Jotly, trang chủ"
-            className="rounded-sm transition-transform duration-150 hover:[&_svg]:animate-wiggle active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring [&_svg]:origin-[50%_60%]"
+            className="rounded-sm transition-transform duration-150 active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring"
           >
             <Logo size="sm" />
           </Link>

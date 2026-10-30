@@ -30,7 +30,7 @@ export function PhotoTile({
       aria-label={`Mở ảnh ${index + 1} trên ${total}`}
       onClick={onOpen}
       className={cn(
-        'relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+        'relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
         PHOTO_TINTS[index % PHOTO_TINTS.length],
         className,
       )}

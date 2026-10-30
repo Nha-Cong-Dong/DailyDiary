@@ -14,7 +14,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-pressed={dark}
       onClick={() => setDark(!dark)}
       className={cn(
-        '[&_svg]:transition-[rotate] [&_svg]:duration-450 [&_svg]:ease-[cubic-bezier(.2,.8,.2,1)] hover:[&_svg]:-rotate-12 active:[&_svg]:-rotate-30',
+        '[&_svg]:transition-[rotate] [&_svg]:duration-200 [&_svg]:ease-out hover:[&_svg]:-rotate-12 active:[&_svg]:-rotate-30',
         className,
       )}
     >

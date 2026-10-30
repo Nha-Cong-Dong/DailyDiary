@@ -2,7 +2,7 @@
 
 |                |                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–2)                                   |
+| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–3)                                   |
 | **Cập nhật**   | 30/10/2026                                                                                        |
 | **Bản trực quan** | Trang hệ thiết kế có bản chạy thử từng component: https://claude.ai/artifact/5XQcMY3cAg23QNpz8qy4og |
 | **Liên quan**  | Người dùng, mục đích, cam kết thương hiệu: [`PRODUCT.md`](PRODUCT.md) · Màn hình và tính năng: [`docs/Project_Specs.md`](docs/Project_Specs.md) |
@@ -118,6 +118,16 @@ hồ đếm ngược) đặt trong ô có độ rộng cố định.
   ô hôm nay của Dải tháng; ô lịch → trang ngày; pixel → tháng; kết quả tìm kiếm → trang ngày. Trình duyệt không hỗ
   trợ thì đổi ngay.
 - `prefers-reduced-motion`: bỏ dịch chuyển và phóng to, giữ đổi độ mờ và vòng chờ.
+
+Trong code (`apps/web/src/styles/motion.css`):
+
+- Đường cong là utility `ease-out`, `ease-drawer`, `ease-move` (biến CSS `--ease-*`); thời lượng là biến `--dur-*`,
+  dùng dạng `duration-(--dur-fast)`. Không viết tay `cubic-bezier(...)` trong component.
+- Cử chỉ "tờ giấy": `lift` cho vật có bóng (độ lệch bóng là `--lift`, mặc định 2px; vật `shadow-ink` đặt
+  `[--lift:4px]`), `cta` cho nút chính bóng đào, `press` cho nút không bóng. Di chuột chỉ có tác dụng với con trỏ chuột.
+- Animation vào màn: `animate-rise`, `animate-pop`, `animate-stamp`, `animate-grow`, `animate-menu`, `animate-land`,
+  `animate-drop` (đều 160–220ms); `animate-drop-left/right`, `animate-draw` chỉ cho trang chủ.
+- Ô "hôm nay chưa viết" đánh dấu bằng màu đào tĩnh (`bg-peach` hoặc `ring-peach`), không nhấp nháy.
 
 ## 7. Trang chủ
 

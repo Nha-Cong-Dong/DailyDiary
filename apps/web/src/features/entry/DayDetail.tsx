@@ -204,7 +204,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
                     variant="secondary"
                     size="sm"
                     aria-haspopup="dialog"
-                    className="h-10 px-3 hover:[&_svg]:animate-wiggle"
+                    className="h-10 px-3"
                     onClick={share.open}
                   >
                     <Share2 aria-hidden="true" /> Chia sẻ

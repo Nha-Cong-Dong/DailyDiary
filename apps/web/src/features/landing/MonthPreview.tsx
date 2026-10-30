@@ -60,7 +60,7 @@ export function MonthPreview({ className, month = DEMO_MONTH }: { className?: st
               state={state}
               label={`${day}/${m}${entry ? `, điểm ${entry.score}` : state === 'past' ? ', chưa ghi' : ''}`}
               className={cn(
-                'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:[transform:translateY(-2px)_scale(1.04)] active:[transform:scale(.97)]',
+                'transition-transform duration-200 ease-out hover:[transform:translateY(-2px)_scale(1.04)] active:[transform:scale(.97)]',
                 state === 'today' && 'shadow-none',
               )}
               // Icon từng ngày lần lượt bật ra sau khi thẻ lịch rơi xuống.

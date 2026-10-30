@@ -131,7 +131,7 @@ export function SharedList() {
                       aria-current={n === current ? 'page' : undefined}
                       onClick={() => go(n)}
                       className={cn(
-                        'inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] px-1.5 text-sm tabular-nums transition-[transform,background-color] duration-180 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 active:scale-[.97]',
+                        'inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] px-1.5 text-sm tabular-nums transition-[transform,background-color] duration-180 ease-out hover:-translate-y-0.5 active:scale-[.97]',
                         n === current
                           ? 'border-primary bg-primary font-bold text-primary-foreground shadow-[2px_2px_0_var(--cta-shadow)]'
                           : 'border-border bg-card font-medium',
@@ -178,7 +178,7 @@ function PageButton({ label, disabled, onClick, children }: { label: string; dis
 function EmptyShares() {
   return (
     <div className="flex animate-pop flex-col items-center gap-3 rounded-[24px] border-[1.5px] border-dashed border-border px-6 py-12 text-center">
-      <span className="inline-flex animate-[bob_3.2s_ease-in-out_infinite] items-center justify-center rounded-full border-[1.5px] border-line bg-card p-4">
+      <span className="inline-flex items-center justify-center rounded-full border-[1.5px] border-line bg-card p-4">
         <Link2 className="size-8" aria-hidden="true" />
       </span>
       <p className="mt-2 font-heading text-xl leading-7 font-bold">Chưa chia sẻ trang nào</p>
@@ -230,7 +230,7 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
         <span
           role="img"
           aria-label={`Điểm ${e.score}, ${scoreLabel(iconSetId, e.score)}`}
-          className="flex size-14 items-center justify-center rounded-full border-[1.5px] border-line bg-background group-hover/card:[&>span>svg]:animate-wiggle"
+          className="flex size-14 items-center justify-center rounded-full border-[1.5px] border-line bg-background"
         >
           <MoodMark iconSetId={iconSetId} score={e.score} subIcon={e.sub_icon} size={40} />
         </span>

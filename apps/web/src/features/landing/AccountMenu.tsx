@@ -34,7 +34,7 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
         aria-label={`Tài khoản của ${name}`}
-        className="rounded-full transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.04] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97] data-[state=open]:shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]"
+        className="rounded-full transition-[transform,box-shadow] duration-200 ease-out hover:scale-[1.04] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97] data-[state=open]:shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]"
       >
         <Avatar name={name} src={avatarUrl} size={40} className="text-sm" />
       </DropdownMenuTrigger>

@@ -292,7 +292,7 @@ export function Timeline() {
                   className={cn('size-3.5 shrink-0 rounded-[4px] border-[1.5px] border-line', SCORE_BG[st.swatch])}
                 />
               ) : null}
-              <span className="inline-block group-hover:animate-bob">{st.value}</span>
+              <span className="inline-block">{st.value}</span>
             </dd>
             <dd className="text-[13px] leading-5 text-muted-foreground">{st.sub}</dd>
           </div>

@@ -63,7 +63,7 @@ function EntryRow({
         <span
           role="img"
           aria-label={iconLabel}
-          className="flex size-[38px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background group-hover:[&_svg]:animate-wiggle md:size-11"
+          className="flex size-[38px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background md:size-11"
         >
           <MoodMark iconSetId={iconSetId} score={entry.score} size={28} className="md:hidden" />
           <MoodMark iconSetId={iconSetId} score={entry.score} size={32} className="max-md:hidden" />

@@ -7,7 +7,7 @@ export function Fold({ open, children, className }: { open: boolean; children: R
     <div
       aria-hidden={!open}
       inert={!open}
-      className={cn('grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(.2,.8,.2,1)]', className)}
+      className={cn('grid transition-[grid-template-rows,opacity] duration-300 ease-out', className)}
       style={{ gridTemplateRows: open ? '1fr' : '0fr', opacity: open ? 1 : 0 }}
     >
       <div className="min-h-0 overflow-hidden">{children}</div>

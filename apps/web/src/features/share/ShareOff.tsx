@@ -31,7 +31,7 @@ function LockedBook() {
         <path d="M44 88v8l4-3l4 3v-8" fill="#F1BD90" />
       </g>
       <g className="origin-center animate-pop [animation-delay:.65s] [transform-box:fill-box]">
-        <path d="M70 58v-6a8 8 0 0 1 16 0v6" className="group-hover/book:animate-bob" />
+        <path d="M70 58v-6a8 8 0 0 1 16 0v6" />
         <rect x="64" y="57" width="28" height="22" rx="5" fill="#F1BD90" />
         <path d="M78 65v6" />
       </g>
@@ -51,7 +51,7 @@ export function ShareOff() {
         <div className="flex max-w-[520px] flex-col items-center gap-4 text-center">
           <div className="relative flex animate-rise items-center justify-center">
             <span aria-hidden="true" className="absolute size-[200px] rounded-full border-[1.5px] border-dashed border-border bg-muted" />
-            <span className="relative inline-flex animate-[bob_3.6s_ease-in-out_1s_infinite]">
+            <span className="relative inline-flex">
               <LockedBook />
             </span>
           </div>

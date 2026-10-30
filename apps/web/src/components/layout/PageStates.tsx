@@ -27,7 +27,7 @@ function Centered({ children, className }: { children: ReactNode; className?: st
 export function WritingLogo({ label = 'Đang mở cuốn sổ…' }: { label?: string }) {
   return (
     <span className="inline-flex items-center gap-2.5 text-sm leading-[22px] text-muted-foreground">
-      <LogoMark size={30} className="origin-[50%_80%] animate-writing" />
+      <LogoMark size={30} className="origin-[50%_80%]" />
       {label}
     </span>
   )
@@ -88,7 +88,7 @@ export function NotFoundState() {
         role="img"
         aria-label="Một trang giấy bị xé"
       >
-        <g className="origin-top animate-sway [transform-box:fill-box]">
+        <g>
           <path d="M24 10h52l12 12v40l-6 4l-5-3l-6 5l-6-4l-5 4l-6-3l-6 4l-6-4l-6 3l-6-4z" fill="var(--card)" />
           <path d="M76 10v12h12" fill="var(--muted)" />
           <path d="M34 28h30 M34 36h22" stroke="var(--rule)" />
@@ -148,7 +148,7 @@ export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; 
         role="img"
         aria-label="Một tách trà đang bốc hơi"
       >
-        <path className="animate-steam" d="M40 10c-3 4 3 6 0 10 M52 6c-3 4 3 6 0 10 M64 10c-3 4 3 6 0 10" />
+        <path d="M40 10c-3 4 3 6 0 10 M52 6c-3 4 3 6 0 10 M64 10c-3 4 3 6 0 10" />
         {/* Thân tách dùng màu bìa oải hương của logo, cố định ở cả hai chế độ như logo. */}
         <path d="M24 30h56v18a22 22 0 0 1-22 22H46a22 22 0 0 1-22-22z" fill="#CBAAC7" />
         <path d="M80 36h4a8 8 0 0 1 0 16h-5" />

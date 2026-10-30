@@ -34,8 +34,8 @@ export function IconSetPicker({ value, onChange, labelledBy, className }: IconSe
             )}
           >
             <span className="flex gap-0.5">
-              {SCORES.map((s, i) => (
-                <span key={s} className="group-hover/set:animate-bob" style={{ animationDelay: `${i * 0.05}s` }}>
+              {SCORES.map((s) => (
+                <span key={s}>
                   <ScoreIcon iconSetId={set.id} score={s} size={26} />
                 </span>
               ))}

@@ -30,7 +30,7 @@ const overlay =
 
 /** Khung bảng trượt: tràn ngang, bám đáy, bo góc trên, chừa vùng an toàn của điện thoại. */
 const sheet =
-  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-[24px] border-[1.5px] border-b-0 border-line bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-foreground outline-none duration-300 ease-[cubic-bezier(.2,.8,.2,1)] data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-8 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-8'
+  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-[24px] border-[1.5px] border-b-0 border-line bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-foreground outline-none duration-300 ease-out data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-8 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-8'
 
 /** Từ 768 px: hộp thoại giữa màn, rộng 440 px mặc định (đổi bằng `className`, vd. `md:max-w-[980px]`). */
 const centred =

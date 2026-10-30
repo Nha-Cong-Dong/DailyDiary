@@ -18,7 +18,7 @@ export function PublicFrame({ title, cta = true, children }: { title: string; ct
       <meta name="referrer" content="no-referrer" />
       <header className="border-b-[1.5px] border-line">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-x-4 gap-y-2.5 px-[clamp(16px,4vw,40px)] py-3 max-sm:h-[60px] max-sm:flex-nowrap max-sm:gap-2 max-sm:py-0 max-sm:pr-3 max-sm:pl-4">
-          <Link to="/" aria-label="Jotly, trang chủ" className={`rounded-sm hover:[&_svg]:animate-wiggle [&_svg]:origin-[50%_60%] ${focusRing}`}>
+          <Link to="/" aria-label="Jotly, trang chủ" className={`rounded-sm ${focusRing}`}>
             <Logo size="sm" />
           </Link>
           <div className="flex-1" />

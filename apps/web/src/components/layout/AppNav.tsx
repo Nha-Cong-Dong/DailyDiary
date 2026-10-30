@@ -59,7 +59,7 @@ export function AppHeader() {
         <Link
           to="/today"
           aria-label="Jotly, Hôm nay"
-          className={cn('rounded-sm transition-transform duration-150 hover:[&_svg]:animate-wiggle active:scale-[.97] [&_svg]:origin-[50%_60%]', focusRing)}
+          className={cn('rounded-sm transition-transform duration-150 active:scale-[.97]', focusRing)}
         >
           <Logo size="sm" />
         </Link>

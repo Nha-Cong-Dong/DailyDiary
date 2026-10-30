@@ -97,7 +97,7 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
                           d.entry
                             ? cn('border-line', SCORE_BG[d.entry.score])
                             : d.kind === 'open'
-                              ? 'animate-pend border-dashed border-line'
+                              ? 'border-dashed border-line bg-peach'
                               : 'border-dashed border-muted-foreground',
                           selected === d.day && 'shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]',
                         )}
@@ -195,7 +195,7 @@ export function MonthRhythmCompact({ data }: { data: MonthTimeline }) {
                   : d.kind === 'missing'
                     ? 'border-dashed border-muted-foreground'
                     : d.kind === 'open'
-                      ? 'animate-pend border-dashed border-line'
+                      ? 'border-dashed border-line bg-peach'
                       : 'border-border bg-border',
               )}
               style={{

@@ -323,7 +323,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
           aria-live="polite"
           className="flex animate-rise flex-col items-center gap-3 rounded-[22px] border-[1.5px] border-dashed border-line px-6 py-10 text-center"
         >
-          <span className="inline-flex size-16 items-center justify-center rounded-[18px] border-[1.5px] border-line bg-card shadow-ink-sm hover:[&_svg]:animate-seek">
+          <span className="inline-flex size-16 items-center justify-center rounded-[18px] border-[1.5px] border-line bg-card shadow-ink-sm">
             <SearchIcon className="size-7" aria-hidden="true" />
           </span>
           <h2 className="mt-1 text-heading font-bold">{query ? `Chưa có trang nào chứa “${query}”` : 'Chưa có trang nào để tìm'}</h2>
