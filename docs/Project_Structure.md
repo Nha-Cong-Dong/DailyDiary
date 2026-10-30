@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 36 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 37 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -157,9 +157,10 @@ dailydiary/
             ├── components/
             │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên> (đã chỉnh theo hệ thiết kế;
             │   │                     # có dialog, alert-dialog, switch, dropdown-menu; button có biến thể cta)
+            │   │                     # + điều khiển tự viết theo DESIGN.md: segmented.tsx (chọn một trong vài mục), card.tsx
             │   ├── diary/            # thành phần nhật ký dùng chung: main/sub icon, chọn điểm, cờ hiệu,
             │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh, tải ảnh (PhotoUploader),
-            │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung), SyncStatus (Đang lưu / Đã lưu / Chưa đồng bộ),
+            │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung, có nút hành động như Hoàn tác), Stamp (dấu trạng thái: đã lưu, chưa đồng bộ, lỗi, thùng rác), SyncStatus (trạng thái lưu, hiện bằng Stamp),
             │   │                     # xem nhanh một ngày (DayPeek)
             │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang,
             │                         # thanh ngoại tuyến (OfflineBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark),
@@ -343,3 +344,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 34 | 30/10/2026 | Chốt bản 1.0: thêm `docs/Backlog.md` (việc tồn đọng); viết lại `README.md`, cập nhật `Deploy.md`, `Project_Specs.md`, `MVP_Plan.md`, `Roadmap.md` theo hạ tầng mới (API trên máy cá nhân, Pages Direct Upload) |
 | 35 | 30/10/2026 | Hệ thiết kế 1.1: thêm `PRODUCT.md` và `DESIGN.md` ở gốc repo; `.gitignore` bỏ qua `.taste-skill/` (file tạm của skill taste-skill) |
 | 36 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 2 (font và token): `src/assets/fonts/` thay Be Vietnam Pro bằng `commissioner-vi.woff2` + `OFL-Commissioner.txt`; bỏ `@fontsource/lora` |
+| 37 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 4 (component nền): `components/ui/segmented.tsx` (+ test), `components/ui/card.tsx`, `components/diary/Stamp.tsx`, `components/diary/Toast.test.tsx` |

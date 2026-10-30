@@ -6,6 +6,7 @@ import { BottomSheet } from '@/components/diary/BottomSheet'
 import { Avatar } from '@/components/layout/Avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Segmented } from '@/components/ui/segmented'
 import { tierLimits } from '@/lib/limits'
 import { useProfile, useUpdateProfile, useUploadAvatar } from '@/lib/profile'
 import { SIGNED_OUT, useLogout } from '@/lib/session'
@@ -19,10 +20,10 @@ import { CustomFlagColors } from './components/CustomFlagColors'
 import { TimeZoneField } from './components/TimeZoneField'
 import { useDataSummary, useDeleteAccount, useWipeJournal } from './useJournalData'
 
-const THEMES: { id: ThemePreference; label: string }[] = [
-  { id: 'light', label: 'Sáng' },
-  { id: 'dark', label: 'Tối' },
-  { id: 'system', label: 'Theo hệ thống' },
+const THEMES: { value: ThemePreference; label: string }[] = [
+  { value: 'light', label: 'Sáng' },
+  { value: 'dark', label: 'Tối' },
+  { value: 'system', label: 'Theo hệ thống' },
 ]
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-ring'
@@ -284,31 +285,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           <span id={`${ids}-theme`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
             Chế độ màu
           </span>
-          <div
-            role="radiogroup"
-            aria-labelledby={`${ids}-theme`}
-            className="inline-flex gap-0.5 rounded-[14px] border-[1.5px] border-line bg-background p-[3px] max-sm:grid max-sm:grid-cols-3"
-          >
-            {THEMES.map((t) => {
-              const on = theme === t.id
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  onClick={() => setThemePreference(t.id)}
-                  className={cn(
-                    'h-[38px] cursor-pointer rounded-[11px] px-3.5 text-sm transition-colors max-sm:h-10 max-sm:px-1 max-sm:text-[13px]',
-                    focusRing,
-                    on ? 'bg-foreground font-semibold text-background' : 'font-medium hover:bg-secondary',
-                  )}
-                >
-                  {t.label}
-                </button>
-              )
-            })}
-          </div>
+          <Segmented options={THEMES} value={theme} onChange={setThemePreference} labelledBy={`${ids}-theme`} />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:min-h-14 max-sm:px-4 max-sm:py-2">
           <label htmlFor={`${ids}-lang`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">

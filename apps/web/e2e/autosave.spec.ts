@@ -23,7 +23,7 @@ test('mất mạng: gõ tiếp, có mạng lại thì tự đồng bộ', async 
   await startToday(page, 'offline')
   await context.setOffline(true)
   await page.getByLabel('Nội dung').fill('Viết lúc mất mạng.')
-  await expect(page.getByText('Chưa đồng bộ — sẽ tự lưu khi có mạng.')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('Chưa đồng bộ', { exact: true })).toBeVisible({ timeout: 10_000 })
   await expect(page.getByText(/vẫn được giữ trên trình duyệt này/)).toBeVisible()
 
   await context.setOffline(false)

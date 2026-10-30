@@ -1,5 +1,5 @@
 import { CircleAlert, CircleCheck, Info, Pencil } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CalendarCell, type DayState } from '@/components/diary/CalendarCell'
 import { EntryCard } from '@/components/diary/EntryCard'
 import { FlagPicker } from '@/components/diary/FlagPicker'
@@ -8,10 +8,14 @@ import { MoodMark } from '@/components/diary/MoodMark'
 import { PixelCell, PixelLegend } from '@/components/diary/PixelCell'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { ScorePicker } from '@/components/diary/ScorePicker'
+import { Stamp } from '@/components/diary/Stamp'
 import { SubIconPicker } from '@/components/diary/SubIconPicker'
+import { Toast } from '@/components/diary/Toast'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Segmented } from '@/components/ui/segmented'
 import { Textarea } from '@/components/ui/textarea'
 import { HealthStatus } from '@/features/health/HealthStatus'
 import { flagColors, iconSets, SCORES, type Score } from '@/lib/catalog'
@@ -40,6 +44,16 @@ const TYPE_SCALE = [
   ['reading · 400 · 18/30', 'text-reading max-w-[680px]', 'Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở.'],
   ['body · 400 · 16/24', 'text-body', 'Chỉ cần chấm điểm là ngày hôm đó đã được ghi lại.'],
   ['label · 600 · 13/18', 'text-label font-semibold', 'Còn 3 giờ 12 phút trước khi sang ngày mới'],
+] as const
+
+const VIEW_OPTIONS = [
+  { value: 'list', label: 'Danh sách' },
+  { value: 'cal', label: 'Lịch' },
+] as const
+const THEME_OPTIONS = [
+  { value: 'light', label: 'Sáng' },
+  { value: 'dark', label: 'Tối' },
+  { value: 'system', label: 'Theo hệ thống' },
 ] as const
 
 const SWATCHES = [
@@ -79,6 +93,14 @@ export function DevUiPage() {
   const [sub, setSub] = useState<string | null>('😌')
   const [flag, setFlag] = useState<string | null>(flagColors.at(-1)!.hex)
   const [keywords, setKeywords] = useState(['đọc sách', 'mưa', 'trà gừng'])
+  const [view, setView] = useState<'list' | 'cal'>('list')
+  const [themeDemo, setThemeDemo] = useState<'light' | 'dark' | 'system'>('light')
+  const [toast, setToast] = useState<string | null>(null)
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 6000)
+    return () => clearTimeout(timer)
+  }, [toast])
   const maxPhotos = tierLimits().photos.per_day_max
 
   return (
@@ -113,9 +135,9 @@ export function DevUiPage() {
 
       <Section title="Nút">
         <div className="flex flex-col gap-4">
-          {(['default', 'secondary', 'ghost', 'destructive'] as const).map((variant) => (
+          {(['cta', 'default', 'secondary', 'ghost', 'destructive'] as const).map((variant) => (
             <div key={variant} className="flex flex-wrap items-center gap-3">
-              <Button variant={variant}>{variant === 'destructive' ? 'Xóa nhật ký' : variant === 'ghost' ? 'Hủy' : variant === 'secondary' ? 'Thêm ảnh' : 'Lưu nhật ký'}</Button>
+              <Button variant={variant}>{variant === 'cta' ? 'Mở trang hôm nay' : variant === 'destructive' ? 'Xóa nhật ký' : variant === 'ghost' ? 'Hủy' : variant === 'secondary' ? 'Thêm ảnh' : 'Lưu nhật ký'}</Button>
               <Button variant={variant} disabled>
                 Vô hiệu
               </Button>
@@ -182,6 +204,37 @@ export function DevUiPage() {
           ))}
           <AddKeywordButton />
         </div>
+      </Section>
+
+      <Section title="Component nền (hệ thiết kế 1.1)">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <Segmented options={VIEW_OPTIONS} value={view} onChange={setView} label="Cách xem" className="w-[260px]" />
+            <Segmented options={THEME_OPTIONS} value={themeDemo} onChange={setThemeDemo} label="Chế độ màu" />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Stamp tone="saved">Đã lưu lúc 21:32</Stamp>
+            <Stamp tone="saving">Đang lưu…</Stamp>
+            <Stamp tone="pending">Chưa đồng bộ</Stamp>
+            <Stamp tone="error">Chưa lưu được</Stamp>
+            <Stamp tone="trash">Trong thùng rác, còn 23 ngày</Stamp>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-3">
+            <Card className="p-5">Thẻ nổi (raised)</Card>
+            <Card elevation="low" className="p-5">
+              Thẻ nhỏ (low)
+            </Card>
+            <Card elevation="flat" interactive className="p-5" onClick={() => setToast('Đã chuyển vào thùng rác')}>
+              Thẻ phẳng, bấm được: hiện thông báo
+            </Card>
+          </div>
+          <div>
+            <Button variant="secondary" onClick={() => setToast('Đã chuyển vào thùng rác')}>
+              Hiện thông báo có Hoàn tác
+            </Button>
+          </div>
+        </div>
+        <Toast action={toast ? { label: 'Hoàn tác', onClick: () => setToast(null) } : undefined}>{toast}</Toast>
       </Section>
 
       <Section title="Thông báo nhanh">

@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 
-export const API = 'http://localhost:8000'
+// Cổng API của e2e, cùng biến với playwright.config.ts (mặc định 8000 như CI).
+export const API = `http://localhost:${process.env.E2E_API_PORT ?? '8000'}`
 export const WEB_ORIGIN = 'http://localhost:5173'
 
 /** Đăng nhập thử qua API (chỉ có khi DEV_LOGIN=true). Cookie không phân biệt cổng nên dùng được cho :5173. */

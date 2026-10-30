@@ -157,7 +157,7 @@ bước 2 và bước 3.
 | `npm test` | Unit test (Vitest) |
 | `npm run typecheck`, `npm run lint` | TypeScript, oxlint |
 | `npm run build` | Bản build production vào `dist/` |
-| `npm run test:e2e` | Playwright; tự bật API và web nếu chưa chạy (cần `docker compose up -d`) |
+| `npm run test:e2e` | Playwright; tự bật API và web nếu chưa chạy (cần `docker compose up -d`). Cổng 8000 đã bận (vd. API production trên cùng máy) thì đặt `E2E_API_PORT=8001` |
 | `npm run gen:api` | Sinh lại `src/api/openapi.json` và `schema.d.ts` sau khi đổi API (CI báo lỗi nếu lệch) |
 
 ### Tác vụ vận hành

@@ -5,6 +5,7 @@ import { BottomSheet } from '@/components/diary/BottomSheet'
 import { DayPeek } from '@/components/diary/DayPeek'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Segmented } from '@/components/ui/segmented'
 import { scoreLabel, type Score } from '@/lib/catalog'
 import { timeIn, todayIn, useNow } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
@@ -42,7 +43,10 @@ const SCORE_BG: Record<Score, string> = {
 const delay = (s: number) => ({ animationDelay: `${s.toFixed(2)}s` }) as CSSProperties
 /** Điện thoại (dưới 768 px, thiết kế B10): bấm một ngày mở bảng xem nhanh thay vì cuộn tới trang. */
 const isPhone = () => !(window.matchMedia?.('(min-width: 768px)').matches ?? true)
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+const VIEWS = [
+  { value: 'list', label: 'Danh sách' },
+  { value: 'cal', label: 'Lịch' },
+] as const
 
 /** Dòng thời gian theo tháng (thiết kế B8): thống kê, nhịp tháng, danh sách trang, lịch và từ khóa trong tháng. */
 export function Timeline() {
@@ -306,33 +310,7 @@ export function Timeline() {
         <MonthRhythmCompact key={`rc${month}`} data={t} />
       </div>
 
-      <div
-        role="radiogroup"
-        aria-label="Cách xem"
-        className="grid grid-cols-2 gap-0.5 rounded-[14px] border-[1.5px] border-line bg-card p-[3px] md:hidden"
-      >
-        {(
-          [
-            ['list', 'Danh sách'],
-            ['cal', 'Lịch'],
-          ] as const
-        ).map(([k, label]) => (
-          <button
-            key={k}
-            type="button"
-            role="radio"
-            aria-checked={view === k}
-            onClick={() => setView(k)}
-            className={cn(
-              'h-[38px] cursor-pointer rounded-[11px] text-sm transition-colors duration-200',
-              view === k ? 'bg-foreground font-semibold text-background' : 'font-medium',
-              focusRing,
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Segmented options={VIEWS} value={view} onChange={setView} label="Cách xem" className="md:hidden" />
 
       <div className="flex flex-wrap items-start gap-8">
         <section

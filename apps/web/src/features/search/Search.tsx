@@ -5,6 +5,7 @@ import { BottomSheet } from '@/components/diary/BottomSheet'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Segmented } from '@/components/ui/segmented'
 import { flagHex, scoreLabel, SCORES, type Score } from '@/lib/catalog'
 import { longDateLabel, shortDateLabel, todayIn, useNow } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
@@ -13,6 +14,8 @@ import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { NO_FILTERS, PERIODS, type SearchFilters } from './searchEntries'
 import { useDebounced, useHasEntries, useRecentPages, useSearch, useTopKeywords, type SearchHit } from './useSearch'
+
+const PERIOD_OPTIONS = PERIODS.map((p) => ({ value: p.id, label: p.label }))
 
 type RecentPage = { entry_date: string; title: string | null; score: Score; sub_icon: string | null }
 
@@ -362,28 +365,17 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
                 </button>
               ))}
             </div>
-            <div role="radiogroup" aria-label="Khoảng thời gian" className="flex w-full flex-wrap items-center gap-1.5 sm:inline-flex sm:w-auto">
-              <span className="mr-1 text-[13px] leading-5 font-semibold">Thời gian</span>
-              <span className="grid w-full grid-cols-4 gap-0.5 rounded-[12px] border-[1.5px] border-line bg-card p-[3px] sm:inline-flex sm:w-auto">
-                {PERIODS.map((p) => {
-                  const on = filters.period === p.id
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={on}
-                      onClick={() => setFilters((f) => ({ ...f, period: p.id }))}
-                      className={cn(
-                        'h-8 cursor-pointer rounded-[9px] px-1.5 text-[13px] whitespace-nowrap transition-colors focus-visible:outline-3 focus-visible:outline-ring sm:px-3',
-                        on ? 'bg-foreground font-semibold text-background' : 'font-medium hover:bg-secondary',
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  )
-                })}
+            <div className="flex w-full flex-wrap items-center gap-1.5 sm:inline-flex sm:w-auto">
+              <span id={`${id}-period`} className="mr-1 text-label font-semibold">
+                Thời gian
               </span>
+              <Segmented
+                options={PERIOD_OPTIONS}
+                value={filters.period}
+                onChange={(period) => setFilters((f) => ({ ...f, period }))}
+                labelledBy={`${id}-period`}
+                className="w-full sm:w-auto"
+              />
             </div>
             <button
               type="button"

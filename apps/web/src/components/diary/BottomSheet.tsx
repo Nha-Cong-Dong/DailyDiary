@@ -26,15 +26,19 @@ type BottomSheetProps = {
 }
 
 const overlay =
-  'fixed inset-0 z-50 bg-[rgb(20_17_13/0.55)] duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0'
+  'fixed inset-0 z-50 bg-[rgb(20_17_13/0.55)] ease-out data-open:animate-in data-open:fade-in-0 data-open:duration-(--dur-sheet-in) data-closed:animate-out data-closed:fade-out-0 data-closed:duration-(--dur-sheet-out)'
 
-/** Khung bảng trượt: tràn ngang, bám đáy, bo góc trên, chừa vùng an toàn của điện thoại. */
+/**
+ * Khung bảng trượt: tràn ngang, bám đáy, bo góc trên, chừa vùng an toàn của điện thoại. Trượt trọn chiều cao của chính nó
+ * từ mép dưới theo đường cong ngăn kéo (DESIGN.md mục 6): mở --dur-sheet-in, đóng nhanh hơn --dur-sheet-out, ra theo
+ * đường đã vào. Radix chỉ chờ animation (không chờ transition) trước khi gỡ hộp, nên dùng keyframes của tw-animate.
+ */
 const sheet =
-  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-[24px] border-[1.5px] border-b-0 border-line bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-foreground outline-none duration-300 ease-out data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-8 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-8'
+  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-lg border-[1.5px] border-b-0 border-line bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-foreground outline-none ease-drawer data-open:animate-in data-open:slide-in-from-bottom data-open:duration-(--dur-sheet-in) data-closed:animate-out data-closed:slide-out-to-bottom data-closed:duration-(--dur-sheet-out)'
 
 /** Từ 768 px: hộp thoại giữa màn, rộng 440 px mặc định (đổi bằng `className`, vd. `md:max-w-[980px]`). */
 const centred =
-  'md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[calc(100dvh-2rem)] md:w-full md:max-w-[min(440px,calc(100%-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:gap-3.5 md:rounded-[22px] md:border-b-[1.5px] md:bg-popover md:p-7 md:data-open:slide-in-from-bottom-3 md:data-closed:slide-out-to-bottom-3'
+  'md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[calc(100dvh-2rem)] md:w-full md:max-w-[min(440px,calc(100%-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:gap-3.5 md:rounded-lg md:border-b-[1.5px] md:bg-popover md:p-7 md:ease-out md:data-open:fade-in-0 md:data-open:slide-in-from-bottom-3 md:data-open:duration-(--dur-base) md:data-closed:fade-out-0 md:data-closed:slide-out-to-bottom-3 md:data-closed:duration-(--dur-sheet-out)'
 
 const grabber = 'h-1 w-10 shrink-0 self-center rounded-full bg-border'
 

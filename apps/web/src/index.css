@@ -114,7 +114,7 @@
     --shadow-ink-lg: 6px 6px 0 var(--ink-shadow);
     /* Nút chính: bóng màu đào, một nút mỗi màn. */
     --shadow-accent: 4px 4px 0 var(--cta-shadow);
-    --shadow-danger-sm: 3px 3px 0 var(--destructive);
+    --shadow-danger-sm: 2px 2px 0 var(--destructive);
     --shadow-danger: 4px 4px 0 var(--destructive);
 }
 

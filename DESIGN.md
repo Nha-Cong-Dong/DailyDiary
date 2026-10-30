@@ -2,7 +2,7 @@
 
 |                |                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–3)                                   |
+| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–4)                                   |
 | **Cập nhật**   | 30/10/2026                                                                                        |
 | **Bản trực quan** | Trang hệ thiết kế có bản chạy thử từng component: https://claude.ai/artifact/5XQcMY3cAg23QNpz8qy4og |
 | **Liên quan**  | Người dùng, mục đích, cam kết thương hiệu: [`PRODUCT.md`](PRODUCT.md) · Màn hình và tính năng: [`docs/Project_Specs.md`](docs/Project_Specs.md) |
@@ -96,7 +96,18 @@ hồ đếm ngược) đặt trong ô có độ rộng cố định.
 - Tắt: nền `sunk`, chữ `ink-faint`, viền nét đứt `disabled-line`, không bóng.
 - Đang tải: khối `sunk` phẳng, không dải gradient chạy.
 - Trạng thái lưu (Đã lưu, Chưa đồng bộ, Chưa lưu được, Trong thùng rác còn N ngày) dùng component **Stamp**, luôn có
-  icon và chữ.
+  icon và chữ. Stamp không có chuyển động: trạng thái lưu đổi hàng chục lần khi đang viết.
+
+Component nền trong code (`apps/web/src/components/`):
+
+- `ui/button.tsx`: `cta` (nút chính, bóng đào, một nút mỗi màn), `default` (đặc mực, không bóng), `secondary`,
+  `destructive`, `destructive-solid`, `ghost`, `outline`, `link`.
+- `ui/card.tsx`: `elevation` = `raised` (4px), `low` (2px), `flat` (trong danh sách dài); `interactive` cho thẻ bấm được.
+- `ui/segmented.tsx`: chọn một trong 2–4 mục ngang hàng; mũi tên, Home, End để đổi mục.
+- `diary/Stamp.tsx`: `tone` = `saved`, `saving`, `pending`, `error`, `trash`.
+- `diary/Toast.tsx`: thông báo nổi, `action` cho nút như Hoàn tác; trượt lên khi hiện, trượt xuống theo đường cũ khi ẩn.
+- `diary/BottomSheet.tsx`: trên điện thoại trượt trọn chiều cao từ đáy (`ease-drawer`, mở 280ms, đóng 200ms); từ 768px là
+  hộp giữa màn.
 
 ## 6. Chuyển động
 
