@@ -13,7 +13,7 @@ import { meQuery, type Me } from '@/lib/profile'
  * mới gọi. Dùng đúng cấu hình truy vấn của hook nên màn nhận lại từ cache. Lỗi (401, mất mạng) bỏ qua: màn tự gọi lại
  * và hiện lỗi như bình thường.
  */
-type Prefetch = (client: QueryClient, me: Me, url: URL, params: Record<string, string | undefined>) => void
+type Prefetch = (client: QueryClient, me: Me, url: URL, params: Record<string, string | undefined>) => unknown
 
 const today = (me: Me): DateString => todayIn(me.timezone)
 const joined = (me: Me): DateString => todayIn(me.timezone, new Date(me.joined_at))
@@ -23,9 +23,7 @@ export const prefetchers = {
     void client.prefetchQuery(dayQuery(today(me)))
     void client.prefetchQuery(recentDaysQuery(today(me)))
   },
-  day: (client, _me, _url, params) => {
-    if (params.date) void client.prefetchQuery(dayQuery(params.date))
-  },
+  day: (client, _me, _url, params) => (params.date ? client.prefetchQuery(dayQuery(params.date)) : undefined),
   timeline: (client, me, url) => {
     const asked = url.searchParams.get('m')
     const month = isMonth(asked) ? asked : monthOf(today(me))
@@ -37,14 +35,17 @@ export const prefetchers = {
   },
 } satisfies Record<string, Prefetch>
 
+/** Trả về một promise xong khi dữ liệu chính đã tải (hoặc lỗi, bỏ qua); nơi gọi không bắt buộc phải chờ. */
 export function prefetchRoute(
   client: QueryClient,
   name: keyof typeof prefetchers,
   url: URL,
   params: Record<string, string | undefined>,
-) {
-  client.fetchQuery(meQuery).then(
-    (me) => prefetchers[name](client, me, url, params),
+): Promise<void> {
+  return client.fetchQuery(meQuery).then(
+    async (me) => {
+      await prefetchers[name](client, me, url, params)
+    },
     () => {},
   )
 }

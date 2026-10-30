@@ -16,11 +16,16 @@ const devPublicRoutes: RouteObject[] = import.meta.env.DEV
  * Loader chỉ khởi động việc tải trước dữ liệu của màn (routes/prefetch.ts, nạp lười để không làm nặng gói đầu) rồi
  * trả ngay, không chặn việc vẽ; màn vẫn tự gọi query như cũ và nhận lại từ cache.
  */
+/** Trang ngày chờ dữ liệu tối đa chừng này trước khi chuyển: có dữ liệu thì vòng icon đích có mặt ngay, và chuyển cảnh
+ * nối (DayMorph) chạy được; mạng chậm hơn thì vẫn chuyển trang như cũ, màn tự hiện trạng thái đang mở. */
+const DAY_WAIT_MS = 300
+
 function warm(client: QueryClient, name: 'today' | 'day' | 'timeline' | 'pixels'): LoaderFunction {
   return ({ request, params }) => {
     const url = new URL(request.url)
-    void import('./prefetch').then((m) => m.prefetchRoute(client, name, url, params))
-    return null
+    const loaded = import('./prefetch').then((m) => m.prefetchRoute(client, name, url, params))
+    if (name !== 'day') return null
+    return Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, DAY_WAIT_MS))]).then(() => null)
   }
 }
 

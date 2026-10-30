@@ -21,6 +21,7 @@ import { useProfile } from '@/lib/profile'
 import { ConflictDialog } from './components/ConflictDialog'
 import { KeywordEditor } from './components/KeywordEditor'
 import { DayClock } from './components/DayClock'
+import { flyToToday } from './flyToToday'
 import { MonthStrip } from './components/MonthStrip'
 import { toDayEntry, type DayEntry } from './entries'
 import { deletePhoto, makeUploadPhoto, reorderPhotos } from './uploadPhoto'
@@ -123,9 +124,11 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
   // Mỗi lần gõ: hẹn ghi nháp và đồng bộ (bộ máy tự bỏ qua khi không có gì đổi).
   useEffect(() => change(fieldsKey === 'null' ? null : (JSON.parse(fieldsKey) as DraftFields)), [change, fieldsKey])
 
-  // Chấm (hoặc đổi) điểm: lưu ngay, cùng các trường đang có.
+  // Chấm (hoặc đổi) điểm: lưu ngay, cùng các trường đang có. Lần chấm đầu trong ngày thì icon bay vào ô hôm nay của
+  // dải tháng; đổi điểm sau đó thì đổi ngay (thao tác lặp không diễn lại).
   function pick(next: Score) {
-    setScore(next)
+    if (score === null) flyToToday(next, () => setScore(next))
+    else setScore(next)
     void autosave.saveNow({ score: next, sub_icon: sub, flag_color: flag, title, content, keywords })
   }
 

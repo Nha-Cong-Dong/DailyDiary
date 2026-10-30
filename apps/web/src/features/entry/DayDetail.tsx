@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router'
 import { KeywordChip } from '@/components/diary/KeywordChip'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { PhotoTile, PhotoViewer } from '@/components/diary/PhotoViewer'
+import { DayMorph } from '@/components/diary/DayMorph'
 import { Toast } from '@/components/diary/Toast'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -12,11 +13,14 @@ import { addDays, dayOfMonth, editedOnTheDay, isValidDate, longDateLabel, shortD
 import { useProfile } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
-import { ConfirmDialog, PhoneBar, phoneIconButton } from './components/EntryFormParts'
+import { PhoneBar, phoneIconButton } from './components/EntryFormParts'
 import { saveErrorMessage, useDeleteEntry, useRestoreEntry, type EntryDeleted } from './entries'
 import { useDay } from './useDay'
 
 const pill = 'inline-flex h-10 items-center gap-1.5 rounded-[12px] px-3 text-sm font-medium'
+
+/** Thời gian thông báo Hoàn tác còn trên màn sau khi chuyển một trang vào thùng rác (B2). */
+const UNDO_MS = 6000
 
 /** "Thứ Bảy 17/10" → nút sang ngày bên cạnh; ngày sau hôm nay thì khóa. */
 function DayStep({ date, dir, disabled }: { date: string; dir: 'prev' | 'next'; disabled: boolean }) {
@@ -61,17 +65,27 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
   const valid = isValidDate(date)
   const { data: entry, isPending, isError } = useDay(date)
   const [photo, setPhoto] = useState<number | null>(null)
-  const [confirming, setConfirming] = useState(false)
-  // Xóa mềm (F-01): DELETE /entries/{day}; khôi phục bằng POST …/restore trước `restore_until`.
+  // Xóa mềm (F-01): DELETE /entries/{day}; khôi phục bằng POST …/restore trước `restore_until`. Không hỏi lại (B2,
+  // DESIGN.md mục 8): trang vào thùng rác ngay, thông báo có nút Hoàn tác trong 6 giây; khôi phục đưa trang và link chia
+  // sẻ (nếu có) về như cũ. Xóa vĩnh viễn trong Thùng rác thì vẫn hỏi.
   const deleteEntry = useDeleteEntry(date)
   const restoreEntry = useRestoreEntry(date)
   const [deleted, setDeleted] = useState<EntryDeleted | null>(null)
   const [toast, setToast] = useState(false)
   useEffect(() => {
     if (!toast) return
-    const t = window.setTimeout(() => setToast(false), 8000)
+    const t = window.setTimeout(() => setToast(false), UNDO_MS)
     return () => window.clearTimeout(t)
   }, [toast])
+
+  function remove() {
+    deleteEntry.mutate(date, {
+      onSuccess: (info) => {
+        setDeleted(info)
+        setToast(true)
+      },
+    })
+  }
 
   function restore() {
     restoreEntry.mutate(date, {
@@ -186,10 +200,12 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
           />
           <div className="flex flex-col gap-4 px-4 pb-2 md:gap-[18px] md:px-[clamp(20px,4vw,40px)] md:pb-10">
             <div className="-mt-11 flex flex-wrap items-end justify-between gap-4 md:-mt-[52px]">
-              <span className="flex size-[88px] items-center justify-center rounded-full border-[1.5px] border-line bg-card md:size-[104px]">
-                <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={64} className="md:hidden" />
-                <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={76} className="max-md:hidden" />
-              </span>
+              <DayMorph date={date}>
+                <span className="flex size-[88px] items-center justify-center rounded-full border-[1.5px] border-line bg-card md:size-[104px]">
+                  <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={64} className="md:hidden" />
+                  <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={76} className="max-md:hidden" />
+                </span>
+              </DayMorph>
               <div className="flex flex-wrap gap-2 max-md:hidden">
                 <Button
                   variant="secondary"
@@ -215,7 +231,8 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
                   size="icon"
                   className="size-10 rounded-[12px] shadow-none"
                   aria-label="Xóa nhật ký ngày này"
-                  onClick={() => setConfirming(true)}
+                  onClick={remove}
+                  disabled={deleteEntry.isPending}
                 >
                   <Trash2 aria-hidden="true" />
                 </Button>
@@ -300,7 +317,8 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
             {/* Điện thoại: Xóa nằm cuối trang thay cho nút thùng rác trên hàng nút. */}
             <Button
               variant="outline"
-              onClick={() => setConfirming(true)}
+              onClick={remove}
+              disabled={deleteEntry.isPending}
               className="mt-2 h-11 rounded-[12px] border-destructive text-sm font-semibold text-destructive hover:bg-destructive-soft md:hidden"
             >
               <Trash2 className="size-[18px]" aria-hidden="true" />
@@ -312,36 +330,10 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
 
       {entry ? <PhotoViewer photos={entry.photos} index={photo} onIndexChange={setPhoto} /> : null}
 
-      <ConfirmDialog
-        open={confirming}
-        onOpenChange={setConfirming}
-        title={`Xóa nhật ký ngày ${dayOfMonth(date)}/${Number(date.slice(5, 7))}?`}
-        description={`Điểm, nội dung${entry?.photos.length ? ` và ${entry.photos.length} ảnh` : ''} của ngày này sẽ được chuyển vào thùng rác. Khôi phục được trong 30 ngày.${share?.active ? ' Link chia sẻ của trang này sẽ tắt.' : ''}`}
-        cancelLabel="Giữ lại"
-        actionLabel="Xóa nhật ký"
-        onAction={() => {
-          setConfirming(false)
-          deleteEntry.mutate(date, {
-            onSuccess: (info) => {
-              setDeleted(info)
-              setToast(true)
-            },
-          })
-        }}
-      />
 
-      {toast ? (
-        <Toast>
-          Đã xóa trang ngày {dayOfMonth(date)}/{Number(date.slice(5, 7))}.
-          <button
-            type="button"
-            onClick={restore}
-            className="ml-1 cursor-pointer underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-ring"
-          >
-            Hoàn tác
-          </button>
-        </Toast>
-      ) : null}
+      <Toast action={restoreEntry.isPending ? undefined : { label: 'Hoàn tác', onClick: restore }}>
+        {toast ? `Đã chuyển trang ngày ${dayOfMonth(date)}/${Number(date.slice(5, 7))} vào thùng rác.` : null}
+      </Toast>
     </div>
   )
 }

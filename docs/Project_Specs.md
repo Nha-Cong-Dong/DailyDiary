@@ -88,7 +88,8 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 - **Nhãn:** sửa lần cuối trong chính ngày đó (múi giờ người dùng) → "ghi đúng ngày", ngược lại → "cập nhật muộn".
 - **Ba cách viết:** Hôm nay (tự lưu) · Ghi bù (ngày đã qua chưa có trang) · Sửa trang cũ (chỉ lưu nháp, lên máy chủ khi
   bấm "Lưu thay đổi"). Chấm điểm nhanh ở trang chủ và dòng thời gian.
-- **Xóa** là xóa mềm: vào Thùng rác, khôi phục trong 30 ngày (`entry.restore_days`). Ghi lại vào ngày đã xóa mềm tạo
+- **Xóa** là xóa mềm, không hỏi lại: vào Thùng rác ngay, thông báo có nút Hoàn tác trong 6 giây; khôi phục trong 30 ngày
+  (`entry.restore_days`). Ghi lại vào ngày đã xóa mềm tạo
   trang mới thay bản cũ (ảnh cũ xóa ngay).
 - **Ảnh:** chọn JPEG/PNG/HEIC/HEIF/WebP ≤ 10 MB; HEIC giải mã trên trình duyệt (WebAssembly). Trình duyệt nén: ảnh chính
   ≤ 1920 px, ≤ 1,5 MB; ảnh nhỏ ≤ 320 px, ≤ 200 KB; WebP 0,8 (JPEG khi không hỗ trợ WebP); **bỏ EXIF/GPS**; ảnh gốc không

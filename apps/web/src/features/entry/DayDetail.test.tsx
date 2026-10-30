@@ -45,13 +45,10 @@ describe('Chi tiết một ngày trên điện thoại (B10)', () => {
     expect(screen.getByRole('link', { name: 'Sửa trang này' })).toHaveAttribute('href', '/today')
     expect(screen.getByRole('link', { name: 'Về Dòng thời gian' })).toHaveAttribute('href', '/timeline')
 
+    // Xóa không hỏi lại (B2): trang vào thùng rác ngay, thông báo có nút Hoàn tác.
     fireEvent.click(screen.getByRole('button', { name: 'Xóa trang này' }))
-    const sheet = await screen.findByRole('alertdialog', { name: 'Xóa nhật ký ngày 18/10?' })
-    const [first, second] = within(sheet).getAllByRole('button')
-    expect(first).toHaveTextContent('Xóa nhật ký')
-    expect(second).toHaveTextContent('Giữ lại')
-    fireEvent.click(first)
-    const toast = await screen.findByText(/Đã xóa trang ngày 18\/10/)
+    const toast = await screen.findByText(/Đã chuyển trang ngày 18\/10 vào thùng rác/)
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
     expect(calls.at(-1)).toMatchObject({ method: 'DELETE', path: '/entries/2026-10-18' })
     expect(screen.getByRole('button', { name: 'Khôi phục trang' })).toBeInTheDocument()
 

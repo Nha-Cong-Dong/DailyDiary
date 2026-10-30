@@ -36,12 +36,14 @@ export function ScorePicker({
             type="button"
             aria-label={`Điểm ${score}, ${label}`}
             aria-pressed={on}
+            // Màn Hôm nay tìm nút theo thuộc tính này để cho icon bay vào ô hôm nay của dải tháng.
+            data-score-option={score}
             onClick={() => onChange(score)}
             className={cn(
-              'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-[1.5px] text-foreground transition-[transform,box-shadow,background-color] duration-200 ease-out outline-none hover:-translate-y-0.5 active:[transform:translate(2px,2px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+              'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-[1.5px] text-foreground transition-[translate,box-shadow,background-color] duration-(--dur-fast) ease-out outline-none hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none active:duration-(--dur-press) focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
               caption === 'number' ? 'h-[92px]' : caption === 'label' ? 'min-h-20 py-2.5 sm:pt-3.5' : 'h-[72px]',
               on
-                ? 'border-line bg-secondary shadow-ink-sm'
+                ? 'border-line bg-lavender-soft shadow-ink-sm'
                 : 'border-border bg-transparent hover:border-line hover:bg-card',
               itemClassName,
             )}

@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 38 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 39 (31/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -143,6 +143,7 @@ dailydiary/
             │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; useDay.ts (dayQuery); uploadPhoto.ts
             │   │                     # (nén + PUT presigned, có tiến độ); useRecentDays.ts (dải tháng), useFrequentSubIcons.ts
             │   │                     # (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột, components/ConflictDialog.tsx);
+            │   │                     # flyToToday.ts (icon vừa chấm bay vào ô hôm nay của dải tháng);
             │   │                     # components/ vì ≥ 6 component (có DayClock: dải 24 giờ, MonthStrip: dải tháng)
             │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
             │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10);
@@ -160,7 +161,7 @@ dailydiary/
             │   │                     # + điều khiển tự viết theo DESIGN.md: segmented.tsx (chọn một trong vài mục), card.tsx
             │   ├── diary/            # thành phần nhật ký dùng chung: main/sub icon, chọn điểm, cờ hiệu,
             │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh, tải ảnh (PhotoUploader),
-            │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung, có nút hành động như Hoàn tác), Stamp (dấu trạng thái: đã lưu, chưa đồng bộ, lỗi, thùng rác), SyncStatus (trạng thái lưu, hiện bằng Stamp),
+            │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung, có nút hành động như Hoàn tác), Stamp (dấu trạng thái: đã lưu, chưa đồng bộ, lỗi, thùng rác), SyncStatus (trạng thái lưu, hiện bằng Stamp), DayMorph (chuyển cảnh nối icon một ngày sang trang ngày),
             │   │                     # xem nhanh một ngày (DayPeek)
             │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang,
             │                         # thanh ngoại tuyến (OfflineBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark),
@@ -346,3 +347,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 36 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 2 (font và token): `src/assets/fonts/` thay Be Vietnam Pro bằng `commissioner-vi.woff2` + `OFL-Commissioner.txt`; bỏ `@fontsource/lora` |
 | 37 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 4 (component nền): `components/ui/segmented.tsx` (+ test), `components/ui/card.tsx`, `components/diary/Stamp.tsx`, `components/diary/Toast.test.tsx` |
 | 38 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 5a: `features/entry/components/DayClock.tsx`, đổi tên `RecentDays.tsx` thành `MonthStrip.tsx` (+ `MonthStrip.test.tsx`), `src/lib/theme.test.ts` |
+| 39 | 31/10/2026 | Hệ thiết kế 1.1, giai đoạn 5b: `components/diary/DayMorph.tsx` (chuyển cảnh nối bằng `ViewTransition` của React), `features/entry/flyToToday.ts` |

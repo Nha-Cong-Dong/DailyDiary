@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp, Image, RotateCcw } from 'lucide-react'
 import { Fragment } from 'react'
 import { Link } from 'react-router'
+import { DayMorph } from '@/components/diary/DayMorph'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { flagHex, scoreLabel, type Score } from '@/lib/catalog'
 import { timeIn, todayIn, weekdayShort } from '@/lib/date'
@@ -60,14 +61,16 @@ function EntryRow({
           'flex items-center gap-3 rounded-[14px] px-3 py-2.5 shadow-[2px_2px_0_var(--ink-shadow)] md:gap-3.5 md:rounded-[16px] md:px-4 md:py-3',
         )}
       >
-        <span
-          role="img"
-          aria-label={iconLabel}
-          className="flex size-[38px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background md:size-11"
-        >
-          <MoodMark iconSetId={iconSetId} score={entry.score} size={28} className="md:hidden" />
-          <MoodMark iconSetId={iconSetId} score={entry.score} size={32} className="max-md:hidden" />
-        </span>
+        <DayMorph date={entry.entry_date}>
+          <span
+            role="img"
+            aria-label={iconLabel}
+            className="flex size-[38px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background md:size-11"
+          >
+            <MoodMark iconSetId={iconSetId} score={entry.score} size={28} className="md:hidden" />
+            <MoodMark iconSetId={iconSetId} score={entry.score} size={32} className="max-md:hidden" />
+          </span>
+        </DayMorph>
         <span className="flex flex-col">
           <span className="text-sm leading-5 font-semibold md:text-[15px] md:leading-[22px]">Chỉ chấm điểm</span>
           <span className="text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
@@ -89,14 +92,16 @@ function EntryRow({
         />
       ) : null}
       <span className="grid grid-cols-[44px_minmax(0,1fr)] gap-3 pt-3 pr-3.5 pb-3.5 pl-3 md:grid-cols-[56px_minmax(0,1fr)] md:gap-4 md:pt-4 md:pr-5 md:pb-[18px] md:pl-4">
-        <span
-          role="img"
-          aria-label={iconLabel}
-          className="flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-background group-hover:[&>span>span:last-child]:-translate-y-0.5 group-hover:[&>span>span:last-child]:-rotate-4 md:size-14 [&>span>span:last-child]:transition-transform [&>span>span:last-child]:duration-300"
-        >
-          <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={32} className="md:hidden" />
-          <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={40} className="max-md:hidden" />
-        </span>
+        <DayMorph date={entry.entry_date}>
+          <span
+            role="img"
+            aria-label={iconLabel}
+            className="flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-background group-hover:[&>span>span:last-child]:-translate-y-0.5 group-hover:[&>span>span:last-child]:-rotate-4 md:size-14 [&>span>span:last-child]:transition-transform [&>span>span:last-child]:duration-300"
+          >
+            <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={32} className="md:hidden" />
+            <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={40} className="max-md:hidden" />
+          </span>
+        </DayMorph>
         <span className="flex min-w-0 flex-col gap-0.5 md:gap-1">
           <span className="text-xs leading-[18px] text-muted-foreground tabular-nums md:hidden">{shortMeta(entry, timeZone)}</span>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] leading-5 text-muted-foreground tabular-nums max-md:hidden">

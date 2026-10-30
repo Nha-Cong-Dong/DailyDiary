@@ -193,6 +193,18 @@
     }
 }
 
+/* Chuyển cảnh nối (B1, DESIGN.md mục 6): icon của một ngày nối sang vòng icon ở trang ngày (DayMorph, lớp `day-morph`
+   do React đặt); icon vừa chấm bay vào ô hôm nay của dải tháng (`today-mood`). Phần còn lại của trang mờ chéo nhanh. */
+::view-transition-group(*.day-morph),
+::view-transition-group(today-mood) {
+    animation-duration: var(--dur-morph);
+    animation-timing-function: var(--ease-move);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 120ms;
+}
+
 /* Khi in trang, nội dung "hiện khi cuộn" chưa từng vào khung nhìn vẫn phải hiện đủ. */
 @media print {
     .reveal-on-scroll,
@@ -234,6 +246,14 @@
     .reveal-on-scroll,
     .paint-on-scroll {
         animation: none;
+    }
+    /* Chuyển cảnh nối: không bay, chỉ mờ chéo. */
+    ::view-transition-group(*) {
+        animation: none !important;
+    }
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 150ms !important;
     }
     /* Hộp thoại, ngăn kéo, menu của shadcn (tw-animate-css): giữ hiện/ẩn dần, bỏ trượt và phóng to. */
     .animate-in,

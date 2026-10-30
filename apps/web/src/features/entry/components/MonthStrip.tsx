@@ -74,7 +74,13 @@ export function MonthStrip({ today, iconSetId, todayScore, todaySub, recent }: M
             future ? '' : score ? ` · điểm ${score}` : isToday ? ' · chưa chấm' : ' · chưa ghi, chạm để ghi bù'
           }`
           return (
-            <div key={date} role="listitem" ref={isToday ? todayCell : undefined} className="w-12 shrink-0 snap-end">
+            <div
+              key={date}
+              role="listitem"
+              ref={isToday ? todayCell : undefined}
+              data-today-cell={isToday ? '' : undefined}
+              className="w-12 shrink-0 snap-end"
+            >
               <CalendarCell
                 day={day}
                 weekday={weekdayShort(date)}
@@ -83,6 +89,7 @@ export function MonthStrip({ today, iconSetId, todayScore, todaySub, recent }: M
                 iconSetId={iconSetId}
                 state={isToday ? 'today' : future ? 'future' : 'past'}
                 label={label}
+                morphDate={date}
                 className="w-full"
                 onClick={
                   future

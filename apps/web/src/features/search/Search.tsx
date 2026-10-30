@@ -2,6 +2,7 @@ import { ArrowLeft, Check, ChevronDown, ArrowRight, Image, Search as SearchIcon,
 import { useId, useState } from 'react'
 import { Link } from 'react-router'
 import { BottomSheet } from '@/components/diary/BottomSheet'
+import { DayMorph } from '@/components/diary/DayMorph'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -135,14 +136,16 @@ function ResultCard({ e, q, iconSetId, index }: { e: SearchHit; q: string; iconS
           className="border-r-[1.5px] border-line bg-secondary"
           style={e.flag_color ? { backgroundColor: flagHex(e.flag_color, dark) } : undefined}
         />
-        <span
-          role="img"
-          aria-label={`Điểm ${e.score}, ${scoreLabel(iconSetId, e.score)}`}
-          className="mt-3 flex size-10 items-center justify-center self-start rounded-full border-[1.5px] border-line bg-background md:mt-4 md:size-14"
-        >
-          <MoodMark iconSetId={iconSetId} score={e.score} subIcon={e.sub_icon} size={28} className="md:hidden" />
-          <MoodMark iconSetId={iconSetId} score={e.score} subIcon={e.sub_icon} size={36} className="max-md:hidden" />
-        </span>
+        <DayMorph date={e.entry_date}>
+          <span
+            role="img"
+            aria-label={`Điểm ${e.score}, ${scoreLabel(iconSetId, e.score)}`}
+            className="mt-3 flex size-10 items-center justify-center self-start rounded-full border-[1.5px] border-line bg-background md:mt-4 md:size-14"
+          >
+            <MoodMark iconSetId={iconSetId} score={e.score} subIcon={e.sub_icon} size={28} className="md:hidden" />
+            <MoodMark iconSetId={iconSetId} score={e.score} subIcon={e.sub_icon} size={36} className="max-md:hidden" />
+          </span>
+        </DayMorph>
         <span className="flex min-w-0 flex-col gap-0.5 pt-2.5 pr-3.5 pb-3 md:gap-1 md:py-4 md:pr-5 md:pb-[18px] md:pl-1">
           <span className="text-xs leading-[18px] text-muted-foreground md:hidden">
             {shortDateLabel(e.entry_date).replace(/ (\d+)\/(\d+)$/, `, $1/$2/${e.entry_date.slice(0, 4)}`)} · Điểm {e.score}

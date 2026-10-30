@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 import type { Score } from '@/lib/catalog'
+import { DayMorph } from './DayMorph'
 import { MoodMark } from './MoodMark'
 
 export type DayState = 'past' | 'today' | 'future'
@@ -21,8 +22,11 @@ type CalendarCellProps = {
   /** Class/style cho vùng icon (ví dụ icon lần lượt hiện ra trên landing). */
   iconClassName?: string
   iconStyle?: CSSProperties
-  /** Vị trí số ngày: 'bottom' (mặc định, landing, 7 ngày qua) hoặc 'top' (lịch tháng ở Dòng thời gian, thiết kế B8/B10). */
+  /** Vị trí số ngày: 'bottom' (mặc định, landing, dải tháng) hoặc 'top' (lịch tháng ở Dòng thời gian, thiết kế B8/B10). */
   numberPosition?: 'top' | 'bottom'
+  /** Ngày "YYYY-MM-DD" để icon nối sang vòng icon ở trang ngày khi chuyển trang (DayMorph). Chỉ dùng khi màn không
+   * có phần tử nào khác mang icon của cùng ngày. */
+  morphDate?: string
 }
 
 /** Một ô ngày trong lịch tháng: main icon + sub icon, hoặc vòng nét đứt nếu ngày đã qua mà chưa ghi. */
@@ -40,6 +44,7 @@ export function CalendarCell({
   iconClassName,
   iconStyle,
   numberPosition = 'bottom',
+  morphDate,
 }: CalendarCellProps) {
   const icon = size === 'md' ? 32 : 24
   const classes = cn(
@@ -73,8 +78,18 @@ export function CalendarCell({
         </span>
       ) : null}
       {numberPosition === 'top' ? number : null}
-      <span className={cn('flex items-center justify-center', iconClassName)} style={{ width: icon, height: icon, ...iconStyle }}>
-        {score ? (
+      <span
+        data-cell-icon=""
+        className={cn('flex items-center justify-center', iconClassName)}
+        style={{ width: icon, height: icon, ...iconStyle }}
+      >
+        {score && morphDate ? (
+          <DayMorph date={morphDate}>
+            <span className="inline-flex">
+              <MoodMark iconSetId={iconSetId} score={score} subIcon={subIcon} size={icon} variant="plain" />
+            </span>
+          </DayMorph>
+        ) : score ? (
           <MoodMark iconSetId={iconSetId} score={score} subIcon={subIcon} size={icon} variant="plain" />
         ) : state === 'future' ? null : (
           <span

@@ -2,7 +2,7 @@
 
 |                |                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–4 và 5a)                             |
+| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–5)                                   |
 | **Cập nhật**   | 30/10/2026                                                                                        |
 | **Bản trực quan** | Trang hệ thiết kế có bản chạy thử từng component: https://claude.ai/artifact/5XQcMY3cAg23QNpz8qy4og |
 | **Liên quan**  | Người dùng, mục đích, cam kết thương hiệu: [`PRODUCT.md`](PRODUCT.md) · Màn hình và tính năng: [`docs/Project_Specs.md`](docs/Project_Specs.md) |
@@ -165,9 +165,9 @@ Tối đa ba khoảnh khắc lớn; không hiệu ứng theo chuột, không vid
 | Chế độ "Theo giờ" | tối từ 20:00 đến 05:00 theo đồng hồ của máy (chế độ màu phải chạy trước khi tải hồ sơ, nên không theo múi giờ hồ sơ) |
 | Chống nháy sáng chế độ tối, `theme-color` | `index.html` |
 | Segmented dùng chung | Dòng thời gian, Hồ sơ, Tìm kiếm |
-| **B1** Chuyển cảnh nối | ô lịch → trang ngày, pixel → tháng, kết quả tìm kiếm → trang ngày |
+| **B1** Chuyển cảnh nối | icon của một ngày (dải tháng, thẻ Dòng thời gian, kết quả tìm kiếm) nối sang vòng icon ở trang ngày và ngược lại khi quay về (`DayMorph`, `ViewTransition` của React); lần chấm đầu trong ngày, icon bay vào ô hôm nay của dải tháng (`flyToToday`). "Pixel → tháng" không áp dụng: Year in Pixels mở bảng xem nhanh, không chuyển trang |
 | **B2** Hoàn tác thay hộp xác nhận | xóa một trang vào thùng rác: thông báo "Đã chuyển vào thùng rác · Hoàn tác" 6 giây; xóa vĩnh viễn vẫn hỏi |
-| **B5** Nháp khi mất mạng | cơ chế đã có (F-06: IndexedDB, thử lại khi có mạng); 1.1 thêm Stamp "Chưa đồng bộ" và test e2e mất mạng |
+| **B5** Nháp khi mất mạng | cơ chế đã có (F-06: IndexedDB, thử lại khi có mạng); 1.1 hiện bằng Stamp "Chưa đồng bộ"; e2e `autosave.spec.ts` kiểm luồng mất mạng |
 
 Đề xuất B3 (ẩn thanh tab khi gõ), B4 (vuốt giữa các ngày), B6 (rung khi chấm điểm), B7 (nút "Hôm nay" nổi) để sau,
 ghi trong `docs/Backlog.md`.
