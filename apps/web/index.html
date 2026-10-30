@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#FFFCF8" />
+    <!-- Bật chế độ tối trước khi CSS và React chạy, để trang không nháy trắng khi mở (logic giống src/lib/theme.ts).
+         Đổi nội dung script thì tính lại mã băm sha256 trong public/_headers (script-src). -->
+    <script>(function(){var t;try{t=localStorage.getItem('jotly-theme')}catch(e){}var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');document.querySelector('meta[name="theme-color"]').content='#14110D'}})()</script>
     <title>Jotly · Chạm để ghi chú, mở để nhìn lại</title>
   </head>
   <body>

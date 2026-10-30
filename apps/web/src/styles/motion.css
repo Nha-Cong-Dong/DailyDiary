@@ -166,12 +166,12 @@
     &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink-shadow); }
 }
 
-/* Nút chính "đặc mực" có bóng hồng (thiết kế .j-cta): nhấc lên bóng dài ra, ấn xuống bóng ngắn lại. */
+/* Nút chính "đặc mực" có bóng màu đào (DESIGN.md mục 4): nhấc lên bóng dài ra, ấn xuống bóng ngắn lại. */
 @utility cta {
-    box-shadow: 4px 4px 0 var(--score-3);
+    box-shadow: 4px 4px 0 var(--cta-shadow);
     transition: transform 0.18s ease, box-shadow 0.18s ease;
-    &:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--score-3); }
-    &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--score-3); }
+    &:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--cta-shadow); }
+    &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--cta-shadow); }
 }
 
 /* Nút đặc (không có bóng): chỉ nhấc và ấn. */

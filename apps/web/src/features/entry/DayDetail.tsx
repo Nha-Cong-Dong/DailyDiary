@@ -93,7 +93,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
     return (
       <div className="mx-auto flex max-w-[680px] flex-col items-start gap-4">
         {back}
-        <h1 className="text-title-2 font-bold">Ngày không hợp lệ</h1>
+        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
         <p className="text-muted-foreground">Địa chỉ cần có dạng /day/2026-10-18, và là một ngày có thật.</p>
       </div>
     )
@@ -154,12 +154,12 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
         </Alert>
       ) : future ? (
         <section className="flex flex-col gap-2 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
-          <h1 className="text-title-3 font-bold">{longDateLabel(date)}</h1>
+          <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
         </section>
       ) : deleted ? (
         <section className="flex flex-col items-start gap-3 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
-          <h1 className="text-title-3 font-bold">{longDateLabel(date)}</h1>
+          <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">
             Đã xóa trang này. Khôi phục được tới {shortDateLabel(todayIn(timeZone, new Date(deleted.restore_until)))}.
           </p>
@@ -169,7 +169,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
         </section>
       ) : !entry ? (
         <section className="flex flex-col items-start gap-3 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
-          <h1 className="text-title-3 font-bold">{longDateLabel(date)}</h1>
+          <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">Ngày này chưa ghi.</p>
           {date === today ? (
             <Button onClick={() => navigate('/today')}>Viết cho hôm nay</Button>

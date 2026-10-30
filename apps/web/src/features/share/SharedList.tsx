@@ -133,7 +133,7 @@ export function SharedList() {
                       className={cn(
                         'inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] px-1.5 text-sm tabular-nums transition-[transform,background-color] duration-180 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 active:scale-[.97]',
                         n === current
-                          ? 'border-primary bg-primary font-bold text-primary-foreground shadow-[2px_2px_0_var(--score-3)]'
+                          ? 'border-primary bg-primary font-bold text-primary-foreground shadow-[2px_2px_0_var(--cta-shadow)]'
                           : 'border-border bg-card font-medium',
                         focusRing,
                       )}

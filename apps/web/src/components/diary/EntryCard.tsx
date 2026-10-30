@@ -49,7 +49,7 @@ export function EntryCard({
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-sm leading-[22px] text-muted-foreground">{dateLabel}</span>
-          {title ? <h3 className="text-title-3 font-semibold">{title}</h3> : null}
+          {title ? <h3 className="text-heading font-semibold">{title}</h3> : null}
         </div>
         {excerpt ? <p className="ruled text-base leading-[26px]">{excerpt}</p> : null}
         {keywords.length || photoCount ? (

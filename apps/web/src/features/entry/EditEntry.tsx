@@ -391,7 +391,7 @@ export function EditEntry({ date }: { date: string }) {
   if (!valid) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày không hợp lệ</h1>
+        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
         <p className="text-muted-foreground">Địa chỉ cần có dạng /day/2026-10-18/edit, và là một ngày có thật.</p>
       </>,
     )
@@ -399,7 +399,7 @@ export function EditEntry({ date }: { date: string }) {
   if (date > today) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">{longDateLabel(date)}</h1>
+        <h1 className="text-title font-bold">{longDateLabel(date)}</h1>
         <p className="text-muted-foreground">Ngày này chưa tới nên chưa sửa được.</p>
       </>,
     )
@@ -421,7 +421,7 @@ export function EditEntry({ date }: { date: string }) {
   if (!entry) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày này chưa ghi</h1>
+        <h1 className="text-title font-bold">Ngày này chưa ghi</h1>
         <p className="text-muted-foreground">Chưa có trang để sửa.</p>
         <Button asChild>
           <Link to={date === today ? '/today' : `/day/${date}/backfill`}>{date === today ? 'Viết cho hôm nay' : 'Ghi bù ngày này'}</Link>

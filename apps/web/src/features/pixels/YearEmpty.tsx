@@ -33,7 +33,7 @@ export function YearEmpty({
           <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Year in Pixels</h1>
           <p className="text-[15px] leading-6 text-muted-foreground">Năm của bạn bắt đầu từ hôm nay.</p>
         </div>
-        <span className="font-heading text-title-3 font-bold tabular-nums">{year}</span>
+        <span className="font-heading text-heading font-bold tabular-nums">{year}</span>
       </div>
       <section aria-labelledby="year-empty-h" className="rounded-[22px] border-[1.5px] border-line bg-card p-4 shadow-ink sm:p-6">
         <div aria-hidden="true" className="overflow-x-auto p-1">

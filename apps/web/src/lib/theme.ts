@@ -14,9 +14,13 @@ function systemDark(): boolean {
   return Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)
 }
 
+// Màu thanh trình duyệt trên điện thoại theo nền trang (DESIGN.md mục 2: paper).
+const THEME_COLOR = { light: '#FFFCF8', dark: '#14110D' }
+
 function apply() {
   const dark = preference === 'system' ? systemDark() : preference === 'dark'
   document.documentElement.classList.toggle('dark', dark)
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? THEME_COLOR.dark : THEME_COLOR.light)
   listeners.forEach((l) => l())
 }
 

@@ -7,9 +7,9 @@ import { defineConfig, type Plugin } from 'vite'
 const src = fileURLToPath(new URL('./src', import.meta.url))
 const shared = fileURLToPath(new URL('../../shared', import.meta.url))
 
-// Font dùng ngay ở màn đầu (chữ thường, tiêu đề h1 = Lora 700): tải cùng lúc với JS thay vì chờ trang vẽ xong mới
-// phát hiện (LCP). Chỉ vài file: preload nhiều quá thì tranh băng thông với JS.
-const PRELOAD_FONTS = [/be-vietnam-pro-400-/, /lora-latin-700-normal-/, /lora-vietnamese-700-normal-/]
+// Font dùng ngay ở màn đầu: tải cùng lúc với JS thay vì chờ trang vẽ xong mới phát hiện (LCP). Commissioner là một
+// file biến thiên cho mọi độ đậm và cả tiêu đề, nên chỉ cần preload một file.
+const PRELOAD_FONTS = [/commissioner-vi-/]
 
 function preloadFonts(): Plugin {
   return {

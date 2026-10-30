@@ -209,7 +209,7 @@ export function YearPixels() {
           >
             <ChevronLeft aria-hidden="true" />
           </Button>
-          <span aria-live="polite" className="min-w-[52px] text-center font-heading text-lg leading-6 font-bold tabular-nums md:min-w-[72px] md:text-title-3">
+          <span aria-live="polite" className="min-w-[52px] text-center font-heading text-lg leading-6 font-bold tabular-nums md:min-w-[72px] md:text-heading">
             {year}
           </span>
           <Button

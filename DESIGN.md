@@ -2,7 +2,7 @@
 
 |                |                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Phiên bản**  | 1.1 (đề xuất, đang triển khai theo giai đoạn ở mục 9)                                              |
+| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–2)                                   |
 | **Cập nhật**   | 30/10/2026                                                                                        |
 | **Bản trực quan** | Trang hệ thiết kế có bản chạy thử từng component: https://claude.ai/artifact/5XQcMY3cAg23QNpz8qy4og |
 | **Liên quan**  | Người dùng, mục đích, cam kết thương hiệu: [`PRODUCT.md`](PRODUCT.md) · Màn hình và tính năng: [`docs/Project_Specs.md`](docs/Project_Specs.md) |
@@ -58,19 +58,26 @@ Quy tắc:
 ## 3. Chữ
 
 Một họ **Commissioner** (biến thiên, trục `wght` 400–800 và `FLAR` 0–100) cho toàn bộ giao diện; **Young Serif** chỉ cho
-chữ "Jotly" trong logo. Font tự host, cắt còn ký tự Việt + Latin: một file khoảng 43 KB thay 8 file hiện tại (145 KB).
+chữ "Jotly" trong logo. Font tự host, cắt còn ký tự Việt + Latin: một file 40 KB thay 8 file Be Vietnam Pro + Lora
+(145 KB). Khi font chưa tải xong, chữ hiện bằng Arial đã chỉnh cỡ và khoảng dòng cho khớp (`Commissioner Fallback`)
+để không nhảy chữ.
+
+Trong code: `font-sans` cho chữ thường, `font-heading` (FLAR 60, mặc định cho `h1`–`h3`) cho tiêu đề, `font-display`
+(FLAR 100) cho tiêu đề lớn; cỡ chữ là `text-display`, `text-title`, `text-heading`, `text-reading`, `text-body`,
+`text-label`.
 
 | Kiểu | Cỡ / dòng | Đậm | FLAR | Dùng cho |
 | --- | --- | --- | --- | --- |
 | `display` | clamp(40px, 6vw, 64px) / 1,02, tracking -0,03em | 800 | 100 | tiêu đề trang chủ, trang chia sẻ |
-| `title` | 30/38 (điện thoại 26/32), tracking -0,015em | 750 | 60 | tiêu đề màn, tiêu đề mục trang chủ |
-| `heading` | 22/30 | 650 | 30 | tiêu đề ngày, thẻ, ngăn kéo |
+| `title` | 30/38 (điện thoại 26/32), tracking -0,015em | 700 | 60 | tiêu đề màn, tiêu đề mục trang chủ |
+| `heading` | 22/30 | 600 | 60 | tiêu đề ngày, thẻ, ngăn kéo |
 | `reading` | 18/30 | 400 | 0 | nội dung nhật ký, dòng kẻ vở 30px |
 | `body` | 16/24 | 400, nút 600 | 0 | chữ giao diện, nút, ô nhập |
 | `label` | 13/18 | 600 | 0 | nhãn tab, ngày trong lịch, chú thích |
 
 Không có cỡ nào khác. Không in hoa giãn chữ, không chữ nghiêng hay chữ màu để nhấn một từ trong tiêu đề, không monospace.
-Số trong lịch, đồng hồ, bộ đếm dùng `tabular-nums`.
+Commissioner không có bộ số cùng độ rộng (`tnum`), nên `tabular-nums` không có tác dụng: số cần thẳng cột (lịch, đồng
+hồ đếm ngược) đặt trong ô có độ rộng cố định.
 
 ## 4. Khoảng cách, bo góc, viền, bóng
 

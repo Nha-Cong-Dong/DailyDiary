@@ -115,7 +115,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
       >
         <div className="flex items-start justify-between gap-4 border-b-[1.5px] border-dashed border-border py-5 pr-5 pl-7 max-md:border-b-0 max-md:px-4 max-md:pt-4 max-md:pb-0">
           <div className="flex flex-col gap-0.5">
-            <SheetTitle className="font-heading text-title-3 font-bold max-md:text-xl max-md:leading-7">
+            <SheetTitle className="font-heading text-heading font-bold max-md:text-xl max-md:leading-7">
               Chia sẻ trang {numericDate(entry.entry_date)}
             </SheetTitle>
             <SheetDescription className="text-sm leading-[22px] text-muted-foreground max-md:text-[13px] max-md:leading-5">

@@ -192,7 +192,7 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
                 pathLength={1}
                 d="M4 11c38-6 92-9 192-4"
                 fill="none"
-                stroke="var(--score-3)"
+                stroke="var(--peach)"
                 strokeWidth={4}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"

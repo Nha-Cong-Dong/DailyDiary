@@ -22,30 +22,35 @@ import { tierLimits } from '@/lib/limits'
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-4 border-t-[1.5px] border-border pt-8">
-      <h2 className="text-title-2 font-semibold">{title}</h2>
+      <h2 className="text-title font-semibold">{title}</h2>
       {children}
     </section>
   )
 }
 
 function Label({ children }: { children: ReactNode }) {
-  return <p className="text-label font-semibold tracking-[0.08em] text-muted-foreground uppercase">{children}</p>
+  return <p className="text-label text-muted-foreground">{children}</p>
 }
 
+// Thang chữ 6 bậc của DESIGN.md mục 3: một họ Commissioner, tiêu đề loe chân chữ (FLAR).
 const TYPE_SCALE = [
-  ['Display · Lora 700 · 56/68', 'font-heading text-display font-bold tracking-[-0.01em]', 'Chạm để ghi chú'],
-  ['H1 · Lora 700 · 40/50', 'font-heading text-title-1 font-bold', 'Mở để nhìn lại cả một năm'],
-  ['H2 · Lora 600 · 30/40', 'font-heading text-title-2 font-semibold', 'Dòng thời gian tháng 10'],
-  ['H3 · Lora 600 · 22/30', 'font-heading text-title-3 font-semibold', 'Chiều mưa đọc sách'],
-  ['Nội dung · 400 · 18/30', 'text-reading max-w-[680px]', 'Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở.'],
-  ['Body · 400 · 16/26', 'text-base leading-[26px]', 'Chỉ cần chấm điểm là ngày hôm đó đã được ghi lại.'],
-  ['Nhỏ · 500 · 14/22', 'text-sm leading-[22px] font-medium tabular-nums', 'Tạo 21:04 · Sửa 21:32'],
-  ['Nhãn · 600 · 12/16 · +8%', 'text-label font-semibold tracking-[0.08em] uppercase', 'Year in Pixels'],
+  ['display · 800 · 40–64 · FLAR 100', 'font-display text-display font-extrabold', 'Chạm để ghi chú, mở để nhìn lại.'],
+  ['title · 700 · 30/38 · FLAR 60', 'font-heading text-title font-bold', 'Dòng thời gian tháng 10'],
+  ['heading · 600 · 22/30 · FLAR 60', 'font-heading text-heading font-semibold', 'Chiều mưa đọc sách'],
+  ['reading · 400 · 18/30', 'text-reading max-w-[680px]', 'Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở.'],
+  ['body · 400 · 16/24', 'text-body', 'Chỉ cần chấm điểm là ngày hôm đó đã được ghi lại.'],
+  ['label · 600 · 13/18', 'text-label font-semibold', 'Còn 3 giờ 12 phút trước khi sang ngày mới'],
 ] as const
 
 const SWATCHES = [
   ['Nền', 'bg-background'],
   ['Bề mặt', 'bg-card'],
+  ['Đào', 'bg-peach'],
+  ['Đào nhạt', 'bg-peach-soft'],
+  ['Sage', 'bg-sage'],
+  ['Sage nhạt', 'bg-sage-soft'],
+  ['Oải hương', 'bg-lavender'],
+  ['Oải hương nhạt', 'bg-lavender-soft'],
   ['Lõm', 'bg-muted'],
   ['Mềm', 'bg-secondary'],
   ['Viền mảnh', 'bg-border'],
@@ -79,8 +84,8 @@ export function DevUiPage() {
   return (
     <div className="flex flex-col gap-10">
       <header className="flex flex-col gap-2">
-        <Label>Jotly · Bước 2</Label>
-        <h1 className="text-title-1 font-bold">Hệ thiết kế</h1>
+        <Label>Jotly · hệ thiết kế 1.1</Label>
+        <h1 className="text-title font-bold">Hệ thiết kế</h1>
         <HealthStatus />
       </header>
 
@@ -208,7 +213,7 @@ export function DevUiPage() {
         <div className="grid gap-8 lg:grid-cols-2">
           {iconSets.map((set) => (
             <div key={set.id} className="flex flex-col gap-3">
-              <h3 className="text-title-3 font-semibold">{set.name}</h3>
+              <h3 className="text-heading font-semibold">{set.name}</h3>
               <div className="grid grid-cols-5 gap-3">
                 {set.levels.map((l) => (
                   <div key={l.score} className="flex flex-col items-center gap-2">

@@ -326,7 +326,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
           <span className="inline-flex size-16 items-center justify-center rounded-[18px] border-[1.5px] border-line bg-card shadow-ink-sm hover:[&_svg]:animate-seek">
             <SearchIcon className="size-7" aria-hidden="true" />
           </span>
-          <h2 className="mt-1 text-title-3 font-bold">{query ? `Chưa có trang nào chứa “${query}”` : 'Chưa có trang nào để tìm'}</h2>
+          <h2 className="mt-1 text-heading font-bold">{query ? `Chưa có trang nào chứa “${query}”` : 'Chưa có trang nào để tìm'}</h2>
           <p className="max-w-[440px] text-[15px] leading-6 text-muted-foreground">
             Khi bạn viết và gắn từ khóa, mọi trang sẽ tìm được ở đây. Ví dụ: tìm “cà phê” để mở lại những ngày có ly cà phê.
           </p>

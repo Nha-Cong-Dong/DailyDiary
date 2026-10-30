@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 35 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 36 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -117,8 +117,8 @@ dailydiary/
         └── src/
             ├── main.tsx  App.tsx  index.css  vite-env.d.ts
             ├── assets/
-            │   └── fonts/            # [sinh bằng scripts/subset_fonts.py] Be Vietnam Pro 400–700, Young Serif (chữ logo)
-            │                         # đã cắt còn ký tự tiếng Việt + Latin; OFL-*.txt (giấy phép). Lora vẫn lấy từ fontsource
+            │   └── fonts/            # [sinh bằng scripts/subset_fonts.py] Commissioner biến thiên (wght 400–800, FLAR),
+            │                         # Young Serif (chữ logo), đã cắt còn ký tự tiếng Việt + Latin; OFL-*.txt (giấy phép)
             ├── api/
             │   ├── client.ts         # openapi-fetch, credentials: "include"
             │   ├── openapi.json      # [sinh tự động] từ scripts/export_openapi.py
@@ -342,3 +342,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 33 | 29/10/2026 | Chuyển backend production từ Render sang máy cá nhân: thêm `docker-compose.prod.yml` (API; tunnel là dịch vụ Windows cloudflared, không nằm trong compose); `render.yaml` giữ lại nhưng không dùng |
 | 34 | 30/10/2026 | Chốt bản 1.0: thêm `docs/Backlog.md` (việc tồn đọng); viết lại `README.md`, cập nhật `Deploy.md`, `Project_Specs.md`, `MVP_Plan.md`, `Roadmap.md` theo hạ tầng mới (API trên máy cá nhân, Pages Direct Upload) |
 | 35 | 30/10/2026 | Hệ thiết kế 1.1: thêm `PRODUCT.md` và `DESIGN.md` ở gốc repo; `.gitignore` bỏ qua `.taste-skill/` (file tạm của skill taste-skill) |
+| 36 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 2 (font và token): `src/assets/fonts/` thay Be Vietnam Pro bằng `commissioner-vi.woff2` + `OFL-Commissioner.txt`; bỏ `@fontsource/lora` |

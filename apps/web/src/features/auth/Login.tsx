@@ -163,7 +163,7 @@ export function Login() {
               <a
                 href={googleLoginUrl(browserTimeZone())}
                 onClick={() => setRedirecting(true)}
-                className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line bg-card pr-5 pl-4 text-base font-semibold shadow-[3px_3px_0_var(--score-3)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--score-3)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--score-3)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
+                className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line bg-card pr-5 pl-4 text-base font-semibold shadow-[3px_3px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--cta-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--cta-shadow)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
               >
                 <GoogleMark />
                 {copy.button}

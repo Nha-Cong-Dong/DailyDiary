@@ -324,7 +324,7 @@ export function BackfillEntry({ date }: { date: string }) {
   if (!valid) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày không hợp lệ</h1>
+        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
         <p className="text-muted-foreground">Địa chỉ cần có dạng /day/2026-10-14/backfill, và là một ngày có thật.</p>
       </>,
     )
@@ -332,7 +332,7 @@ export function BackfillEntry({ date }: { date: string }) {
   if (date > today) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">{longDateLabel(date)}</h1>
+        <h1 className="text-title font-bold">{longDateLabel(date)}</h1>
         <p className="text-muted-foreground">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
       </>,
     )
@@ -340,7 +340,7 @@ export function BackfillEntry({ date }: { date: string }) {
   if (date === today) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Hôm nay vẫn đang diễn ra</h1>
+        <h1 className="text-title font-bold">Hôm nay vẫn đang diễn ra</h1>
         <p className="text-muted-foreground">Không cần ghi bù, viết luôn cho hôm nay.</p>
         <Button asChild>
           <Link to="/today">Viết cho hôm nay</Link>
@@ -365,7 +365,7 @@ export function BackfillEntry({ date }: { date: string }) {
   if (hadEntry) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày {dayMonth(date)} đã có trang</h1>
+        <h1 className="text-title font-bold">Ngày {dayMonth(date)} đã có trang</h1>
         <p className="text-muted-foreground">Không cần ghi bù. Bạn có thể xem hoặc sửa trang này.</p>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">

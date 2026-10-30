@@ -2,34 +2,42 @@
 @import "tw-animate-css";
 @import "./styles/shadcn-tailwind.css";
 @import "./styles/motion.css";
-/* Be Vietnam Pro và Young Serif (logo) tự host, đã cắt còn ký tự cần dùng: styles/fonts.css. */
+/* Commissioner (giao diện) và Young Serif (logo) tự host, đã cắt còn ký tự cần dùng: styles/fonts.css. */
 @import "./styles/fonts.css";
-@import "@fontsource/lora/vietnamese-600.css";
-@import "@fontsource/lora/vietnamese-700.css";
-@import "@fontsource/lora/latin-600.css";
-@import "@fontsource/lora/latin-700.css";
 
 @custom-variant dark (&:is(.dark *));
 
-/* Hệ thiết kế Jotly: màu "Mực & giấy", chữ "Sổ tay", nền tảng "Sổ dán" (viền mực + bóng cứng). */
+/* Hệ thiết kế Jotly 1.1 (DESIGN.md): Neo Brutalism "Sổ dán" (viền mực + bóng cứng), màu sáng lấy từ logo cuốn sổ,
+   một họ chữ Commissioner. */
 @theme inline {
-    --font-sans: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
-    --font-heading: 'Lora', Georgia, serif;
+    /* Một họ chữ; tiêu đề khác chữ thường ở độ loe chân chữ (trục FLAR), không đổi sang họ thứ hai. */
+    --font-sans: 'Commissioner', 'Commissioner Fallback', 'Segoe UI', system-ui, sans-serif;
+    --font-heading: 'Commissioner', 'Commissioner Fallback', 'Segoe UI', system-ui, sans-serif;
+    --font-heading--font-variation-settings: 'FLAR' 60;
+    --font-display: 'Commissioner', 'Commissioner Fallback', 'Segoe UI', system-ui, sans-serif;
+    --font-display--font-variation-settings: 'FLAR' 100;
     --font-brand: 'Young Serif', Georgia, serif;
 
-    /* Thang cỡ chữ T1 · Sổ tay */
-    --text-display: 56px;
-    --text-display--line-height: 68px;
-    --text-title-1: 40px;
-    --text-title-1--line-height: 50px;
-    --text-title-2: 30px;
-    --text-title-2--line-height: 40px;
-    --text-title-3: 22px;
-    --text-title-3--line-height: 30px;
+    /* Thang chữ 6 bậc (DESIGN.md mục 3) */
+    --text-display: clamp(40px, 6vw, 64px);
+    --text-display--line-height: 1.02;
+    --text-display--letter-spacing: -0.03em;
+    --text-title: 30px;
+    --text-title--line-height: 38px;
+    --text-title--letter-spacing: -0.015em;
+    --text-heading: 22px;
+    --text-heading--line-height: 30px;
     --text-reading: 18px;
     --text-reading--line-height: 30px;
-    --text-label: 12px;
-    --text-label--line-height: 16px;
+    --text-body: 16px;
+    --text-body--line-height: 24px;
+    --text-label: 13px;
+    --text-label--line-height: 18px;
+
+    /* Đường cong chuyển động (DESIGN.md mục 6). ease-out thay bản mặc định yếu của Tailwind. */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-move: cubic-bezier(0.77, 0, 0.175, 1);
 
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -82,6 +90,19 @@
     --color-score-4: var(--score-4);
     --color-score-5: var(--score-5);
 
+    /* Ba màu bìa sổ trong logo: đào = bây giờ / việc chính, sage = đã lưu, oải hương = đang chọn / đã qua. */
+    --color-peach: var(--peach);
+    --color-peach-soft: var(--peach-soft);
+    --color-peach-ink: var(--peach-ink);
+    --color-sage: var(--sage);
+    --color-sage-soft: var(--sage-soft);
+    --color-sage-ink: var(--sage-ink);
+    --color-lavender: var(--lavender);
+    --color-lavender-soft: var(--lavender-soft);
+    --color-lavender-ink: var(--lavender-ink);
+    --color-on-accent: var(--on-accent);
+    --color-on-danger: var(--on-danger);
+
     /* Bo góc N3: sm ô lịch, md nút/ô nhập, lg thẻ/menu, xl hộp thoại/hero */
     --radius-sm: 8px;
     --radius-md: 14px;
@@ -91,49 +112,79 @@
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
 
-    /* Độ nổi N3: bóng cứng, không nhòe */
-    --shadow-ink-sm: 3px 3px 0 var(--ink-shadow);
+    /* Độ nổi: bóng cứng lệch xuống phải, không nhòe; 2/4/6px. Ấn xuống = dịch đúng độ lệch và bỏ bóng. */
+    --shadow-ink-sm: 2px 2px 0 var(--ink-shadow);
     --shadow-ink: 4px 4px 0 var(--ink-shadow);
     --shadow-ink-lg: 6px 6px 0 var(--ink-shadow);
+    /* Nút chính: bóng màu đào, một nút mỗi màn. */
+    --shadow-accent: 4px 4px 0 var(--cta-shadow);
     --shadow-danger-sm: 3px 3px 0 var(--destructive);
     --shadow-danger: 4px 4px 0 var(--destructive);
 }
 
 :root {
-    --background: #FEF7EC;
+    /* Nền trắng ấm của trang giấy, thẻ trắng (DESIGN.md mục 2). */
+    --background: #FFFCF8;
     --foreground: #272218;
-    --card: #FFFCF8;
+    --card: #FFFFFF;
     --card-foreground: #272218;
-    --popover: #FFFCF8;
+    --popover: #FFFFFF;
     --popover-foreground: #272218;
     --primary: #272218;
-    --primary-foreground: #FEF7EC;
+    --primary-foreground: #FFFCF8;
     --secondary: #EFE7D9;
     --secondary-foreground: #272218;
-    --muted: #F6EDE0;
-    --muted-foreground: #6A6255;
+    --muted: #F5EFE6;
+    --muted-foreground: #5E574B;
     --accent: #EFE7D9;
     --accent-foreground: #272218;
     --destructive: #A43C33;
     --border: #DFD6C8;
     --input: #272218;
-    --ring: #266EA4;
+    /* Vòng focus bằng mực, 3px, cách vật 2px. */
+    --ring: #272218;
     --radius: 14px;
 
     --line: #272218;
     --ink-shadow: #272218;
     --band: #F3EBDD;
-    --pressed: #E7DDCC;
+    --pressed: #ECE3D6;
     --primary-hover: #3D372C;
     --destructive-soft: #FFE7E3;
     --destructive-fill: #A43C33;
-    --highlight: #F8DFA8;
+    --highlight: #F1BD90;
     --disabled: #EFE7D9;
-    --disabled-foreground: #8D8579;
+    --disabled-foreground: #7A7266;
     --disabled-line: #C9C0B2;
-    --faint: #B5AC9E;
+    /* Chữ gợi ý, ngày chưa tới: chỉ trên nền trang hoặc thẻ (4,6:1). */
+    --faint: #7A7266;
     --rule: #C0D4E3;
-    --cta-shadow: #D59BB0;
+    --cta-shadow: #F1BD90;
+
+    /* Màu logo. Ba màu đặc dưới 3:1 so với nền nên vật mang màu luôn có viền mực; chữ trên chúng là on-accent. */
+    --peach: #F1BD90;
+    --peach-soft: #FCEBDC;
+    --peach-ink: #9A5520;
+    --sage: #B3BCA1;
+    --sage-soft: #E8ECE0;
+    --sage-ink: #566147;
+    --lavender: #CBAAC7;
+    --lavender-soft: #F2E8F0;
+    --lavender-ink: #7A5575;
+    --on-accent: #272218;
+    --on-danger: #FFFFFF;
+
+    /* Viền mực của mọi vật thể. */
+    --stroke-width: 1.5px;
+
+    /* Thời lượng (DESIGN.md mục 6), dùng dạng duration-(--dur-fast). */
+    --dur-press: 100ms;
+    --dur-fast: 160ms;
+    --dur-base: 220ms;
+    --dur-sheet-in: 280ms;
+    --dur-sheet-out: 200ms;
+    --dur-morph: 320ms;
+    --dur-story: 700ms;
 
     /* Thang điểm 1–5 (Year in Pixels, lịch, main icon) */
     --score-1: #746D9E;
@@ -173,14 +224,14 @@
     --chart-3: var(--score-3);
     --chart-4: var(--score-4);
     --chart-5: var(--score-5);
-    --sidebar: #FFFCF8;
+    --sidebar: #FFFFFF;
     --sidebar-foreground: #272218;
     --sidebar-primary: #272218;
-    --sidebar-primary-foreground: #FEF7EC;
+    --sidebar-primary-foreground: #FFFCF8;
     --sidebar-accent: #EFE7D9;
     --sidebar-accent-foreground: #272218;
     --sidebar-border: #DFD6C8;
-    --sidebar-ring: #266EA4;
+    --sidebar-ring: #272218;
 }
 
 .dark {
@@ -201,7 +252,7 @@
     --destructive: #E6867A;
     --border: #34302A;
     --input: #BDB4A5;
-    --ring: #80B7E7;
+    --ring: #FEF7EC;
 
     --line: #BDB4A5;
     --ink-shadow: #4F493F;
@@ -214,9 +265,16 @@
     --disabled: #2C2822;
     --disabled-foreground: #68625A;
     --disabled-line: #3F3A33;
-    --faint: #5C564D;
+    --faint: #8F877A;
     --rule: #252F37;
-    --cta-shadow: #4F493F;
+    --cta-shadow: #F1BD90;
+
+    --peach-soft: #33261B;
+    --peach-ink: #F1BD90;
+    --sage-soft: #252B1F;
+    --sage-ink: #B3BCA1;
+    --lavender-soft: #2E2330;
+    --lavender-ink: #CBAAC7;
 
     --score-1: #635C8B;
     --score-2: #9B78A3;
@@ -237,7 +295,7 @@
     --sidebar-accent: #2C2822;
     --sidebar-accent-foreground: #FEF7EC;
     --sidebar-border: #34302A;
-    --sidebar-ring: #80B7E7;
+    --sidebar-ring: #FEF7EC;
 }
 
 /* Dòng kẻ vở theo đúng chiều cao dòng của chữ bên trong */
@@ -261,11 +319,23 @@
   html {
     @apply font-sans;
     color-scheme: light;
+    background-color: var(--background);
+    /* Điều khiển gốc của trình duyệt (checkbox, radio, thanh cuộn) theo màu của Jotly. */
+    accent-color: var(--foreground);
+    scrollbar-color: var(--disabled-line) transparent;
     }
   html.dark {
     color-scheme: dark;
     }
   h1, h2, h3 {
     @apply font-heading;
+    text-wrap: balance;
+    }
+  p {
+    text-wrap: pretty;
+    }
+  ::selection {
+    background-color: var(--peach);
+    color: var(--on-accent);
     }
 }
