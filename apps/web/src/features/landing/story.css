@@ -1,0 +1,168 @@
+/*
+ * Cảnh "Một ngày → một tháng → một năm" ở trang chủ (StoryScene.tsx, DESIGN.md mục 7, cảnh 3).
+ *
+ * Mặc định là ba khung tĩnh xếp dọc: đọc được đủ khi trình duyệt chưa có scroll-driven animation, khi người dùng chọn
+ * giảm chuyển động, và khi in. Chỉ trên màn hình có hỗ trợ thì khung giữ yên (sticky) trong lúc cuộn qua một đoạn dài,
+ * và tiến độ cuộn điều khiển cảnh: thẻ ngày thu vào ô 18 của lịch tháng, lịch co lại khi Year in Pixels hiện ra.
+ * Chỉ animate transform và opacity, khóa theo thanh cuộn (linear), không làm mượt thêm.
+ */
+
+/* Nền oải hương nhạt: oải hương là màu "đã qua" của logo, hợp với cảnh nhìn lại (DESIGN.md mục 2). */
+.story {
+    padding-block: clamp(80px, 10vw, 128px);
+    background-color: var(--lavender-soft);
+    border-block: 1.5px solid var(--line);
+}
+.story-stage {
+    display: grid;
+    gap: 48px;
+}
+.story-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.story-captions {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.story-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.story-canvas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    min-width: 0;
+}
+@media (min-width: 768px) {
+    .story-stage {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        align-items: start;
+    }
+}
+
+@supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) {
+        .story {
+            height: 220vh;
+            padding-block: 0;
+            view-timeline-name: --story;
+        }
+        .story-stage {
+            position: sticky;
+            top: 0;
+            height: 100svh;
+            /* safe: nội dung cao hơn khung thì dồn xuống dưới, không tràn lên đè mục trước. */
+            align-content: safe center;
+            gap: 24px;
+        }
+        .story-captions {
+            display: grid;
+        }
+        .story-caption {
+            grid-area: 1 / 1;
+        }
+        /* Vùng hình cao cố định; ba lớp chồng ở giữa bằng `translate` (keyframes dùng `transform`, hai thứ cộng dồn). */
+        .story-canvas {
+            display: block;
+            position: relative;
+            height: min(58svh, 560px);
+            container-type: inline-size;
+        }
+        .story-canvas > * {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+        }
+        /* Lưới năm trên điện thoại cao 31 hàng: thu nhỏ để vừa khung. */
+        .story-year {
+            --year-fit: 0.5;
+        }
+        @media (min-width: 768px) {
+            .story {
+                height: 300vh;
+            }
+            .story-stage {
+                align-items: center;
+                gap: 48px;
+            }
+            .story-year {
+                --year-fit: 1;
+            }
+        }
+
+        .story-day,
+        .story-month,
+        .story-year,
+        .story-caption {
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --story;
+        }
+
+        /* Thẻ ngày thu nhỏ về đúng ô 18 (cột Chủ nhật, hàng giữa) của lịch tháng rồi tan vào ô đó. */
+        .story-day {
+            animation-name: story-day;
+            animation-range: contain 24% contain 46%;
+        }
+        @keyframes story-day {
+            85% { opacity: 1; }
+            to { opacity: 0; transform: translate(min(206px, 43cqw), 22px) scale(0.1); }
+        }
+
+        /* Lịch tháng hiện ra khi thẻ ngày đang thu vào, đứng yên, rồi co lại khi cả năm hiện ra. */
+        .story-month {
+            animation-name: story-month;
+            animation-range: contain 30% contain 88%;
+        }
+        @keyframes story-month {
+            0% { opacity: 0; transform: scale(0.96); }
+            25%, 70% { opacity: 1; transform: none; }
+            to { opacity: 0; transform: scale(0.4); }
+        }
+
+        .story-year {
+            animation-name: story-year;
+            animation-range: contain 70% contain 92%;
+        }
+        @keyframes story-year {
+            from { opacity: 0; transform: scale(calc(var(--year-fit) * 1.04)); }
+            to { opacity: 1; transform: scale(var(--year-fit)); }
+        }
+
+        /* Ba chú thích thay nhau theo bước. */
+        /* Khoảng cuộn nối tiếp nhau, không gối: chú thích cũ tan hết rồi chú thích mới mới hiện. */
+        .story-caption-1 {
+            animation-name: story-caption-out;
+            animation-range: contain 0% contain 36%;
+        }
+        .story-caption-2 {
+            animation-name: story-caption-mid;
+            animation-range: contain 36% contain 72%;
+        }
+        .story-caption-3 {
+            animation-name: story-caption-in;
+            animation-range: contain 72% contain 100%;
+        }
+        /* `visibility: hidden` ở hai đầu: chú thích chưa tới hoặc đã qua không che chữ, không nhận focus. */
+        @keyframes story-caption-out {
+            0%, 80% { opacity: 1; transform: none; }
+            to { opacity: 0; transform: translateY(-12px); visibility: hidden; }
+        }
+        @keyframes story-caption-mid {
+            0% { opacity: 0; transform: translateY(12px); visibility: hidden; }
+            20%, 80% { opacity: 1; transform: none; }
+            to { opacity: 0; transform: translateY(-12px); visibility: hidden; }
+        }
+        @keyframes story-caption-in {
+            0% { opacity: 0; transform: translateY(12px); visibility: hidden; }
+            20%, 100% { opacity: 1; transform: none; }
+        }
+    }
+}

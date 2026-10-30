@@ -2,7 +2,7 @@
 
 |                |                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–5)                                   |
+| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–6)                                   |
 | **Cập nhật**   | 30/10/2026                                                                                        |
 | **Bản trực quan** | Trang hệ thiết kế có bản chạy thử từng component: https://claude.ai/artifact/5XQcMY3cAg23QNpz8qy4og |
 | **Liên quan**  | Người dùng, mục đích, cam kết thương hiệu: [`PRODUCT.md`](PRODUCT.md) · Màn hình và tính năng: [`docs/Project_Specs.md`](docs/Project_Specs.md) |
@@ -142,8 +142,9 @@ Trong code (`apps/web/src/styles/motion.css`):
 
 ## 7. Trang chủ
 
-Trình tự: Hero → Một chạm → Ngày → tháng → năm → Một trang ngày → Riêng tư → CTA → chân trang. Nền đổi theo mục
-(`paper`, `peach-soft`, `paper`, `sage-soft`, khối `primary`), ranh giới là đường `stroke` liền.
+Trình tự: Hero → Một chạm → Ngày → tháng → năm → Một trang ngày → Riêng tư → CTA → chân trang. Nền đổi theo mục và
+theo nghĩa của ba màu logo: `paper` (hero), `peach-soft` (Một chạm: bây giờ), `lavender-soft` (cảnh nhìn lại: đã qua),
+`paper` (một trang ngày), `sage-soft` (riêng tư), khối `primary` (CTA). Ranh giới là đường `stroke` liền.
 
 1. **Mở đầu hero** (một lần, dưới 1,4 s): chữ hiện ngay ở khung đầu; thẻ lịch và thẻ ngày "dán" xuống (bóng mọc từ 0);
    main icon của thẻ ngày bay vào ô hôm nay của lịch; nét bút `peach` chạy dưới "nhìn lại.".
@@ -154,6 +155,12 @@ Trình tự: Hero → Một chạm → Ngày → tháng → năm → Một trang
    một câu lớn trên nền `sage-soft` và ba sự thật viết thành câu (người dùng đồng ý 30/10/2026).
 
 Tối đa ba khoảnh khắc lớn; không hiệu ứng theo chuột, không video; tiêu đề hero là phần tử LCP và hiện ngay.
+
+Trong code (`apps/web/src/features/landing/`): `DemoDayCard` (thẻ ngày mẫu dùng ở hero và cảnh cuộn), `OneTapDemo`
+(bộ chấm điểm + dải 7 ngày), `StoryScene` + `story.css` (cảnh cuộn), `DayPageShowcase`. Chuỗi mở đầu: chữ dùng
+`animate-rise-story` lệch 70ms, thẻ dùng `animate-paste`, icon bay bằng `lib/flyTo.ts` lúc 1 giây (chỉ khách, chỉ khi
+chưa cuộn). Nội dung "hiện khi cuộn" bắt đầu ở độ mờ 0,3 chứ không trong suốt, để trang đứng yên vẫn đọc được.
+Các phần là giao diện thật của sản phẩm mang `data-ui` (quy ước của taste-skill: giữ viền, bóng, dòng kẻ của sản phẩm).
 
 ## 8. UX trong bản 1.1
 

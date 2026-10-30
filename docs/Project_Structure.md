@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 39 (31/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 40 (31/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -134,7 +134,9 @@ dailydiary/
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
             │   ├── landing/          # trang chủ /: bản giới thiệu cho người chưa đăng nhập và bản đã đăng nhập (menu tài khoản,
-            │   │                     # tóm tắt tháng; thiết kế B5-Landing-Signed)
+            │   │                     # tóm tắt tháng; thiết kế B5-Landing-Signed, làm lại theo DESIGN.md mục 7): DemoDayCard,
+            │   │                     # OneTapDemo (+ dải 7 ngày), StoryScene + story.css (cảnh cuộn ngày → tháng → năm),
+            │   │                     # DayPageShowcase (một trang ngày có gì), MonthPreview, YearPreview
             │   ├── auth/             # trang đăng nhập + trạng thái lỗi (loginState.ts), RequireAuth (bảo vệ route)
             │   ├── profile/          # 3 bước lần đầu, Hồ sơ & cài đặt (giao diện; components/ vì ≥ 6 component);
             │   │                     # PATCH /me; xóa toàn bộ dữ liệu, xóa tài khoản (confirm.ts, useJournalData.ts);
@@ -143,7 +145,6 @@ dailydiary/
             │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; useDay.ts (dayQuery); uploadPhoto.ts
             │   │                     # (nén + PUT presigned, có tiến độ); useRecentDays.ts (dải tháng), useFrequentSubIcons.ts
             │   │                     # (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột, components/ConflictDialog.tsx);
-            │   │                     # flyToToday.ts (icon vừa chấm bay vào ô hôm nay của dải tháng);
             │   │                     # components/ vì ≥ 6 component (có DayClock: dải 24 giờ, MonthStrip: dải tháng)
             │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
             │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10);
@@ -172,6 +173,7 @@ dailydiary/
             │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
             │                         # image.ts (kiểm tra loại/kích thước, nén WebP + ảnh thu nhỏ: preparePhoto/prepareAvatar), online.ts (trạng thái mạng);
             │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`);
+            │                         # flyTo.ts (icon bay từ chỗ này sang chỗ kia trên một trang, View Transitions);
             │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn),
             │                         # fonts.css (@font-face cho font tự host trong assets/fonts/)
@@ -348,3 +350,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 37 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 4 (component nền): `components/ui/segmented.tsx` (+ test), `components/ui/card.tsx`, `components/diary/Stamp.tsx`, `components/diary/Toast.test.tsx` |
 | 38 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 5a: `features/entry/components/DayClock.tsx`, đổi tên `RecentDays.tsx` thành `MonthStrip.tsx` (+ `MonthStrip.test.tsx`), `src/lib/theme.test.ts` |
 | 39 | 31/10/2026 | Hệ thiết kế 1.1, giai đoạn 5b: `components/diary/DayMorph.tsx` (chuyển cảnh nối bằng `ViewTransition` của React), `features/entry/flyToToday.ts` |
+| 40 | 31/10/2026 | Hệ thiết kế 1.1, giai đoạn 6 (trang chủ): `features/landing/DemoDayCard.tsx`, `StoryScene.tsx`, `story.css`, `DayPageShowcase.tsx`; chuyển `features/entry/flyToToday.ts` thành `lib/flyTo.ts` (dùng chung Hôm nay và trang chủ) |

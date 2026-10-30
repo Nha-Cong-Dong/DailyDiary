@@ -18,9 +18,11 @@
 @theme {
     /* Vào màn: nâng 6px và hiện dần. */
     --animate-rise: rise var(--dur-base) var(--ease-out) both;
-    /* Thẻ nghiêng trong hero trang chủ hạ xuống (chỉ trang chủ, được dài hơn). */
-    --animate-drop-right: drop-right var(--dur-story) var(--ease-out) backwards;
-    --animate-drop-left: drop-left var(--dur-story) var(--ease-out) backwards;
+    /* Chỉ trang chủ: chữ hero vào chậm hơn (--dur-story). */
+    --animate-rise-story: rise var(--dur-story) var(--ease-out) both;
+    /* Thẻ trong hero trang chủ "dán" xuống trang: từ hơi lớn, không bóng, về đúng cỡ và bóng mọc ra khi chạm trang.
+       `backwards` để sau khi xong, hiệu ứng di chuột (tilt) vẫn đổi được bóng. */
+    --animate-paste: paste var(--dur-sheet-in) var(--ease-out) backwards;
     /* Main icon hiện ra trong ô lịch, bộ chấm điểm. */
     --animate-pop: pop var(--dur-base) var(--ease-out) both;
     /* Dấu trạng thái (Đã lưu, thông báo): đóng xuống từ 1,04 về 1. */
@@ -44,14 +46,9 @@
         from { opacity: 0; translate: 0 6px; }
         to { opacity: 1; translate: none; }
     }
-    /* Thẻ nghiêng hạ xuống, giữ nguyên góc nghiêng của chính thẻ (rotate-2 / -rotate-[2.5deg]). */
-    @keyframes drop-right {
-        from { opacity: 0; translate: 0 -12px; rotate: 2deg; }
-        to { opacity: 1; translate: none; rotate: 2deg; }
-    }
-    @keyframes drop-left {
-        from { opacity: 0; translate: 0 -12px; rotate: -2.5deg; }
-        to { opacity: 1; translate: none; rotate: -2.5deg; }
+    @keyframes paste {
+        from { opacity: 0; scale: 1.03; box-shadow: 0 0 0 var(--ink-shadow); }
+        to { opacity: 1; scale: 1; }
     }
     @keyframes pop {
         from { opacity: 0; scale: 0.92; }
@@ -176,10 +173,15 @@
     animation: var(--animate-draw);
 }
 
-/* Hiện dần khi cuộn tới (trình duyệt hỗ trợ scroll-driven animation); nơi khác hiện ngay. */
+/* Hiện dần khi cuộn tới (trình duyệt hỗ trợ scroll-driven animation); nơi khác hiện ngay. Không bắt đầu từ trong suốt
+   hẳn: trang đứng yên (ảnh xem trước, người đọc lướt) vẫn thấy đủ nội dung, chỉ nhạt hơn và lệch xuống một chút. */
+@keyframes reveal {
+    from { opacity: 0.3; translate: 0 16px; }
+    to { opacity: 1; translate: none; }
+}
 @supports (animation-timeline: view()) {
     .reveal-on-scroll {
-        animation: rise linear both;
+        animation: reveal linear both;
         animation-timeline: view();
         animation-range: entry 0% entry 80%;
     }
@@ -194,15 +196,29 @@
 }
 
 /* Chuyển cảnh nối (B1, DESIGN.md mục 6): icon của một ngày nối sang vòng icon ở trang ngày (DayMorph, lớp `day-morph`
-   do React đặt); icon vừa chấm bay vào ô hôm nay của dải tháng (`today-mood`). Phần còn lại của trang mờ chéo nhanh. */
+   do React đặt); icon bay từ chỗ này sang chỗ kia trên cùng một trang (`fly`, lib/flyTo.ts). Phần còn lại mờ chéo nhanh. */
 ::view-transition-group(*.day-morph),
-::view-transition-group(today-mood) {
+::view-transition-group(fly) {
     animation-duration: var(--dur-morph);
     animation-timing-function: var(--ease-move);
 }
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation-duration: 120ms;
+}
+
+/* Khối CTA trang chủ: khi cuộn tới, bóng màu đào mọc ra như tờ giấy vừa được dán (chỉ lúc đi vào khung nhìn). */
+@supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) {
+        .cta-paste {
+            animation: cta-paste linear backwards;
+            animation-timeline: view();
+            animation-range: entry 40% cover 45%;
+        }
+        @keyframes cta-paste {
+            from { box-shadow: 0 0 0 var(--cta-shadow); transform: translate(5px, 5px); }
+        }
+    }
 }
 
 /* Khi in trang, nội dung "hiện khi cuộn" chưa từng vào khung nhìn vẫn phải hiện đủ. */
@@ -218,8 +234,8 @@
 @media (prefers-reduced-motion: reduce) {
     :root {
         --animate-rise: fade var(--dur-base) ease both;
-        --animate-drop-right: fade var(--dur-base) ease backwards;
-        --animate-drop-left: fade var(--dur-base) ease backwards;
+        --animate-rise-story: fade var(--dur-base) ease both;
+        --animate-paste: fade var(--dur-base) ease backwards;
         --animate-pop: fade var(--dur-base) ease both;
         --animate-stamp: fade var(--dur-base) ease both;
         --animate-menu: fade var(--dur-fast) ease both;

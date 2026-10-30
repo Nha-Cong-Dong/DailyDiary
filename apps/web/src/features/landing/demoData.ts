@@ -55,3 +55,14 @@ export function demoYear(): DemoPixel[][] {
     }),
   )
 }
+
+/** Tuần mẫu cho dải 7 ngày ở cảnh "Một chạm": 12–17/10 lấy từ OCTOBER, hôm nay 18/10 (Chủ nhật) để người xem tự chấm. */
+export const demoWeek = {
+  days: [12, 13, 14, 15, 16, 17].map((day) => ({
+    day,
+    weekday: WEEKDAYS[(day - 12) % 7],
+    score: OCTOBER[day]?.score ?? null,
+    sub: OCTOBER[day]?.sub ?? null,
+  })),
+  today: { day: DEMO_TODAY, weekday: 'CN' },
+}

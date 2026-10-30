@@ -1,23 +1,21 @@
-import { Eye, Image, Lock, Pencil, Search, Trash2 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Pencil } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { googleLoginUrl } from '@/api/client'
-import { MoodMark } from '@/components/diary/MoodMark'
-import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { Avatar } from '@/components/layout/Avatar'
 import { GoogleMark } from '@/components/layout/GoogleMark'
 import { Logo } from '@/components/layout/Logo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
-import { flagColors, flagHex, type Score } from '@/lib/catalog'
-import { tierLimits } from '@/lib/limits'
-import { browserTimeZone, todayIn } from '@/lib/date'
-import { useDarkMode } from '@/lib/theme'
+import type { Score } from '@/lib/catalog'
+import { addDays, browserTimeZone, dayOfMonth, todayIn, weekdayShort } from '@/lib/date'
+import { flyTo } from '@/lib/flyTo'
 import { cn } from '@/lib/utils'
 import { AccountMenu } from './AccountMenu'
-import { DEMO_ICON_SET } from './demoData'
+import { DayPageShowcase } from './DayPageShowcase'
+import { DemoDayCard } from './DemoDayCard'
 import { MonthPreview, type PreviewMonth } from './MonthPreview'
-import { OneTapDemo } from './OneTapDemo'
-import { YearPreview } from './YearPreview'
+import { OneTapDemo, type WeekDay } from './OneTapDemo'
+import { StoryScene } from './StoryScene'
 import { greeting, useHomeSummary, type HomeSummary } from './useHomeSummary'
 
 // "Bắt đầu viết" vào app (chưa đăng nhập thì RequireAuth đưa sang /login).
@@ -44,12 +42,10 @@ export type QuickScore = {
 
 const wrap = 'mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,40px)]'
 const sectionPad = 'py-[clamp(80px,10vw,128px)]'
-// Thang chữ của trang: 13 nhỏ / 15 body / 17 dẫn / 20 H3 / 30 H2 / 60 Display (mảnh giao diện trong thẻ minh họa giữ cỡ của app).
+// Thang chữ của trang (DESIGN.md mục 3): display cho tiêu đề hero, title cho tiêu đề mục; mảnh giao diện trong thẻ minh họa
+// giữ cỡ của app.
 const sectionTitle = 'font-heading text-[clamp(26px,2.4vw,30px)] leading-[1.25] font-bold text-balance'
-const card = 'rounded-[20px] border-[1.5px] border-line bg-card'
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring'
-// Hiệu ứng nhỏ trong thẻ tính năng: nhấc nhẹ 2px theo đường cong chung, không nảy.
-const nudge = 'transition-transform duration-300 ease-out group-hover/card:-translate-y-0.5'
 
 function GoogleButton({ inverted }: { inverted?: boolean }) {
   return (
@@ -87,8 +83,8 @@ function LanguageSwitch() {
 
 function SiteHeader({ account, todayWritten }: { account?: LandingAccount; todayWritten: boolean }) {
   const links = [
-    { href: '#tinh-nang', label: 'Tính năng' },
-    { href: '#year-in-pixels', label: 'Year in Pixels' },
+    { href: '#mot-cham', label: 'Một chạm' },
+    { href: '#nhin-lai', label: 'Nhìn lại' },
     { href: '#rieng-tu', label: 'Riêng tư' },
   ]
   return (
@@ -161,55 +157,75 @@ function previewMonth(account: LandingAccount, summary: HomeSummary): PreviewMon
   }
 }
 
+/** Lúc icon của thẻ ngày bay vào ô hôm nay của lịch: sau khi hai thẻ đã dán xuống và icon các ngày đã hiện. */
+const FLY_AT_MS = 1000
+
 function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSummary | null }) {
-  const dark = useDarkMode()
-  const lavender = flagColors.find((f) => f.id === 'lavender')!
+  // Khách: ô hôm nay của lịch để trống tới khi icon của thẻ ngày bay vào (DESIGN.md mục 7, cảnh 1). Người đã cuộn đi
+  // hoặc tab đang ẩn thì điền ngay, không diễn. Đã đăng nhập: lịch là tháng thật, không diễn.
+  const [landed, setLanded] = useState(Boolean(account))
+  useEffect(() => {
+    if (account) return
+    const timer = window.setTimeout(() => {
+      if (window.scrollY > 8 || document.hidden) {
+        setLanded(true)
+        return
+      }
+      flyTo({
+        from: '[data-hero] [data-hero-day-icon]',
+        to: '[data-hero] [data-month-preview] [data-state="today"] [data-cell-icon]',
+        update: () => setLanded(true),
+      })
+    }, FLY_AT_MS)
+    return () => window.clearTimeout(timer)
+  }, [account])
+
   return (
-    <section className={cn(wrap, 'flex flex-wrap items-center gap-[72px] pt-[clamp(56px,8vw,112px)] pb-[clamp(80px,10vw,136px)]')}>
+    <section data-hero="" className={cn(wrap, 'flex flex-wrap items-center gap-[72px] pt-[clamp(56px,8vw,112px)] pb-[clamp(80px,10vw,136px)]')}>
       <div className="flex min-w-0 flex-[1_1_400px] flex-col gap-5">
         {account ? (
           <Link
             to="/profile"
-            className="group/hi inline-flex animate-rise items-center gap-2.5 self-start rounded-full border-[1.5px] border-line bg-card py-1 pr-3.5 pl-1 text-[15px] leading-[22px] font-medium transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="group/hi inline-flex animate-rise items-center gap-2.5 self-start rounded-full border-[1.5px] border-line bg-card py-1 pr-3.5 pl-1 text-[15px] leading-[22px] font-medium transition-transform duration-(--dur-fast) hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Avatar name={account.name} src={account.avatarUrl} size={28} />
             {greeting(account.name, account.timeZone)}
           </Link>
         ) : null}
-        <h1 className="group/h1 max-w-[560px] animate-rise text-[clamp(34px,4.4vw,60px)] leading-[1.12] font-bold tracking-[-0.02em] text-balance">
+        <h1 className="max-w-[600px] animate-rise-story font-display text-display font-extrabold text-balance">
           Chạm để ghi chú, mở để{' '}
           <span className="relative inline-block whitespace-nowrap">
             nhìn lại.
-            {/* Nét gạch vẽ tay chạy ra sau khi tiêu đề hiện; dày lên khi di chuột. */}
+            {/* Nét bút màu đào chạy dưới chữ sau khi tiêu đề hiện. */}
             <svg
               aria-hidden="true"
               viewBox="0 0 200 16"
               preserveAspectRatio="none"
-              className="absolute -bottom-[0.3em] -left-[2%] h-[0.42em] w-[104%] overflow-visible"
+              className="absolute -bottom-[0.22em] -left-[2%] h-[0.36em] w-[104%] overflow-visible"
             >
               <path
-                className="draw-in group-hover/h1:stroke-[7]"
+                className="draw-in"
                 pathLength={1}
                 d="M4 11c38-6 92-9 192-4"
                 fill="none"
                 stroke="var(--peach)"
-                strokeWidth={4}
+                strokeWidth={5}
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
           </span>
         </h1>
-        <p className="max-w-[400px] animate-rise text-[17px] leading-7 text-muted-foreground" style={{ animationDelay: '.12s' }}>
-          Mỗi ngày một trang. Chấm điểm, chọn biểu tượng, viết vài dòng nếu muốn.
+        <p className="max-w-[420px] animate-rise-story text-[17px] leading-7 text-muted-foreground" style={{ animationDelay: '70ms' }}>
+          Nhật ký mỗi ngày một trang. Chấm điểm, chọn biểu tượng, viết vài dòng nếu muốn.
         </p>
-        <div className="mt-3 flex animate-rise flex-wrap items-center gap-x-[22px] gap-y-3.5" style={{ animationDelay: '.24s' }}>
+        <div className="mt-3 flex animate-rise-story flex-wrap items-center gap-x-[22px] gap-y-3.5" style={{ animationDelay: '140ms' }}>
           {account ? (
             <>
               <Link
                 to="/today"
                 className={cn(
-                  'lift inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-line bg-card pr-[18px] pl-4 text-[15px] font-semibold shadow-ink-sm',
+                  'lift inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-line bg-card pr-[18px] pl-4 text-body font-semibold shadow-ink-sm',
                   focusRing,
                 )}
               >
@@ -229,7 +245,7 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
             </>
           )}
         </div>
-        <p className="animate-rise text-[13px] leading-5 text-muted-foreground" style={{ animationDelay: '.32s' }}>
+        <p className="animate-rise-story text-label text-muted-foreground" style={{ animationDelay: '210ms' }}>
           {account ? heroStatus(summary) : 'Đăng nhập bằng Gmail, không cần mật khẩu.'}
         </p>
       </div>
@@ -239,187 +255,86 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
           className="w-full max-w-[400px] rotate-2"
           // Đã đăng nhập: vẽ tháng hiện tại từ cùng số liệu với dòng "Tháng này bạn đã ghi X/Y ngày".
           month={account && summary ? previewMonth(account, summary) : undefined}
+          todayPending={!landed}
         />
-        <article
-          className={cn(card, 'group/tilt tilt -mt-[88px] w-full max-w-[340px] -rotate-[2.5deg] animate-drop-left self-start overflow-hidden shadow-ink')}
-          style={{ animationDelay: '.5s' }}
-        >
-          <div className="h-14 border-b-[1.5px] border-line" style={{ backgroundColor: flagHex(lavender.hex, dark) }} />
-          <div className="flex flex-col gap-2 px-5 pb-5">
-            <span className="-mt-[30px] flex size-[60px] items-center justify-center rounded-full border-[1.5px] border-line bg-card">
-              <MoodMark
-                iconSetId={DEMO_ICON_SET}
-                score={4}
-                subIcon="😌"
-                size={44}
-                subClassName="animate-pop transition-[translate,rotate] duration-300 ease-out group-hover/tilt:-translate-y-0.5 group-hover/tilt:-rotate-[4deg]"
-                subStyle={{ animationDelay: '1.7s' }}
-              />
-            </span>
-            <span className="text-xs leading-[18px] text-muted-foreground">Chủ nhật, 18/10 · Hôm nay</span>
-            <span className="font-heading text-lg leading-[26px] font-semibold">Chiều mưa đọc sách</span>
-            <span className="ruled text-sm leading-6">Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở.</span>
-          </div>
-        </article>
+        <DemoDayCard
+          hero
+          className="tilt -mt-[88px] w-full max-w-[340px] -rotate-[2.5deg] animate-paste self-start"
+          style={{ animationDelay: '.4s' }}
+        />
       </div>
     </section>
   )
 }
 
-function FeatureCard({ visual, title, children }: { visual: ReactNode; title: string; children: ReactNode }) {
-  return (
-    <article className={cn(card, 'group/card reveal-on-scroll lift flex flex-col gap-3 p-7 shadow-ink-sm')}>
-      <div className="mb-2">{visual}</div>
-      <h3 className="font-heading text-xl leading-7 font-semibold">{title}</h3>
-      <p className="text-[15px] leading-6 text-muted-foreground">{children}</p>
-    </article>
-  )
-}
-
-function Features() {
-  const dark = useDarkMode()
-  const maxPhotos = tierLimits().photos.per_day_max
-  const iconRow: [string, 1 | 2 | 3 | 4 | 5][] = [
-    ['sprout', 5],
-    ['face', 4],
-    ['moon', 4],
-    ['sakura', 4],
-    ['sun', 4],
-    ['bean', 3],
-  ]
-  return (
-    <section id="tinh-nang" className={cn(wrap, sectionPad, 'flex flex-col gap-12')}>
-      <h2 className={sectionTitle}>Mỗi ngày, theo cách của bạn</h2>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))] gap-8">
-        <FeatureCard
-          title="Một trang mỗi ngày"
-          visual={
-            <div className="flex flex-wrap gap-2">
-              {[1, 2, 3].map((i) => (
-                <span key={i} className={cn('flex size-12 items-center justify-center rounded-[10px] border-[1.5px] border-line bg-muted', nudge)}>
-                  <Image className="size-[18px] text-muted-foreground" aria-hidden="true" />
-                </span>
-              ))}
-              <span className={cn('flex h-12 items-center rounded-[10px] border-[1.5px] border-dashed border-line px-2.5 text-[13px] font-semibold', nudge)}>
-                3/{maxPhotos}
-              </span>
-            </div>
-          }
-        >
-          Tiêu đề, nội dung, từ khóa và tối đa {maxPhotos} ảnh.
-        </FeatureCard>
-        <FeatureCard
-          title="Biểu tượng cho từng ngày"
-          visual={
-            <div className="flex flex-wrap items-center gap-1">
-              {iconRow.map(([set, score]) => (
-                <span key={set}>
-                  <ScoreIcon iconSetId={set} score={score} size={40} />
-                </span>
-              ))}
-            </div>
-          }
-        >
-          Sáu bộ icon chấm điểm, chọn bộ bạn thích.
-        </FeatureCard>
-        <FeatureCard
-          title="Cờ hiệu"
-          visual={
-            <div className="flex flex-wrap gap-1.5">
-              {flagColors.map((f) => (
-                <span
-                  key={f.id}
-                  className={cn('h-6 w-8 rounded-[6px] border-[1.5px] border-line', nudge)}
-                  style={{ backgroundColor: flagHex(f.hex, dark) }}
-                />
-              ))}
-            </div>
-          }
-        >
-          Gắn một màu cho ngày đáng nhớ.
-        </FeatureCard>
-        <FeatureCard
-          title="Lịch tháng và thống kê"
-          visual={
-            <dl className="flex flex-wrap gap-6">
-              {[
-                ['Ngày đã ghi', '15/18'],
-                ['Điểm TB', '3,6'],
-                ['Ảnh', '24'],
-              ].map(([k, v]) => (
-                <div key={k} className="flex flex-col-reverse">
-                  <dd className="font-heading text-[22px] leading-[30px] font-bold">{v}</dd>
-                  <dt className="text-xs leading-[18px] text-muted-foreground">{k}</dt>
-                </div>
-              ))}
-            </dl>
-          }
-        >
-          Nhìn lại cả tháng chỉ trong một trang.
-        </FeatureCard>
-        <FeatureCard
-          title="Tìm theo từ khóa"
-          visual={
-            <div className="flex h-11 items-center gap-2 rounded-[12px] border-[1.5px] border-line bg-background px-3">
-              <Search className="size-[18px] text-muted-foreground" aria-hidden="true" />
-              <span className="text-[15px]">mưa</span>
-            </div>
-          }
-        >
-          Mở lại những ngày có cùng kỷ niệm.
-        </FeatureCard>
-      </div>
-    </section>
-  )
+/** 6 ngày trước hôm nay cho dải 7 ngày ở cảnh "Một chạm" (đã đăng nhập): ngày trong tháng lấy từ tóm tắt tháng. */
+function accountWeek(account: LandingAccount, summary: HomeSummary | null | undefined): { week: WeekDay[]; today: { day: number; weekday: string } } {
+  const today = todayIn(account.timeZone)
+  const month = today.slice(0, 7)
+  const week = [6, 5, 4, 3, 2, 1].map((back) => {
+    const date = addDays(today, -back)
+    const entry = date.startsWith(month) ? summary?.days[dayOfMonth(date)] : undefined
+    return { day: dayOfMonth(date), weekday: weekdayShort(date), score: entry?.score ?? null, sub: entry?.sub ?? null }
+  })
+  return { week, today: { day: dayOfMonth(today), weekday: weekdayShort(today) } }
 }
 
 function Privacy() {
-  const items = [
-    { icon: Lock, title: 'Riêng tư mặc định', text: 'Chỉ mình bạn xem được.' },
-    // Chia sẻ một trang qua link (F-10, ADR 0005): người viết tự quyết.
-    { icon: Eye, title: 'Bạn chọn người xem', text: 'Tự quyết định có chia sẻ hay không.' },
-    { icon: Trash2, title: 'Xóa bất cứ lúc nào', text: 'Xóa từng trang hoặc toàn bộ dữ liệu.' },
-  ]
+  const facts = [
+    ['Riêng tư mặc định.', 'Chỉ mình bạn xem được nhật ký của mình.'],
+    ['Bạn chọn người xem.', 'Chia sẻ từng trang qua link chỉ xem, tắt link lúc nào cũng được.'],
+    ['Xóa bất cứ lúc nào.', 'Xóa từng trang hoặc toàn bộ dữ liệu.'],
+  ] as const
   return (
-    <section id="rieng-tu" className={cn(wrap, sectionPad, 'flex flex-col gap-12')}>
-      <h2 className={sectionTitle}>Nhật ký của bạn là của bạn</h2>
-      <div className="reveal-on-scroll grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-10">
-        {items.map((item) => (
-          <div key={item.title} className="group/pv flex flex-col gap-3">
-            <span className="flex size-11 items-center justify-center rounded-[12px] border-[1.5px] border-line bg-card shadow-ink-sm transition-[transform,box-shadow] duration-200 group-hover/pv:[transform:translate(-2px,-2px)] group-hover/pv:shadow-[5px_5px_0_var(--ink-shadow)]">
-              <item.icon className="size-5" aria-hidden="true" />
-            </span>
-            <h3 className="font-heading text-xl leading-7 font-semibold">{item.title}</h3>
-            <p className="text-[15px] leading-6 text-muted-foreground">{item.text}</p>
-          </div>
-        ))}
+    <section id="rieng-tu" aria-labelledby="rieng-tu-title" className="border-y-[1.5px] border-line bg-sage-soft">
+      <div className={cn(wrap, sectionPad, 'grid items-end gap-x-16 gap-y-10 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]')}>
+        <h2
+          id="rieng-tu-title"
+          className="reveal-on-scroll font-display text-[clamp(36px,5vw,56px)] leading-[1.05] font-extrabold tracking-[-0.025em] text-balance"
+        >
+          Nhật ký của bạn là của bạn.
+        </h2>
+        <div className="flex flex-col gap-4 text-[17px] leading-7">
+          {facts.map(([lead, rest]) => (
+            <p key={lead} className="reveal-on-scroll">
+              <strong className="font-semibold">{lead}</strong> <span className="text-muted-foreground">{rest}</span>
+            </p>
+          ))}
+          <Link to="/privacy" className="link-underline self-start text-[15px] font-semibold">
+            Đọc chính sách quyền riêng tư
+          </Link>
+        </div>
       </div>
     </section>
   )
 }
 
 /**
- * Trang chủ (thiết kế B5). Chưa đăng nhập: trang giới thiệu. Đã đăng nhập (`account`): lời chào, nút mở trang hôm
- * nay, menu tài khoản, chấm điểm nhanh cho hôm nay và Year in Pixels "của bạn".
+ * Trang chủ (thiết kế B5, làm lại theo DESIGN.md mục 7). Chưa đăng nhập: trang giới thiệu. Đã đăng nhập (`account`):
+ * lời chào, nút mở trang hôm nay, menu tài khoản, chấm điểm nhanh cho hôm nay.
+ * Trình tự: hero → Một chạm → Một ngày, một tháng, một năm (cảnh cuộn) → Một trang ngày → Riêng tư → CTA → chân trang.
  */
 export function Landing({ account }: { account?: LandingAccount }) {
   const { data } = useHomeSummary(account?.timeZone ?? browserTimeZone(), Boolean(account))
   const summary = account ? data : undefined
   const todayWritten = Boolean(summary?.todayWritten)
+  const week = account ? accountWeek(account, summary) : undefined
   return (
     <div className="min-h-dvh overflow-x-clip">
       <SiteHeader account={account} todayWritten={todayWritten} />
       <main>
         <Hero account={account} summary={summary} />
 
-        <section id="mot-cham" className="border-y-[1.5px] border-line bg-band">
+        <section id="mot-cham" aria-labelledby="mot-cham-title" className="border-y-[1.5px] border-line bg-peach-soft">
           <div className={cn(wrap, sectionPad, 'flex flex-wrap items-center gap-16')}>
             <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-3.5">
-              <h2 className={sectionTitle}>{account ? 'Một chạm cho hôm nay' : 'Bận quá? Một chạm là đủ.'}</h2>
-              <p className="max-w-[380px] text-[17px] leading-7 text-muted-foreground">
+              <h2 id="mot-cham-title" className={cn(sectionTitle, 'reveal-on-scroll')}>
+                {account ? 'Một chạm cho hôm nay' : 'Bận quá? Một chạm là đủ.'}
+              </h2>
+              <p className="reveal-on-scroll max-w-[380px] text-[17px] leading-7 text-muted-foreground">
                 {account
                   ? 'Chấm điểm ngay tại đây, trang hôm nay của bạn sẽ được cập nhật. Muốn viết thêm thì mở trang hôm nay.'
-                  : 'Chỉ cần chấm điểm, hôm nay đã được ghi lại. Viết thêm lúc nào cũng được.'}
+                  : 'Thử chấm một mức: ngày hôm đó vào ngay lịch của bạn. Viết thêm lúc nào cũng được.'}
               </p>
             </div>
             <div className="flex min-w-0 flex-[1_1_420px]">
@@ -428,6 +343,8 @@ export function Landing({ account }: { account?: LandingAccount }) {
                   iconSetId={account.iconSetId}
                   value={account.quickScore?.value ?? null}
                   onChange={account.quickScore?.onPick}
+                  week={week?.week}
+                  today={week?.today}
                   status={(score, label) =>
                     account.quickScore?.error ??
                     (account.quickScore?.saving ? 'Đang lưu…' : `Đã lưu cho hôm nay: điểm ${score} · ${label}.`)
@@ -445,42 +362,24 @@ export function Landing({ account }: { account?: LandingAccount }) {
           </div>
         </section>
 
-        <Features />
+        <StoryScene signedIn={Boolean(account)} />
 
-        <section id="year-in-pixels" className="border-t-[1.5px] border-line bg-band">
-          <div className={cn(wrap, sectionPad, 'flex flex-col gap-10')}>
-            <div className="flex flex-col gap-3">
-              <h2 className={sectionTitle}>{account ? `Năm ${todayIn(account.timeZone).slice(0, 4)} của bạn` : 'Cả năm, trong một bức tranh'}</h2>
-              <p className="text-[17px] leading-7 text-muted-foreground">
-                {account ? (
-                  <>
-                    Mỗi ô là một ngày bạn đã ghi. Bấm chú thích để lọc, hoặc{' '}
-                    <Link to="/pixels" className="link-underline font-semibold text-foreground">
-                      mở Year in Pixels
-                    </Link>
-                    .
-                  </>
-                ) : (
-                  'Mỗi ô là một ngày, mỗi màu là một mức điểm.'
-                )}
-              </p>
-            </div>
-            <YearPreview />
-          </div>
-        </section>
+        <div className="border-t-[1.5px] border-line">
+          <DayPageShowcase />
+        </div>
 
         <Privacy />
 
-        <section className={cn(wrap, 'pb-[clamp(80px,10vw,128px)]')}>
-          <div className="flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-[1.5px] border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-out hover:[transform:translate(-2px,-2px)] hover:shadow-[7px_7px_0_var(--cta-shadow)]">
-            <h2 className="font-heading text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold text-balance">
+        <section aria-labelledby="cta-title" className={cn(wrap, 'py-[clamp(80px,10vw,128px)]')}>
+          <div className="cta-paste flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-[1.5px] border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-(--dur-base) ease-out hover:[transform:translate(-2px,-2px)] hover:shadow-[7px_7px_0_var(--cta-shadow)]">
+            <h2 id="cta-title" className="font-heading text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold text-balance">
               {account && todayWritten ? 'Hôm nay đã có một trang. Viết thêm vài dòng?' : 'Hôm nay của bạn thế nào?'}
             </h2>
             {account ? (
               <Link
                 to="/today"
                 className={cn(
-                  'press inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-primary-foreground bg-primary-foreground pr-5 pl-4 text-[15px] font-semibold text-primary',
+                  'press inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-primary-foreground bg-primary-foreground pr-5 pl-4 text-body font-semibold text-primary',
                   focusRing,
                 )}
               >
@@ -494,21 +393,24 @@ export function Landing({ account }: { account?: LandingAccount }) {
         </section>
       </main>
 
-      <footer className="border-t-[1.5px] border-line">
-        <div className={cn(wrap, 'flex flex-wrap items-center justify-between gap-4 py-7')}>
-          <div className="flex flex-wrap items-center gap-2">
-            <Logo size="sm" />
-            <span className="ml-2 text-[13px] text-muted-foreground">Jot it down, keep it forever.</span>
-          </div>
-          <div className="flex flex-wrap gap-5 text-[13px]">
-            {/* Chờ nội dung điều khoản thật trước khi ra mắt. */}
-            <a href="#" className="link-underline">
-              [Điều khoản sử dụng]
-            </a>
-            <Link to="/privacy" className="link-underline">
-              Chính sách quyền riêng tư
-            </Link>
-            <span className="text-muted-foreground">© 2026 Jotly</span>
+      <footer className="overflow-hidden border-t-[1.5px] border-line">
+        <div className={cn(wrap, 'flex flex-col gap-6 pt-10 pb-7')}>
+          {/* Chân trang khép lại bằng chính tên Jotly, cỡ lớn (chữ logo Young Serif). */}
+          <p aria-hidden="true" className="-mb-[0.12em] font-brand text-[clamp(88px,22vw,264px)] leading-[0.8] tracking-[-0.02em]">
+            Jotly
+          </p>
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t-[1.5px] border-line pt-5">
+            <span className="text-label text-muted-foreground">Chạm để ghi chú, mở để nhìn lại.</span>
+            <div className="flex flex-wrap gap-5 text-label">
+              {/* Chờ nội dung điều khoản thật trước khi ra mắt. */}
+              <a href="#" className="link-underline">
+                [Điều khoản sử dụng]
+              </a>
+              <Link to="/privacy" className="link-underline">
+                Chính sách quyền riêng tư
+              </Link>
+              <span className="text-muted-foreground">© 2026 Jotly</span>
+            </div>
           </div>
         </div>
       </footer>

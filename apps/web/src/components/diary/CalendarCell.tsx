@@ -107,13 +107,13 @@ export function CalendarCell({
   )
   if (onClick) {
     return (
-      <button type="button" aria-label={label} onClick={onClick} className={classes}>
+      <button type="button" aria-label={label} onClick={onClick} data-state={state} className={classes}>
         {content}
       </button>
     )
   }
   return (
-    <div title={label} className={classes}>
+    <div title={label} data-state={state} className={classes}>
       <span className="sr-only">{label}</span>
       <span aria-hidden="true" className="contents">
         {content}

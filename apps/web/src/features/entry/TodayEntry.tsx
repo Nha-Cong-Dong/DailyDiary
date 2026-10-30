@@ -15,13 +15,13 @@ import { Textarea } from '@/components/ui/textarea'
 import type { Score } from '@/lib/catalog'
 import type { DraftFields } from '@/lib/storage'
 import { longDateLabel, timeIn, todayIn, useNow } from '@/lib/date'
+import { flyTo } from '@/lib/flyTo'
 import { photoAccept } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
 import { ConflictDialog } from './components/ConflictDialog'
 import { KeywordEditor } from './components/KeywordEditor'
 import { DayClock } from './components/DayClock'
-import { flyToToday } from './flyToToday'
 import { MonthStrip } from './components/MonthStrip'
 import { toDayEntry, type DayEntry } from './entries'
 import { deletePhoto, makeUploadPhoto, reorderPhotos } from './uploadPhoto'
@@ -127,8 +127,13 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
   // Chấm (hoặc đổi) điểm: lưu ngay, cùng các trường đang có. Lần chấm đầu trong ngày thì icon bay vào ô hôm nay của
   // dải tháng; đổi điểm sau đó thì đổi ngay (thao tác lặp không diễn lại).
   function pick(next: Score) {
-    if (score === null) flyToToday(next, () => setScore(next))
-    else setScore(next)
+    if (score === null) {
+      flyTo({
+        from: `[data-score-option="${next}"] svg`,
+        to: '[data-today-cell] [data-cell-icon]',
+        update: () => setScore(next),
+      })
+    } else setScore(next)
     void autosave.saveNow({ score: next, sub_icon: sub, flag_color: flag, title, content, keywords })
   }
 

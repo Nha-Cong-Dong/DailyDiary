@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react'
 import { PixelCell, PixelLegend } from '@/components/diary/PixelCell'
 import { pixelFilterOf, type PixelFilter } from '@/components/diary/pixelFilter'
+import { cn } from '@/lib/utils'
 import { demoYear } from './demoData'
 
 const YEAR = demoYear()
@@ -12,13 +13,13 @@ const YEAR = demoYear()
  * Một lưới phẳng duy nhất (nhãn tháng rồi 31 ô, lặp 12 lần); chỉ đổi hướng xếp bằng grid-auto-flow.
  * Các ô "tô màu" dần theo tiến độ cuộn; chú thích bên dưới lọc/làm nổi theo mức điểm.
  */
-export function YearPreview() {
+export function YearPreview({ paint = true, className }: { paint?: boolean; className?: string }) {
   const [filter, setFilter] = useState<PixelFilter | null>(null)
   const [highlight, setHighlight] = useState<PixelFilter | null>(null)
   const focus = highlight ?? filter
 
   return (
-    <div className="paint-timeline rounded-[20px] border-[1.5px] border-line bg-card p-4 shadow-ink sm:p-6">
+    <div data-ui="" className={cn('rounded-[20px] border-[1.5px] border-line bg-card p-4 shadow-ink sm:p-6', paint && 'paint-timeline', className)}>
       <div className="grid grid-flow-col auto-cols-fr grid-rows-[auto_repeat(31,auto)] gap-[3px] md:grid-flow-row md:grid-cols-[32px_repeat(31,minmax(0,1fr))] md:grid-rows-none md:gap-1">
         {YEAR.map((days, m) => (
           <Fragment key={m}>
@@ -35,9 +36,12 @@ export function YearPreview() {
                   score={px.score}
                   state={state}
                   label={`${px.day}/${px.month}${px.future ? '' : px.score ? ` · điểm ${px.score}` : ' · chưa ghi'}`}
-                  className="paint-on-scroll transition-[transform,filter,box-shadow] duration-150 hover:relative hover:z-[2] hover:shadow-[0_0_0_1.5px_var(--icon-ink)] hover:[transform:scale(1.35)] active:[transform:scale(1.2)]"
+                  className={cn(
+                    'transition-[transform,filter,box-shadow] duration-(--dur-fast) hover:relative hover:z-[2] hover:shadow-[0_0_0_1.5px_var(--icon-ink)] hover:[transform:scale(1.35)] active:[transform:scale(1.2)]',
+                    paint && 'paint-on-scroll',
+                  )}
                   style={{
-                    animationRange: `cover ${start.toFixed(1)}% cover ${(start + 10).toFixed(1)}%`,
+                    animationRange: paint ? `cover ${start.toFixed(1)}% cover ${(start + 10).toFixed(1)}%` : undefined,
                     filter: dimmed ? 'grayscale(1) opacity(.25)' : undefined,
                   }}
                 />
