@@ -2,7 +2,7 @@
 
 |                |                                                                                     |
 | -------------- | ----------------------------------------------------------------------------------- |
-| **Trạng thái** | Xong bước 1–3, 5–12, 11b; bước 13 xong phần làm được ở local (Sentry/Umami hoãn); đang bước 14 (24/10/2026) |
+| **Trạng thái** | Bản 1.0 hoàn thành 30/10/2026: xong bước 0–14 (bước 4 gộp vào 14); bước 15 và phần dở chuyển sang `docs/Backlog.md` |
 | **Ngày lập**   | 16/10/2026                                                                          |
 | **Căn cứ**     | `docs/Project_Specs.md` v2.0, `docs/Roadmap.md`, skill trong `.claude/` và `apps/*/.claude/` |
 
@@ -37,8 +37,8 @@
 | 11b  | Chia sẻ một trang qua link (F-10, ADR 0005) — xong 23/10/2026                                   | –               | 5, 7      |
 | 12   | Xóa toàn bộ dữ liệu, xóa tài khoản, góp ý (F-07, F-09; bỏ xuất dữ liệu 21/10/2026) — xong 24/10/2026 | 11              | 7         |
 | 13   | Vận hành: hạn mức, tác vụ định kỳ, sao lưu — xong phần local 24/10/2026; Sentry/phân tích hoãn   | 12              | 7, 12     |
-| 14   | Hoàn thiện giao diện, điện thoại, dữ liệu mẫu, chính sách quyền riêng tư, triển khai production | 13              | tất cả    |
-| 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo                             | 14              | 14        |
+| 14   | Hoàn thiện giao diện, điện thoại, chính sách quyền riêng tư, triển khai production — xong 30/10/2026 | 13              | tất cả    |
+| 15   | Kiểm thử phân quyền, thử khôi phục, tự dùng 2–3 ngày, chuẩn bị demo — chuyển sang `Backlog.md`   | 14              | 14        |
 
 Những điểm khác với kế hoạch 2 tuần (Roadmap 2.4) và lý do:
 - **F-06 tách khỏi F-01.** Tự động lưu (IndexedDB, thử lại, xử lý xung đột 409) đủ phức tạp để làm thành một bước riêng.
@@ -660,9 +660,26 @@ Cloudflare R2 cho ảnh, GitHub Actions cron cho tác vụ, tên miền `jotly.i
 Còn lại (bạn làm theo `docs/Deploy.md`): DNS, Atlas, R2, OAuth production, Render, Pages, GitHub Secrets, kiểm tra
 production, sao lưu chính thức + thử khôi phục; sau đó chạy `/deploy` và `securitymaxxing:ship-check`.
 
+**Lên production (27–30/10/2026):** DNS, Atlas, R2, OAuth, merge `main` (PR #10, #12), Pages, Secrets xong. Thay đổi so
+với kế hoạch:
+- API chuyển từ Render sang **Docker trên máy cá nhân + Cloudflare Tunnel** (`docker-compose.prod.yml`, dịch vụ Windows
+  `cloudflared`); `render.yaml` giữ làm dự phòng.
+- Web dùng **Pages Direct Upload** (không có quyền chủ tổ chức GitHub để kết nối repo); build tay với `VITE_API_URL`.
+- Hai lỗi cấu hình khi lên production: Client ID nhầm client (`redirect_uri_mismatch`); thiếu `COOKIE_DOMAIN` khiến mọi
+  request ghi bị 403 `CSRF_FAILED` — thêm vào `docker-compose.prod.yml` và `.env.example`.
+- OAuth chuyển **In production**, thương hiệu đã xác minh.
+- Đã kiểm tra trên production: đăng nhập, onboarding, viết trang, tải ảnh lên R2, header bảo mật, CORS, chuyển hướng
+  `www`. Chưa xong: workflow `Jobs` lỗi `OperationFailure`, sao lưu chính thức, thử khôi phục, một số mục kiểm tra —
+  ghi ở `docs/Backlog.md`.
+
+**Chốt bản 1.0 (30/10/2026):** coi sản phẩm hiện tại là hoàn thành; mọi việc còn lại của Bước 13–15 chuyển sang
+`docs/Backlog.md`.
+
 ---
 
 ## Bước 15 – Kiểm thử cuối và chuẩn bị demo
+
+> Chưa làm. Đã chuyển sang `docs/Backlog.md` mục 4 khi chốt bản 1.0 (30/10/2026).
 
 **Phạm vi:**
 - Kiểm thử phân quyền toàn bộ API: tài khoản A gọi vào dữ liệu của B.

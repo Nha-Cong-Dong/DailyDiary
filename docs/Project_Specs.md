@@ -3,8 +3,8 @@
 |                |                                                                                                                                                                                                               |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Phiên bản**  | 1.0 — mô tả hệ thống **hiện tại**                                                                                                                                                                             |
-| **Cập nhật**   | 25/10/2026                                                                                                                                                                                                    |
-| **Trạng thái** | Đủ tính năng; đang dựng production beta (`docs/Deploy.md`)                                                                                                                                                    |
+| **Cập nhật**   | 30/10/2026                                                                                                                                                                                                    |
+| **Trạng thái** | Bản 1.0 hoàn thành (30/10/2026), chạy production tại `https://jotly.io.vn`; việc chưa làm: [`Backlog.md`](Backlog.md) |
 | **Liên quan**  | Bối cảnh, lộ trình, kiếm tiền: [`Roadmap.md`](Roadmap.md) · Tiến độ: [`MVP_Plan.md`](MVP_Plan.md) · Cây dự án: [`Project_Structure.md`](Project_Structure.md) · Quyết định kiến trúc: [`adr/`](adr/README.md) |
 
 **Nguồn sự thật:** giới hạn số → [`shared/limits.json`](../shared/limits.json) (cấp `beta`); API →
@@ -27,7 +27,7 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 |         |                                                                        |
 | ------- | ---------------------------------------------------------------------- |
 | Web     | `https://jotly.io.vn` — React SPA trên Cloudflare Pages                |
-| API     | `https://api.jotly.io.vn` — FastAPI trên Render (Singapore)            |
+| API     | `https://api.jotly.io.vn` — FastAPI (Docker) trên máy cá nhân, ra Internet qua Cloudflare Tunnel |
 | Dữ liệu | MongoDB Atlas (Singapore) · ảnh: Cloudflare R2 · sao lưu: Backblaze B2 |
 
 ---
@@ -111,7 +111,7 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 
 ### F-04. Đăng nhập và hồ sơ
 
-- Google OIDC (`openid email profile`), chỉ nhận email đã xác minh; OAuth ở chế độ **Testing** với danh sách người thử.
+- Google OIDC (`openid email profile`), chỉ nhận email đã xác minh; OAuth ở chế độ **In production**, thương hiệu đã xác minh (30/10/2026).
 - Phiên 30 ngày, tự gia hạn; đăng xuất hủy phiên ngay.
 - Hồ sơ: ảnh đại diện (mặc định link ảnh Google; cho tải ảnh riêng — cắt vuông 256 px, nén ≤ 2 MB — hoặc gỡ), tên
   1–50 ký tự, múi giờ IANA (đổi chỉ áp dụng cho ngày sau đó), bộ biểu tượng (áp cho **mọi ngày**), màu cờ riêng,
@@ -169,11 +169,11 @@ email người gửi, Reply-To = người gửi; form ghi rõ). Gửi thư lỗi
 | Kết nối    | HTTPS bắt buộc; HSTS 1 năm (`includeSubDomains`) ở web (`_headers`) và API (middleware, chỉ production)                                                                                                                      |
 | Header     | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` (trang chia sẻ: `no-referrer`); web thêm `Permissions-Policy` và CSP (đang **Report-Only**)                   |
 | Phân quyền | Mọi truy vấn lọc `user_id` từ phiên; bộ lọc/lệnh cập nhật dựng từ trường đã kiểm tra kiểu (chặn `$ne`, `$where`); tài nguyên không thuộc người dùng → 404; test truy cập chéo cho mọi endpoint                               |
-| Phiên      | `dd_session` ngẫu nhiên (`HttpOnly`, `Secure`, `SameSite=Lax`), DB chỉ lưu SHA-256; CSRF: `Origin` + `X-CSRF-Token` khớp cookie `dd_csrf` (ADR 0002). Web và API cùng tên miền gốc (`io.vn` trong Public Suffix List)        |
+| Phiên      | `dd_session` ngẫu nhiên (`HttpOnly`, `Secure`, `SameSite=Lax`), DB chỉ lưu SHA-256; CSRF: `Origin` + `X-CSRF-Token` khớp cookie `dd_csrf` (ADR 0002). Web và API cùng tên miền gốc (`io.vn` trong Public Suffix List), cookie `Domain=jotly.io.vn` (`COOKIE_DOMAIN`)        |
 | Ảnh        | Kho riêng tư; khóa bắt đầu `user_id/`; link xem 1 giờ, link tải lên 5 phút                                                                                                                                                   |
 | Log        | Mã người dùng nội bộ, phương thức, đường dẫn (bỏ query, che token chia sẻ), mã trạng thái, thời gian. **Không**: tiêu đề, nội dung, từ khóa, ảnh, IP, user agent, body. Giữ 14–30 ngày                                       |
 | Quyền DB   | User API/tác vụ chỉ `readWrite@dailydiary` (không sửa validator); migration bằng user riêng `dbAdmin` + `readWrite`                                                                                                          |
-| Bí mật     | Chỉ trong biến môi trường (Render, GitHub Secrets) hoặc `.env` bị `.gitignore`; production từ chối khởi động khi thiếu `SESSION_SECRET` hoặc bật `DEV_LOGIN`; `/docs` tắt ở production                                       |
+| Bí mật     | Chỉ trong `apps/api/.env.prod` trên máy chạy API, GitHub Secrets, hoặc `.env` bị `.gitignore`; production từ chối khởi động khi thiếu `SESSION_SECRET` hoặc bật `DEV_LOGIN`; `/docs` tắt ở production                                       |
 | Pháp lý    | `/privacy` liệt kê dữ liệu, cookie, log, nhà cung cấp, thời gian lưu, quyền người dùng — đúng với code. **Chưa rà soát pháp lý** (gồm chuyển dữ liệu ra nước ngoài: Singapore, Canada) — bắt buộc trước khi ra mắt công khai |
 
 ### 4.2. Toàn vẹn dữ liệu
@@ -196,7 +196,7 @@ email người gửi, Reply-To = người gửi; form ghi rõ). Gửi thư lỗi
 | CLS                 | < 0,1                   | ≤ 0,02                                                       |
 | API đọc/ghi nhật ký | p95 < 500 ms            | Chưa đo trên production                                      |
 | Tải 1 ảnh đã nén    | < 5 s, mạng bình thường | –                                                            |
-| Thời gian hoạt động | ~99%                    | Render Free ngủ sau 15 phút không dùng (lần đầu ~1 phút)     |
+| Thời gian hoạt động | ~99%                    | Phụ thuộc máy cá nhân chạy API (tắt, ngủ, mất mạng là ngừng) |
 
 Đã áp dụng: tải lười mọi màn; gọi `/me` ngay khi mở app; loader tải trước dữ liệu của màn song song với chunk; font tự
 host đã cắt (tiếng Việt + Latin), preload font tiêu đề và chữ thường; cache `/assets/*` 1 năm.
@@ -254,7 +254,7 @@ Sentry (bắt lỗi) và Umami (phân tích, không cookie) đã làm ở Bướ
 ```mermaid
 flowchart LR
     U[Trình duyệt] -->|HTTPS| FE["Web — Cloudflare Pages<br/>jotly.io.vn"]
-    U -->|"cookie phiên + CSRF"| API["API — FastAPI, Render<br/>api.jotly.io.vn"]
+    U -->|"cookie phiên + CSRF"| API["API — FastAPI, máy cá nhân<br/>qua Cloudflare Tunnel<br/>api.jotly.io.vn"]
     U -->|"presigned PUT/GET"| R2[("Kho ảnh<br/>Cloudflare R2")]
     U --- IDB[(IndexedDB<br/>bản nháp)]
     API -->|OIDC| G[Google]
@@ -273,7 +273,7 @@ flowchart LR
 | Web (`apps/web`)     | TypeScript 5.9, React 19, Vite 8, React Router 8 (data router, tải lười, loader tải trước), TanStack Query 5, `openapi-fetch` + kiểu sinh từ OpenAPI, Tailwind CSS 4 + shadcn/ui (Radix, CSS chép vào dự án — ADR 0003), Lucide, `date-fns(-tz)`, `browser-image-compression`, `heic-to`, `idb`; biểu đồ vẽ SVG/CSS |
 | API (`apps/api`)     | Python 3.12 (uv), FastAPI 0.143, Uvicorn, Pydantic v2 + pydantic-settings, PyMongo async (ADR 0001), Authlib (Google OIDC), slowapi, boto3 (S3), `smtplib`                                                                                                                                                          |
 | Kiểm thử, chất lượng | pytest + httpx trên MongoDB thật, Vitest + Testing Library, Playwright (máy tính + 360 px), ruff, oxlint, `tsc`                                                                                                                                                                                                     |
-| Hạ tầng              | Render (Docker, Free, Singapore) · Cloudflare Pages, DNS, R2 · MongoDB Atlas M0 (Singapore, cluster `cluster0.auszmkf`) · Backblaze B2 · GitHub Actions (CI + cron) · Gmail SMTP                                                                                                                                    |
+| Hạ tầng              | Docker trên máy cá nhân + Cloudflare Tunnel · Cloudflare Pages (Direct Upload), DNS, R2 · MongoDB Atlas M0 (Singapore, cluster `cluster0.auszmkf`) · Backblaze B2 · GitHub Actions (CI + cron) · Gmail SMTP                                                                                                                                    |
 | Local                | Windows, uv, Docker Compose: MongoDB 8.0, MinIO (+ bucket ảnh và sao lưu), Mailpit                                                                                                                                                                                                                                  |
 
 ### 5.3. Cấu trúc repo
@@ -382,12 +382,13 @@ tại, magic bytes WebP/JPEG, dung lượng, thêm vào `photos` bằng khóa l�
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Local      | `docker compose up -d`; API `:8000`, web `:5173`, Mailpit `:8025`, MinIO `:9001`; đăng nhập thử bằng `DEV_LOGIN=true`                                                              |
 | CI         | GitHub Actions `ci.yml`: ruff, pytest (MongoDB thật), kiểm tra lệch OpenAPI, oxlint, `tsc`, Vitest, build, e2e (MinIO + Mailpit)                                                   |
-| Production | Web: Cloudflare Pages build `apps/web` (`VITE_API_URL`). API: Render Blueprint `render.yaml`, image `apps/api/Dockerfile` (gốc repo, user thường, chỉ uvicorn). Tác vụ: `jobs.yml` |
+| Production | Web: Cloudflare Pages, tải lên bản build `apps/web/dist` (`VITE_API_URL`). API: `docker-compose.prod.yml`, image `apps/api/Dockerfile` (gốc repo, user thường, chỉ uvicorn), cổng `127.0.0.1:8000` sau tunnel. Tác vụ: `jobs.yml` |
 
-- **Triển khai:** đẩy lên `main` → CI qua → Render tự deploy API (`autoDeployTrigger: checksPass`), Pages tự build web.
+- **Triển khai:** merge vào `main` qua PR (CI phải xanh) → build lại API trên máy chạy production
+  (`docker compose -f docker-compose.prod.yml up -d --build`) và build web rồi tải `dist` lên Pages. Chưa tự động.
 - **Migration:** chạy **tay** bằng user `jotly_migrate` *trước* khi merge code cần nó; container không chạy migration.
-- **Cấu hình:** danh sách biến và giải thích — `apps/api/.env.example`, `apps/web/.env.example`; khóa production ở Render
-  và GitHub Secrets. Các bước dựng từ đầu, việc định kỳ, sự cố: [`Deploy.md`](Deploy.md).
+- **Cấu hình:** danh sách biến và giải thích — `apps/api/.env.example`, `apps/web/.env.example`; khóa production ở
+  `apps/api/.env.prod` (máy chạy API) và GitHub Secrets. Các bước dựng từ đầu, việc định kỳ, sự cố: [`Deploy.md`](Deploy.md).
 
 ---
 
@@ -412,16 +413,4 @@ Kho sao lưu: Backblaze B2, bucket riêng tư, lifecycle "chỉ giữ phiên b�
 
 ## 7. Việc còn mở
 
-| Việc                                               | Ghi chú                                                                                            |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Dựng production theo `Deploy.md`                   | DB beta đã sẵn (migration 0009, quyền user đã thu hẹp); còn DNS, R2, OAuth, Render, Pages, Secrets |
-| Sao lưu chính thức + thử khôi phục trên production | Sau khi có dữ liệu thật                                                                            |
-| LCP < 2,5 s trên mọi màn                           | Đo lại trên production; nếu thiếu: render sẵn trang chủ / nhúng CSS quan trọng                     |
-| CSP chuyển từ Report-Only sang chặn                | Sau khi kiểm tra production không có vi phạm                                                       |
-| Rà soát pháp lý dữ liệu cá nhân                    | Trước khi ra mắt công khai                                                                         |
-| Dọn ảnh tải lên mà không xác nhận                  | Ảnh mồ côi trong kho, không tính hạn mức                                                           |
-| Sentry + Umami                                     | Thêm lại khi cần (4.7)                                                                             |
-| Redis cho rate limit                               | Khi chạy nhiều tiến trình/instance                                                                 |
-| Render Starter, Atlas có sao lưu tự động           | Khi có người dùng thật                                                                             |
-| Trang Điều khoản sử dụng                           | Đang để giữ chỗ                                                                                    |
-| Dữ liệu mẫu 3 tháng (`/seed-demo-data`)            | Hoãn                                                                                               |
+Toàn bộ việc chưa làm (vận hành, hạ tầng, bảo mật, pháp lý, sản phẩm) nằm ở [`Backlog.md`](Backlog.md).
