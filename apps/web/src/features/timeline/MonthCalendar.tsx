@@ -21,12 +21,12 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
   const tail = (7 - ((lead + data.days.length) % 7)) % 7
   return (
     <div
-      className="flex animate-rise flex-col gap-2.5 rounded-[18px] border-[1.5px] border-line bg-card p-3 md:gap-3 md:rounded-[20px] md:p-[18px]"
+      className="flex animate-rise flex-col gap-2.5 rounded-[18px] border-(length:--stroke-width) border-line bg-card p-3 md:gap-3 md:rounded-[20px] md:p-[18px]"
       style={{ animationDelay: '.15s' }}
     >
       <div className="flex items-baseline justify-between max-md:hidden">
-        <span className="font-heading text-[17px] leading-6 font-semibold">{monthLabel(data.month)}</span>
-        <span className="text-xs leading-[18px] text-muted-foreground tabular-nums">
+        <span className="font-heading text-reading leading-6 font-semibold">{monthLabel(data.month)}</span>
+        <span className="text-label leading-[18px] text-muted-foreground tabular-nums">
           {data.recorded}/{data.countable} ngày
         </span>
       </div>
@@ -83,10 +83,10 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
           <span key={`t${i}`} aria-hidden="true" />
         ))}
       </div>
-      <p className="text-xs leading-[18px] text-muted-foreground md:hidden">Chạm một ngày để xem nhanh.</p>
-      <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs leading-[18px] text-muted-foreground max-md:hidden">
+      <p className="text-label leading-[18px] text-muted-foreground md:hidden">Chạm một ngày để xem nhanh.</p>
+      <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-label leading-[18px] text-muted-foreground max-md:hidden">
         <span className="inline-flex items-center gap-1.5">
-          <span aria-hidden="true" className="size-3 rounded-full border-[1.5px] border-dashed border-muted-foreground" />
+          <span aria-hidden="true" className="size-3 rounded-full border-(length:--stroke-width) border-dashed border-muted-foreground" />
           Không ghi
         </span>
         <span className="inline-flex items-center gap-1.5">

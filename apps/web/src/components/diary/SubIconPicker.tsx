@@ -23,7 +23,7 @@ export function SubIconPicker({ value, onChange, icons = subIcons, className }: 
             aria-pressed={on}
             onClick={() => onChange(on ? null : icon)}
             className={cn(
-              'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] text-[22px] leading-none transition-transform duration-200 ease-out outline-none hover:-translate-y-0.5 active:scale-[.97] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+              'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-[12px] border-(length:--stroke-width) text-[22px] leading-none transition-transform duration-200 ease-out outline-none hover:-translate-y-0.5 active:scale-[.97] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
               on ? 'border-line bg-secondary shadow-ink-sm' : 'border-border hover:border-line',
             )}
           >

@@ -15,23 +15,23 @@ export function CustomFlagColors() {
   return (
     <div className="flex flex-col gap-3 max-sm:gap-2.5 max-sm:px-4 max-sm:pt-3.5">
       <div className="flex flex-col gap-0.5">
-        <span id={`${ids}-title`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+        <span id={`${ids}-title`} className="text-sm leading-[22px] font-semibold max-sm:text-body">
           Màu cờ riêng · {custom.colors.length}/{custom.max}
         </span>
-        <span className="text-[13px] leading-5 text-muted-foreground max-sm:text-xs max-sm:leading-[18px]">
+        <span className="text-label leading-5 text-muted-foreground max-sm:text-label max-sm:leading-[18px]">
           Thêm bằng ô + khi chọn cờ hiệu. Gỡ màu không đổi những trang đã gắn màu đó.
         </span>
       </div>
       {custom.colors.length ? (
         <ul aria-labelledby={`${ids}-title`} className="m-0 flex list-none flex-wrap gap-2.5 p-0">
           {custom.colors.map((hex) => (
-            <li key={hex} className="flex items-center gap-1.5 rounded-[10px] border-[1.5px] border-line py-1 pr-1 pl-1.5">
+            <li key={hex} className="flex items-center gap-1.5 rounded-[10px] border-(length:--stroke-width) border-line py-1 pr-1 pl-1.5">
               <span
                 aria-hidden
-                className="h-7 w-9 rounded-sm border-[1.5px] border-line"
+                className="h-7 w-9 rounded-sm border-(length:--stroke-width) border-line"
                 style={{ backgroundColor: flagHex(hex, dark) }}
               />
-              <span className="font-mono text-xs text-muted-foreground">{hex}</span>
+              <span className="font-mono text-label text-muted-foreground">{hex}</span>
               <button
                 type="button"
                 aria-label={`Gỡ màu ${hex}`}
@@ -45,7 +45,7 @@ export function CustomFlagColors() {
           ))}
         </ul>
       ) : (
-        <p className="m-0 text-[13px] leading-5 text-muted-foreground">Chưa có màu riêng nào.</p>
+        <p className="m-0 text-label leading-5 text-muted-foreground">Chưa có màu riêng nào.</p>
       )}
     </div>
   )

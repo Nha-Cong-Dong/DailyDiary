@@ -234,7 +234,7 @@ export function Timeline() {
       <div className="flex animate-rise flex-wrap items-end justify-between gap-4 max-md:hidden">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Dòng thời gian</h1>
-          <p className="text-[15px] leading-6 text-muted-foreground">Mỗi trang là một ngày, mới nhất ở trên.</p>
+          <p className="text-body leading-6 text-muted-foreground">Mỗi trang là một ngày, mới nhất ở trên.</p>
         </div>
         <div role="group" aria-label="Chọn tháng" className="inline-flex flex-wrap items-center gap-1.5">
           {!current ? (
@@ -271,8 +271,8 @@ export function Timeline() {
       {/* Điện thoại: lưới 2×2 như Year in Pixels, không cuộn ngang để không thẻ nào bị cắt hay nằm ngoài màn. */}
       <dl key={`p${month}`} className="grid grid-cols-2 gap-2.5 md:hidden">
         {stats.slice(0, 4).map((st) => (
-          <div key={st.label} className="flex min-w-0 flex-col rounded-[16px] border-[1.5px] border-line bg-card px-3.5 py-2.5">
-            <dt className="text-xs leading-[18px] text-muted-foreground">{st.short}</dt>
+          <div key={st.label} className="flex min-w-0 flex-col rounded-[16px] border-(length:--stroke-width) border-line bg-card px-3.5 py-2.5">
+            <dt className="text-label leading-[18px] text-muted-foreground">{st.short}</dt>
             <dd className="font-heading text-[22px] leading-[30px] font-bold whitespace-nowrap">{st.value}</dd>
             <dd className="text-[11px] leading-4 text-muted-foreground">{st.phoneSub}</dd>
           </div>
@@ -284,21 +284,21 @@ export function Timeline() {
           <div
             key={st.label}
             className={cn(
-              'group flex animate-pop flex-col gap-0.5 rounded-[18px] border-[1.5px] border-line bg-card px-[18px] py-4 transition-transform hover:-translate-y-0.5',
+              'group flex animate-pop flex-col gap-0.5 rounded-[18px] border-(length:--stroke-width) border-line bg-card px-[18px] py-4 transition-transform hover:-translate-y-0.5',
             )}
             style={delay(0.05 + i * 0.06)}
           >
-            <dt className="text-[13px] leading-5 text-muted-foreground">{st.label}</dt>
+            <dt className="text-label leading-5 text-muted-foreground">{st.label}</dt>
             <dd className="inline-flex items-center gap-2 font-heading text-[26px] leading-[34px] font-bold whitespace-nowrap">
               {st.swatch ? (
                 <span
                   aria-hidden="true"
-                  className={cn('size-3.5 shrink-0 rounded-[4px] border-[1.5px] border-line', SCORE_BG[st.swatch])}
+                  className={cn('size-3.5 shrink-0 rounded-[4px] border-(length:--stroke-width) border-line', SCORE_BG[st.swatch])}
                 />
               ) : null}
               <span className="inline-block">{st.value}</span>
             </dd>
-            <dd className="text-[13px] leading-5 text-muted-foreground">{st.sub}</dd>
+            <dd className="text-label leading-5 text-muted-foreground">{st.sub}</dd>
           </div>
         ))}
       </dl>
@@ -321,7 +321,7 @@ export function Timeline() {
             <h2 id="list-h" className="scroll-mt-24 text-xl leading-7 font-semibold">
               Các trang trong tháng
             </h2>
-            <span className="text-[13px] leading-5 text-muted-foreground">
+            <span className="text-label leading-5 text-muted-foreground">
               {t.recorded} trang{t.missed ? ` · ${t.missed} ngày trống` : ''}
             </span>
           </div>
@@ -355,7 +355,7 @@ export function Timeline() {
               }}
             />
           ) : (
-            <p className="rounded-[14px] border-[1.5px] border-dashed border-border p-5 text-[15px] leading-6 text-muted-foreground">
+            <p className="rounded-[14px] border-(length:--stroke-width) border-dashed border-border p-5 text-body leading-6 text-muted-foreground">
               Tháng này chưa có trang nào.
             </p>
           )}
@@ -378,10 +378,10 @@ export function Timeline() {
           />
           {t.keywords.length ? (
             <div
-              className="flex animate-rise flex-col gap-2 md:gap-2.5 md:rounded-[20px] md:border-[1.5px] md:border-line md:bg-card md:p-[18px]"
+              className="flex animate-rise flex-col gap-2 md:gap-2.5 md:rounded-[20px] md:border-(length:--stroke-width) md:border-line md:bg-card md:p-[18px]"
               style={delay(0.22)}
             >
-              <h2 className="font-sans text-sm leading-5 font-semibold md:text-[15px] md:leading-[22px]">Từ khóa trong tháng</h2>
+              <h2 className="font-sans text-sm leading-5 font-semibold md:text-body md:leading-[22px]">Từ khóa trong tháng</h2>
               <ul className="flex flex-wrap gap-1.5">
                 {t.keywords.map((k) => (
                   <li key={k.label}>
@@ -390,7 +390,7 @@ export function Timeline() {
                       to="/search"
                       state={{ q: k.label }}
                       aria-label={`Tìm “${k.label}”, ${k.count} trang`}
-                      className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-line py-1 pr-2.5 pl-3 text-[13px] leading-5 font-medium transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px"
+                      className="inline-flex items-center gap-1.5 rounded-full border-(length:--stroke-width) border-line py-1 pr-2.5 pl-3 text-label leading-5 font-medium transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px"
                     >
                       {k.label}
                       <span className="min-w-[18px] rounded-full bg-secondary px-[5px] text-center text-[11px] leading-4 font-semibold">

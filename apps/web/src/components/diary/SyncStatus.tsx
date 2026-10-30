@@ -60,7 +60,7 @@ export function SyncStatus({
     <p
       role="status"
       aria-live="polite"
-      className={cn('flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-[22px] md:text-[15px] md:leading-6', className)}
+      className={cn('flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-[22px] md:text-body md:leading-6', className)}
     >
       {body}
     </p>

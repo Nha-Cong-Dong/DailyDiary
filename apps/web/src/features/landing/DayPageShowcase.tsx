@@ -27,12 +27,12 @@ export function DayPageShowcase() {
         <article
           data-ui=""
           aria-label="Trang ngày mẫu"
-          className="reveal-on-scroll overflow-hidden rounded-[24px] border-[1.5px] border-line bg-card shadow-ink-lg"
+          className="reveal-on-scroll overflow-hidden rounded-[24px] border-(length:--stroke-width) border-line bg-card shadow-ink-lg"
         >
-          <div className="h-20 border-b-[1.5px] border-line md:h-24" style={{ backgroundColor: flagHex(lavender.hex, dark) }} />
+          <div className="h-20 border-b-(length:--stroke-width) border-line md:h-24" style={{ backgroundColor: flagHex(lavender.hex, dark) }} />
           <div className="flex flex-col gap-4 px-5 pb-7 md:px-8">
             <div className="-mt-10 flex items-end justify-between gap-3">
-              <span className="flex size-20 items-center justify-center rounded-full border-[1.5px] border-line bg-card">
+              <span className="flex size-20 items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-card">
                 <MoodMark iconSetId={DEMO_ICON_SET} score={4} subIcon="😌" size={56} />
               </span>
               <span className="inline-flex items-center gap-1.5 text-label text-muted-foreground">

@@ -47,7 +47,7 @@ function EntryRow({
   const meta = metaLine(entry, iconSetId, timeZone)
   const iconLabel = `Điểm ${entry.score}, ${scoreLabel(iconSetId, entry.score)}`
   const card = cn(
-    'group lift block overflow-hidden border-[1.5px] border-line bg-card transition-[outline-color]',
+    'group lift block overflow-hidden border-(length:--stroke-width) border-line bg-card transition-[outline-color]',
     focusRing,
     flash && flashRing,
   )
@@ -58,22 +58,22 @@ function EntryRow({
         to={`/day/${entry.entry_date}`}
         className={cn(
           card,
-          'flex items-center gap-3 rounded-[14px] px-3 py-2.5 shadow-[2px_2px_0_var(--ink-shadow)] md:gap-3.5 md:rounded-[16px] md:px-4 md:py-3',
+          'flex items-center gap-3 rounded-[14px] px-3 py-2.5 shadow-ink-sm md:gap-3.5 md:rounded-[16px] md:px-4 md:py-3',
         )}
       >
         <DayMorph date={entry.entry_date}>
           <span
             role="img"
             aria-label={iconLabel}
-            className="flex size-[38px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background md:size-11"
+            className="flex size-[38px] shrink-0 items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-background md:size-11"
           >
             <MoodMark iconSetId={iconSetId} score={entry.score} size={28} className="md:hidden" />
             <MoodMark iconSetId={iconSetId} score={entry.score} size={32} className="max-md:hidden" />
           </span>
         </DayMorph>
         <span className="flex flex-col">
-          <span className="text-sm leading-5 font-semibold md:text-[15px] md:leading-[22px]">Chỉ chấm điểm</span>
-          <span className="text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
+          <span className="text-sm leading-5 font-semibold md:text-body md:leading-[22px]">Chỉ chấm điểm</span>
+          <span className="text-label leading-[18px] text-muted-foreground tabular-nums md:text-label md:leading-5">
             <span className="md:hidden">{shortMeta(entry, timeZone)}</span>
             <span className="max-md:hidden">{meta}</span>
           </span>
@@ -87,7 +87,7 @@ function EntryRow({
       {entry.flag_color ? (
         <span
           aria-hidden="true"
-          className="block h-1.5 border-b-[1.5px] border-line md:h-2.5"
+          className="block h-1.5 border-b-(length:--stroke-width) border-line md:h-2.5"
           style={{ backgroundColor: flagHex(entry.flag_color, dark) }}
         />
       ) : null}
@@ -96,15 +96,15 @@ function EntryRow({
           <span
             role="img"
             aria-label={iconLabel}
-            className="flex size-11 items-center justify-center rounded-full border-[1.5px] border-line bg-background group-hover:[&>span>span:last-child]:-translate-y-0.5 group-hover:[&>span>span:last-child]:-rotate-4 md:size-14 [&>span>span:last-child]:transition-transform [&>span>span:last-child]:duration-300"
+            className="flex size-11 items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-background group-hover:[&>span>span:last-child]:-translate-y-0.5 group-hover:[&>span>span:last-child]:-rotate-4 md:size-14 [&>span>span:last-child]:transition-transform [&>span>span:last-child]:duration-300"
           >
             <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={32} className="md:hidden" />
             <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={40} className="max-md:hidden" />
           </span>
         </DayMorph>
         <span className="flex min-w-0 flex-col gap-0.5 md:gap-1">
-          <span className="text-xs leading-[18px] text-muted-foreground tabular-nums md:hidden">{shortMeta(entry, timeZone)}</span>
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] leading-5 text-muted-foreground tabular-nums max-md:hidden">
+          <span className="text-label leading-[18px] text-muted-foreground tabular-nums md:hidden">{shortMeta(entry, timeZone)}</span>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label leading-5 text-muted-foreground tabular-nums max-md:hidden">
             <span>{meta}</span>
             {entry.photo_count ? (
               <span className="inline-flex items-center gap-1">
@@ -114,11 +114,11 @@ function EntryRow({
               </span>
             ) : null}
           </span>
-          <span className="font-heading text-[17px] leading-6 font-bold md:text-[19px] md:leading-7">
+          <span className="font-heading text-reading leading-6 font-bold md:text-[19px] md:leading-7">
             {entry.title ?? 'Không có tiêu đề'}
           </span>
           {entry.content ? (
-            <span className="line-clamp-2 text-sm leading-[22px] text-muted-foreground md:text-[15px] md:leading-6">
+            <span className="line-clamp-2 text-sm leading-[22px] text-muted-foreground md:text-body md:leading-6">
               {entry.content}
             </span>
           ) : null}
@@ -127,7 +127,7 @@ function EntryRow({
               {entry.keywords.map((k) => (
                 <span
                   key={k}
-                  className="rounded-full border-[1.5px] border-border px-2.5 py-0.5 text-xs leading-[18px] font-medium"
+                  className="rounded-full border-(length:--stroke-width) border-border px-2.5 py-0.5 text-label leading-[18px] font-medium"
                 >
                   {k}
                 </span>
@@ -189,7 +189,7 @@ export function TimelineList({
       type="button"
       onClick={onLess}
       className={cn(
-        'press inline-flex h-11 cursor-pointer items-center justify-center gap-2 self-stretch rounded-[12px] border-[1.5px] border-line px-[18px] text-sm font-semibold md:lift md:self-center md:bg-card md:shadow-ink-sm',
+        'press inline-flex h-11 cursor-pointer items-center justify-center gap-2 self-stretch rounded-[12px] border-(length:--stroke-width) border-line px-[18px] text-sm font-semibold md:lift md:self-center md:bg-card md:shadow-ink-sm',
         focusRing,
       )}
     >
@@ -230,7 +230,7 @@ export function TimelineList({
                   >
                     {it.day}
                   </span>
-                  <span className="text-[11px] leading-[14px] text-muted-foreground md:text-xs md:leading-4">
+                  <span className="text-[11px] leading-[14px] text-muted-foreground md:text-label md:leading-4">
                     {weekdayShort(it.date)}
                   </span>
                   {isToday ? (
@@ -259,13 +259,13 @@ export function TimelineList({
                 ) : (
                   <div
                     className={cn(
-                      'flex min-h-11 flex-wrap items-center gap-2 rounded-[14px] border-[1.5px] border-dashed border-border py-1.5 pr-1.5 pl-3 text-[13px] leading-[18px] text-muted-foreground transition-[outline-color] md:gap-2.5 md:px-4 md:py-2.5 md:leading-5',
+                      'flex min-h-11 flex-wrap items-center gap-2 rounded-[14px] border-(length:--stroke-width) border-dashed border-border py-1.5 pr-1.5 pl-3 text-label leading-[18px] text-muted-foreground transition-[outline-color] md:gap-2.5 md:px-4 md:py-2.5 md:leading-5',
                       flashing && flashRing,
                     )}
                   >
                     <span
                       aria-hidden="true"
-                      className="size-4 shrink-0 rounded-full border-[1.5px] border-dashed border-muted-foreground max-md:hidden"
+                      className="size-4 shrink-0 rounded-full border-(length:--stroke-width) border-dashed border-muted-foreground max-md:hidden"
                     />
                     <span className="flex-1">
                       {it.from === it.to ? (
@@ -283,7 +283,7 @@ export function TimelineList({
                       to={writePath(it.date)}
                       aria-label={`Ghi bù ngày ${it.to}/${monthNum}`}
                       className={cn(
-                        'press inline-flex h-9 shrink-0 items-center gap-1 rounded-[10px] border-[1.5px] border-line px-2.5 text-[13px] font-semibold text-foreground md:h-8 md:gap-1.5 md:px-3',
+                        'press inline-flex h-9 shrink-0 items-center gap-1 rounded-[10px] border-(length:--stroke-width) border-line px-2.5 text-label font-semibold text-foreground md:h-8 md:gap-1.5 md:px-3',
                         focusRing,
                       )}
                     >
@@ -302,7 +302,7 @@ export function TimelineList({
           type="button"
           onClick={onMore}
           className={cn(
-            'press inline-flex h-11 cursor-pointer items-center justify-center gap-2 self-stretch rounded-[12px] border-[1.5px] border-line bg-card px-[18px] text-sm font-semibold shadow-[2px_2px_0_var(--ink-shadow)] md:lift md:self-center md:shadow-ink-sm',
+            'press inline-flex h-11 cursor-pointer items-center justify-center gap-2 self-stretch rounded-[12px] border-(length:--stroke-width) border-line bg-card px-[18px] text-sm font-semibold shadow-ink-sm md:lift md:self-center md:shadow-ink-sm',
             focusRing,
           )}
         >
@@ -310,10 +310,10 @@ export function TimelineList({
           Xem thêm {hidden} trang cũ hơn
         </button>
       ) : (
-        <p className="flex items-center gap-3 text-[13px] leading-5 text-muted-foreground">
-          <span aria-hidden="true" className="flex-1 border-t-[1.5px] border-dashed border-border" />
+        <p className="flex items-center gap-3 text-label leading-5 text-muted-foreground">
+          <span aria-hidden="true" className="flex-1 border-t-(length:--stroke-width) border-dashed border-border" />
           {endText}
-          <span aria-hidden="true" className="flex-1 border-t-[1.5px] border-dashed border-border" />
+          <span aria-hidden="true" className="flex-1 border-t-(length:--stroke-width) border-dashed border-border" />
         </p>
       )}
       {canFold ? lessButton : null}

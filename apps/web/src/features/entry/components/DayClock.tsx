@@ -17,7 +17,7 @@ export function DayClock({ timeZone, now }: { timeZone: string; now?: Date }) {
       <p className="text-label text-muted-foreground">
         Còn <strong className="font-bold text-peach-ink">{durationLabel(left)}</strong> trước khi sang ngày mới
       </p>
-      <div aria-hidden="true" className="relative h-2.5 rounded-full border-[1.5px] border-line bg-card">
+      <div aria-hidden="true" className="relative h-2.5 rounded-full border-(length:--stroke-width) border-line bg-card">
         <div className="absolute inset-y-0 left-0 rounded-l-full bg-lavender-soft" style={{ width: at }} />
         {TICKS.map((h) => (
           <span
@@ -27,7 +27,7 @@ export function DayClock({ timeZone, now }: { timeZone: string; now?: Date }) {
           />
         ))}
         <span
-          className="absolute -top-[5px] -bottom-[5px] w-2 -translate-x-1/2 rounded-[3px] border-[1.5px] border-line bg-peach"
+          className="absolute -top-[5px] -bottom-[5px] w-2 -translate-x-1/2 rounded-[3px] border-(length:--stroke-width) border-line bg-peach"
           style={{ left: at }}
         />
       </div>

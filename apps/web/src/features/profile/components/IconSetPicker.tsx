@@ -29,7 +29,7 @@ export function IconSetPicker({ value, onChange, labelledBy, className }: IconSe
             aria-pressed={on}
             onClick={() => onChange(set.id)}
             className={cn(
-              'group/set relative flex cursor-pointer flex-col items-center gap-2.5 rounded-[16px] border-[1.5px] px-2 pt-4 pb-3.5 text-foreground transition-[transform,box-shadow,background-color] duration-150 active:[transform:translate(2px,2px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+              'group/set relative flex cursor-pointer flex-col items-center gap-2.5 rounded-[16px] border-(length:--stroke-width) px-2 pt-4 pb-3.5 text-foreground transition-[transform,box-shadow,background-color] duration-150 active:[transform:translate(2px,2px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
               on ? 'border-line bg-muted shadow-ink-sm' : 'border-border bg-card hover:border-line',
             )}
           >

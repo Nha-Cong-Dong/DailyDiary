@@ -30,11 +30,11 @@ const THEMES: { value: ThemePreference; label: string }[] = [
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-ring'
 // Dòng bấm được trong thẻ trên điện thoại (thiết kế B10): cao 56 px, đổi nền khi chạm.
 const phoneRow = cn(
-  'flex min-h-14 w-full cursor-pointer items-center gap-3 px-4 text-left text-[15px] leading-[22px] transition-colors active:bg-foreground/5 focus-visible:-outline-offset-3',
+  'flex min-h-14 w-full cursor-pointer items-center gap-3 px-4 text-left text-body leading-[22px] transition-colors active:bg-foreground/5 focus-visible:-outline-offset-3',
   focusRing,
 )
 // Đường kẻ đứt giữa các khối trong cùng một thẻ.
-const dashedBetween = '[&>*+*]:border-t-[1.5px] [&>*+*]:border-dashed [&>*+*]:border-border'
+const dashedBetween = '[&>*+*]:border-t-(length:--stroke-width) [&>*+*]:border-dashed [&>*+*]:border-border'
 
 /**
  * Một mục cài đặt. Máy tính: thẻ lớn có tiêu đề bên trong (thiết kế B7).
@@ -45,19 +45,19 @@ function Section({ id, title, delay, className, children }: { id: string; title:
     <section
       aria-labelledby={id}
       className={cn(
-        'flex animate-rise flex-col gap-2 sm:gap-[22px] sm:rounded-[22px] sm:border-[1.5px] sm:border-line sm:bg-card sm:p-[clamp(20px,4vw,32px)] sm:shadow-ink',
+        'flex animate-rise flex-col gap-2 sm:gap-[22px] sm:rounded-[22px] sm:border-(length:--stroke-width) sm:border-line sm:bg-card sm:p-[clamp(20px,4vw,32px)] sm:shadow-ink',
         className,
       )}
       style={{ animationDelay: `${delay}s` }}
     >
-      <h2 id={id} className="mx-1 max-sm:font-sans text-[13px] leading-5 font-semibold tracking-[.02em] text-muted-foreground sm:mx-0 sm:text-xl sm:leading-7 sm:tracking-normal sm:text-foreground">
+      <h2 id={id} className="mx-1 max-sm:font-sans text-label leading-5 font-semibold tracking-[.02em] text-muted-foreground sm:mx-0 sm:text-xl sm:leading-7 sm:tracking-normal sm:text-foreground">
         {title}
       </h2>
       <div
         className={cn(
           'flex flex-col sm:gap-[22px]',
-          'max-sm:overflow-hidden max-sm:rounded-[18px] max-sm:border-[1.5px] max-sm:border-line max-sm:bg-card max-sm:shadow-[3px_3px_0_var(--ink-shadow)]',
-          'max-sm:[&>*+*]:border-t-[1.5px] max-sm:[&>*+*]:border-dashed max-sm:[&>*+*]:border-border',
+          'max-sm:overflow-hidden max-sm:rounded-[18px] max-sm:border-(length:--stroke-width) max-sm:border-line max-sm:bg-card max-sm:shadow-ink-sm',
+          'max-sm:[&>*+*]:border-t-(length:--stroke-width) max-sm:[&>*+*]:border-dashed max-sm:[&>*+*]:border-border',
         )}
       >
         {children}
@@ -70,7 +70,7 @@ function Row({ title, hint, children, danger }: { title: string; hint: string; c
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-0.5">
-        <span className={cn('text-[15px] leading-6 font-semibold', danger && 'text-destructive')}>{title}</span>
+        <span className={cn('text-body leading-6 font-semibold', danger && 'text-destructive')}>{title}</span>
         <span className="text-sm leading-[22px] text-muted-foreground">{hint}</span>
       </div>
       {children}
@@ -186,7 +186,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
       />
       <span
         id={`${inputId}-hint`}
-        className={nameError ? 'text-[13px] leading-5 font-medium text-destructive' : 'text-[13px] leading-5 text-muted-foreground'}
+        className={nameError ? 'text-label leading-5 font-medium text-destructive' : 'text-label leading-5 text-muted-foreground'}
       >
         {nameError ?? 'Tên và ảnh hiện trên hồ sơ của bạn.'}
       </span>
@@ -201,18 +201,18 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
 
       {/* Điện thoại: thẻ hồ sơ gọn, bấm Sửa để mở bảng trượt. */}
       <div className="-mb-2 flex flex-col gap-3 sm:hidden">
-        <div className="flex animate-rise items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card p-4 shadow-[3px_3px_0_var(--ink-shadow)]">
+        <div className="flex animate-rise items-center gap-3.5 rounded-[18px] border-(length:--stroke-width) border-line bg-card p-4 shadow-ink-sm">
           <Avatar name={profile.displayName} src={avatarSrc} size={60} className="font-heading font-bold" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-[17px] leading-6 font-semibold">{profile.displayName}</span>
-            <span className="truncate text-[13px] leading-5 text-muted-foreground">{profile.email}</span>
+            <span className="truncate text-reading leading-6 font-semibold">{profile.displayName}</span>
+            <span className="truncate text-label leading-5 text-muted-foreground">{profile.email}</span>
           </span>
           <Button variant="outline" className="press h-10 rounded-[12px] px-3.5" aria-haspopup="dialog" onClick={() => openEdit(true)}>
             Sửa
           </Button>
         </div>
         {saved && !editOpen ? (
-          <p role="status" className="mx-1 text-[13px] leading-5 text-muted-foreground">
+          <p role="status" className="mx-1 text-label leading-5 text-muted-foreground">
             Đã lưu tên hiển thị.
           </p>
         ) : null}
@@ -227,16 +227,16 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           </span>
           <div
             aria-labelledby={`${ids}-mail`}
-            className="flex h-12 items-center gap-2.5 rounded-md border-[1.5px] border-dashed border-border bg-muted px-3.5 text-muted-foreground"
+            className="flex h-12 items-center gap-2.5 rounded-md border-(length:--stroke-width) border-dashed border-border bg-muted px-3.5 text-muted-foreground"
           >
             <Mail className="size-[18px]" aria-hidden="true" />
             <span className="flex-1 truncate">{profile.email}</span>
             <Lock className="size-4" aria-hidden="true" />
           </div>
-          <span className="text-[13px] leading-5 text-muted-foreground">Đăng nhập bằng Google. Chỉ mình bạn thấy.</span>
+          <span className="text-label leading-5 text-muted-foreground">Đăng nhập bằng Google. Chỉ mình bạn thấy.</span>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t-[1.5px] border-dashed border-border pt-[18px]">
-          <span role="status" className="inline-flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t-(length:--stroke-width) border-dashed border-border pt-[18px]">
+          <span role="status" className="inline-flex items-center gap-1.5 text-label leading-5 text-muted-foreground">
             {dirty ? 'Có thay đổi chưa lưu' : saved ? (
               <>
                 <CircleCheck className="size-4" aria-hidden="true" /> Đã lưu
@@ -252,10 +252,10 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
       <Section id={`${ids}-journal`} title="Nhật ký" delay={0.08}>
         <div className="flex flex-col gap-3 max-sm:gap-1 max-sm:pt-3.5 max-sm:pb-1">
           <div className="flex flex-col gap-0.5 max-sm:px-4">
-            <span id={`${ids}-set`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+            <span id={`${ids}-set`} className="text-sm leading-[22px] font-semibold max-sm:text-body">
               Bộ icon chấm điểm
             </span>
-            <span className="text-[13px] leading-5 text-muted-foreground max-sm:text-xs max-sm:leading-[18px]">
+            <span className="text-label leading-5 text-muted-foreground max-sm:text-label max-sm:leading-[18px]">
               Đổi bộ icon chỉ thay hình. Điểm đã ghi giữ nguyên.
             </span>
           </div>
@@ -283,7 +283,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
 
       <Section id={`${ids}-look`} title="Giao diện" delay={0.12}>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2.5 max-sm:px-4 max-sm:py-3.5">
-          <span id={`${ids}-theme`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+          <span id={`${ids}-theme`} className="text-sm leading-[22px] font-semibold max-sm:text-body">
             Chế độ màu
           </span>
           <div className="flex flex-col gap-1.5 max-sm:w-full sm:items-end">
@@ -304,7 +304,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:min-h-14 max-sm:px-4 max-sm:py-2">
-          <label htmlFor={`${ids}-lang`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+          <label htmlFor={`${ids}-lang`} className="text-sm leading-[22px] font-semibold max-sm:text-body">
             Ngôn ngữ
           </label>
           <div className="flex items-center gap-2.5">
@@ -313,11 +313,11 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
               id={`${ids}-lang`}
               disabled
               aria-describedby={`${ids}-lang-soon`}
-              className="h-11 cursor-not-allowed rounded-md border-[1.5px] border-dashed border-border bg-muted px-3 text-[15px] text-muted-foreground max-sm:h-10 max-sm:rounded-[10px] max-sm:px-2"
+              className="h-11 cursor-not-allowed rounded-md border-(length:--stroke-width) border-dashed border-border bg-muted px-3 text-body text-muted-foreground max-sm:h-10 max-sm:rounded-[10px] max-sm:px-2"
             >
               <option>Tiếng Việt</option>
             </select>
-            <span id={`${ids}-lang-soon`} className="text-[13px] text-muted-foreground max-sm:text-xs">
+            <span id={`${ids}-lang-soon`} className="text-label text-muted-foreground max-sm:text-label">
               English · Sắp có
             </span>
           </div>
@@ -329,7 +329,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           <Link2 className="size-5 shrink-0" aria-hidden="true" />
           <span className="flex-1 font-semibold">Trang đang chia sẻ</span>
           {shareCount ? (
-            <span className="min-w-6 rounded-full bg-foreground px-[7px] text-center text-xs leading-5 font-bold text-background tabular-nums">
+            <span className="min-w-6 rounded-full bg-foreground px-[7px] text-center text-label leading-5 font-bold text-background tabular-nums">
               {shareCount}
             </span>
           ) : null}
@@ -337,7 +337,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         </Link>
         <div className="max-sm:hidden">
           {sharing ?? (
-            <p className="flex items-start gap-3.5 text-[15px] leading-6">
+            <p className="flex items-start gap-3.5 text-body leading-6">
               <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
               Mọi trang đều riêng tư, chỉ mình bạn xem được.
             </p>
@@ -412,7 +412,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
               </Link>
             </Button>
           </Row>
-          <div className="flex flex-col gap-[22px] border-t-[1.5px] border-dashed border-border pt-[22px]">
+          <div className="flex flex-col gap-[22px] border-t-(length:--stroke-width) border-dashed border-border pt-[22px]">
             <p className="text-sm leading-[22px] text-muted-foreground">
               Jotly không có tính năng xuất dữ liệu. Hai thao tác dưới đây không thể hoàn tác.
             </p>
@@ -430,12 +430,12 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         </div>
       </Section>
       {wiped ? (
-        <p role="status" className="-mt-3 inline-flex items-center gap-2 px-1 text-sm text-muted-foreground max-sm:-mt-2 max-sm:text-[13px]">
+        <p role="status" className="-mt-3 inline-flex items-center gap-2 px-1 text-sm text-muted-foreground max-sm:-mt-2 max-sm:text-label">
           <CircleCheck className="size-4" aria-hidden="true" /> Đã xóa toàn bộ dữ liệu. Trang Hôm nay đang chờ bạn.
         </p>
       ) : null}
       {needsReauth ? (
-        <div role="alert" className="-mt-3 flex flex-wrap items-center gap-3 rounded-[14px] border-[1.5px] border-line bg-card px-4 py-3 max-sm:-mt-2">
+        <div role="alert" className="-mt-3 flex flex-wrap items-center gap-3 rounded-[14px] border-(length:--stroke-width) border-line bg-card px-4 py-3 max-sm:-mt-2">
           <p className="min-w-0 flex-1 text-sm leading-[22px]">
             Để bảo vệ tài khoản, hãy đăng nhập lại bằng Google rồi xóa trong vòng 10 phút. Chưa có gì bị xóa.
           </p>
@@ -444,15 +444,15 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           </Button>
         </div>
       ) : wipe.isError || deleteAccount.isError ? (
-        <p role="alert" className="-mt-3 px-1 text-sm font-medium text-destructive max-sm:-mt-2 max-sm:text-[13px]">
+        <p role="alert" className="-mt-3 px-1 text-sm font-medium text-destructive max-sm:-mt-2 max-sm:text-label">
           {wipe.isError ? 'Chưa xóa được dữ liệu.' : 'Chưa xóa được tài khoản.'} Kiểm tra kết nối rồi thử lại; chưa có gì bị xóa.
         </p>
       ) : null}
-      <p className="mx-1 -mt-1.5 text-xs leading-[18px] text-muted-foreground sm:hidden">
+      <p className="mx-1 -mt-1.5 text-label leading-[18px] text-muted-foreground sm:hidden">
         Jotly không có tính năng xuất dữ liệu. Các thao tác xóa không thể hoàn tác.
       </p>
 
-      <footer className="flex flex-wrap gap-5 px-1 text-sm text-muted-foreground max-sm:mt-2 max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-1.5 max-sm:text-xs">
+      <footer className="flex flex-wrap gap-5 px-1 text-sm text-muted-foreground max-sm:mt-2 max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-1.5 max-sm:text-label">
         <a href="#" className="link-underline">
           [Điều khoản sử dụng]
         </a>
@@ -467,10 +467,10 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         <AvatarField {...avatarProps} />
         {nameField(`${ids}-name-sheet`)}
         <div className="grid grid-cols-2 gap-2.5">
-          <Button variant="outline" className="press h-[50px] rounded-[14px] text-[15px] font-medium" onClick={() => openEdit(false)}>
+          <Button variant="outline" className="press h-[50px] rounded-[14px] text-body font-medium" onClick={() => openEdit(false)}>
             Hủy
           </Button>
-          <Button className="press h-[50px] rounded-[14px] text-[15px]" disabled={save.isPending} onClick={() => saveName(() => setEditOpen(false))}>
+          <Button className="press h-[50px] rounded-[14px] text-body" disabled={save.isPending} onClick={() => saveName(() => setEditOpen(false))}>
             Lưu
           </Button>
         </div>

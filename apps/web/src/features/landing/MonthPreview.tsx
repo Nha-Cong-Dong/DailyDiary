@@ -40,7 +40,7 @@ export function MonthPreview({ className, month = DEMO_MONTH, variant = 'hero', 
     <div
       data-month-preview=""
       data-ui=""
-      className={cn('rounded-[20px] border-[1.5px] border-line bg-card p-4 shadow-ink', hero && 'tilt animate-paste', className)}
+      className={cn('rounded-[20px] border-(length:--stroke-width) border-line bg-card p-4 shadow-ink', hero && 'tilt animate-paste', className)}
       style={hero ? { animationDelay: '.15s' } : undefined}
     >
       <div className="mb-2.5 flex items-baseline justify-between">

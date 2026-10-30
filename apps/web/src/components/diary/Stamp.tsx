@@ -25,7 +25,7 @@ export function Stamp({ tone, children, className }: { tone: StampTone; children
   return (
     <span
       className={cn(
-        'inline-flex min-h-7 items-center gap-1.5 rounded-sm border-[1.5px] border-current px-2.5 text-label font-semibold',
+        'inline-flex min-h-7 items-center gap-1.5 rounded-sm border-(length:--stroke-width) border-current px-2.5 text-label font-semibold',
         toneClass,
         className,
       )}

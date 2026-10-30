@@ -47,14 +47,14 @@ export function Segmented<T extends string>({ options, value, onChange, label, l
       aria-label={label}
       aria-labelledby={labelledBy}
       className={cn(
-        'relative grid auto-cols-fr grid-flow-col rounded-md border-[1.5px] border-line bg-muted p-[3px]',
+        'relative grid auto-cols-fr grid-flow-col rounded-md border-(length:--stroke-width) border-line bg-muted p-[3px]',
         className,
       )}
     >
       {index >= 0 ? (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-[3px] left-[3px] rounded-[11px] border-[1.5px] border-line bg-peach transition-[translate] duration-(--dur-fast) ease-move"
+          className="pointer-events-none absolute inset-y-[3px] left-[3px] rounded-[11px] border-(length:--stroke-width) border-line bg-peach transition-[translate] duration-(--dur-fast) ease-move"
           style={{ width: `calc((100% - 6px) / ${options.length})`, translate: `${index * 100}% 0` }}
         />
       ) : null}

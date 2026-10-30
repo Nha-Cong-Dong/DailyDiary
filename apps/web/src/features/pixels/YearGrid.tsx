@@ -106,7 +106,7 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
       ))}
       <span
         aria-hidden="true"
-        className="text-[11px] leading-3 font-semibold text-muted-foreground max-md:mt-2 max-md:border-t-[1.5px] max-md:border-dashed max-md:border-border max-md:pt-2 md:text-center md:text-[11px] md:leading-[14px]"
+        className="text-[11px] leading-3 font-semibold text-muted-foreground max-md:mt-2 max-md:border-t-(length:--stroke-width) max-md:border-dashed max-md:border-border max-md:pt-2 md:text-center md:text-[11px] md:leading-[14px]"
       >
         TB
       </span>
@@ -128,7 +128,7 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
               const look = cn(
                 'h-[13px] w-full rounded-[3px] border transition-[transform,filter] duration-150 ease-out md:aspect-square md:h-auto md:rounded-[5px]',
                 c.kind === 'score' && !byFlag && SCORE_BG[c.score!],
-                c.kind === 'score' && byFlag && !flag && 'border-[1.5px] border-line bg-card',
+                c.kind === 'score' && byFlag && !flag && 'border-(length:--stroke-width) border-line bg-card',
                 c.kind === 'missing' && 'border-border bg-muted',
                 c.kind === 'future' && 'border-border',
                 c.kind === 'pre' && 'border-dashed border-border',
@@ -160,7 +160,7 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
             })}
             <span
               title={avg === null ? `Tháng ${m + 1} · chưa có điểm` : `Tháng ${m + 1} · trung bình ${decimal(avg)}`}
-              className="flex flex-col items-center justify-center gap-0.5 text-[11px] leading-3 font-semibold tabular-nums max-md:mt-2 max-md:border-t-[1.5px] max-md:border-dashed max-md:border-border max-md:pt-2 md:h-6 md:flex-row md:gap-[5px] md:text-xs md:leading-4"
+              className="flex flex-col items-center justify-center gap-0.5 text-[11px] leading-3 font-semibold tabular-nums max-md:mt-2 max-md:border-t-(length:--stroke-width) max-md:border-dashed max-md:border-border max-md:pt-2 md:h-6 md:flex-row md:gap-[5px] md:text-label md:leading-4"
             >
               <span
                 aria-hidden="true"

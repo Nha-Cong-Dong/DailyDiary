@@ -29,7 +29,7 @@ export function StoryScene({ signedIn }: { signedIn: boolean }) {
             {STEPS.map((s, i) => (
               <div key={s.title} className={`story-caption story-caption-${i + 1}`}>
                 <h3 className="font-display text-[clamp(32px,4vw,48px)] leading-[1.05] font-extrabold tracking-[-0.02em]">{s.title}</h3>
-                <p className="max-w-[380px] text-[17px] leading-7 text-muted-foreground">{s.text}</p>
+                <p className="max-w-[380px] text-reading leading-7 text-muted-foreground">{s.text}</p>
                 {i === 2 && signedIn ? (
                   <Link to="/pixels" className="link-underline mt-1 inline-block font-semibold">
                     Mở Year in Pixels của bạn

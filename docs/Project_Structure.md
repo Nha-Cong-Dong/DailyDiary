@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 40 (31/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 41 (31/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -351,3 +351,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 38 | 30/10/2026 | Hệ thiết kế 1.1, giai đoạn 5a: `features/entry/components/DayClock.tsx`, đổi tên `RecentDays.tsx` thành `MonthStrip.tsx` (+ `MonthStrip.test.tsx`), `src/lib/theme.test.ts` |
 | 39 | 31/10/2026 | Hệ thiết kế 1.1, giai đoạn 5b: `components/diary/DayMorph.tsx` (chuyển cảnh nối bằng `ViewTransition` của React), `features/entry/flyToToday.ts` |
 | 40 | 31/10/2026 | Hệ thiết kế 1.1, giai đoạn 6 (trang chủ): `features/landing/DemoDayCard.tsx`, `StoryScene.tsx`, `story.css`, `DayPageShowcase.tsx`; chuyển `features/entry/flyToToday.ts` thành `lib/flyTo.ts` (dùng chung Hôm nay và trang chủ) |
+| 41 | 31/10/2026 | Hệ thiết kế 1.1, giai đoạn 7: `src/lib/utils.test.ts` (cn nhận đúng token cỡ chữ, bóng, họ chữ) |

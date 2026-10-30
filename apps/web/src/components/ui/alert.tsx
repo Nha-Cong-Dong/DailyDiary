@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 
 // Thông báo nhanh "Sổ dán": thẻ viền mực, bóng cứng 4px; bản nguy hiểm đổi viền + bóng.
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-1 rounded-md border-[1.5px] bg-card px-4 py-3.5 text-left text-[15px] leading-[22px] text-card-foreground has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-28 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-3 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-5",
+  "group/alert relative grid w-full gap-1 rounded-md border-(length:--stroke-width) bg-card px-4 py-3.5 text-left text-body leading-[22px] text-card-foreground has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-28 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-3 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-5",
   {
     variants: {
       variant: {
@@ -55,7 +55,7 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        "text-[15px] leading-[22px] text-pretty group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
+        "text-body leading-[22px] text-pretty group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
         className
       )}
       {...props}

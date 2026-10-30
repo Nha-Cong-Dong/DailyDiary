@@ -25,7 +25,7 @@ import { tierLimits } from '@/lib/limits'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 border-t-[1.5px] border-border pt-8">
+    <section className="flex flex-col gap-4 border-t-(length:--stroke-width) border-border pt-8">
       <h2 className="text-title font-semibold">{title}</h2>
       {children}
     </section>
@@ -127,7 +127,7 @@ export function DevUiPage() {
           {SWATCHES.map(([name, cls]) => (
             <div key={name} className="flex flex-col gap-1.5">
               <div className={`h-14 rounded-[12px] border border-border ${cls}`} />
-              <span className="text-[13px] font-semibold">{name}</span>
+              <span className="text-label font-semibold">{name}</span>
             </div>
           ))}
         </div>
@@ -169,7 +169,7 @@ export function DevUiPage() {
               Từ khóa
             </label>
             <Input id="dev-keyword" defaultValue="mưa" aria-invalid="true" aria-describedby="dev-keyword-msg" />
-            <span id="dev-keyword-msg" className="flex items-center gap-1.5 text-[13px] leading-5 font-medium text-destructive">
+            <span id="dev-keyword-msg" className="flex items-center gap-1.5 text-label leading-5 font-medium text-destructive">
               <CircleAlert className="size-4" aria-hidden="true" />
               Từ khóa này đã có trong ngày
             </span>
@@ -206,7 +206,7 @@ export function DevUiPage() {
         </div>
       </Section>
 
-      <Section title="Component nền (hệ thiết kế 1.1)">
+      <Section title="Component nền (bản 1.1)">
         <div className="flex flex-col gap-6">
           <div className="flex flex-wrap items-center gap-4">
             <Segmented options={VIEW_OPTIONS} value={view} onChange={setView} label="Cách xem" className="w-[260px]" />
@@ -271,7 +271,7 @@ export function DevUiPage() {
                 {set.levels.map((l) => (
                   <div key={l.score} className="flex flex-col items-center gap-2">
                     <ScoreIcon iconSetId={set.id} score={l.score as Score} size={56} />
-                    <span className="text-center text-[13px] leading-[18px]">
+                    <span className="text-center text-label leading-[18px]">
                       {l.score} · {l.label}
                     </span>
                   </div>
@@ -289,7 +289,7 @@ export function DevUiPage() {
           ].map(([size, label]) => (
             <div key={label} className="flex flex-col items-center gap-3">
               <MoodMark iconSetId="sprout" score={4} subIcon="😌" size={size as number} />
-              <span className="text-[13px] text-muted-foreground">{label}</span>
+              <span className="text-label text-muted-foreground">{label}</span>
             </div>
           ))}
         </div>
@@ -297,16 +297,16 @@ export function DevUiPage() {
 
       <Section title="Viết nhật ký: chấm điểm, sub icon, cờ hiệu">
         <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="flex flex-col gap-7 rounded-lg border-[1.5px] border-line bg-card p-5 shadow-ink sm:p-8">
+          <div className="flex flex-col gap-7 rounded-lg border-(length:--stroke-width) border-line bg-card p-5 shadow-ink sm:p-8">
             <div className="flex flex-col gap-2">
-              <label htmlFor="dev-icon-set" className="text-[15px] leading-6 font-semibold">
+              <label htmlFor="dev-icon-set" className="text-body leading-6 font-semibold">
                 Bộ icon
               </label>
               <select
                 id="dev-icon-set"
                 value={iconSetId}
                 onChange={(e) => setIconSetId(e.target.value)}
-                className="h-11 rounded-md border-[1.5px] border-line bg-card px-3"
+                className="h-11 rounded-md border-(length:--stroke-width) border-line bg-card px-3"
               >
                 {iconSets.map((set) => (
                   <option key={set.id} value={set.id}>
@@ -316,17 +316,17 @@ export function DevUiPage() {
               </select>
             </div>
             <fieldset className="flex flex-col gap-3">
-              <legend className="mb-3 text-[15px] leading-6 font-semibold">
+              <legend className="mb-3 text-body leading-6 font-semibold">
                 Hôm nay của bạn <span className="font-normal text-muted-foreground">· bắt buộc</span>
               </legend>
               <ScorePicker iconSetId={iconSetId} value={score} onChange={setScore} />
             </fieldset>
             <fieldset>
-              <legend className="mb-3 text-[15px] leading-6 font-semibold">Biểu tượng mong muốn</legend>
+              <legend className="mb-3 text-body leading-6 font-semibold">Biểu tượng mong muốn</legend>
               <SubIconPicker value={sub} onChange={setSub} />
             </fieldset>
             <fieldset>
-              <legend className="mb-3 text-[15px] leading-6 font-semibold">
+              <legend className="mb-3 text-body leading-6 font-semibold">
                 Cờ hiệu · {flagColors.find((f) => f.hex === flag)?.name ?? 'không gắn'}
               </legend>
               <FlagPicker value={flag} onChange={setFlag} />

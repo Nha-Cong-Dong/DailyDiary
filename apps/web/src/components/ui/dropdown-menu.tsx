@@ -40,7 +40,7 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         align={align}
-        className={cn("z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-[20px] border-[1.5px] border-line bg-card p-2 text-card-foreground shadow-ink-lg data-[state=closed]:overflow-hidden data-open:animate-menu", className)}
+        className={cn("z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-[20px] border-(length:--stroke-width) border-line bg-card p-2 text-card-foreground shadow-ink-lg data-[state=closed]:overflow-hidden data-open:animate-menu", className)}
         {...props}
       />
     </DropdownMenuPrimitive.Portal>
@@ -167,7 +167,7 @@ function DropdownMenuLabel({
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
-        "px-1.5 py-1 text-xs font-medium text-muted-foreground data-inset:pl-7",
+        "px-1.5 py-1 text-label font-medium text-muted-foreground data-inset:pl-7",
         className
       )}
       {...props}
@@ -182,7 +182,7 @@ function DropdownMenuSeparator({
   return (
     <DropdownMenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn("my-1 border-t-[1.5px] border-dashed border-border", className)}
+      className={cn("my-1 border-t-(length:--stroke-width) border-dashed border-border", className)}
       {...props}
     />
   )
@@ -196,7 +196,7 @@ function DropdownMenuShortcut({
     <span
       data-slot="dropdown-menu-shortcut"
       className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground group-focus/dropdown-menu-item:text-accent-foreground",
+        "ml-auto text-label tracking-widest text-muted-foreground group-focus/dropdown-menu-item:text-accent-foreground",
         className
       )}
       {...props}

@@ -20,7 +20,7 @@ export function Avatar({ name, src, size = 40, className }: AvatarProps) {
     <span
       aria-hidden="true"
       className={cn(
-        'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[1.5px] border-line font-semibold text-[var(--icon-face)]',
+        'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-(length:--stroke-width) border-line font-semibold text-[var(--icon-face)]',
         className,
       )}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.36), backgroundColor: flagHex(LAVENDER, dark) }}

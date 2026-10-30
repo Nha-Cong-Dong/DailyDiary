@@ -5,9 +5,10 @@ import { createCn } from 'cn/config'
 export const cn = createCn({
   extend: {
     classGroups: {
-      'font-size': [{ text: ['display', 'title-1', 'title-2', 'title-3', 'reading', 'label'] }],
-      shadow: [{ shadow: ['ink-sm', 'ink', 'ink-lg', 'danger-sm', 'danger'] }],
-      'font-family': [{ font: ['heading', 'brand'] }],
+      // Phải khớp thang chữ, bóng, họ chữ trong index.css (DESIGN.md mục 3–4); đổi tên token thì sửa cả ở đây.
+      'font-size': [{ text: ['display', 'title', 'heading', 'reading', 'body', 'label'] }],
+      shadow: [{ shadow: ['ink-sm', 'ink', 'ink-lg', 'danger-sm', 'danger', 'accent'] }],
+      'font-family': [{ font: ['heading', 'display', 'brand'] }],
     },
   },
 })

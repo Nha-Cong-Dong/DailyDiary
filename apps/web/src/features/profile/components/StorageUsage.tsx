@@ -17,10 +17,10 @@ export function StorageUsage() {
   return (
     <div className="flex flex-col gap-2 max-sm:px-4 max-sm:py-3.5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-        <span id={`${id}-label`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+        <span id={`${id}-label`} className="text-sm leading-[22px] font-semibold max-sm:text-body">
           Dung lượng ảnh{usage ? `: ${usage.label}` : ''}
         </span>
-        {usage ? <span className="text-[13px] leading-5 text-muted-foreground tabular-nums">{percent}%</span> : null}
+        {usage ? <span className="text-label leading-5 text-muted-foreground tabular-nums">{percent}%</span> : null}
       </div>
       <div
         role="progressbar"
@@ -30,7 +30,7 @@ export function StorageUsage() {
         aria-valuenow={usage ? percent : undefined}
         aria-valuetext={usage ? `${usage.label}, ${percent}%` : 'Đang tính'}
         aria-describedby={`${id}-hint`}
-        className="h-3 w-full overflow-hidden rounded-full border-[1.5px] border-line bg-muted"
+        className="h-3 w-full overflow-hidden rounded-full border-(length:--stroke-width) border-line bg-muted"
       >
         <div
           data-warn={usage?.warn || undefined}
@@ -42,7 +42,7 @@ export function StorageUsage() {
       <p
         id={`${id}-hint`}
         className={cn(
-          'flex items-start gap-1.5 text-[13px] leading-5 max-sm:text-xs max-sm:leading-[18px]',
+          'flex items-start gap-1.5 text-label leading-5 max-sm:text-label max-sm:leading-[18px]',
           usage?.warn ? 'font-medium text-destructive' : 'text-muted-foreground',
         )}
       >

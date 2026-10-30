@@ -10,20 +10,20 @@ function Version({ heading, fields, meta }: { heading: string; fields: DraftFiel
   const { iconSetId } = useProfile()
   const first = fields?.content.split(/\n+/)[0]?.trim()
   return (
-    <section className="flex min-w-0 flex-1 flex-col gap-1.5 rounded-[16px] border-[1.5px] border-line bg-background p-4">
-      <h3 className="font-sans text-[13px] leading-5 font-semibold text-muted-foreground">{heading}</h3>
+    <section className="flex min-w-0 flex-1 flex-col gap-1.5 rounded-[16px] border-(length:--stroke-width) border-line bg-background p-4">
+      <h3 className="font-sans text-label leading-5 font-semibold text-muted-foreground">{heading}</h3>
       {fields ? (
         <>
-          <p className="text-[13px] leading-5 text-muted-foreground tabular-nums">
+          <p className="text-label leading-5 text-muted-foreground tabular-nums">
             Điểm {fields.score} · {scoreLabel(iconSetId, fields.score as 1 | 2 | 3 | 4 | 5)}
           </p>
-          <p className="font-heading text-[17px] leading-6 font-bold">{fields.title.trim() || 'Chưa có tiêu đề'}</p>
+          <p className="font-heading text-reading leading-6 font-bold">{fields.title.trim() || 'Chưa có tiêu đề'}</p>
           {first ? <p className="line-clamp-3 text-sm leading-[22px] text-muted-foreground">{first}</p> : null}
         </>
       ) : (
         <p className="text-sm leading-[22px] text-muted-foreground">Trang này đã bị xóa ở nơi khác.</p>
       )}
-      <p className="mt-auto pt-1 text-xs leading-[18px] text-muted-foreground tabular-nums">{meta}</p>
+      <p className="mt-auto pt-1 text-label leading-[18px] text-muted-foreground tabular-nums">{meta}</p>
     </section>
   )
 }

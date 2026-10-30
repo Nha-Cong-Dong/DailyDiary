@@ -17,8 +17,8 @@ export function KeywordChip({ children, active, onRemove, size = 'md', className
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full border-[1.5px] font-medium',
-        size === 'md' ? 'text-sm leading-[22px]' : 'text-[13px] leading-5',
+        'inline-flex items-center rounded-full border-(length:--stroke-width) font-medium',
+        size === 'md' ? 'text-sm leading-[22px]' : 'text-label leading-5',
         onRemove ? 'py-0.5 pr-1 pl-3.5' : size === 'md' ? 'px-3.5 py-[5px]' : 'px-2.5 py-0.5',
         active ? 'border-primary bg-primary font-semibold text-primary-foreground' : 'border-line',
         className,
@@ -45,7 +45,7 @@ export function AddKeywordButton({ className, children = '+ Thêm từ khóa', .
     <button
       type="button"
       className={cn(
-        'h-[34px] cursor-pointer rounded-full border-[1.5px] border-dashed border-line px-3.5 text-sm font-medium hover:bg-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+        'h-[34px] cursor-pointer rounded-full border-(length:--stroke-width) border-dashed border-line px-3.5 text-sm font-medium hover:bg-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
         className,
       )}
       {...props}

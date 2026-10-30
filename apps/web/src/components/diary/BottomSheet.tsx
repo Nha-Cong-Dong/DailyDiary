@@ -34,11 +34,11 @@ const overlay =
  * đường đã vào. Radix chỉ chờ animation (không chờ transition) trước khi gỡ hộp, nên dùng keyframes của tw-animate.
  */
 const sheet =
-  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-lg border-[1.5px] border-b-0 border-line bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-foreground outline-none ease-drawer data-open:animate-in data-open:slide-in-from-bottom data-open:duration-(--dur-sheet-in) data-closed:animate-out data-closed:slide-out-to-bottom data-closed:duration-(--dur-sheet-out)'
+  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-lg border-(length:--stroke-width) border-b-0 border-line bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-foreground outline-none ease-drawer data-open:animate-in data-open:slide-in-from-bottom data-open:duration-(--dur-sheet-in) data-closed:animate-out data-closed:slide-out-to-bottom data-closed:duration-(--dur-sheet-out)'
 
 /** Từ 768 px: hộp thoại giữa màn, rộng 440 px mặc định (đổi bằng `className`, vd. `md:max-w-[980px]`). */
 const centred =
-  'md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[calc(100dvh-2rem)] md:w-full md:max-w-[min(440px,calc(100%-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:gap-3.5 md:rounded-lg md:border-b-[1.5px] md:bg-popover md:p-7 md:ease-out md:data-open:fade-in-0 md:data-open:slide-in-from-bottom-3 md:data-open:duration-(--dur-base) md:data-closed:fade-out-0 md:data-closed:slide-out-to-bottom-3 md:data-closed:duration-(--dur-sheet-out)'
+  'md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[calc(100dvh-2rem)] md:w-full md:max-w-[min(440px,calc(100%-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:gap-3.5 md:rounded-lg md:border-b-(length:--stroke-width) md:bg-popover md:p-7 md:ease-out md:data-open:fade-in-0 md:data-open:slide-in-from-bottom-3 md:data-open:duration-(--dur-base) md:data-closed:fade-out-0 md:data-closed:slide-out-to-bottom-3 md:data-closed:duration-(--dur-sheet-out)'
 
 const grabber = 'h-1 w-10 shrink-0 self-center rounded-full bg-border'
 
@@ -88,7 +88,7 @@ export function BottomSheet({
               </DialogPrimitive.Title>
               {description ? (
                 <DialogPrimitive.Description
-                  className={showDescription ? 'text-[15px] leading-6 text-muted-foreground' : 'sr-only'}
+                  className={showDescription ? 'text-body leading-6 text-muted-foreground' : 'sr-only'}
                 >
                   {description}
                 </DialogPrimitive.Description>
@@ -112,7 +112,7 @@ export function SheetActions({ children, reverseOnDesktop = false }: { children:
       className={cn(
         'mt-1 flex flex-col gap-2.5 md:mt-2 md:flex-row md:justify-end',
         reverseOnDesktop && 'md:flex-row-reverse md:justify-start',
-        '[&>*]:h-[50px] [&>*]:w-full [&>*]:rounded-[14px] [&>*]:text-[15px] md:[&>*]:h-11 md:[&>*]:w-auto md:[&>*]:rounded-[12px] md:[&>*]:px-[18px]',
+        '[&>*]:h-[50px] [&>*]:w-full [&>*]:rounded-[14px] [&>*]:text-body md:[&>*]:h-11 md:[&>*]:w-auto md:[&>*]:rounded-[12px] md:[&>*]:px-[18px]',
       )}
     >
       {children}

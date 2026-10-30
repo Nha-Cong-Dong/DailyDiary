@@ -43,7 +43,7 @@ export function MoodMark({
             '-right-[calc(var(--mark)*var(--sub-icon-ratio)*0.35)] -bottom-[calc(var(--mark)*var(--sub-icon-ratio)*0.2)]',
             'size-[calc(var(--mark)*var(--sub-icon-ratio))]',
             variant === 'badge'
-              ? 'rounded-full border-[1.5px] border-line bg-card text-[calc(var(--mark)*var(--sub-icon-ratio)*0.62)]'
+              ? 'rounded-full border-(length:--stroke-width) border-line bg-card text-[calc(var(--mark)*var(--sub-icon-ratio)*0.62)]'
               : 'text-[calc(var(--mark)*var(--sub-icon-ratio)*0.85)]',
             subClassName,
           )}

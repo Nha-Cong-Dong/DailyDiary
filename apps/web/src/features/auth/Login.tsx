@@ -100,18 +100,18 @@ export function Login() {
           </span>
         ))}
 
-        <div className="relative z-[1] flex w-full max-w-[460px] animate-land flex-col items-center gap-[18px] rounded-[28px] border-[1.5px] border-line bg-card px-[clamp(24px,5vw,44px)] pt-10 pb-8 text-center shadow-ink-lg">
+        <div className="relative z-[1] flex w-full max-w-[460px] animate-land flex-col items-center gap-[18px] rounded-[28px] border-(length:--stroke-width) border-line bg-card px-[clamp(24px,5vw,44px)] pt-10 pb-8 text-center shadow-ink-lg">
           <LogoMark size={72} className={cn('origin-[50%_80%]', mode === 'redirecting' && '')} />
 
           <div aria-live="polite" className="flex flex-col gap-2">
             <h1 className="text-[26px] leading-[34px] font-bold">{copy.title}</h1>
-            {text ? <p className="text-[15px] leading-6 text-muted-foreground">{text}</p> : null}
+            {text ? <p className="text-body leading-6 text-muted-foreground">{text}</p> : null}
           </div>
 
           {mode === 'error' ? (
             <div
               role="alert"
-              className="flex w-full animate-shake items-start gap-2.5 rounded-md border-[1.5px] border-destructive bg-destructive-soft px-3.5 py-3 text-left text-sm leading-[22px]"
+              className="flex w-full animate-shake items-start gap-2.5 rounded-md border-(length:--stroke-width) border-destructive bg-destructive-soft px-3.5 py-3 text-left text-sm leading-[22px]"
             >
               <AlertCircle className="mt-0.5 size-[18px] shrink-0 text-destructive" aria-hidden="true" />
               <span>{loginErrorMessage(errorCode!)}</span>
@@ -119,11 +119,11 @@ export function Login() {
           ) : null}
 
           {mode === 'expired' && expired ? (
-            <div className="flex w-full items-center gap-3 rounded-md border-[1.5px] border-dashed border-border bg-muted px-3.5 py-2.5 text-left">
-              <Avatar name={expired.name} src={expired.avatarUrl} size={36} className="text-[13px]" />
+            <div className="flex w-full items-center gap-3 rounded-md border-(length:--stroke-width) border-dashed border-border bg-muted px-3.5 py-2.5 text-left">
+              <Avatar name={expired.name} src={expired.avatarUrl} size={36} className="text-label" />
               <span className="flex min-w-0 flex-col">
                 <span className="truncate text-sm leading-[22px] font-semibold">{expired.name}</span>
-                <span className="truncate text-[13px] leading-5 text-muted-foreground">{expired.email}</span>
+                <span className="truncate text-label leading-5 text-muted-foreground">{expired.email}</span>
               </span>
             </div>
           ) : null}
@@ -133,7 +133,7 @@ export function Login() {
               <>
                 <span
                   role="status"
-                  className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-border bg-muted text-base font-semibold text-muted-foreground"
+                  className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-(length:--stroke-width) border-border bg-muted text-base font-semibold text-muted-foreground"
                 >
                   <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
                   <span>
@@ -156,7 +156,7 @@ export function Login() {
               <a
                 href={googleLoginUrl(browserTimeZone())}
                 onClick={() => setRedirecting(true)}
-                className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line bg-card pr-5 pl-4 text-base font-semibold shadow-[3px_3px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--cta-shadow)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--cta-shadow)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
+                className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-(length:--stroke-width) border-line bg-card pr-5 pl-4 text-base font-semibold shadow-[3px_3px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-accent active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--cta-shadow)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
               >
                 <GoogleMark />
                 {copy.button}
@@ -164,7 +164,7 @@ export function Login() {
             )}
           </div>
 
-          <p className="mt-1.5 text-xs leading-[18px] text-muted-foreground">
+          <p className="mt-1.5 text-label leading-[18px] text-muted-foreground">
             Khi tiếp tục, bạn đồng ý với{' '}
             {/* Chờ nội dung điều khoản thật trước khi ra mắt (MVP Bước 14). */}
             <a href="#" className="link-underline">
@@ -178,7 +178,7 @@ export function Login() {
           </p>
 
           {import.meta.env.DEV ? (
-            <div className="flex w-full flex-col gap-2 border-t-[1.5px] border-dashed border-border pt-5">
+            <div className="flex w-full flex-col gap-2 border-t-(length:--stroke-width) border-dashed border-border pt-5">
               <Button
                 variant="outline"
                 disabled={dev.isPending}
@@ -189,7 +189,7 @@ export function Login() {
                 <FlaskConical aria-hidden="true" /> Đăng nhập thử (chỉ khi chạy dev)
               </Button>
               {dev.isError ? (
-                <p role="alert" className="text-[13px] leading-5 text-destructive">
+                <p role="alert" className="text-label leading-5 text-destructive">
                   Chưa đăng nhập thử được. Bật DEV_LOGIN=true trong apps/api/.env rồi chạy lại API.
                 </p>
               ) : null}

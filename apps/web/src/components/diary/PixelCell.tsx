@@ -83,7 +83,7 @@ export function PixelLegend({ className, active = null, onToggle, onHighlight, h
                 onFocus={() => onHighlight?.(item.key)}
                 onBlur={() => onHighlight?.(null)}
                 className={cn(
-                  'group/leg inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] px-2.5 transition-transform hover:[transform:translateY(-2px)] active:[transform:scale(.95)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                  'group/leg inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border-(length:--stroke-width) px-2.5 transition-transform hover:[transform:translateY(-2px)] active:[transform:scale(.95)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
                   active === item.key ? 'border-line' : 'border-transparent',
                 )}
               >

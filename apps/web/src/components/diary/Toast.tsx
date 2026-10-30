@@ -34,7 +34,7 @@ export function Toast({ children, action, className }: { children: ReactNode; ac
     <div
       role="status"
       className={cn(
-        'fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-[60] flex max-w-[calc(100vw-32px)] -translate-x-1/2 items-center gap-2.5 rounded-md border-[1.5px] border-line bg-primary py-3 pr-[18px] pl-3.5 text-sm leading-[22px] font-semibold text-primary-foreground shadow-accent transition-[translate,opacity] duration-(--dur-base) ease-out starting:translate-y-[calc(100%+24px)] starting:opacity-0 md:bottom-8',
+        'fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-1/2 z-[60] flex max-w-[calc(100vw-32px)] -translate-x-1/2 items-center gap-2.5 rounded-md border-(length:--stroke-width) border-line bg-primary py-3 pr-[18px] pl-3.5 text-sm leading-[22px] font-semibold text-primary-foreground shadow-accent transition-[translate,opacity] duration-(--dur-base) ease-out starting:translate-y-[calc(100%+24px)] starting:opacity-0 md:bottom-8',
         leaving && 'pointer-events-none translate-y-[calc(100%+24px)] opacity-0',
         className,
       )}

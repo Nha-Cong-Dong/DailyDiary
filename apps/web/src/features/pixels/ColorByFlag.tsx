@@ -12,13 +12,13 @@ const OPTIONS: { id: ColorBy; label: string }[] = [
 export function ColorByToggle({ value, onChange, className }: { value: ColorBy; onChange: (v: ColorBy) => void; className?: string }) {
   return (
     <div className={cn('inline-flex items-center gap-2.5', className)}>
-      <span id="color-by-label" className="text-[13px] leading-5 font-medium text-muted-foreground">
+      <span id="color-by-label" className="text-label leading-5 font-medium text-muted-foreground">
         Tô ô theo
       </span>
       <div
         role="radiogroup"
         aria-labelledby="color-by-label"
-        className="inline-flex gap-0.5 rounded-[14px] border-[1.5px] border-line bg-background p-[3px]"
+        className="inline-flex gap-0.5 rounded-[14px] border-(length:--stroke-width) border-line bg-background p-[3px]"
       >
         {OPTIONS.map((o) => {
           const on = value === o.id
@@ -65,7 +65,7 @@ export function FlagLegend({ flags, written, className }: { flags: Record<DateSt
       ))}
       {noFlag > 0 ? (
         <li className={item}>
-          <span aria-hidden="true" className="size-3.5 shrink-0 rounded-[4px] border-[1.5px] border-line bg-card" />
+          <span aria-hidden="true" className="size-3.5 shrink-0 rounded-[4px] border-(length:--stroke-width) border-line bg-card" />
           Không cờ · {noFlag}
         </li>
       ) : null}

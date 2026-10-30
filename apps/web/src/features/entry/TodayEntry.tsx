@@ -142,7 +142,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
       <section aria-labelledby={`${ids}-q`} className="flex flex-col gap-4 md:gap-5">
         <DayClock timeZone={timeZone} />
         <div className="flex flex-col gap-1 md:gap-1.5">
-          <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
+          <p className="text-label leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
             <span className="md:hidden">{longDateLabel(today, false)}</span>
             <span className="hidden md:inline">{longDateLabel(today)}</span>
           </p>
@@ -175,25 +175,25 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
           }
         />
         {autosave.restored ? (
-          <p className="text-[13px] leading-5 text-muted-foreground">Đã khôi phục phần bạn viết dở lần trước.</p>
+          <p className="text-label leading-5 text-muted-foreground">Đã khôi phục phần bạn viết dở lần trước.</p>
         ) : null}
       </section>
 
       {score ? (
         <section
           aria-labelledby={`${ids}-more`}
-          className="flex animate-rise flex-col gap-[18px] rounded-[20px] border-[1.5px] border-line bg-card px-4 py-[18px] shadow-ink-sm md:gap-6 md:rounded-lg md:p-7 md:shadow-ink"
+          className="flex animate-rise flex-col gap-[18px] rounded-[20px] border-(length:--stroke-width) border-line bg-card px-4 py-[18px] shadow-ink-sm md:gap-6 md:rounded-lg md:p-7 md:shadow-ink"
         >
           <div className="flex items-baseline justify-between gap-3">
             <h2 id={`${ids}-more`} className="text-lg leading-[26px] font-semibold md:text-xl md:leading-7">
               Thêm chút nữa?
             </h2>
-            <span className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5">Không bắt buộc</span>
+            <span className="text-label leading-[18px] text-muted-foreground md:text-label md:leading-5">Không bắt buộc</span>
           </div>
 
           <div className="flex flex-col gap-[18px] md:flex-row md:flex-wrap md:gap-x-10 md:gap-y-6">
             <fieldset className="min-w-0 md:flex-[1_1_300px]">
-              <legend className="mb-2 text-[13px] leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">Biểu tượng</legend>
+              <legend className="mb-2 text-label leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">Biểu tượng</legend>
               {/* Điện thoại: một hàng cuộn ngang như thiết kế. Máy tính: lưới gói gọn ba hàng, cuộn dọc khi danh sách dài. */}
               <SubIconPicker
                 value={sub}
@@ -202,7 +202,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
               />
             </fieldset>
             <fieldset className="min-w-0 md:flex-[0_1_220px]">
-              <legend className="mb-2 text-[13px] leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">Cờ hiệu</legend>
+              <legend className="mb-2 text-label leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">Cờ hiệu</legend>
               <FlagPicker value={flag} onChange={setFlag} compact />
             </fieldset>
           </div>
@@ -217,7 +217,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
               maxLength={limits.entry.title_max}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Tiêu đề cho hôm nay"
-              className="h-[46px] bg-background font-heading text-[17px] font-semibold md:h-12 md:text-lg"
+              className="h-[46px] bg-background font-heading text-reading font-semibold md:h-12 md:text-lg"
             />
             <label htmlFor={`${ids}-body`} className="sr-only">
               Nội dung
@@ -229,7 +229,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
               onChange={(e) => setContent(e.target.value)}
               placeholder="Viết vài dòng…"
               rows={4}
-              className="min-h-[124px] bg-background text-base leading-7 md:min-h-[162px] md:text-[17px] md:leading-[30px]"
+              className="min-h-[124px] bg-background text-base leading-7 md:min-h-[162px] md:text-reading md:leading-[30px]"
             />
           </div>
 
@@ -241,7 +241,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
               disabled={!record || photoCount >= limits.photos.per_day_max}
               title={record ? undefined : 'Đang lưu trang, thêm ảnh sau giây lát'}
               onClick={() => photoInput.current?.click()}
-              className="press inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] border-dashed border-line px-3 text-[13px] font-medium hover:bg-card focus-visible:outline-3 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-70 sm:h-8 sm:text-sm"
+              className="press inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border-(length:--stroke-width) border-dashed border-line px-3 text-label font-medium hover:bg-card focus-visible:outline-3 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-70 sm:h-8 sm:text-sm"
             >
               <Image className="size-4" aria-hidden="true" />
               Ảnh · {photoCount}/{limits.photos.per_day_max}
@@ -263,7 +263,7 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
           </div>
           {uploads.tiles.length ? <PhotoUploader uploads={uploads} labelledBy={`${ids}-more`} /> : null}
 
-          <div className="flex flex-col gap-3 border-border pt-0 md:flex-row-reverse md:items-center md:justify-between md:border-t-[1.5px] md:border-dashed md:pt-[18px]">
+          <div className="flex flex-col gap-3 border-border pt-0 md:flex-row-reverse md:items-center md:justify-between md:border-t-(length:--stroke-width) md:border-dashed md:pt-[18px]">
             <Button
               onClick={() => void autosave.flush()}
               disabled={autosave.status.kind === 'saving'}
@@ -271,11 +271,11 @@ function TodayForm({ today, initial }: { today: string; initial: DayEntry | null
             >
               {autosave.status.kind === 'saving' ? 'Đang lưu…' : 'Lưu'}
             </Button>
-            <span className="text-center text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
+            <span className="text-center text-label leading-[18px] text-muted-foreground tabular-nums md:text-label md:leading-5">
               {scoredAt ? `Tạo ${timeIn(timeZone, scoredAt)}` : null}
             </span>
           </div>
-          <p className="text-[13px] leading-5 text-muted-foreground">Tự động lưu khi bạn ngừng gõ vài giây.</p>
+          <p className="text-label leading-5 text-muted-foreground">Tự động lưu khi bạn ngừng gõ vài giây.</p>
         </section>
       ) : null}
 

@@ -10,7 +10,7 @@ import { ThemeToggle } from './ThemeToggle'
 export function PlainFrame({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
-      <header className="border-b-[1.5px] border-line">
+      <header className="border-b-(length:--stroke-width) border-line">
         <div className="mx-auto flex max-w-[1120px] items-center gap-4 px-4 py-3 sm:px-[clamp(16px,4vw,40px)]">
           <Link
             to="/"

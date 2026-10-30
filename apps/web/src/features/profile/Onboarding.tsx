@@ -58,7 +58,7 @@ export function Onboarding() {
         <>
           {back}
           {save.isError ? (
-            <span role="alert" className="text-[13px] text-destructive">
+            <span role="alert" className="text-label text-destructive">
               Chưa lưu được. Thử lại nhé.
             </span>
           ) : null}

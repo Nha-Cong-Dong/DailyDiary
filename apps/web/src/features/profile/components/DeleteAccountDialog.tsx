@@ -132,7 +132,7 @@ export function DeleteAccountDialog({
       showDescription
       className="md:max-w-[min(480px,calc(100%-2rem))]"
     >
-      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-6 marker:text-destructive">
+      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-body leading-6 marker:text-destructive">
         <li>
           {pageCount === undefined
             ? 'Mọi trang nhật ký, kèm điểm và ảnh'

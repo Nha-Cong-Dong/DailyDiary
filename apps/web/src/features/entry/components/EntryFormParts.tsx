@@ -13,9 +13,9 @@ import { tierLimits } from '@/lib/limits'
 import { cn } from '@/lib/utils'
 import { FREQUENT_COUNT } from '../useFrequentSubIcons'
 
-const legendClass = 'mb-2.5 p-0 text-sm leading-5 font-semibold md:mb-3 md:text-[15px] md:leading-6'
+const legendClass = 'mb-2.5 p-0 text-sm leading-5 font-semibold md:mb-3 md:text-body md:leading-6'
 /** Nhãn trường (label/tiêu đề nhóm) cùng cỡ với legend: điện thoại 14px, máy tính 15px. */
-export const fieldLabelClass = 'text-sm leading-5 font-semibold md:text-[15px] md:leading-6'
+export const fieldLabelClass = 'text-sm leading-5 font-semibold md:text-body md:leading-6'
 
 export function BackLink({ to, children, className }: { to: string; children: ReactNode; className?: string }) {
   return (
@@ -54,7 +54,7 @@ export function PhoneBar({
 }) {
   const Title = heading ? 'h1' : 'p'
   return (
-    <div className="fixed inset-x-0 top-0 z-[31] grid h-[60px] grid-cols-[96px_minmax(0,1fr)_96px] items-center border-b-[1.5px] border-line bg-background px-1.5 md:hidden">
+    <div className="fixed inset-x-0 top-0 z-[31] grid h-[60px] grid-cols-[96px_minmax(0,1fr)_96px] items-center border-b-(length:--stroke-width) border-line bg-background px-1.5 md:hidden">
       <div className="flex items-center">{start}</div>
       <Title className="truncate text-center font-sans text-base leading-[22px] font-semibold">{title}</Title>
       <div className="flex items-center justify-end">{end}</div>
@@ -133,7 +133,7 @@ export function Notice({ children, className }: { children: ReactNode; className
   return (
     <p
       className={cn(
-        'flex items-start gap-2.5 rounded-[14px] border-[1.5px] border-dashed border-border bg-muted px-4 py-3 text-sm leading-[22px]',
+        'flex items-start gap-2.5 rounded-[14px] border-(length:--stroke-width) border-dashed border-border bg-muted px-4 py-3 text-sm leading-[22px]',
         className,
       )}
     >
@@ -193,7 +193,7 @@ function FrequentSubIcons({
             type="button"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="press inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-[12px] border-[1.5px] border-dashed border-line px-3 text-sm font-medium focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
+            className="press inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-[12px] border-(length:--stroke-width) border-dashed border-line px-3 text-sm font-medium focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
           >
             {open ? (
               <>
@@ -207,7 +207,7 @@ function FrequentSubIcons({
           </button>
         ) : null}
       </div>
-      {open ? null : <p className="text-xs leading-[18px] text-muted-foreground">Hay dùng nhất trong nhật ký của bạn.</p>}
+      {open ? null : <p className="text-label leading-[18px] text-muted-foreground">Hay dùng nhất trong nhật ký của bạn.</p>}
     </div>
   )
 }
@@ -247,7 +247,7 @@ export function ExtraFields(props: ExtraFieldsProps) {
           maxLength={limits.title_max}
           onChange={(e) => props.onTitle(e.target.value)}
           placeholder={props.titlePlaceholder}
-          className={cn('h-12 font-heading text-[17px] font-semibold md:text-lg', fieldBg)}
+          className={cn('h-12 font-heading text-reading font-semibold md:text-lg', fieldBg)}
         />
       </div>
       <div className="flex flex-col gap-1.5 md:gap-2">
@@ -261,7 +261,7 @@ export function ExtraFields(props: ExtraFieldsProps) {
           onChange={(e) => props.onContent(e.target.value)}
           placeholder={props.contentPlaceholder}
           rows={props.contentRows ?? 4}
-          className={cn('min-h-[124px] resize-y text-[17px] leading-[30px] md:text-reading', fieldBg)}
+          className={cn('min-h-[124px] resize-y text-reading leading-[30px] md:text-reading', fieldBg)}
         />
       </div>
     </>

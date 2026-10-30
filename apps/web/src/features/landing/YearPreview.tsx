@@ -19,7 +19,7 @@ export function YearPreview({ paint = true, className }: { paint?: boolean; clas
   const focus = highlight ?? filter
 
   return (
-    <div data-ui="" className={cn('rounded-[20px] border-[1.5px] border-line bg-card p-4 shadow-ink sm:p-6', paint && 'paint-timeline', className)}>
+    <div data-ui="" className={cn('rounded-[20px] border-(length:--stroke-width) border-line bg-card p-4 shadow-ink sm:p-6', paint && 'paint-timeline', className)}>
       <div className="grid grid-flow-col auto-cols-fr grid-rows-[auto_repeat(31,auto)] gap-[3px] md:grid-flow-row md:grid-cols-[32px_repeat(31,minmax(0,1fr))] md:grid-rows-none md:gap-1">
         {YEAR.map((days, m) => (
           <Fragment key={m}>

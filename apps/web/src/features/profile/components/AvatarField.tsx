@@ -68,7 +68,7 @@ export function AvatarField({ name, src, busy, uploadError, onPick, onRemove }: 
           }}
         />
         <span
-          className={shown ? 'text-[13px] leading-5 font-medium text-destructive' : 'text-[13px] leading-5 text-muted-foreground'}
+          className={shown ? 'text-label leading-5 font-medium text-destructive' : 'text-label leading-5 text-muted-foreground'}
           role={shown ? 'alert' : undefined}
         >
           {shown ?? `${photoFormatsLabel()}, tối đa ${maxSource}. Jotly cắt vuông ${avatar_edge_px}×${avatar_edge_px} px.`}

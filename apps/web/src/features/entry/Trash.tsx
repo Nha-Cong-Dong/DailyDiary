@@ -78,7 +78,7 @@ export function Trash() {
       </Link>
       <div className="flex animate-rise flex-col gap-1.5">
         <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Thùng rác</h1>
-        <p className="text-[15px] leading-6 text-muted-foreground">
+        <p className="text-body leading-6 text-muted-foreground">
           Trang bạn xóa nằm ở đây {days} ngày rồi mới bị xóa hẳn. Khôi phục để trang quay lại đúng ngày của nó.
         </p>
       </div>
@@ -106,7 +106,7 @@ export function Trash() {
           <AlertDescription>Chưa tải được thùng rác. Thử tải lại trang nhé.</AlertDescription>
         </Alert>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
+        <div className="flex flex-col items-center gap-2 rounded-[18px] border-(length:--stroke-width) border-dashed border-border p-8 text-center">
           <Trash2 className="size-8 text-muted-foreground" aria-hidden="true" />
           <p className="font-semibold">Thùng rác trống</p>
           <p className="text-sm text-muted-foreground">Không có trang nào bị xóa trong {days} ngày qua.</p>
@@ -116,13 +116,13 @@ export function Trash() {
           {items.map((item) => (
             <li
               key={item.entry_date}
-              className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[16px] border-[1.5px] border-line bg-card p-4 shadow-ink-sm"
+              className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[16px] border-(length:--stroke-width) border-line bg-card p-4 shadow-ink-sm"
             >
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-background">
                 <MoodMark iconSetId={iconSetId} score={item.score as Score} size={32} />
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-[13px] text-muted-foreground">
+                <span className="text-label text-muted-foreground">
                   {longDateLabel(item.entry_date)} · Điểm {item.score} · {scoreLabel(iconSetId, item.score as Score)}
                 </span>
                 <span className="truncate font-heading text-lg font-bold">{item.title ?? 'Chỉ chấm điểm'}</span>

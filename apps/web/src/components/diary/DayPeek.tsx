@@ -23,7 +23,7 @@ type DayPeekProps = {
 }
 
 const action =
-  'press inline-flex h-12 items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-primary bg-primary text-[15px] font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring'
+  'press inline-flex h-12 items-center justify-center gap-2 rounded-[14px] border-(length:--stroke-width) border-primary bg-primary text-body font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring'
 
 /** Nội dung "xem nhanh một ngày" trong bảng trượt trên điện thoại (thiết kế B10 · Dòng thời gian, Year in Pixels). */
 export function DayPeek({ date, entry, iconSetId, meta, state, onNavigate }: DayPeekProps) {
@@ -35,12 +35,12 @@ export function DayPeek({ date, entry, iconSetId, meta, state, onNavigate }: Day
           <span
             role="img"
             aria-label={`Điểm ${entry.score}, ${label}`}
-            className="flex size-14 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background"
+            className="flex size-14 shrink-0 items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-background"
           >
             <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={40} />
           </span>
           <span className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-[13px] leading-5 text-muted-foreground">
+            <span className="text-label leading-5 text-muted-foreground">
               Điểm {entry.score} · {label}
               {meta ? ` · ${meta}` : ''}
             </span>
@@ -60,7 +60,7 @@ export function DayPeek({ date, entry, iconSetId, meta, state, onNavigate }: Day
   }
   return (
     <>
-      <p className="text-[15px] leading-6 text-muted-foreground">
+      <p className="text-body leading-6 text-muted-foreground">
         {state === 'future' ? 'Ngày này chưa tới.' : state === 'today' ? 'Hôm nay chưa có trang.' : 'Ngày này chưa được ghi.'}
       </p>
       {state === 'past' ? (

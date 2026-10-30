@@ -188,7 +188,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
   const statusDot = (
     <span
       aria-hidden="true"
-      className={cn('size-[9px] rounded-full border-[1.5px] border-line md:size-2.5', dirty ? 'animate-[pulse_1.2s_ease-in-out_3] bg-score-5' : !savedNow && 'bg-muted')}
+      className={cn('size-[9px] rounded-full border-(length:--stroke-width) border-line md:size-2.5', dirty ? 'animate-[pulse_1.2s_ease-in-out_3] bg-score-5' : !savedNow && 'bg-muted')}
       style={!dirty && savedNow && SAGE ? { backgroundColor: SAGE } : undefined}
     />
   )
@@ -199,7 +199,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
       <PhoneBar
         start={
           // Còn thay đổi chưa lưu thì useBlocker chặn và hỏi "Bỏ và rời trang".
-          <Link to={`/day/${date}`} className={cn(phoneIconButton, 'w-auto px-2.5 text-[15px] font-medium')}>
+          <Link to={`/day/${date}`} className={cn(phoneIconButton, 'w-auto px-2.5 text-body font-medium')}>
             Hủy
           </Link>
         }
@@ -219,16 +219,16 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         </BackLink>
 
         <div className="flex animate-rise flex-col gap-1 md:gap-1.5">
-          <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">{longDateLabel(date)}</p>
+          <p className="text-label leading-5 text-muted-foreground md:text-sm md:leading-[22px]">{longDateLabel(date)}</p>
           <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold max-md:hidden">Sửa trang</h1>
-          <p className="inline-flex items-center gap-1.5 text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
+          <p className="inline-flex items-center gap-1.5 text-label leading-[18px] text-muted-foreground tabular-nums md:text-label md:leading-5">
             <Clock className="size-3.5 shrink-0" aria-hidden="true" />
             {metaLine(record, timeZone)}
           </p>
         </div>
 
         {ago > 0 ? (
-          <Notice className="animate-rise [animation-delay:.05s] max-md:rounded-[12px] max-md:px-3 max-md:py-2.5 max-md:text-[13px] max-md:leading-5">
+          <Notice className="animate-rise [animation-delay:.05s] max-md:rounded-[12px] max-md:px-3 max-md:py-2.5 max-md:text-label max-md:leading-5">
             <span className="max-md:hidden">
               Bạn đang sửa trang của {agoText}. Trang vẫn thuộc ngày {dayMonth(date)}, chỉ dòng{' '}
               <strong className="font-semibold">Sửa lần cuối</strong> ghi thêm ngày sửa.
@@ -242,7 +242,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         {/* Máy tính: các trường nằm trong một thẻ. Điện thoại: nằm thẳng trên nền trang. */}
         <section
           aria-label="Nội dung trang"
-          className="flex animate-rise flex-col gap-[22px] [animation-delay:.1s] md:gap-7 md:rounded-lg md:border-[1.5px] md:border-line md:bg-card md:p-[clamp(20px,4vw,32px)] md:shadow-ink"
+          className="flex animate-rise flex-col gap-[22px] [animation-delay:.1s] md:gap-7 md:rounded-lg md:border-(length:--stroke-width) md:border-line md:bg-card md:p-[clamp(20px,4vw,32px)] md:shadow-ink"
         >
           <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0 md:gap-3">
             <Legend>Điểm của ngày</Legend>
@@ -255,7 +255,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
               itemClassName="max-md:min-h-[76px] max-md:rounded-[14px]"
             />
             {draft.score !== base.score ? (
-              <p className="flex animate-pop flex-wrap items-center gap-1.5 text-xs leading-[18px] text-muted-foreground md:gap-2 md:text-[13px] md:leading-5">
+              <p className="flex animate-pop flex-wrap items-center gap-1.5 text-label leading-[18px] text-muted-foreground md:gap-2 md:text-label md:leading-5">
                 Đã đổi từ {base.score} · {scoreLabel(iconSetId, base.score)} sang {draft.score} · {scoreLabel(iconSetId, draft.score)}.
                 <button
                   type="button"
@@ -300,7 +300,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
             </span>
             <PhotoUploader uploads={uploads} labelledBy={`${ids}-photos`} />
             {photoError ? (
-              <p role="alert" className="text-[13px] leading-5 font-medium text-destructive">
+              <p role="alert" className="text-label leading-5 font-medium text-destructive">
                 {photoError}
               </p>
             ) : null}
@@ -317,13 +317,13 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         {/* Máy tính: thanh lưu dính đáy. Điện thoại: chỉ còn dòng trạng thái cuối trang (nút Lưu ở thanh trên). */}
         <div
           className={cn(
-            'flex flex-wrap items-center justify-between gap-3 transition-shadow max-md:-mt-1.5 md:sticky md:bottom-4 md:z-20 md:rounded-[18px] md:border-[1.5px] md:border-line md:bg-card md:py-3 md:pr-3 md:pl-5',
+            'flex flex-wrap items-center justify-between gap-3 transition-shadow max-md:-mt-1.5 md:sticky md:bottom-4 md:z-20 md:rounded-[18px] md:border-(length:--stroke-width) md:border-line md:bg-card md:py-3 md:pr-3 md:pl-5',
             dirty ? 'md:shadow-[4px_4px_0_var(--score-5)]' : 'md:shadow-ink',
           )}
         >
           <span
             role="status"
-            className="inline-flex items-center gap-2 text-[13px] leading-5 text-muted-foreground md:gap-2.5 md:text-sm md:leading-[22px] md:font-medium md:text-foreground"
+            className="inline-flex items-center gap-2 text-label leading-5 text-muted-foreground md:gap-2.5 md:text-sm md:leading-[22px] md:font-medium md:text-foreground"
           >
             {statusDot}
             {status}

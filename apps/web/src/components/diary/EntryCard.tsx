@@ -35,14 +35,14 @@ export function EntryCard({
 }: EntryCardProps) {
   const dark = useDarkMode()
   return (
-    <article className={cn('flex flex-col overflow-hidden rounded-lg border-[1.5px] border-line bg-card shadow-ink', className)}>
+    <article className={cn('flex flex-col overflow-hidden rounded-lg border-(length:--stroke-width) border-line bg-card shadow-ink', className)}>
       <div
-        className="h-[72px] border-b-[1.5px] border-line bg-secondary"
+        className="h-[72px] border-b-(length:--stroke-width) border-line bg-secondary"
         style={flagColor ? { backgroundColor: flagHex(flagColor, dark) } : undefined}
       />
       <div className="flex flex-col gap-3 px-[22px] pb-6">
         <div className="-mt-9 flex items-end justify-between gap-3">
-          <span className="flex size-[72px] items-center justify-center rounded-full border-[1.5px] border-line bg-card">
+          <span className="flex size-[72px] items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-card">
             <MoodMark iconSetId={iconSetId} score={score} subIcon={subIcon} size={52} />
           </span>
           {meta ? <span className="text-sm leading-[22px] font-medium text-muted-foreground tabular-nums">{meta}</span> : null}
@@ -59,7 +59,7 @@ export function EntryCard({
                 {k}
               </KeywordChip>
             ))}
-            {photoCount ? <span className="text-[13px] leading-5 text-muted-foreground">· {photoCount} ảnh</span> : null}
+            {photoCount ? <span className="text-label leading-5 text-muted-foreground">· {photoCount} ảnh</span> : null}
           </div>
         ) : null}
       </div>

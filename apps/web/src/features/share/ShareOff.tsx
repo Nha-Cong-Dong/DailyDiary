@@ -50,7 +50,7 @@ export function ShareOff() {
       <main className="flex flex-1 items-center justify-center px-[clamp(16px,4vw,40px)] pt-16 pb-20">
         <div className="flex max-w-[520px] flex-col items-center gap-4 text-center">
           <div className="relative flex animate-rise items-center justify-center">
-            <span aria-hidden="true" className="absolute size-[200px] rounded-full border-[1.5px] border-dashed border-border bg-muted" />
+            <span aria-hidden="true" className="absolute size-[200px] rounded-full border-(length:--stroke-width) border-dashed border-border bg-muted" />
             <span className="relative inline-flex">
               <LockedBook />
             </span>
@@ -65,12 +65,12 @@ export function ShareOff() {
           <div className="mt-3 flex animate-rise flex-wrap items-center justify-center gap-x-[22px] gap-y-3.5 [animation-delay:.7s]">
             <Link
               to="/"
-              className={`group/cta cta inline-flex h-12 items-center gap-2 rounded-[14px] border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground ${focusRing}`}
+              className={`group/cta cta inline-flex h-12 items-center gap-2 rounded-[14px] border-(length:--stroke-width) border-line bg-primary px-5 text-body font-semibold text-primary-foreground ${focusRing}`}
             >
               Tìm hiểu về Jotly
               <ArrowRight className="size-[18px] transition-transform duration-200 group-hover/cta:translate-x-0.5" aria-hidden="true" />
             </Link>
-            <Link to="/login" className={`link-underline text-[15px] font-medium ${focusRing}`}>
+            <Link to="/login" className={`link-underline text-body font-medium ${focusRing}`}>
               Viết nhật ký của bạn
             </Link>
           </div>

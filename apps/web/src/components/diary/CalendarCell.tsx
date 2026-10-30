@@ -48,7 +48,7 @@ export function CalendarCell({
 }: CalendarCellProps) {
   const icon = size === 'md' ? 32 : 24
   const classes = cn(
-    'flex flex-col items-center justify-between rounded-sm border-[1.5px] text-foreground',
+    'flex flex-col items-center justify-between rounded-sm border-(length:--stroke-width) text-foreground',
     size === 'md' ? 'min-h-[76px] px-0 pt-1.5 pb-1' : 'h-12 pt-1 pb-0.5',
     weekday && 'gap-1.5 py-2.5',
     // Hôm nay: màu đào của "bây giờ" (DESIGN.md mục 2); chữ trên đào luôn là on-accent ở cả hai chế độ.
@@ -62,7 +62,7 @@ export function CalendarCell({
     <span
       className={cn(
         'tabular-nums',
-        size === 'md' ? 'text-[13px] leading-[18px]' : 'text-label leading-3',
+        size === 'md' ? 'text-label leading-[18px]' : 'text-label leading-3',
         state === 'today' ? 'font-bold' : 'font-medium',
         state === 'future' ? 'text-faint' : state === 'today' ? 'text-on-accent' : 'text-foreground',
       )}
@@ -95,7 +95,7 @@ export function CalendarCell({
           <span
             aria-hidden="true"
             className={cn(
-              'rounded-full border-[1.5px] border-dashed',
+              'rounded-full border-(length:--stroke-width) border-dashed',
               state === 'today' ? 'border-on-accent' : 'border-muted-foreground',
             )}
             style={{ width: icon * 0.8, height: icon * 0.8 }}

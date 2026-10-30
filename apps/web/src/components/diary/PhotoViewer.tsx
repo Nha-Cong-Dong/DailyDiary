@@ -30,7 +30,7 @@ export function PhotoTile({
       aria-label={`Mở ảnh ${index + 1} trên ${total}`}
       onClick={onOpen}
       className={cn(
-        'relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[14px] border-[1.5px] border-line text-[#6A6255] transition-transform duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+        'relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-[14px] border-(length:--stroke-width) border-line text-[#6A6255] transition-transform duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
         PHOTO_TINTS[index % PHOTO_TINTS.length],
         className,
       )}
@@ -40,7 +40,7 @@ export function PhotoTile({
       ) : (
         <>
           <Image className="size-6" aria-hidden="true" />
-          <span className="text-xs">{photo.label}</span>
+          <span className="text-label">{photo.label}</span>
         </>
       )}
     </button>
@@ -100,13 +100,13 @@ export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) 
                 alt={`Ảnh ${index + 1} trên ${total}`}
                 width={photos[index].width}
                 height={photos[index].height}
-                className="col-span-2 row-start-1 max-h-[78vh] w-full min-w-0 animate-rise rounded-[18px] border-[1.5px] border-[#FEF7EC] object-contain sm:col-span-1 sm:col-start-2"
+                className="col-span-2 row-start-1 max-h-[78vh] w-full min-w-0 animate-rise rounded-[18px] border-(length:--stroke-width) border-[#FEF7EC] object-contain sm:col-span-1 sm:col-start-2"
               />
             ) : open ? (
               <div
                 key={index}
                 className={cn(
-                  'col-span-2 row-start-1 flex aspect-[4/3] min-w-0 animate-rise flex-col items-center justify-center gap-2 rounded-[18px] border-[1.5px] border-[#FEF7EC] text-[#6A6255] sm:col-span-1 sm:col-start-2',
+                  'col-span-2 row-start-1 flex aspect-[4/3] min-w-0 animate-rise flex-col items-center justify-center gap-2 rounded-[18px] border-(length:--stroke-width) border-[#FEF7EC] text-[#6A6255] sm:col-span-1 sm:col-start-2',
                   PHOTO_TINTS[index % PHOTO_TINTS.length],
                 )}
               >

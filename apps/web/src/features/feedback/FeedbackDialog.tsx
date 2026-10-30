@@ -44,7 +44,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
           <div role="status" className="flex flex-col items-center gap-3 py-4 text-center">
             <CircleCheck className="size-10" aria-hidden="true" />
             <DialogTitle className="font-heading text-xl font-bold">Cảm ơn bạn!</DialogTitle>
-            <DialogDescription className="text-[15px] leading-6">
+            <DialogDescription className="text-body leading-6">
               Góp ý đã tới Jotly. Nếu cần hỏi thêm, Jotly sẽ trả lời qua {email || 'email tài khoản của bạn'}.
             </DialogDescription>
             <Button className="mt-2 h-11" onClick={() => change(false)}>
@@ -61,7 +61,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
           >
             <DialogHeader>
               <DialogTitle className="font-heading text-xl font-bold">Góp ý cho Jotly</DialogTitle>
-              <DialogDescription className="text-[15px] leading-6">
+              <DialogDescription className="text-body leading-6">
                 Điều gì làm bạn khó chịu, hay bạn muốn Jotly có thêm gì? Góp ý gửi kèm email tài khoản ({email}) để
                 Jotly trả lời được.
               </DialogDescription>
@@ -78,10 +78,10 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               autoFocus
               placeholder="Ví dụ: mình muốn có nhắc viết lúc 21 giờ…"
               aria-describedby={`${ids}-count`}
-              className="min-h-36 text-[15px] leading-6"
+              className="min-h-36 text-body leading-6"
             />
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span id={`${ids}-count`} className="text-[13px] text-muted-foreground tabular-nums">
+              <span id={`${ids}-count`} className="text-label text-muted-foreground tabular-nums">
                 {message.length}/{max}
               </span>
               <Button type="submit" className="h-11" disabled={!text || send.isPending}>
@@ -89,7 +89,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               </Button>
             </div>
             {send.isError ? (
-              <p role="alert" className="text-[13px] leading-5 font-medium text-destructive">
+              <p role="alert" className="text-label leading-5 font-medium text-destructive">
                 {errorText(send.error)}
               </p>
             ) : null}

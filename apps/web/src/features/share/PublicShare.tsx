@@ -72,17 +72,17 @@ function SharedPage({ share }: { share: PublicShareData }) {
               <Avatar name={share.author_name} size={30} className="sm:hidden" />
             </>
           ) : null}
-          <p className="text-[15px] leading-6 max-sm:min-w-0 max-sm:flex-1 max-sm:text-sm max-sm:leading-5">
+          <p className="text-body leading-6 max-sm:min-w-0 max-sm:flex-1 max-sm:text-sm max-sm:leading-5">
             {share.author_name ? `${share.author_name} chia sẻ một trang nhật ký` : 'Một trang nhật ký được chia sẻ với bạn'}
           </p>
-          <span className="rounded-full border-[1.5px] border-dashed border-border px-2.5 py-0.5 text-xs leading-[18px] font-semibold text-muted-foreground max-sm:px-2 max-sm:py-px max-sm:text-[11px]">
+          <span className="rounded-full border-(length:--stroke-width) border-dashed border-border px-2.5 py-0.5 text-label leading-[18px] font-semibold text-muted-foreground max-sm:px-2 max-sm:py-px max-sm:text-[11px]">
             Chỉ xem
           </span>
         </div>
 
-        <article className="animate-rise overflow-hidden rounded-[24px] border-[1.5px] border-line bg-card shadow-[5px_5px_0_var(--ink-shadow)] [animation-delay:.1s] max-sm:rounded-[20px] max-sm:shadow-[4px_4px_0_var(--ink-shadow)]">
+        <article className="animate-rise overflow-hidden rounded-[24px] border-(length:--stroke-width) border-line bg-card shadow-ink-lg [animation-delay:.1s] max-sm:rounded-[20px] max-sm:shadow-ink">
           {hasFlag ? (
-            <div className="h-[120px] overflow-hidden border-b-[1.5px] border-line bg-muted max-sm:h-[88px]">
+            <div className="h-[120px] overflow-hidden border-b-(length:--stroke-width) border-line bg-muted max-sm:h-[88px]">
               <div
                 className="h-full animate-in delay-450 duration-800 ease-move fill-mode-backwards slide-in-from-left-full"
                 style={{ backgroundColor: flagHex(share.flag_color!, dark) }}
@@ -96,7 +96,7 @@ function SharedPage({ share }: { share: PublicShareData }) {
                   <span
                     role="img"
                     aria-label={`Điểm ${score}, ${scoreLabel(iconSetId, score)}`}
-                    className="flex size-[104px] animate-pop items-center justify-center rounded-full border-[1.5px] border-line bg-card [animation-delay:.75s] max-sm:size-20"
+                    className="flex size-[104px] animate-pop items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-card [animation-delay:.75s] max-sm:size-20"
                   >
                     <span className="max-sm:hidden">
                       <MoodMark iconSetId={iconSetId} score={score} subIcon={share.sub_icon} size={76} />
@@ -106,7 +106,7 @@ function SharedPage({ share }: { share: PublicShareData }) {
                     </span>
                   </span>
                 ) : (
-                  <span className="flex size-[72px] animate-pop items-center justify-center rounded-full border-[1.5px] border-line bg-card text-[40px] leading-none [animation-delay:.75s] max-sm:size-[60px] max-sm:text-[32px]">
+                  <span className="flex size-[72px] animate-pop items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-card text-[40px] leading-none [animation-delay:.75s] max-sm:size-[60px] max-sm:text-[32px]">
                     {share.sub_icon}
                   </span>
                 )}
@@ -114,7 +114,7 @@ function SharedPage({ share }: { share: PublicShareData }) {
             ) : null}
 
             <div className="flex animate-rise flex-col gap-1.5 [animation-delay:.9s]">
-              <p className="text-sm leading-[22px] text-muted-foreground max-sm:text-[13px] max-sm:leading-5">
+              <p className="text-sm leading-[22px] text-muted-foreground max-sm:text-label max-sm:leading-5">
                 {longDateLabel(share.entry_date)}
                 {score !== null ? ` · Điểm ${score} · ${scoreLabel(iconSetId, score)}` : ''}
               </p>
@@ -122,7 +122,7 @@ function SharedPage({ share }: { share: PublicShareData }) {
             </div>
 
             {share.content ? (
-              <div className="ruled flex animate-rise flex-col gap-8 text-reading leading-8 [animation-delay:1s] max-sm:gap-[30px] max-sm:text-[17px] max-sm:leading-[30px]">
+              <div className="ruled flex animate-rise flex-col gap-8 text-reading leading-8 [animation-delay:1s] max-sm:gap-[30px] max-sm:text-reading max-sm:leading-[30px]">
                 {share.content.split(/\n{2,}/).map((para, i) => (
                   <p key={i}>{para}</p>
                 ))}
@@ -154,13 +154,13 @@ function SharedPage({ share }: { share: PublicShareData }) {
           </div>
         </article>
 
-        <p className="flex animate-rise items-start gap-2 text-[13px] leading-5 text-muted-foreground [animation-delay:1.2s] max-sm:text-xs max-sm:leading-[18px]">
+        <p className="flex animate-rise items-start gap-2 text-label leading-5 text-muted-foreground [animation-delay:1.2s] max-sm:text-label max-sm:leading-[18px]">
           <Lock className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           Người viết chọn phần nào được hiện ở đây, và có thể tắt link bất cứ lúc nào.
         </p>
 
         <section className="reveal-on-scroll mt-8 max-sm:mt-3">
-          <div className="group/band flex flex-wrap items-center justify-between gap-5 rounded-[24px] border-[1.5px] border-line bg-primary p-[clamp(24px,4vw,36px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_var(--cta-shadow)] max-sm:flex-col max-sm:items-stretch max-sm:gap-3.5 max-sm:rounded-[20px] max-sm:px-[18px] max-sm:py-[22px] max-sm:shadow-[4px_4px_0_var(--cta-shadow)]">
+          <div className="group/band flex flex-wrap items-center justify-between gap-5 rounded-[24px] border-(length:--stroke-width) border-line bg-primary p-[clamp(24px,4vw,36px)] text-primary-foreground shadow-accent transition-[transform,box-shadow] duration-300 ease-out hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_var(--cta-shadow)] max-sm:flex-col max-sm:items-stretch max-sm:gap-3.5 max-sm:rounded-[20px] max-sm:px-[18px] max-sm:py-[22px] max-sm:shadow-accent">
             <div className="flex items-center gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-3.5">
               <span className="flex size-14 shrink-0 items-center justify-center rounded-[16px] bg-primary-foreground max-sm:size-12 max-sm:rounded-[14px]">
                 <LogoMark size={36} />
@@ -173,7 +173,7 @@ function SharedPage({ share }: { share: PublicShareData }) {
             {/* Thiết kế B8/B10 dẫn nút này về trang giới thiệu, nơi có nút đăng nhập Google. */}
             <Link
               to="/"
-              className={`press inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-primary-foreground bg-primary-foreground pr-5 pl-4 text-[15px] font-semibold text-primary max-sm:justify-center ${focusRing}`}
+              className={`press inline-flex h-12 items-center gap-2.5 rounded-[14px] border-(length:--stroke-width) border-primary-foreground bg-primary-foreground pr-5 pl-4 text-body font-semibold text-primary max-sm:justify-center ${focusRing}`}
             >
               <GoogleMark />
               Tiếp tục với Google

@@ -70,7 +70,7 @@ export function FlagPicker({ value, onChange, compact, form, className }: FlagPi
           aria-label="Không cờ"
           aria-pressed={value === null}
           onClick={() => onChange(null)}
-          className={cn(tile, 'border-[1.5px] border-dashed border-line bg-transparent', ring(value === null))}
+          className={cn(tile, 'border-(length:--stroke-width) border-dashed border-line bg-transparent', ring(value === null))}
         />
       ) : null}
       {swatches.map((s) => {
@@ -83,7 +83,7 @@ export function FlagPicker({ value, onChange, compact, form, className }: FlagPi
             aria-pressed={on}
             onClick={() => onChange(on && !form ? null : s.hex)}
             style={{ backgroundColor: flagHex(s.hex, dark) }}
-            className={cn(tile, 'border-[1.5px] border-line', ring(on))}
+            className={cn(tile, 'border-(length:--stroke-width) border-line', ring(on))}
           />
         )
       })}
@@ -150,7 +150,7 @@ function AddColor({
         onClick={open}
         className={cn(
           className,
-          'flex size-full items-center justify-center border-[1.5px] border-dashed border-line bg-transparent text-muted-foreground disabled:cursor-wait disabled:opacity-60',
+          'flex size-full items-center justify-center border-(length:--stroke-width) border-dashed border-line bg-transparent text-muted-foreground disabled:cursor-wait disabled:opacity-60',
         )}
       >
         <Plus aria-hidden className="size-4" strokeWidth={2.25} />

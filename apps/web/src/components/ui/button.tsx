@@ -7,7 +7,7 @@ import { Slot } from "radix-ui"
 // icon). Cử chỉ "tờ giấy": di chuột (chỉ con trỏ chuột) nhấc 2px và bóng dài thêm 2px; ấn thì dịch đúng bằng độ lệch
 // bóng và bóng biến mất, trong --dur-press.
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border-[1.5px] font-sans whitespace-nowrap transition-[translate,box-shadow,background-color,border-color] duration-(--dur-fast) ease-out outline-none select-none active:duration-(--dur-press) focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:shadow-none disabled:translate-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border-(length:--stroke-width) font-sans whitespace-nowrap transition-[translate,box-shadow,background-color,border-color] duration-(--dur-fast) ease-out outline-none select-none active:duration-(--dur-press) focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:shadow-none disabled:translate-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
   {
     variants: {
       variant: {

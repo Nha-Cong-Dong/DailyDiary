@@ -73,13 +73,13 @@ export function KeywordEditor({ keywords, onChange }: KeywordEditorProps) {
             />
           </span>
         ) : (
-          <AddKeywordButton className="h-9 px-3 text-[13px] sm:h-8 sm:text-sm" onClick={() => setOpen(true)}>
+          <AddKeywordButton className="h-9 px-3 text-label sm:h-8 sm:text-sm" onClick={() => setOpen(true)}>
             + Từ khóa
           </AddKeywordButton>
         )}
       </div>
       {error ? (
-        <span id={`${inputId}-error`} className="text-[13px] leading-5 font-medium text-destructive">
+        <span id={`${inputId}-error`} className="text-label leading-5 font-medium text-destructive">
           {error}
         </span>
       ) : null}
@@ -177,21 +177,21 @@ export function InlineKeywordEditor({ keywords, onChange, inputId }: KeywordEdit
             <button
               type="button"
               onClick={submit}
-              className="press h-11 shrink-0 cursor-pointer rounded-full border-[1.5px] border-primary bg-primary px-4 text-sm font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring md:h-9 md:px-3 md:text-[13px]"
+              className="press h-11 shrink-0 cursor-pointer rounded-full border-(length:--stroke-width) border-primary bg-primary px-4 text-sm font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring md:h-9 md:px-3 md:text-label"
             >
               Thêm
             </button>
           ) : dup !== null ? (
             <span
               aria-hidden="true"
-              className="inline-flex h-11 shrink-0 items-center rounded-full border-[1.5px] border-disabled-line bg-disabled px-4 text-sm font-semibold text-disabled-foreground md:h-9 md:px-3 md:text-[13px]"
+              className="inline-flex h-11 shrink-0 items-center rounded-full border-(length:--stroke-width) border-disabled-line bg-disabled px-4 text-sm font-semibold text-disabled-foreground md:h-9 md:px-3 md:text-label"
             >
               Thêm
             </span>
           ) : null}
         </span>
       </div>
-      <p id={msgId} role="status" className="flex min-h-[18px] items-center gap-1.5 text-xs leading-[18px] md:min-h-5 md:text-[13px] md:leading-5">
+      <p id={msgId} role="status" className="flex min-h-[18px] items-center gap-1.5 text-label leading-[18px] md:min-h-5 md:text-label md:leading-5">
         {message ? (
           <>
             <TriangleAlert className="size-[15px] shrink-0" style={{ color: WARN }} aria-hidden="true" />

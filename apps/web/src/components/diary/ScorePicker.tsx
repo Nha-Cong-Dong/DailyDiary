@@ -40,7 +40,7 @@ export function ScorePicker({
             data-score-option={score}
             onClick={() => onChange(score)}
             className={cn(
-              'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-[1.5px] text-foreground transition-[translate,box-shadow,background-color] duration-(--dur-fast) ease-out outline-none hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none active:duration-(--dur-press) focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+              'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-(length:--stroke-width) text-foreground transition-[translate,box-shadow,background-color] duration-(--dur-fast) ease-out outline-none hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none active:duration-(--dur-press) focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
               caption === 'number' ? 'h-[92px]' : caption === 'label' ? 'min-h-20 py-2.5 sm:pt-3.5' : 'h-[72px]',
               on
                 ? 'border-line bg-lavender-soft shadow-ink-sm'
@@ -56,9 +56,9 @@ export function ScorePicker({
               size={40}
               className={cn(on && 'animate-stamp', iconClassName)}
             />
-            {caption === 'number' ? <span className="text-[13px] leading-[18px] font-semibold">{score}</span> : null}
+            {caption === 'number' ? <span className="text-label leading-[18px] font-semibold">{score}</span> : null}
             {caption === 'label' ? (
-              <span aria-hidden="true" className="px-0.5 text-center text-[11px] leading-[14px] font-medium sm:text-[13px] sm:leading-[18px]">
+              <span aria-hidden="true" className="px-0.5 text-center text-[11px] leading-[14px] font-medium sm:text-label sm:leading-[18px]">
                 {label}
               </span>
             ) : null}

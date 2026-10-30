@@ -15,15 +15,15 @@ export function DemoDayCard({ className, style, hero = false }: { className?: st
   return (
     <article
       data-ui=""
-      className={cn('overflow-hidden rounded-[20px] border-[1.5px] border-line bg-card shadow-ink', hero && 'group/tilt', className)}
+      className={cn('overflow-hidden rounded-[20px] border-(length:--stroke-width) border-line bg-card shadow-ink', hero && 'group/tilt', className)}
       style={style}
     >
-      <div className="h-14 border-b-[1.5px] border-line" style={{ backgroundColor: flagHex(lavender.hex, dark) }} />
+      <div className="h-14 border-b-(length:--stroke-width) border-line" style={{ backgroundColor: flagHex(lavender.hex, dark) }} />
       <div className="flex flex-col gap-2 px-5 pb-5">
         <span
           // Chuỗi mở đầu trang chủ: icon này bay vào ô hôm nay của lịch tháng (lib/flyTo.ts).
           data-hero-day-icon={hero ? '' : undefined}
-          className="-mt-[30px] flex size-[60px] items-center justify-center rounded-full border-[1.5px] border-line bg-card"
+          className="-mt-[30px] flex size-[60px] items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-card"
         >
           <MoodMark iconSetId={DEMO_ICON_SET} score={4} subIcon="😌" size={44} />
         </span>

@@ -63,14 +63,14 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className={cn('animate-drop border-b-[1.5px] border-line', online ? 'bg-secondary' : 'bg-highlight')}
+      className={cn('animate-drop border-b-(length:--stroke-width) border-line', online ? 'bg-secondary' : 'bg-highlight')}
     >
       <div className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-2.5 sm:px-[clamp(16px,4vw,40px)]">
         {online ? (
           <>
             <span
               aria-hidden="true"
-              className="inline-flex size-6 animate-stamp items-center justify-center rounded-full border-[1.5px] border-line text-[#272218]"
+              className="inline-flex size-6 animate-stamp items-center justify-center rounded-full border-(length:--stroke-width) border-line text-[#272218]"
               style={{ backgroundColor: SAGE }}
             >
               <Check className="size-3.5" strokeWidth={3} />

@@ -2,7 +2,7 @@
 
 |                |                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Phiên bản**  | 1.1 (đang triển khai theo giai đoạn ở mục 9; xong giai đoạn 1–6)                                   |
+| **Phiên bản**  | 1.1 (đã triển khai đủ 7 giai đoạn ở mục 9, 31/10/2026)                                             |
 | **Cập nhật**   | 30/10/2026                                                                                        |
 | **Bản trực quan** | Trang hệ thiết kế có bản chạy thử từng component: https://claude.ai/artifact/5XQcMY3cAg23QNpz8qy4og |
 | **Liên quan**  | Người dùng, mục đích, cam kết thương hiệu: [`PRODUCT.md`](PRODUCT.md) · Màn hình và tính năng: [`docs/Project_Specs.md`](docs/Project_Specs.md) |
@@ -192,3 +192,9 @@ Mỗi giai đoạn một PR, người dùng duyệt rồi mới làm giai đoạ
 | 5 · Tính năng | DayClock, MonthStrip, "Theo giờ", B1, B2, B5 |
 | 6 · Trang chủ | mục 7 |
 | 7 · Quét và phát hành | thay giá trị viết tay bằng token, kiểm tra tương phản, build, tải lên Pages |
+
+Kết quả giai đoạn 7 (31/10/2026): đã thay 581 giá trị viết tay (`text-[13px]`, `text-xs` → `text-label`; `text-[15px]` →
+`text-body`; `text-[17px]` → `text-reading`; viền `[1.5px]` → `(length:--stroke-width)`; bóng cứng → `shadow-ink-sm`,
+`shadow-ink`, `shadow-ink-lg`, `shadow-accent`). 48 cặp chữ/nền (24 cặp × 2 chế độ) đều đạt AA, thấp nhất 4,64:1.
+Còn lại, ghi ở `docs/Backlog.md`: `text-sm` (14px), `text-[11px]` ở ô lịch nhỏ, các cỡ Tailwind mặc định `text-base`,
+`text-lg`, `text-xl`, và bo góc viết tay `rounded-[Npx]`; mỗi chỗ cần quyết định riêng, không đổi hàng loạt.

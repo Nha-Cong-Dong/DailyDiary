@@ -53,7 +53,7 @@ function GoogleButton({ inverted }: { inverted?: boolean }) {
     <a
       href={googleLoginUrl(browserTimeZone())}
       className={cn(
-        'inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] pr-5 pl-4 text-[15px] font-semibold',
+        'inline-flex h-12 items-center gap-2.5 rounded-[14px] border-(length:--stroke-width) pr-5 pl-4 text-body font-semibold',
         focusRing,
         inverted
           ? 'press border-primary-foreground bg-primary-foreground text-primary'
@@ -68,9 +68,9 @@ function GoogleButton({ inverted }: { inverted?: boolean }) {
 
 /** Chọn ngôn ngữ: MVP mới có tiếng Việt, EN hiện nhưng chưa bật (Project_Specs F-04). */
 function LanguageSwitch() {
-  const item = 'inline-flex h-full min-w-[34px] items-center justify-center rounded-[7px] px-1.5 text-[13px] font-semibold'
+  const item = 'inline-flex h-full min-w-[34px] items-center justify-center rounded-[7px] px-1.5 text-label font-semibold'
   return (
-    <div role="group" aria-label="Ngôn ngữ" className="inline-flex h-9 gap-0.5 rounded-[10px] border-[1.5px] border-line p-[3px]">
+    <div role="group" aria-label="Ngôn ngữ" className="inline-flex h-9 gap-0.5 rounded-[10px] border-(length:--stroke-width) border-line p-[3px]">
       <span aria-current="true" className={cn(item, 'bg-primary text-primary-foreground')}>
         VI
       </span>
@@ -91,7 +91,7 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
     <header className={cn(wrap, 'py-6')}>
       <nav
         aria-label="Điều hướng chính"
-        className="flex items-center gap-2 rounded-[18px] border-[1.5px] border-line bg-card py-2 pr-2.5 pl-[18px] shadow-ink-sm"
+        className="flex items-center gap-2 rounded-[18px] border-(length:--stroke-width) border-line bg-card py-2 pr-2.5 pl-[18px] shadow-ink-sm"
       >
         <a
           href="#"
@@ -105,7 +105,7 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
             <li key={l.href}>
               <a
                 href={l.href}
-                className="relative inline-flex h-10 items-center rounded-[12px] px-3 text-[15px] font-medium transition-[background-color,scale] duration-200 after:absolute after:inset-x-3 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-250 hover:bg-secondary hover:after:scale-x-100 active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring"
+                className="relative inline-flex h-10 items-center rounded-[12px] px-3 text-body font-medium transition-[background-color,scale] duration-200 after:absolute after:inset-x-3 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-250 hover:bg-secondary hover:after:scale-x-100 active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring"
               >
                 {l.label}
               </a>
@@ -120,7 +120,7 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
           <Link
             to={START_HREF}
             className={cn(
-              'press inline-flex h-10 shrink-0 items-center rounded-[12px] bg-primary px-3.5 text-[15px] font-semibold text-primary-foreground hover:bg-primary-hover sm:px-4',
+              'press inline-flex h-10 shrink-0 items-center rounded-[12px] bg-primary px-3.5 text-body font-semibold text-primary-foreground hover:bg-primary-hover sm:px-4',
               focusRing,
             )}
           >
@@ -186,7 +186,7 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
         {account ? (
           <Link
             to="/profile"
-            className="group/hi inline-flex animate-rise items-center gap-2.5 self-start rounded-full border-[1.5px] border-line bg-card py-1 pr-3.5 pl-1 text-[15px] leading-[22px] font-medium transition-transform duration-(--dur-fast) hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="group/hi inline-flex animate-rise items-center gap-2.5 self-start rounded-full border-(length:--stroke-width) border-line bg-card py-1 pr-3.5 pl-1 text-body leading-[22px] font-medium transition-transform duration-(--dur-fast) hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Avatar name={account.name} src={account.avatarUrl} size={28} />
             {greeting(account.name, account.timeZone)}
@@ -216,7 +216,7 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
             </svg>
           </span>
         </h1>
-        <p className="max-w-[420px] animate-rise-story text-[17px] leading-7 text-muted-foreground" style={{ animationDelay: '70ms' }}>
+        <p className="max-w-[420px] animate-rise-story text-reading leading-7 text-muted-foreground" style={{ animationDelay: '70ms' }}>
           Nhật ký mỗi ngày một trang. Chấm điểm, chọn biểu tượng, viết vài dòng nếu muốn.
         </p>
         <div className="mt-3 flex animate-rise-story flex-wrap items-center gap-x-[22px] gap-y-3.5" style={{ animationDelay: '140ms' }}>
@@ -225,21 +225,21 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
               <Link
                 to="/today"
                 className={cn(
-                  'lift inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-line bg-card pr-[18px] pl-4 text-body font-semibold shadow-ink-sm',
+                  'lift inline-flex h-12 items-center gap-2.5 rounded-[14px] border-(length:--stroke-width) border-line bg-card pr-[18px] pl-4 text-body font-semibold shadow-ink-sm',
                   focusRing,
                 )}
               >
                 <Pencil className="size-[18px]" aria-hidden="true" />
                 Mở trang hôm nay
               </Link>
-              <Link to="/timeline" className="link-underline text-[15px] font-medium">
+              <Link to="/timeline" className="link-underline text-body font-medium">
                 Xem Dòng thời gian
               </Link>
             </>
           ) : (
             <>
               <GoogleButton />
-              <a href="#mot-cham" className="link-underline text-[15px] font-medium">
+              <a href="#mot-cham" className="link-underline text-body font-medium">
                 Xem cách hoạt động
               </a>
             </>
@@ -286,7 +286,7 @@ function Privacy() {
     ['Xóa bất cứ lúc nào.', 'Xóa từng trang hoặc toàn bộ dữ liệu.'],
   ] as const
   return (
-    <section id="rieng-tu" aria-labelledby="rieng-tu-title" className="border-y-[1.5px] border-line bg-sage-soft">
+    <section id="rieng-tu" aria-labelledby="rieng-tu-title" className="border-y-(length:--stroke-width) border-line bg-sage-soft">
       <div className={cn(wrap, sectionPad, 'grid items-end gap-x-16 gap-y-10 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]')}>
         <h2
           id="rieng-tu-title"
@@ -294,13 +294,13 @@ function Privacy() {
         >
           Nhật ký của bạn là của bạn.
         </h2>
-        <div className="flex flex-col gap-4 text-[17px] leading-7">
+        <div className="flex flex-col gap-4 text-reading leading-7">
           {facts.map(([lead, rest]) => (
             <p key={lead} className="reveal-on-scroll">
               <strong className="font-semibold">{lead}</strong> <span className="text-muted-foreground">{rest}</span>
             </p>
           ))}
-          <Link to="/privacy" className="link-underline self-start text-[15px] font-semibold">
+          <Link to="/privacy" className="link-underline self-start text-body font-semibold">
             Đọc chính sách quyền riêng tư
           </Link>
         </div>
@@ -325,13 +325,13 @@ export function Landing({ account }: { account?: LandingAccount }) {
       <main>
         <Hero account={account} summary={summary} />
 
-        <section id="mot-cham" aria-labelledby="mot-cham-title" className="border-y-[1.5px] border-line bg-peach-soft">
+        <section id="mot-cham" aria-labelledby="mot-cham-title" className="border-y-(length:--stroke-width) border-line bg-peach-soft">
           <div className={cn(wrap, sectionPad, 'flex flex-wrap items-center gap-16')}>
             <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-3.5">
               <h2 id="mot-cham-title" className={cn(sectionTitle, 'reveal-on-scroll')}>
                 {account ? 'Một chạm cho hôm nay' : 'Bận quá? Một chạm là đủ.'}
               </h2>
-              <p className="reveal-on-scroll max-w-[380px] text-[17px] leading-7 text-muted-foreground">
+              <p className="reveal-on-scroll max-w-[380px] text-reading leading-7 text-muted-foreground">
                 {account
                   ? 'Chấm điểm ngay tại đây, trang hôm nay của bạn sẽ được cập nhật. Muốn viết thêm thì mở trang hôm nay.'
                   : 'Thử chấm một mức: ngày hôm đó vào ngay lịch của bạn. Viết thêm lúc nào cũng được.'}
@@ -350,7 +350,7 @@ export function Landing({ account }: { account?: LandingAccount }) {
                     (account.quickScore?.saving ? 'Đang lưu…' : `Đã lưu cho hôm nay: điểm ${score} · ${label}.`)
                   }
                   footer={
-                    <Link to="/today" className="link-underline self-start text-[15px] font-semibold">
+                    <Link to="/today" className="link-underline self-start text-body font-semibold">
                       Viết thêm cho hôm nay
                     </Link>
                   }
@@ -364,14 +364,14 @@ export function Landing({ account }: { account?: LandingAccount }) {
 
         <StoryScene signedIn={Boolean(account)} />
 
-        <div className="border-t-[1.5px] border-line">
+        <div className="border-t-(length:--stroke-width) border-line">
           <DayPageShowcase />
         </div>
 
         <Privacy />
 
         <section aria-labelledby="cta-title" className={cn(wrap, 'py-[clamp(80px,10vw,128px)]')}>
-          <div className="cta-paste flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-[1.5px] border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-(--dur-base) ease-out hover:[transform:translate(-2px,-2px)] hover:shadow-[7px_7px_0_var(--cta-shadow)]">
+          <div className="cta-paste flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-(length:--stroke-width) border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-accent transition-[transform,box-shadow] duration-(--dur-base) ease-out hover:[transform:translate(-2px,-2px)] hover:shadow-[6px_6px_0_var(--cta-shadow)]">
             <h2 id="cta-title" className="font-heading text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold text-balance">
               {account && todayWritten ? 'Hôm nay đã có một trang. Viết thêm vài dòng?' : 'Hôm nay của bạn thế nào?'}
             </h2>
@@ -379,7 +379,7 @@ export function Landing({ account }: { account?: LandingAccount }) {
               <Link
                 to="/today"
                 className={cn(
-                  'press inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-primary-foreground bg-primary-foreground pr-5 pl-4 text-body font-semibold text-primary',
+                  'press inline-flex h-12 items-center gap-2.5 rounded-[14px] border-(length:--stroke-width) border-primary-foreground bg-primary-foreground pr-5 pl-4 text-body font-semibold text-primary',
                   focusRing,
                 )}
               >
@@ -393,13 +393,13 @@ export function Landing({ account }: { account?: LandingAccount }) {
         </section>
       </main>
 
-      <footer className="overflow-hidden border-t-[1.5px] border-line">
+      <footer className="overflow-hidden border-t-(length:--stroke-width) border-line">
         <div className={cn(wrap, 'flex flex-col gap-6 pt-10 pb-7')}>
           {/* Chân trang khép lại bằng chính tên Jotly, cỡ lớn (chữ logo Young Serif). */}
           <p aria-hidden="true" className="-mb-[0.12em] font-brand text-[clamp(88px,22vw,264px)] leading-[0.8] tracking-[-0.02em]">
             Jotly
           </p>
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t-[1.5px] border-line pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t-(length:--stroke-width) border-line pt-5">
             <span className="text-label text-muted-foreground">Chạm để ghi chú, mở để nhìn lại.</span>
             <div className="flex flex-wrap gap-5 text-label">
               {/* Chờ nội dung điều khoản thật trước khi ra mắt. */}

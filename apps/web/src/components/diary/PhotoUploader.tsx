@@ -10,8 +10,8 @@ import { countsTowardLimit, type PhotoUploads, type RejectReason, type UploadTil
 
 // Điện thoại: ô vuông theo lưới 4 cột (B10). Máy tính: ô 96px xếp hàng (B9).
 const tileBase =
-  'group relative flex aspect-square w-full shrink-0 flex-col items-center justify-center gap-0.5 rounded-[12px] border-[1.5px] text-center md:size-24 md:gap-1 md:rounded-[14px]'
-const caption = 'text-xs leading-[18px]'
+  'group relative flex aspect-square w-full shrink-0 flex-col items-center justify-center gap-0.5 rounded-[12px] border-(length:--stroke-width) text-center md:size-24 md:gap-1 md:rounded-[14px]'
+const caption = 'text-label leading-[18px]'
 
 /** Vòng tiến độ quanh biểu tượng ảnh (thiết kế B9 · Tải ảnh lên). */
 function ProgressRing({ progress }: { progress: number }) {
@@ -89,7 +89,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
             type="button"
             onClick={onRetry}
             aria-label={`Thử tải lại ảnh ${name}`}
-            className="press inline-flex h-7 cursor-pointer items-center gap-1 rounded-sm border-[1.5px] border-line bg-card px-2.5 text-xs font-semibold focus-visible:outline-3 focus-visible:outline-ring"
+            className="press inline-flex h-7 cursor-pointer items-center gap-1 rounded-sm border-(length:--stroke-width) border-line bg-card px-2.5 text-label font-semibold focus-visible:outline-3 focus-visible:outline-ring"
           >
             <RotateCw className="size-3" aria-hidden="true" />
             Thử lại
@@ -103,7 +103,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
         aria-label={`Bỏ ảnh ${name}`}
         className={cn(
           // Nút bỏ nằm chờm ra ngoài góc ô (B9, B10).
-          'absolute -top-2 -right-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-line bg-card text-foreground transition-[opacity,transform] hover:scale-105 focus-visible:opacity-100 focus-visible:outline-3 focus-visible:outline-ring md:-top-[9px] md:-right-[9px] md:size-[26px]',
+          'absolute -top-2 -right-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-card text-foreground transition-[opacity,transform] hover:scale-105 focus-visible:opacity-100 focus-visible:outline-3 focus-visible:outline-ring md:-top-[9px] md:-right-[9px] md:size-[26px]',
           // Ô lỗi luôn hiện nút bỏ; ô ảnh chỉ hiện khi rê chuột (máy cảm ứng thì luôn hiện).
           tile.status === 'rejected' || tile.status === 'failed'
             ? 'opacity-100'
@@ -175,7 +175,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
         }}
         onDrop={onDrop}
         className={cn(
-          '-m-2 rounded-[18px] border-[1.5px] p-2 transition-colors',
+          '-m-2 rounded-[18px] border-(length:--stroke-width) p-2 transition-colors',
           dragging
             ? 'border-line bg-[repeating-linear-gradient(90deg,rgb(241_189_144/.28)_0_14px,transparent_14px_28px)]'
             : 'border-transparent',
@@ -219,7 +219,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
                   )}
                 >
                   <ImagePlus className="size-5 md:size-6" aria-hidden="true" />
-                  <span className="text-[11px] leading-4 font-medium md:text-[13px] md:leading-[18px]">{dragging ? 'Thả ảnh vào đây' : 'Thêm ảnh'}</span>
+                  <span className="text-[11px] leading-4 font-medium md:text-label md:leading-[18px]">{dragging ? 'Thả ảnh vào đây' : 'Thêm ảnh'}</span>
                 </button>
               </>
             )}
@@ -227,7 +227,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
         </ul>
       </div>
       {usage?.warn ? (
-        <p className="flex items-start gap-1.5 text-[13px] leading-5 font-medium text-destructive">
+        <p className="flex items-start gap-1.5 text-label leading-5 font-medium text-destructive">
           <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>
             {usage.full
@@ -236,7 +236,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
           </span>
         </p>
       ) : null}
-      <p role="status" className="min-h-5 text-[13px] leading-5 text-muted-foreground">
+      <p role="status" className="min-h-5 text-label leading-5 text-muted-foreground">
         {note}
       </p>
     </div>

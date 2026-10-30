@@ -19,7 +19,7 @@ export function OnboardingFrame({ step, wide, footer, children }: OnboardingFram
     <div className="flex min-h-dvh flex-col items-center gap-8 px-4 pt-5 pb-10 sm:gap-10 sm:px-10 sm:pt-7">
       <header className="flex items-center justify-between self-stretch">
         <Logo size="sm" />
-        <span className="text-[13px] leading-5 text-muted-foreground">Bước {step}/3</span>
+        <span className="text-label leading-5 text-muted-foreground">Bước {step}/3</span>
       </header>
 
       <ol aria-label="Các bước" className={cn('grid w-full grid-cols-3 gap-2', width)}>
@@ -28,7 +28,7 @@ export function OnboardingFrame({ step, wide, footer, children }: OnboardingFram
           return (
             <li key={name} aria-current={n === step ? 'step' : undefined} className="flex flex-col gap-1.5">
               <span className={cn('h-1.5 rounded-full transition-colors duration-300', n <= step ? 'bg-line' : 'bg-border')} />
-              <span className={cn('text-xs leading-4', n === step ? 'font-semibold' : 'text-muted-foreground')}>{name}</span>
+              <span className={cn('text-label leading-4', n === step ? 'font-semibold' : 'text-muted-foreground')}>{name}</span>
             </li>
           )
         })}
@@ -37,7 +37,7 @@ export function OnboardingFrame({ step, wide, footer, children }: OnboardingFram
       <main
         key={step}
         className={cn(
-          'flex w-full animate-rise flex-col gap-7 rounded-[24px] border-[1.5px] border-line bg-card p-6 shadow-ink sm:p-10',
+          'flex w-full animate-rise flex-col gap-7 rounded-[24px] border-(length:--stroke-width) border-line bg-card p-6 shadow-ink sm:p-10',
           width,
         )}
       >
@@ -53,7 +53,7 @@ export function StepHeading({ title, children }: { title: string; children: Reac
   return (
     <div className="flex flex-col gap-2">
       <h1 className="text-[24px] leading-8 font-bold sm:text-[28px] sm:leading-9">{title}</h1>
-      <p className="text-[15px] leading-6 text-muted-foreground">{children}</p>
+      <p className="text-body leading-6 text-muted-foreground">{children}</p>
     </div>
   )
 }

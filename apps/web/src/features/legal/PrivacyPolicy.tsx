@@ -40,9 +40,9 @@ export function PrivacyPolicy() {
   return (
     <PlainFrame>
       <title>Chính sách quyền riêng tư · Jotly</title>
-      <article className="mx-auto flex w-full max-w-[720px] flex-col gap-10 py-6 text-[15px] leading-7 md:py-10 md:text-base md:leading-[28px]">
+      <article className="mx-auto flex w-full max-w-[720px] flex-col gap-10 py-6 text-body leading-7 md:py-10 md:text-base md:leading-[28px]">
         <header className="flex flex-col gap-2">
-          <p className="text-[13px] leading-5 text-muted-foreground">Cập nhật lần cuối: {UPDATED}</p>
+          <p className="text-label leading-5 text-muted-foreground">Cập nhật lần cuối: {UPDATED}</p>
           <h1 className="text-[32px] leading-10 font-bold tracking-[-0.01em] md:text-[40px] md:leading-[48px]">
             Chính sách quyền riêng tư
           </h1>
@@ -52,7 +52,7 @@ export function PrivacyPolicy() {
           </p>
         </header>
 
-        <section aria-label="Tóm tắt" className="rounded-[18px] border-[1.5px] border-line bg-card p-5 shadow-ink-sm md:p-6">
+        <section aria-label="Tóm tắt" className="rounded-[18px] border-(length:--stroke-width) border-line bg-card p-5 shadow-ink-sm md:p-6">
           <List>
             <li>Nhật ký mặc định chỉ mình bạn xem được. Chỉ khi bạn tự tạo link chia sẻ thì người có link mới xem được.</li>
             <li>Jotly không bán dữ liệu, không chạy quảng cáo, không dùng nhật ký của bạn để huấn luyện AI.</li>

@@ -32,17 +32,17 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
   return (
     <div aria-live="polite" className="flex flex-col py-1">
       <Fold open={s.show_name}>
-        <p className="flex items-center gap-2 pb-3 text-[13px] leading-5">
+        <p className="flex items-center gap-2 pb-3 text-label leading-5">
           <Avatar name={authorName} src={avatarUrl} size={28} />
           <span>
             <strong className="font-semibold">{authorName}</strong> chia sẻ một trang nhật ký
           </span>
         </p>
       </Fold>
-      <div className="overflow-hidden rounded-[18px] border-[1.5px] border-line bg-card shadow-ink-sm">
+      <div className="overflow-hidden rounded-[18px] border-(length:--stroke-width) border-line bg-card shadow-ink-sm">
         <Fold open={s.show_flag && !!entry.flag_color}>
           <div
-            className="h-11 border-b-[1.5px] border-line"
+            className="h-11 border-b-(length:--stroke-width) border-line"
             style={entry.flag_color ? { backgroundColor: flagHex(entry.flag_color, dark) } : undefined}
           />
         </Fold>
@@ -50,17 +50,17 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
           <Fold open={showScore || showSub}>
             <div className="flex pt-3">
               {showScore ? (
-                <span className="flex size-[52px] animate-stamp items-center justify-center rounded-full border-[1.5px] border-line bg-background">
+                <span className="flex size-[52px] animate-stamp items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-background">
                   <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={showSub ? entry.sub_icon : null} size={36} />
                 </span>
               ) : showSub ? (
-                <span className="flex size-11 animate-pop items-center justify-center rounded-full border-[1.5px] border-line bg-background text-2xl leading-none">
+                <span className="flex size-11 animate-pop items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-background text-2xl leading-none">
                   {entry.sub_icon}
                 </span>
               ) : null}
             </div>
           </Fold>
-          <p className="mt-3 text-xs leading-[18px] text-muted-foreground">
+          <p className="mt-3 text-label leading-[18px] text-muted-foreground">
             {longDateLabel(entry.entry_date)}
             {showScore ? ` · Điểm ${entry.score} · ${scoreLabel(iconSetId, entry.score)}` : ''}
           </p>
@@ -84,7 +84,7 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
               {picked.map((p) => (
                 <span
                   key={p.id}
-                  className={`relative flex aspect-[4/3] animate-pop items-center justify-center overflow-hidden rounded-[10px] border-[1.5px] border-line text-[11px] text-[#6A6255] ${p.tint}`}
+                  className={`relative flex aspect-[4/3] animate-pop items-center justify-center overflow-hidden rounded-[10px] border-(length:--stroke-width) border-line text-[11px] text-[#6A6255] ${p.tint}`}
                 >
                   {p.thumbUrl ? <img src={p.thumbUrl} alt="" className="absolute inset-0 size-full object-cover" /> : p.label}
                 </span>
@@ -92,7 +92,7 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
             </div>
           </Fold>
           {empty ? (
-            <p className="mt-3 animate-pop rounded-[12px] border-[1.5px] border-dashed border-border px-3.5 py-3 text-[13px] leading-5 text-muted-foreground">
+            <p className="mt-3 animate-pop rounded-[12px] border-(length:--stroke-width) border-dashed border-border px-3.5 py-3 text-label leading-5 text-muted-foreground">
               Người nhận chỉ thấy ngày viết. Bật thêm phần muốn chia sẻ.
             </p>
           ) : null}

@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
  * - `flat`: thẻ trong danh sách dài, không bóng để danh sách không nặng.
  * `interactive`: cả thẻ bấm được (thường dùng với `asChild` bọc Link); nhấc khi di chuột, ấn dịch đúng độ lệch bóng.
  */
-const cardVariants = cva('rounded-lg border-[1.5px] border-line bg-card text-card-foreground', {
+const cardVariants = cva('rounded-lg border-(length:--stroke-width) border-line bg-card text-card-foreground', {
   variants: {
     elevation: { raised: 'shadow-ink [--lift:4px]', low: 'shadow-ink-sm', flat: '' },
     interactive: { true: 'lift cursor-pointer', false: '' },

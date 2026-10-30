@@ -19,7 +19,7 @@ import { YearEmpty } from './YearEmpty'
 import { YearGrid } from './YearGrid'
 import { decimal, yearStats } from './yearStats'
 
-const panel = 'rounded-[22px] border-[1.5px] border-line bg-card p-6 shadow-ink'
+const panel = 'rounded-[22px] border-(length:--stroke-width) border-line bg-card p-6 shadow-ink'
 const SCORE_BG: Record<Score, string> = {
   1: 'bg-score-1',
   2: 'bg-score-2',
@@ -59,7 +59,7 @@ function SelectedDay({ date, iconSetId, today }: { date: DateString | null; icon
       </h2>
       <div aria-live="polite" className="flex flex-col gap-4">
         {!date ? (
-          <p className="rounded-[14px] border-[1.5px] border-dashed border-border p-5 text-[15px] leading-6 text-muted-foreground">
+          <p className="rounded-[14px] border-(length:--stroke-width) border-dashed border-border p-5 text-body leading-6 text-muted-foreground">
             Chọn một ô trên bảng để xem lại ngày đó.
           </p>
         ) : isPending ? (
@@ -67,32 +67,32 @@ function SelectedDay({ date, iconSetId, today }: { date: DateString | null; icon
         ) : entry ? (
           <>
             <div className="flex items-start gap-[22px]">
-              <span className="flex size-[72px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background">
+              <span className="flex size-[72px] shrink-0 items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-background">
                 <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={52} />
               </span>
               <div className="flex min-w-0 flex-col gap-1">
-                <p className="text-[13px] leading-5 text-muted-foreground">
+                <p className="text-label leading-5 text-muted-foreground">
                   {longDateLabel(date)} · Điểm {entry.score} · {scoreLabel(iconSetId, entry.score)}
                 </p>
                 <h3 className="text-xl leading-7 font-bold">{entry.title ?? 'Chỉ chấm điểm'}</h3>
-                {entry.content ? <p className="line-clamp-2 text-[15px] leading-6 text-muted-foreground">{entry.content}</p> : null}
+                {entry.content ? <p className="line-clamp-2 text-body leading-6 text-muted-foreground">{entry.content}</p> : null}
               </div>
             </div>
             <Link
               to={`/day/${date}`}
-              className="lift inline-flex h-10 items-center gap-1.5 self-start rounded-[12px] border-[1.5px] border-line bg-card pr-3 pl-4 text-sm font-semibold shadow-ink-sm focus-visible:outline-3 focus-visible:outline-ring"
+              className="lift inline-flex h-10 items-center gap-1.5 self-start rounded-[12px] border-(length:--stroke-width) border-line bg-card pr-3 pl-4 text-sm font-semibold shadow-ink-sm focus-visible:outline-3 focus-visible:outline-ring"
             >
               Mở trang ngày <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </>
         ) : (
-          <div className="flex flex-col gap-1 rounded-[14px] border-[1.5px] border-dashed border-border bg-muted p-5">
-            <p className="text-[13px] leading-5 text-muted-foreground">{longDateLabel(date)}</p>
-            <p className="text-[15px] leading-6 font-medium">{date > today ? 'Ngày này chưa tới.' : 'Ngày này chưa được ghi.'}</p>
+          <div className="flex flex-col gap-1 rounded-[14px] border-(length:--stroke-width) border-dashed border-border bg-muted p-5">
+            <p className="text-label leading-5 text-muted-foreground">{longDateLabel(date)}</p>
+            <p className="text-body leading-6 font-medium">{date > today ? 'Ngày này chưa tới.' : 'Ngày này chưa được ghi.'}</p>
             {date <= today ? (
               <Link
                 to={date === today ? '/today' : `/day/${date}/backfill`}
-                className="press mt-2 inline-flex h-9 items-center gap-1.5 self-start rounded-[10px] border-[1.5px] border-line px-3 text-[13px] font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="press mt-2 inline-flex h-9 items-center gap-1.5 self-start rounded-[10px] border-(length:--stroke-width) border-line px-3 text-label font-semibold focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 {date === today ? null : <RotateCcw className="size-3.5" aria-hidden="true" />}
                 {date === today ? 'Viết trang hôm nay' : 'Ghi bù ngày này'}
@@ -192,7 +192,7 @@ export function YearPixels() {
       <div className="flex animate-rise flex-wrap items-center justify-between gap-2 md:items-end md:gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-2xl leading-8 font-bold md:text-[clamp(26px,3vw,32px)] md:leading-[1.25]">Year in Pixels</h1>
-          <p className="text-[15px] leading-6 text-muted-foreground max-md:hidden">
+          <p className="text-body leading-6 text-muted-foreground max-md:hidden">
             {joinedThisYear
               ? `Bạn bắt đầu dùng Jotly từ ${Number(data.joined.slice(8))}/${Number(data.joined.slice(5, 7))}/${year}.`
               : 'Mỗi ô là một ngày, mỗi màu là một mức điểm.'}
@@ -229,15 +229,15 @@ export function YearPixels() {
         {stats.map((st, i) => (
           <div
             key={st.label}
-            className="flex animate-rise flex-col rounded-[16px] border-[1.5px] border-line bg-card px-3 py-2.5 shadow-[2px_2px_0_var(--ink-shadow)] md:gap-1 md:rounded-[18px] md:px-5 md:py-[18px] md:shadow-ink-sm"
+            className="flex animate-rise flex-col rounded-[16px] border-(length:--stroke-width) border-line bg-card px-3 py-2.5 shadow-ink-sm md:gap-1 md:rounded-[18px] md:px-5 md:py-[18px] md:shadow-ink-sm"
             style={delay(0.04 + i * 0.05)}
           >
-            <dt className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5">{st.label}</dt>
+            <dt className="text-label leading-[18px] text-muted-foreground md:text-label md:leading-5">{st.label}</dt>
             <dd className="inline-flex items-center gap-1.5 font-heading text-xl leading-7 font-bold whitespace-nowrap md:gap-2.5 md:text-[22px] md:leading-9 lg:text-[28px]">
               {st.swatch ? <span aria-hidden="true" className={cn('size-3.5 shrink-0 rounded-[4px] border border-line', SCORE_BG[st.swatch])} /> : null}
               {st.value}
             </dd>
-            <dd className="text-[11px] leading-4 text-muted-foreground md:text-[13px] md:leading-5">{st.sub}</dd>
+            <dd className="text-[11px] leading-4 text-muted-foreground md:text-label md:leading-5">{st.sub}</dd>
           </div>
         ))}
       </dl>
@@ -252,7 +252,7 @@ export function YearPixels() {
           hide={pastYear ? ['future'] : []}
         />
         {filter !== null ? (
-          <p role="status" className="flex animate-in items-center justify-between gap-2 text-[13px] leading-5 text-muted-foreground fade-in-0">
+          <p role="status" className="flex animate-in items-center justify-between gap-2 text-label leading-5 text-muted-foreground fade-in-0">
             Đang xem {FILTER_NAME(filter)} · {filterCount} ngày
             <button type="button" onClick={() => setFilter(null)} className="link-underline cursor-pointer py-1 font-semibold text-foreground">
               Bỏ lọc
@@ -263,7 +263,7 @@ export function YearPixels() {
 
       <section
         aria-label="Bảng điểm cả năm"
-        className={cn(panel, 'flex animate-rise flex-col gap-[18px] rounded-[18px] p-3 shadow-[3px_3px_0_var(--ink-shadow)] md:rounded-[22px] md:p-6 md:shadow-ink')}
+        className={cn(panel, 'flex animate-rise flex-col gap-[18px] rounded-[18px] p-3 shadow-ink-sm md:rounded-[22px] md:p-6 md:shadow-ink')}
         style={delay(0.1)}
       >
         <YearGrid
@@ -276,8 +276,8 @@ export function YearPixels() {
           colorBy={colorBy}
           flags={data.flags}
         />
-        {byFlag ? <FlagLegend flags={data.flags} written={s.recorded} className="border-t-[1.5px] border-dashed border-border pt-3.5" /> : null}
-        <div className={cn('flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-border pt-3.5 max-md:hidden', byFlag && 'hidden')}>
+        {byFlag ? <FlagLegend flags={data.flags} written={s.recorded} className="border-t-(length:--stroke-width) border-dashed border-border pt-3.5" /> : null}
+        <div className={cn('flex flex-wrap items-center justify-between gap-3 border-t-(length:--stroke-width) border-dashed border-border pt-3.5 max-md:hidden', byFlag && 'hidden')}>
           <PixelLegend
             active={filter}
             onToggle={(k) => setFilter((f) => (f === k ? null : k))}
@@ -285,7 +285,7 @@ export function YearPixels() {
             hide={pastYear ? ['future'] : []}
           />
           {filter !== null ? (
-            <div className="inline-flex items-center gap-2.5 text-[13px] leading-5 text-muted-foreground">
+            <div className="inline-flex items-center gap-2.5 text-label leading-5 text-muted-foreground">
               <span aria-live="polite">
                 Đang xem {FILTER_NAME(filter)} · {filterCount} ngày
               </span>
@@ -297,7 +297,7 @@ export function YearPixels() {
         </div>
       </section>
 
-      <p className="-mt-2 text-xs leading-[18px] text-muted-foreground md:hidden">
+      <p className="-mt-2 text-label leading-[18px] text-muted-foreground md:hidden">
         Mỗi cột là một tháng, mỗi hàng là một ngày. Chạm một ô để xem nhanh.
       </p>
 
@@ -310,16 +310,16 @@ export function YearPixels() {
           <ul className="flex flex-col gap-3">
             {([5, 4, 3, 2, 1] as Score[]).map((k) => (
               <li key={k} className="grid grid-cols-[96px_minmax(0,1fr)_36px] items-center gap-3">
-                <span className="text-[13px] leading-5 font-medium">
+                <span className="text-label leading-5 font-medium">
                   {k} · {scoreLabel(iconSetId, k)}
                 </span>
-                <span aria-hidden="true" className="h-3.5 overflow-hidden rounded-full border-[1.5px] border-line bg-muted">
+                <span aria-hidden="true" className="h-3.5 overflow-hidden rounded-full border-(length:--stroke-width) border-line bg-muted">
                   <span
-                    className={cn('block h-full origin-left animate-paint border-r-[1.5px] border-line', SCORE_BG[k])}
+                    className={cn('block h-full origin-left animate-paint border-r-(length:--stroke-width) border-line', SCORE_BG[k])}
                     style={{ width: `${Math.round((counts[k - 1] / maxCount) * 100)}%` }}
                   />
                 </span>
-                <span className="text-right text-[13px] leading-5 font-semibold tabular-nums">{counts[k - 1]}</span>
+                <span className="text-right text-label leading-5 font-semibold tabular-nums">{counts[k - 1]}</span>
               </li>
             ))}
           </ul>

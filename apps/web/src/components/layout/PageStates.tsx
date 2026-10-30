@@ -8,7 +8,7 @@ import { LogoMark } from './Logo'
 
 /** Nút chính có bóng hồng của thiết kế (giống dải kêu gọi ở landing). */
 const cta =
-  'inline-flex h-12 items-center gap-2.5 rounded-md border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground cta focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:cursor-wait'
+  'inline-flex h-12 items-center gap-2.5 rounded-md border-(length:--stroke-width) border-line bg-primary px-5 text-body font-semibold text-primary-foreground cta focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:cursor-wait'
 
 function Centered({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -49,7 +49,7 @@ export function PageLoading({ className }: { className?: string }) {
       </div>
       <div aria-hidden="true" className="grid grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))] gap-3.5">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="flex flex-col gap-2.5 rounded-[18px] border-[1.5px] border-border bg-card px-[18px] py-4">
+          <div key={i} className="flex flex-col gap-2.5 rounded-[18px] border-(length:--stroke-width) border-border bg-card px-[18px] py-4">
             <span className="skeleton block h-3 w-3/5" />
             <span className="skeleton block h-[26px] w-2/5" />
             <span className="skeleton block h-3 w-[70%]" />
@@ -58,7 +58,7 @@ export function PageLoading({ className }: { className?: string }) {
       </div>
       <div aria-hidden="true" className="flex flex-col gap-3.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="grid grid-cols-[56px_minmax(0,1fr)] gap-4 rounded-[18px] border-[1.5px] border-border bg-card px-5 py-[18px]">
+          <div key={i} className="grid grid-cols-[56px_minmax(0,1fr)] gap-4 rounded-[18px] border-(length:--stroke-width) border-border bg-card px-5 py-[18px]">
             <span className="skeleton block size-14 rounded-full" />
             <span className="flex flex-col gap-2.5">
               <span className="skeleton block h-3 w-[45%]" />
@@ -98,7 +98,7 @@ export function NotFoundState() {
         <path d="M30 76l-6 4l-5-3 M58 82l6 4l5-3" stroke="var(--muted-foreground)" strokeDasharray="3 4" />
         <path d="M40 90l8-5l8 4l7-4" stroke="var(--muted-foreground)" />
       </svg>
-      <p className="text-[13px] leading-5 font-semibold tracking-[0.08em] text-muted-foreground">LỖI 404</p>
+      <p className="text-label leading-5 font-semibold tracking-[0.08em] text-muted-foreground">LỖI 404</p>
       <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Không tìm thấy trang này</h1>
       <p className="max-w-[420px] text-base leading-[26px] text-muted-foreground">
         Đường dẫn có thể bị gõ sai, hoặc trang này đã bị xóa.
@@ -107,7 +107,7 @@ export function NotFoundState() {
         <Link to="/today" className={cta}>
           Về Hôm nay
         </Link>
-        <Link to="/timeline" className="link-underline text-[15px] font-medium focus-visible:outline-3 focus-visible:outline-ring">
+        <Link to="/timeline" className="link-underline text-body font-medium focus-visible:outline-3 focus-visible:outline-ring">
           Mở Dòng thời gian
         </Link>
       </div>
@@ -166,7 +166,7 @@ export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; 
         {retrying ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
         {retrying ? 'Đang thử…' : 'Thử lại'}
       </button>
-      <p role="status" className="text-xs leading-[18px] text-muted-foreground">
+      <p role="status" className="text-label leading-[18px] text-muted-foreground">
         {tries ? `Vẫn chưa được, lần thử ${tries}.${code ? ` ${code}` : ''}` : code}
       </p>
     </Centered>

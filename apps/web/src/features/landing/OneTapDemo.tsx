@@ -44,7 +44,7 @@ export function OneTapDemo({ iconSetId = DEMO_ICON_SET, status, footer, value, o
   }
 
   return (
-    <div data-ui="" className="reveal-on-scroll lift flex w-full max-w-[520px] flex-col gap-5 rounded-[20px] border-[1.5px] border-line bg-card p-5 shadow-ink [--lift:4px] sm:p-6">
+    <div data-ui="" className="reveal-on-scroll lift flex w-full max-w-[520px] flex-col gap-5 rounded-[20px] border-(length:--stroke-width) border-line bg-card p-5 shadow-ink [--lift:4px] sm:p-6">
       <fieldset className="flex flex-col gap-4">
         <legend className="mb-4 font-heading text-lg leading-[26px] font-semibold">Hôm nay của bạn thế nào?</legend>
         <ScorePicker iconSetId={iconSetId} value={score} onChange={pick} caption="none" />
@@ -57,7 +57,7 @@ export function OneTapDemo({ iconSetId = DEMO_ICON_SET, status, footer, value, o
       ) : (
         <p className="text-sm leading-[22px] text-muted-foreground">Chạm một mức là hôm nay đã được ghi.</p>
       )}
-      <div role="list" aria-label="7 ngày gần nhất" className="grid grid-cols-7 gap-1.5 border-t-[1.5px] border-dashed border-border pt-4">
+      <div role="list" aria-label="7 ngày gần nhất" className="grid grid-cols-7 gap-1.5 border-t-(length:--stroke-width) border-dashed border-border pt-4">
         {days.map((d) => (
           <div key={d.day} role="listitem">
             <CalendarCell

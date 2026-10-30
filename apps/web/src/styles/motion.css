@@ -216,7 +216,7 @@
             animation-range: entry 40% cover 45%;
         }
         @keyframes cta-paste {
-            from { box-shadow: 0 0 0 var(--cta-shadow); transform: translate(5px, 5px); }
+            from { box-shadow: 0 0 0 var(--cta-shadow); transform: translate(4px, 4px); }
         }
     }
 }

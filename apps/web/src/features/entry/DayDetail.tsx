@@ -30,7 +30,7 @@ function DayStep({ date, dir, disabled }: { date: string; dir: 'prev' | 'next'; 
     return (
       <span
         aria-disabled="true"
-        className={cn(pill, 'border-[1.5px] border-dashed border-border text-faint', dir === 'prev' ? 'pl-2.5' : 'pr-2.5')}
+        className={cn(pill, 'border-(length:--stroke-width) border-dashed border-border text-faint', dir === 'prev' ? 'pl-2.5' : 'pr-2.5')}
       >
         {dir === 'next' ? label : null}
         <Icon className="size-[18px]" aria-hidden="true" />
@@ -43,7 +43,7 @@ function DayStep({ date, dir, disabled }: { date: string; dir: 'prev' | 'next'; 
     <Link
       to={`/day/${date}`}
       aria-label={`${dir === 'prev' ? 'Ngày trước' : 'Ngày sau'}: ${label}`}
-      className={cn(pill, 'lift border-[1.5px] border-line bg-card shadow-ink-sm focus-visible:outline-3 focus-visible:outline-ring', dir === 'prev' ? 'pl-2.5' : 'pr-2.5')}
+      className={cn(pill, 'lift border-(length:--stroke-width) border-line bg-card shadow-ink-sm focus-visible:outline-3 focus-visible:outline-ring', dir === 'prev' ? 'pl-2.5' : 'pr-2.5')}
     >
       {dir === 'prev' ? <Icon className="size-[18px]" aria-hidden="true" /> : null}
       {label}
@@ -167,12 +167,12 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
           <AlertDescription>Không mở được trang này. Thử tải lại.</AlertDescription>
         </Alert>
       ) : future ? (
-        <section className="flex flex-col gap-2 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
+        <section className="flex flex-col gap-2 rounded-lg border-(length:--stroke-width) border-dashed border-border bg-muted p-8">
           <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
         </section>
       ) : deleted ? (
-        <section className="flex flex-col items-start gap-3 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
+        <section className="flex flex-col items-start gap-3 rounded-lg border-(length:--stroke-width) border-dashed border-border bg-muted p-8">
           <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">
             Đã xóa trang này. Khôi phục được tới {shortDateLabel(todayIn(timeZone, new Date(deleted.restore_until)))}.
@@ -182,7 +182,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
           </Button>
         </section>
       ) : !entry ? (
-        <section className="flex flex-col items-start gap-3 rounded-lg border-[1.5px] border-dashed border-border bg-muted p-8">
+        <section className="flex flex-col items-start gap-3 rounded-lg border-(length:--stroke-width) border-dashed border-border bg-muted p-8">
           <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
           <p className="text-muted-foreground">Ngày này chưa ghi.</p>
           {date === today ? (
@@ -193,15 +193,15 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
         </section>
       ) : (
         // Điện thoại: không có khung thẻ, dải cờ tràn hết bề ngang ngay dưới thanh trên.
-        <article className="animate-rise overflow-hidden max-md:-mx-4 max-md:-mt-4 md:rounded-[24px] md:border-[1.5px] md:border-line md:bg-card md:shadow-[5px_5px_0_var(--ink-shadow)]">
+        <article className="animate-rise overflow-hidden max-md:-mx-4 max-md:-mt-4 md:rounded-[24px] md:border-(length:--stroke-width) md:border-line md:bg-card md:shadow-ink-lg">
           <div
-            className="h-24 border-b-[1.5px] border-line bg-secondary md:h-[120px]"
+            className="h-24 border-b-(length:--stroke-width) border-line bg-secondary md:h-[120px]"
             style={entry.flag_color ? { backgroundColor: flagHex(entry.flag_color, dark) } : undefined}
           />
           <div className="flex flex-col gap-4 px-4 pb-2 md:gap-[18px] md:px-[clamp(20px,4vw,40px)] md:pb-10">
             <div className="-mt-11 flex flex-wrap items-end justify-between gap-4 md:-mt-[52px]">
               <DayMorph date={date}>
-                <span className="flex size-[88px] items-center justify-center rounded-full border-[1.5px] border-line bg-card md:size-[104px]">
+                <span className="flex size-[88px] items-center justify-center rounded-full border-(length:--stroke-width) border-line bg-card md:size-[104px]">
                   <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={64} className="md:hidden" />
                   <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={76} className="max-md:hidden" />
                 </span>
@@ -241,7 +241,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
 
             <div className="flex flex-col gap-1 md:gap-1.5">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
+                <p className="text-label leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
                   {longDateLabel(date)} · Điểm {entry.score} · {scoreLabel(iconSetId, entry.score)}
                 </p>
                 {share?.active ? (
@@ -249,7 +249,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
                     type="button"
                     aria-haspopup="dialog"
                     onClick={share.open}
-                    className="inline-flex h-7 animate-pop cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] border-line bg-secondary pr-2.5 pl-2 text-xs font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px"
+                    className="inline-flex h-7 animate-pop cursor-pointer items-center gap-1.5 rounded-full border-(length:--stroke-width) border-line bg-secondary pr-2.5 pl-2 text-label font-semibold transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px"
                   >
                     <Link2 className="size-3.5" aria-hidden="true" />
                     Đang chia sẻ
@@ -259,7 +259,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
               {entry.title ? (
                 <h1 className="text-[25px] leading-8 font-bold md:text-[clamp(26px,3vw,32px)] md:leading-[1.25]">{entry.title}</h1>
               ) : null}
-              <p className="inline-flex items-center gap-1.5 text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
+              <p className="inline-flex items-center gap-1.5 text-label leading-[18px] text-muted-foreground tabular-nums md:text-label md:leading-5">
                 <Clock className="size-3.5" aria-hidden="true" />
                 Tạo {timeIn(timeZone, new Date(entry.created_at))} · Sửa lần cuối {timeIn(timeZone, new Date(entry.updated_at))},{' '}
                 {editedOnTheDay(date, entry.updated_at, timeZone) ? 'ghi đúng ngày' : 'cập nhật muộn'}
@@ -267,7 +267,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
             </div>
 
             {entry.content ? (
-              <div className="ruled flex flex-col gap-[30px] text-[17px] leading-[30px] md:gap-8 md:text-reading md:leading-8">
+              <div className="ruled flex flex-col gap-[30px] text-reading leading-[30px] md:gap-8 md:text-reading md:leading-8">
                 {entry.content.split(/\n{2,}/).map((para, i) => (
                   <p key={i}>{para}</p>
                 ))}
