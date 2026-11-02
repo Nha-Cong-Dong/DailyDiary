@@ -164,11 +164,14 @@ bước 2 và bước 3.
 
 | Tác vụ | Lịch | Việc |
 | --- | --- | --- |
-| `purge_accounts` | mỗi giờ | Dọn hẳn tài khoản đã yêu cầu xóa (DB và ảnh), gửi email xác nhận |
-| `purge_trash` | mỗi ngày | Xóa vĩnh viễn trang quá 30 ngày trong thùng rác, kèm ảnh |
-| `backup_db` | 00:00, 08:00, 16:00 (giờ Việt Nam) | Sao lưu MongoDB thành `.tar.gz` lên kho sao lưu, giữ `BACKUP_KEEP` bản |
-| `backup_photos` | mỗi ngày | Chép tăng dần ảnh sang kho sao lưu; bản sao của ảnh đã xóa giữ tối đa 7 ngày |
+| `purge_accounts` | mỗi lần lịch chạy | Dọn hẳn tài khoản đã yêu cầu xóa (DB và ảnh), gửi email xác nhận |
+| `purge_trash` | mỗi lần lịch chạy | Xóa vĩnh viễn trang quá 30 ngày trong thùng rác, kèm ảnh |
+| `backup_db [--if-due]` | 8 giờ một lần | Sao lưu MongoDB thành `.tar.gz` lên kho sao lưu, giữ `BACKUP_KEEP` bản |
+| `backup_photos [--if-due]` | 24 giờ một lần | Chép tăng dần ảnh sang kho sao lưu; bản sao của ảnh đã xóa giữ tối đa 7 ngày |
 | `restore_db --target <db> [--key …] [--force]` | khi cần | Khôi phục vào DB khác; từ chối DB đang chạy |
+
+`--if-due`: chỉ sao lưu khi lần gần nhất trong kho đã cũ hơn chu kỳ (lịch GitHub Actions dùng cờ này vì cron chạy thưa,
+lệch giờ); không có cờ thì luôn chạy. Chi tiết: [`docs/Deploy.md`](docs/Deploy.md) mục 8.
 
 Mã thoát: `0` thành công hoặc chưa cấu hình, `1` lỗi, `2` sai cú pháp.
 

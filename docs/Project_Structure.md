@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 34 (30/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 35 (02/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -42,7 +42,7 @@ dailydiary/
 │                                     # privacy-check, date-timezone-rules, seed-demo-data
 ├── .github/workflows/
 │   ├── ci.yml                        # job api / web / e2e
-│   └── jobs.yml                      # cron mỗi giờ: purge_accounts, backup_db, purge_trash, backup_photos (production)
+│   └── jobs.yml                      # cron mỗi giờ: purge_accounts, purge_trash, backup_db --if-due, backup_photos --if-due (production)
 │
 ├── docs/
 │   ├── Project_Specs.md              # đặc tả hệ thống hiện tại (màn hình, tính năng, phi tính năng, kiến trúc, vận hành)
@@ -339,3 +339,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 32 | 25/10/2026 | Viết lại `Project_Specs.md` (bản 2.0) chỉ mô tả hệ thống hiện tại; tách bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định sang `docs/Roadmap.md` |
 | 33 | 29/10/2026 | Chuyển backend production từ Render sang máy cá nhân: thêm `docker-compose.prod.yml` (API; tunnel là dịch vụ Windows cloudflared, không nằm trong compose); `render.yaml` giữ lại nhưng không dùng |
 | 34 | 30/10/2026 | Chốt bản 1.0: thêm `docs/Backlog.md` (việc tồn đọng); viết lại `README.md`, cập nhật `Deploy.md`, `Project_Specs.md`, `MVP_Plan.md`, `Roadmap.md` theo hạ tầng mới (API trên máy cá nhân, Pages Direct Upload) |
+| 35 | 02/11/2026 | Lịch `jobs.yml`: mỗi lần chạy làm đủ 4 tác vụ, sao lưu dùng `--if-due` (hạn tính theo kho sao lưu, mốc ảnh ở `state/backup_photos.json` trên B2); thêm `tests/unit/test_config.py` (Settings cắt khoảng trắng) |

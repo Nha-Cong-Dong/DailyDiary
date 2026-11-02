@@ -180,7 +180,7 @@ email người gửi, Reply-To = người gửi; form ghi rõ). Gửi thư lỗi
 
 | Yêu cầu       | Thông số                                                                                 |
 | ------------- | ---------------------------------------------------------------------------------------- |
-| Sao lưu DB    | 00:00, 08:00, 16:00 giờ VN sang kho khác nhà cung cấp; giữ 21 bản (7 ngày)               |
+| Sao lưu DB    | 8 giờ một lần (3 bản/ngày) sang kho khác nhà cung cấp; giữ 21 bản (7 ngày)               |
 | Sao lưu ảnh   | Hằng ngày, chép tăng dần; bản sao của ảnh đã xóa giữ tối đa 7 ngày                       |
 | Khôi phục     | `restore_db` vào DB khác; thử khôi phục hằng tháng                                       |
 | Thời gian     | `entry_date` = ngày địa phương `YYYY-MM-DD`; mọi mốc khác UTC                            |
@@ -394,17 +394,22 @@ tại, magic bytes WebP/JPEG, dung lượng, thêm vào `photos` bằng khóa l�
 
 ## 6. Vận hành
 
-`uv run python -m app.jobs.run <tác vụ>` (trong `apps/api`); production chạy qua GitHub Actions `jobs.yml` (mỗi giờ, phút
-17; chạy tay được; action ghim theo commit SHA, khóa chỉ cấp cho bước chạy). Mã thoát: `0` ổn hoặc chưa cấu hình · `1`
-lỗi · `2` sai cú pháp.
+`uv run python -m app.jobs.run <tác vụ>` (trong `apps/api`); production chạy qua GitHub Actions `jobs.yml` (cron mỗi giờ,
+phút 17, thực tế GitHub chạy thưa và lệch giờ; chạy tay được; action ghim theo commit SHA, khóa chỉ cấp cho bước chạy).
+Mỗi lần chạy làm cả 4 tác vụ; hai tác vụ sao lưu chạy với `--if-due`: tính hạn theo lần sao lưu gần nhất trong kho
+(không theo giờ chạy), chưa đến hạn thì bỏ qua, cho phép sớm 30 phút. Mã thoát: `0` ổn, chưa cấu hình hoặc chưa đến
+hạn · `1` lỗi · `2` sai cú pháp.
 
-| Tác vụ                                       | Lịch                   | Việc                                                                                                      |
-| -------------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
-| `purge_accounts`                             | mỗi giờ                | Hoàn tất xóa tài khoản (kho, hồ sơ), gửi email xác nhận                                                   |
-| `purge_trash`                                | 02:00 VN               | Xóa hẳn trang quá 30 ngày trong thùng rác (ảnh → link → trang); kho lỗi thì giữ trang; ghi `deletion_log` |
-| `backup_db`                                  | 00:00, 08:00, 16:00 VN | Mọi collection → `.tar.gz` ở `db/YYYY/MM/DD/…`; giữ `BACKUP_KEEP` = 21                                    |
-| `backup_photos`                              | 02:00 VN               | Chép tăng dần ảnh (cả ảnh đại diện) sang `photos/`; ảnh mất ở kho chính > 7 ngày thì xóa bản sao          |
-| `restore_db --target <db> [--key] [--force]` | khi cần                | Chạy migration rồi nạp vào DB khác; từ chối DB đang chạy hoặc có dữ liệu nếu không `--force`              |
+| Tác vụ                                       | Lịch                     | Việc                                                                                                      |
+| -------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `purge_accounts`                             | mỗi lần chạy             | Hoàn tất xóa tài khoản (kho, hồ sơ), gửi email xác nhận                                                   |
+| `purge_trash`                                | mỗi lần chạy             | Xóa hẳn trang quá 30 ngày trong thùng rác (ảnh → link → trang); kho lỗi thì giữ trang; ghi `deletion_log` |
+| `backup_db --if-due`                         | 8 giờ một lần            | Mọi collection → `.tar.gz` ở `db/YYYY/MM/DD/…`; giữ `BACKUP_KEEP` = 21; hạn tính từ tên bản mới nhất      |
+| `backup_photos --if-due`                     | 24 giờ một lần           | Chép tăng dần ảnh (cả ảnh đại diện) sang `photos/`; ảnh mất ở kho chính > 7 ngày thì xóa bản sao; lượt không lỗi ghi mốc `state/backup_photos.json` |
+| `restore_db --target <db> [--key] [--force]` | khi cần                  | Chạy migration rồi nạp vào DB khác; từ chối DB đang chạy hoặc có dữ liệu nếu không `--force`              |
+
+Chu kỳ đặt bằng `BACKUP_DB_INTERVAL_HOURS` (8), `BACKUP_PHOTOS_INTERVAL_HOURS` (24). Cấu hình (`Settings`) tự cắt khoảng
+trắng đầu/cuối mọi giá trị chuỗi (secret dán dính dấu cách từng làm sao lưu lỗi `InvalidRegionError`).
 
 Kho sao lưu: Backblaze B2, bucket riêng tư, lifecycle "chỉ giữ phiên bản mới nhất". Repo công khai: GitHub tắt lịch sau
 60 ngày không commit.

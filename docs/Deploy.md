@@ -34,9 +34,11 @@ Web và API cùng tên miền gốc `jotly.io.vn` (`io.vn` nằm trong Public Su
       → 8 GitHub Secrets + chạy thử tác vụ → 9 kiểm tra production → 10 sao lưu chính thức + thử khôi phục
 ```
 
-**Tiến độ (30/10/2026):** Bước 1–7 xong; production chạy tại `https://jotly.io.vn`. Bước 8: secret đã nhập, nhưng
-workflow `Jobs` đang lỗi (`purge_accounts` → `OperationFailure`). Bước 9: đã kiểm tra đăng nhập, onboarding, viết trang,
-tải ảnh, header bảo mật, CORS, chuyển hướng `www`; còn lại một số mục. Bước 10 chưa làm. Chi tiết: [`Backlog.md`](Backlog.md).
+**Tiến độ (02/11/2026):** Bước 1–8 xong; production chạy tại `https://jotly.io.vn`. Bước 8: workflow `Jobs` xanh
+(`OperationFailure` của `purge_accounts` hết từ 30/10 sau khi sửa `MONGODB_URI`; `InvalidRegionError` của hai tác vụ
+sao lưu hết ngày 02/11 sau khi nhập lại `BACKUP_S3_REGION`, `BACKUP_S3_SECRET_KEY` bị dính dấu cách). Bước 9: đã kiểm tra
+đăng nhập, onboarding, viết trang, tải ảnh, header bảo mật, CORS, chuyển hướng `www`; còn lại một số mục. Bước 10: bản
+sao lưu DB và ảnh đầu tiên đã có trên B2 (chạy tay 02/11/2026); còn thử khôi phục. Chi tiết: [`Backlog.md`](Backlog.md).
 
 API ban đầu chạy trên Render (`render.yaml`); từ 29/10/2026 chuyển sang máy cá nhân. `render.yaml` giữ lại làm phương án
 dự phòng (xem cuối mục 6).
@@ -200,15 +202,24 @@ Không có `404.html` nên Pages phục vụ `index.html` cho mọi đường d�
 
    `BACKUP_S3_BUCKET` trống thì `backup_db` in "Chưa cấu hình kho sao lưu… bỏ qua" và **vẫn xanh**; đọc log, đừng chỉ
    nhìn màu.
+
+   Dán giá trị không kèm dấu cách hay xuống dòng ở đầu/cuối. API tự cắt khoảng trắng hai đầu (`config.py`), nhưng
+   giá trị bị che trong log vẫn để lộ: dòng env in `BACKUP_S3_REGION:  ***` (hai dấu cách) là secret có dấu cách đầu.
 2. **Kiểm tra chuỗi kết nối trước:** chạy tác vụ trong container API (dùng `.env.prod`):
    ```powershell
    docker compose -f docker-compose.prod.yml exec -T api python -m app.jobs.run purge_accounts
    ```
    In `Đã dọn xong N tài khoản.` thì chuỗi đúng; nếu GitHub vẫn lỗi `OperationFailure`, secret `MONGODB_URI` khác chuỗi này.
 3. **Actions → Jobs → Run workflow** → nhánh `main`, ô Tác vụ chọn lần lượt `purge_accounts`, `backup_db`,
-   `backup_photos`, `purge_trash`. Mỗi lần phải xanh; vào B2 thấy file `db/YYYY/MM/DD/dailydiary-….tar.gz`.
+   `backup_photos`, `purge_trash`. Mỗi lần phải xanh; vào B2 thấy file `db/YYYY/MM/DD/dailydiary-….tar.gz` và
+   `state/backup_photos.json`. Chọn tác vụ cụ thể thì chạy ngay, không xét hạn.
 
-Lịch tự chạy mỗi giờ (phút 17). Repo công khai: không có commit 60 ngày thì GitHub tắt lịch — bật lại ở tab Actions.
+**Lịch:** cron đặt mỗi giờ (phút 17), nhưng GitHub chạy thưa và lệch giờ thất thường (có ngày 4–8 tiếng mới chạy một
+lần). Vì vậy mỗi lần chạy (`auto`) làm đủ 4 tác vụ: `purge_accounts`, `purge_trash` luôn chạy; `backup_db --if-due`,
+`backup_photos --if-due` chỉ sao lưu khi lần gần nhất trong kho đã cũ hơn chu kỳ (`BACKUP_DB_INTERVAL_HOURS` = 8,
+`BACKUP_PHOTOS_INTERVAL_HOURS` = 24, cho phép sớm 30 phút), nếu chưa thì in "chưa đến hạn". Mốc lấy từ chính kho sao
+lưu (tên bản DB mới nhất; `state/backup_photos.json` cho ảnh), nên lỡ một lượt thì lượt kế tiếp bù ngay. Repo công khai:
+không có commit 60 ngày thì GitHub tắt lịch — bật lại ở tab Actions.
 
 ## 9. Kiểm tra production
 
@@ -261,6 +272,9 @@ Lịch tự chạy mỗi giờ (phút 17). Repo công khai: không có commit 60
 | API báo lỗi validator hoặc thiếu index | Chưa chạy migration mới bằng `jotly_migrate` (bước 2.3) |
 | `ServerSelectionTimeoutError` | Atlas Network Access chưa có `0.0.0.0/0`, hoặc sai mật khẩu trong `MONGODB_URI` |
 | Jobs lỗi `OperationFailure` | Secret `MONGODB_URI` sai mật khẩu/user hoặc thiếu tham số; so với `.env.prod` (mục 8.2) |
+| `backup_db`/`backup_photos` lỗi `InvalidRegionError` | Secret `BACKUP_S3_REGION` sai (đúng: `ca-east-006`); bản code trước 11/2026 không tự cắt dấu cách nên secret dính dấu cách cũng gây lỗi này (mục 8.1) |
+| Sao lưu lỗi `SignatureDoesNotMatch`/`InvalidAccessKeyId` | `BACKUP_S3_ACCESS_KEY`/`BACKUP_S3_SECRET_KEY` sai hoặc khóa B2 bị thu hồi; tạo Application Key mới, nhập lại cả hai |
+| Jobs xanh nhưng lâu không có bản sao lưu mới | Đọc log nhóm `backup_db`/`backup_photos`: "chưa đến hạn" là bình thường; "Chưa cấu hình kho sao lưu" là thiếu `BACKUP_S3_BUCKET`; hoặc lịch đã bị GitHub tắt (tab Actions) |
 | Web gọi `localhost:8000` | Bản build thiếu `VITE_API_URL`; build lại (mục 7.1) |
 | Workflow Jobs không tự chạy | Lịch bị tắt sau 60 ngày không commit; hoặc cron GitHub trễ |
 | CI job `api`/`e2e` lỗi "MongoDB cannot start … kernel 6.19" | Runner kernel mới (SERVER-121912); chạy lại job |

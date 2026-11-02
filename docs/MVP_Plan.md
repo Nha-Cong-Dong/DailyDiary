@@ -671,6 +671,10 @@ với kế hoạch:
 - Đã kiểm tra trên production: đăng nhập, onboarding, viết trang, tải ảnh lên R2, header bảo mật, CORS, chuyển hướng
   `www`. Chưa xong: workflow `Jobs` lỗi `OperationFailure`, sao lưu chính thức, thử khôi phục, một số mục kiểm tra —
   ghi ở `docs/Backlog.md`.
+- Cập nhật 02/11/2026: workflow `Jobs` đã xanh (`OperationFailure` hết từ 30/10; `InvalidRegionError` của sao lưu do
+  secret B2 dính dấu cách, nhập lại 02/11). Sao lưu DB và ảnh đầu tiên trên production đã chạy (chạy tay 02/11). Lịch
+  đổi sang `--if-due` (hạn theo kho sao lưu, không theo giờ chạy) vì cron GitHub chạy thưa; `Settings` tự cắt khoảng
+  trắng. Còn: thử khôi phục.
 
 **Chốt bản 1.0 (30/10/2026):** coi sản phẩm hiện tại là hoàn thành; mọi việc còn lại của Bước 13–15 chuyển sang
 `docs/Backlog.md`.

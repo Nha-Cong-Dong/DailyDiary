@@ -12,6 +12,9 @@ class Settings(BaseSettings):
         env_file=API_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        # Cắt khoảng trắng đầu/cuối mọi giá trị chuỗi: secret dán vào GitHub/.env hay dính dấu cách, vd.
+        # BACKUP_S3_REGION=" ca-east-006" làm boto3 ném InvalidRegionError (sự cố 11/2026).
+        str_strip_whitespace=True,
     )
 
     env: str = "local"  # local | test | staging | production
@@ -69,6 +72,9 @@ class Settings(BaseSettings):
     backup_s3_access_key: str | None = None
     backup_s3_secret_key: str | None = None
     backup_keep: int = 21  # bản sao lưu DB giữ lại: 3 bản/ngày × 7 ngày (đặc tả 4.2)
+    # Chu kỳ sao lưu khi chạy theo lịch (`--if-due`): bỏ qua nếu bản gần nhất còn mới hơn chu kỳ này.
+    backup_db_interval_hours: float = 8
+    backup_photos_interval_hours: float = 24
 
 
 @lru_cache
