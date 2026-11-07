@@ -299,4 +299,4 @@ không có commit 60 ngày thì GitHub tắt lịch — bật lại ở tab Acti
 | Jobs xanh nhưng lâu không có bản sao lưu mới | Đọc log nhóm `backup_db`/`backup_photos`: "chưa đến hạn" là bình thường; "Chưa cấu hình kho sao lưu" là thiếu `BACKUP_S3_BUCKET`; hoặc lịch đã bị GitHub tắt (tab Actions) |
 | Web gọi `localhost:8000` | Bản build thiếu `VITE_API_URL`; build lại (mục 7.1) |
 | Workflow Jobs không tự chạy | Lịch bị tắt sau 60 ngày không commit; hoặc cron GitHub trễ |
-| CI job `api`/`e2e` lỗi "MongoDB cannot start … kernel 6.19" | Runner kernel mới (SERVER-121912); chạy lại job |
+| CI job `api`/`e2e` lỗi "MongoDB cannot start … kernel 6.19" | Runner kernel mới (SERVER-121912). `ci.yml` đặt `GLIBC_TUNABLES=glibc.pthread.rseq=1` cho container mongo để tránh lỗi; vẫn lỗi thì chạy lại job, hoặc đổi image sang `mongo:7.0` (kém khớp với Atlas) |
