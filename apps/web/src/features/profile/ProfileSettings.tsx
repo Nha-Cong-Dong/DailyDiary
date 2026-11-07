@@ -4,12 +4,12 @@ import { useId, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { BottomSheet } from '@/components/diary/BottomSheet'
 import { Avatar } from '@/components/layout/Avatar'
+import { ThemePicker } from '@/components/layout/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { tierLimits } from '@/lib/limits'
 import { useProfile, useUpdateProfile, useUploadAvatar } from '@/lib/profile'
 import { SIGNED_OUT, useLogout } from '@/lib/session'
-import { setThemePreference, useThemePreference, type ThemePreference } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { AvatarField } from './components/AvatarField'
 import { AccountDeletedDialog, DeleteAccountDialog, DeleteDataDialog } from './components/DeleteAccountDialog'
@@ -19,43 +19,40 @@ import { CustomFlagColors } from './components/CustomFlagColors'
 import { TimeZoneField } from './components/TimeZoneField'
 import { useDataSummary, useDeleteAccount, useWipeJournal } from './useJournalData'
 
-const THEMES: { id: ThemePreference; label: string }[] = [
-  { id: 'light', label: 'Sáng' },
-  { id: 'dark', label: 'Tối' },
-  { id: 'system', label: 'Theo hệ thống' },
-]
-
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-ring'
-// Dòng bấm được trong thẻ trên điện thoại (thiết kế B10): cao 56 px, đổi nền khi chạm.
-const phoneRow = cn(
-  'flex min-h-14 w-full cursor-pointer items-center gap-3 px-4 text-left text-[15px] leading-[22px] transition-colors active:bg-foreground/5 focus-visible:-outline-offset-3',
-  focusRing,
-)
-// Đường kẻ đứt giữa các khối trong cùng một thẻ.
-const dashedBetween = '[&>*+*]:border-t-[1.5px] [&>*+*]:border-dashed [&>*+*]:border-border'
+// Dòng bấm được trong thẻ trên điện thoại (B10 .j-row): cao 56 px, đổi nền khi chạm, viền focus thụt vào trong.
+const phoneRow =
+  'row-press flex min-h-14 w-full cursor-pointer select-none items-center gap-3 px-4 text-left text-body focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-focus disabled:cursor-wait disabled:opacity-60'
+// Nét đứt giữa các khối trong cùng một thẻ.
+const dashedBetween = '[&>*+*]:border-t-[1.5px] [&>*+*]:border-dashed [&>*+*]:border-line-soft'
+// Nhãn và gợi ý của một trường trong thẻ.
+const fieldLabel = 'text-sm leading-[22px] font-semibold'
+const fieldHint = 'text-label font-normal leading-5 text-ink-soft'
 
 /**
- * Một mục cài đặt. Máy tính: thẻ lớn có tiêu đề bên trong (thiết kế B7).
- * Điện thoại: nhãn nhỏ phía trên, nội dung trong thẻ gọn, các khối cách nhau bằng nét đứt (thiết kế B10).
+ * Một mục cài đặt. Máy tính (B7): thẻ lớn bóng 4 px, tiêu đề trong thẻ. Điện thoại (B10): nhãn nhỏ phía trên, nội dung
+ * trong thẻ gọn bóng 2 px, các khối cách nhau bằng nét đứt.
  */
 function Section({ id, title, delay, className, children }: { id: string; title: string; delay: number; className?: string; children: ReactNode }) {
   return (
     <section
       aria-labelledby={id}
       className={cn(
-        'flex animate-rise flex-col gap-2 sm:gap-[22px] sm:rounded-[22px] sm:border-[1.5px] sm:border-line sm:bg-card sm:p-[clamp(20px,4vw,32px)] sm:shadow-ink',
+        'flex animate-rise flex-col gap-2 sm:gap-[22px] sm:rounded-lg sm:edge sm:bg-card sm:p-[clamp(20px,4vw,32px)] sm:shadow-md',
         className,
       )}
       style={{ animationDelay: `${delay}s` }}
     >
-      <h2 id={id} className="mx-1 max-sm:font-sans text-[13px] leading-5 font-semibold tracking-[.02em] text-muted-foreground sm:mx-0 sm:text-xl sm:leading-7 sm:tracking-normal sm:text-foreground">
+      <h2
+        id={id}
+        className="mx-1 text-label leading-5 tracking-[.02em] text-ink-soft sm:mx-0 sm:text-xl sm:leading-7 sm:font-semibold sm:tracking-normal sm:text-ink"
+      >
         {title}
       </h2>
       <div
         className={cn(
           'flex flex-col sm:gap-[22px]',
-          'max-sm:overflow-hidden max-sm:rounded-[18px] max-sm:border-[1.5px] max-sm:border-line max-sm:bg-card max-sm:shadow-[3px_3px_0_var(--ink-shadow)]',
-          'max-sm:[&>*+*]:border-t-[1.5px] max-sm:[&>*+*]:border-dashed max-sm:[&>*+*]:border-border',
+          'max-sm:overflow-hidden max-sm:rounded-[18px] max-sm:edge max-sm:bg-card max-sm:shadow-sm',
+          'max-sm:[&>*+*]:border-t-[1.5px] max-sm:[&>*+*]:border-dashed max-sm:[&>*+*]:border-line-soft',
         )}
       >
         {children}
@@ -64,12 +61,13 @@ function Section({ id, title, delay, className, children }: { id: string; title:
   )
 }
 
+/** Hàng "tiêu đề + mô tả | nút" của máy tính (Góp ý, Tài khoản). */
 function Row({ title, hint, children, danger }: { title: string; hint: string; children: ReactNode; danger?: boolean }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
       <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-0.5">
-        <span className={cn('text-[15px] leading-6 font-semibold', danger && 'text-destructive')}>{title}</span>
-        <span className="text-sm leading-[22px] text-muted-foreground">{hint}</span>
+        <span className={cn('text-body font-semibold', danger && 'text-danger')}>{title}</span>
+        <span className="text-sm leading-[22px] text-ink-soft">{hint}</span>
       </div>
       {children}
     </div>
@@ -78,9 +76,8 @@ function Row({ title, hint, children, danger }: { title: string; hint: string; c
 
 /**
  * Trang Hồ sơ & cài đặt (thiết kế B7, bản điện thoại B10). Tên, bộ icon, múi giờ, gỡ ảnh lưu qua PATCH /me.
- * Ảnh đại diện tải lên kho ảnh (Bước 7). Chưa có: xóa dữ liệu và xóa tài khoản thật (Bước 12; ở đây là bản thử trên dữ liệu mẫu).
- * Mục Tài khoản theo canvas (quyết định 21/10/2026): không có xuất dữ liệu; "Xóa toàn bộ dữ liệu" gõ "XÓA";
- * "Xóa tài khoản" gõ đúng email. English vẫn khóa (giữ như code, cùng quyết định với Landing).
+ * Ảnh đại diện tải lên kho ảnh. Mục Tài khoản theo canvas (quyết định 21/10/2026): không có xuất dữ liệu;
+ * "Xóa toàn bộ dữ liệu" gõ "XÓA"; "Xóa tài khoản" gõ đúng email. English vẫn khóa.
  */
 type ProfileSettingsProps = {
   /** Nội dung mục Chia sẻ do trang ghép vào (features/share); không có thì hiện "mọi trang đều riêng tư". */
@@ -99,7 +96,6 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
   const logout = useLogout()
   const navigate = useNavigate()
   const avatar = useUploadAvatar()
-  const theme = useThemePreference()
   const ids = useId()
   const [name, setName] = useState(profile.displayName)
   const [saved, setSaved] = useState(false)
@@ -144,6 +140,10 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
     )
   }
 
+  function signOut() {
+    logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })
+  }
+
   const avatarProps = {
     name: name || profile.displayName,
     src: avatarSrc,
@@ -165,7 +165,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
 
   const nameField = (inputId: string) => (
     <div className="flex flex-col gap-2 max-sm:gap-1.5">
-      <label htmlFor={inputId} className="text-sm leading-[22px] font-semibold max-sm:leading-5">
+      <label htmlFor={inputId} className={cn(fieldLabel, 'max-sm:leading-5')}>
         Tên hiển thị
       </label>
       <Input
@@ -180,12 +180,9 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           setSaved(false)
           setNameError(null)
         }}
-        className="bg-background"
+        className="bg-paper"
       />
-      <span
-        id={`${inputId}-hint`}
-        className={nameError ? 'text-[13px] leading-5 font-medium text-destructive' : 'text-[13px] leading-5 text-muted-foreground'}
-      >
+      <span id={`${inputId}-hint`} className={nameError ? 'text-label leading-5 font-medium text-danger' : fieldHint}>
         {nameError ?? 'Tên và ảnh hiện trên hồ sơ của bạn.'}
       </span>
     </div>
@@ -193,24 +190,22 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
 
   return (
     <div className="mx-auto flex w-full max-w-[680px] flex-col gap-6 max-sm:gap-5">
-      <h1 className="animate-rise text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold max-sm:text-[22px] max-sm:leading-[30px]">
-        Hồ sơ &amp; cài đặt
-      </h1>
+      <h1 className="animate-rise text-title font-bold max-sm:text-[22px] max-sm:leading-[30px]">Hồ sơ &amp; cài đặt</h1>
 
       {/* Điện thoại: thẻ hồ sơ gọn, bấm Sửa để mở bảng trượt. */}
       <div className="-mb-2 flex flex-col gap-3 sm:hidden">
-        <div className="flex animate-rise items-center gap-3.5 rounded-[18px] border-[1.5px] border-line bg-card p-4 shadow-[3px_3px_0_var(--ink-shadow)]">
-          <Avatar name={profile.displayName} src={avatarSrc} size={60} className="font-heading font-bold" />
+        <div className="flex animate-rise items-center gap-3.5 rounded-[18px] edge bg-card p-4 shadow-sm">
+          <Avatar name={profile.displayName} src={avatarSrc} size={60} className="font-bold" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-[17px] leading-6 font-semibold">{profile.displayName}</span>
-            <span className="truncate text-[13px] leading-5 text-muted-foreground">{profile.email}</span>
+            <span className="truncate text-lg leading-6 font-semibold">{profile.displayName}</span>
+            <span className="truncate text-label leading-5 font-normal text-ink-soft">{profile.email}</span>
           </span>
-          <Button variant="outline" className="press h-10 rounded-[12px] px-3.5" aria-haspopup="dialog" onClick={() => openEdit(true)}>
+          <Button variant="outline" className="h-10 rounded-[12px] px-3.5" aria-haspopup="dialog" onClick={() => openEdit(true)}>
             Sửa
           </Button>
         </div>
         {saved && !editOpen ? (
-          <p role="status" className="mx-1 text-[13px] leading-5 text-muted-foreground">
+          <p role="status" className="mx-1 animate-fade text-label leading-5 font-normal text-ink-soft">
             Đã lưu tên hiển thị.
           </p>
         ) : null}
@@ -220,29 +215,31 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         <AvatarField {...avatarProps} />
         {nameField(`${ids}-name`)}
         <div className="flex flex-col gap-2">
-          <span id={`${ids}-mail`} className="text-sm leading-[22px] font-semibold">
+          <span id={`${ids}-mail`} className={fieldLabel}>
             Email
           </span>
           <div
             aria-labelledby={`${ids}-mail`}
-            className="flex h-12 items-center gap-2.5 rounded-md border-[1.5px] border-dashed border-border bg-muted px-3.5 text-muted-foreground"
+            className="flex h-12 items-center gap-2.5 rounded-md border-[1.5px] border-dashed border-line-soft bg-sunk px-3.5 text-body text-ink-soft"
           >
-            <Mail className="size-[18px]" aria-hidden="true" />
-            <span className="flex-1 truncate">{profile.email}</span>
-            <Lock className="size-4" aria-hidden="true" />
+            <Mail className="size-[18px] shrink-0" aria-hidden="true" />
+            <span className="min-w-0 flex-1 truncate">{profile.email}</span>
+            <Lock className="size-4 shrink-0" aria-hidden="true" />
           </div>
-          <span className="text-[13px] leading-5 text-muted-foreground">Đăng nhập bằng Google. Chỉ mình bạn thấy.</span>
+          <span className={fieldHint}>Đăng nhập bằng Google. Chỉ mình bạn thấy.</span>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3 border-t-[1.5px] border-dashed border-border pt-[18px]">
-          <span role="status" className="inline-flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground">
-            {dirty ? 'Có thay đổi chưa lưu' : saved ? (
-              <>
-                <CircleCheck className="size-4" aria-hidden="true" /> Đã lưu
-              </>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t-[1.5px] border-dashed border-line-soft pt-[18px]">
+          <span role="status" className="inline-flex items-center gap-1.5 text-label leading-5 font-normal text-ink-soft">
+            {dirty ? (
+              'Có thay đổi chưa lưu'
+            ) : saved ? (
+              <span className="inline-flex animate-fade items-center gap-1.5">
+                <CircleCheck className="size-4 text-sage-ink" aria-hidden="true" /> Đã lưu
+              </span>
             ) : null}
           </span>
-          <Button className="press" disabled={!dirty} onClick={() => saveName()}>
-            Lưu thay đổi
+          <Button disabled={!dirty || save.isPending} onClick={() => saveName()}>
+            {save.isPending && dirty ? 'Đang lưu…' : 'Lưu thay đổi'}
           </Button>
         </div>
       </Section>
@@ -250,19 +247,17 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
       <Section id={`${ids}-journal`} title="Nhật ký" delay={0.08}>
         <div className="flex flex-col gap-3 max-sm:gap-1 max-sm:pt-3.5 max-sm:pb-1">
           <div className="flex flex-col gap-0.5 max-sm:px-4">
-            <span id={`${ids}-set`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+            <span id={`${ids}-set`} className={cn(fieldLabel, 'max-sm:text-body max-sm:leading-[22px]')}>
               Bộ icon chấm điểm
             </span>
-            <span className="text-[13px] leading-5 text-muted-foreground max-sm:text-xs max-sm:leading-[18px]">
-              Đổi bộ icon chỉ thay hình. Điểm đã ghi giữ nguyên.
-            </span>
+            <span className={cn(fieldHint, 'max-sm:leading-[18px]')}>Đổi bộ icon chỉ thay hình. Điểm đã ghi giữ nguyên.</span>
           </div>
-          {/* Điện thoại: các bộ xếp một hàng, vuốt ngang. */}
+          {/* Điện thoại: các bộ xếp một hàng, vuốt ngang (B10 .j-hs .j-sets). */}
           <IconSetPicker
             labelledBy={`${ids}-set`}
             value={profile.iconSetId}
             onChange={(iconSetId) => save.mutate({ icon_set_id: iconSetId })}
-            className="max-sm:flex max-sm:gap-3 max-sm:overflow-x-auto max-sm:px-4 max-sm:pt-3.5 max-sm:pb-2.5 max-sm:[scrollbar-width:none] max-sm:[&>button]:w-[176px] max-sm:[&>button]:flex-none"
+            className="sm:pt-1.5 max-sm:flex max-sm:gap-3 max-sm:overflow-x-auto max-sm:scroll-quiet max-sm:px-4 max-sm:pt-3.5 max-sm:pb-2.5 max-sm:[&>button]:w-[176px] max-sm:[&>button]:flex-none"
           />
         </div>
         <CustomFlagColors />
@@ -281,37 +276,14 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
 
       <Section id={`${ids}-look`} title="Giao diện" delay={0.12}>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2.5 max-sm:px-4 max-sm:py-3.5">
-          <span id={`${ids}-theme`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+          <span id={`${ids}-theme`} className={cn(fieldLabel, 'max-sm:text-body max-sm:leading-[22px]')}>
             Chế độ màu
           </span>
-          <div
-            role="radiogroup"
-            aria-labelledby={`${ids}-theme`}
-            className="inline-flex gap-0.5 rounded-[14px] border-[1.5px] border-line bg-background p-[3px] max-sm:grid max-sm:grid-cols-3"
-          >
-            {THEMES.map((t) => {
-              const on = theme === t.id
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  onClick={() => setThemePreference(t.id)}
-                  className={cn(
-                    'h-[38px] cursor-pointer rounded-[11px] px-3.5 text-sm transition-colors max-sm:h-10 max-sm:px-1 max-sm:text-[13px]',
-                    focusRing,
-                    on ? 'bg-foreground font-semibold text-background' : 'font-medium hover:bg-secondary',
-                  )}
-                >
-                  {t.label}
-                </button>
-              )
-            })}
-          </div>
+          {/* Sáng / Tối / Hệ thống / Theo giờ (B11-Theme), kèm chú thích cho Hệ thống và Theo giờ. */}
+          <ThemePicker labelledBy={`${ids}-theme`} />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:min-h-14 max-sm:px-4 max-sm:py-2">
-          <label htmlFor={`${ids}-lang`} className="text-sm leading-[22px] font-semibold max-sm:text-[15px]">
+          <label htmlFor={`${ids}-lang`} className={cn(fieldLabel, 'max-sm:text-body max-sm:leading-[22px]')}>
             Ngôn ngữ
           </label>
           <div className="flex items-center gap-2.5">
@@ -320,11 +292,11 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
               id={`${ids}-lang`}
               disabled
               aria-describedby={`${ids}-lang-soon`}
-              className="h-11 cursor-not-allowed rounded-md border-[1.5px] border-dashed border-border bg-muted px-3 text-[15px] text-muted-foreground max-sm:h-10 max-sm:rounded-[10px] max-sm:px-2"
+              className="h-11 cursor-not-allowed rounded-md border-[1.5px] border-dashed border-line-soft bg-sunk px-3 text-body text-ink-soft max-sm:h-10 max-sm:rounded-[10px] max-sm:px-2"
             >
               <option>Tiếng Việt</option>
             </select>
-            <span id={`${ids}-lang-soon`} className="text-[13px] text-muted-foreground max-sm:text-xs">
+            <span id={`${ids}-lang-soon`} className="text-label leading-[18px] font-normal text-ink-soft">
               English · Sắp có
             </span>
           </div>
@@ -336,15 +308,15 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           <Link2 className="size-5 shrink-0" aria-hidden="true" />
           <span className="flex-1 font-semibold">Trang đang chia sẻ</span>
           {shareCount ? (
-            <span className="min-w-6 rounded-full bg-foreground px-[7px] text-center text-xs leading-5 font-bold text-background tabular-nums">
+            <span className="min-w-6 rounded-full bg-ink px-[7px] text-center text-label leading-5 font-bold text-paper nums">
               {shareCount}
             </span>
           ) : null}
-          <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+          <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
         </Link>
         <div className="max-sm:hidden">
           {sharing ?? (
-            <p className="flex items-start gap-3.5 text-[15px] leading-6">
+            <p className="flex items-start gap-3.5 text-body">
               <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
               Mọi trang đều riêng tư, chỉ mình bạn xem được.
             </p>
@@ -357,11 +329,11 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           <button type="button" className={cn(phoneRow, 'sm:hidden')} onClick={onFeedback}>
             <MessageSquare className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Góp ý cho Jotly</span>
-            <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+            <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
           </button>
           <div className="max-sm:hidden">
             <Row title="Góp ý cho Jotly" hint="Báo lỗi hoặc đề xuất tính năng. Jotly trả lời qua email tài khoản của bạn.">
-              <Button variant="secondary" size="sm" className="h-10 px-3.5" onClick={onFeedback}>
+              <Button variant="secondary" size="sm" className="h-10" onClick={onFeedback}>
                 <MessageSquare aria-hidden="true" /> Gửi góp ý
               </Button>
             </Row>
@@ -372,40 +344,29 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
       <Section id={`${ids}-account`} title="Tài khoản" delay={0.2}>
         {/* Điện thoại: danh sách dòng bấm được (thiết kế B10). */}
         <div className={cn('flex flex-col sm:hidden', dashedBetween)}>
-          <button
-            type="button"
-            className={phoneRow}
-            disabled={logout.isPending}
-            onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
-          >
+          <button type="button" className={phoneRow} disabled={logout.isPending} onClick={signOut}>
             <LogOut className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Đăng xuất</span>
-            <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+            <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
           </button>
           <Link to="/profile/trash" className={phoneRow}>
             <ArchiveRestore className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Thùng rác</span>
-            {summary?.trash ? <span className="text-sm text-muted-foreground tabular-nums">{summary.trash} trang</span> : null}
-            <ChevronRight className="size-[18px] shrink-0 text-muted-foreground" aria-hidden="true" />
+            {summary?.trash ? <span className="text-sm leading-5 text-ink-soft nums">{summary.trash} trang</span> : null}
+            <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
           </Link>
-          <button type="button" className={cn(phoneRow, 'text-destructive')} onClick={() => setDataOpen(true)}>
+          <button type="button" className={cn(phoneRow, 'text-danger')} onClick={() => setDataOpen(true)}>
             <Eraser className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Xóa toàn bộ dữ liệu</span>
           </button>
-          <button type="button" className={cn(phoneRow, 'text-destructive')} onClick={() => setAccountOpen(true)}>
+          <button type="button" className={cn(phoneRow, 'text-danger')} onClick={() => setAccountOpen(true)}>
             <Trash2 className="size-5 shrink-0" aria-hidden="true" />
             <span className="flex-1 font-semibold">Xóa tài khoản</span>
           </button>
         </div>
         <div className="flex flex-col gap-[22px] max-sm:hidden">
           <Row title="Đăng xuất" hint="Nhật ký vẫn còn, đăng nhập lại bằng Google để xem.">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="h-10 px-3.5"
-              disabled={logout.isPending}
-              onClick={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
-            >
+            <Button variant="secondary" size="sm" className="h-10" disabled={logout.isPending} onClick={signOut}>
               <LogOut aria-hidden="true" /> Đăng xuất
             </Button>
           </Row>
@@ -413,23 +374,23 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
             title="Thùng rác"
             hint={`Trang đã xóa nằm ở đây ${tierLimits().entry.restore_days} ngày, khôi phục được.${summary?.trash ? ` Đang có ${summary.trash} trang.` : ''}`}
           >
-            <Button asChild variant="secondary" size="sm" className="h-10 px-3.5">
+            <Button asChild variant="secondary" size="sm" className="h-10">
               <Link to="/profile/trash">
                 <ArchiveRestore aria-hidden="true" /> Mở thùng rác
               </Link>
             </Button>
           </Row>
-          <div className="flex flex-col gap-[22px] border-t-[1.5px] border-dashed border-border pt-[22px]">
-            <p className="text-sm leading-[22px] text-muted-foreground">
+          <div className="flex flex-col gap-[22px] border-t-[1.5px] border-dashed border-line-soft pt-[22px]">
+            <p className="text-sm leading-[22px] text-ink-soft">
               Jotly không có tính năng xuất dữ liệu. Hai thao tác dưới đây không thể hoàn tác.
             </p>
             <Row title="Xóa toàn bộ dữ liệu" hint="Xóa mọi trang, điểm và ảnh. Tài khoản vẫn giữ để bạn viết tiếp." danger>
-              <Button variant="destructive" size="sm" className="h-10 px-3.5" onClick={() => setDataOpen(true)}>
+              <Button variant="destructive-solid" size="sm" className="h-10" onClick={() => setDataOpen(true)}>
                 <Eraser aria-hidden="true" /> Xóa dữ liệu
               </Button>
             </Row>
             <Row title="Xóa tài khoản" hint="Xóa mọi trang, link chia sẻ và hồ sơ của bạn. Jotly không còn lưu gì gắn với bạn." danger>
-              <Button variant="destructive" size="sm" className="h-10 px-3.5" onClick={() => setAccountOpen(true)}>
+              <Button variant="destructive-solid" size="sm" className="h-10" onClick={() => setAccountOpen(true)}>
                 <Trash2 aria-hidden="true" /> Xóa tài khoản
               </Button>
             </Row>
@@ -437,29 +398,32 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         </div>
       </Section>
       {wiped ? (
-        <p role="status" className="-mt-3 inline-flex items-center gap-2 px-1 text-sm text-muted-foreground max-sm:-mt-2 max-sm:text-[13px]">
-          <CircleCheck className="size-4" aria-hidden="true" /> Đã xóa toàn bộ dữ liệu. Trang Hôm nay đang chờ bạn.
+        <p
+          role="status"
+          className="-mt-3 inline-flex animate-fade items-center gap-2 px-1 text-sm leading-[22px] text-ink-soft max-sm:-mt-2 max-sm:text-label max-sm:leading-5 max-sm:font-normal"
+        >
+          <CircleCheck className="size-4 shrink-0 text-sage-ink" aria-hidden="true" /> Đã xóa toàn bộ dữ liệu. Trang Hôm nay đang chờ bạn.
         </p>
       ) : null}
       {needsReauth ? (
-        <div role="alert" className="-mt-3 flex flex-wrap items-center gap-3 rounded-[14px] border-[1.5px] border-line bg-card px-4 py-3 max-sm:-mt-2">
+        <div role="alert" className="-mt-3 flex flex-wrap items-center gap-3 rounded-md edge bg-card px-4 py-3 shadow-sm max-sm:-mt-2">
           <p className="min-w-0 flex-1 text-sm leading-[22px]">
             Để bảo vệ tài khoản, hãy đăng nhập lại bằng Google rồi xóa trong vòng 10 phút. Chưa có gì bị xóa.
           </p>
-          <Button asChild variant="secondary" size="sm" className="h-10 px-3.5">
+          <Button asChild variant="secondary" size="sm" className="h-10">
             <a href={googleLoginUrl(profile.timeZone, '/profile')}>Đăng nhập lại</a>
           </Button>
         </div>
       ) : wipe.isError || deleteAccount.isError ? (
-        <p role="alert" className="-mt-3 px-1 text-sm font-medium text-destructive max-sm:-mt-2 max-sm:text-[13px]">
+        <p role="alert" className="-mt-3 px-1 text-sm leading-[22px] font-medium text-danger max-sm:-mt-2 max-sm:text-label max-sm:leading-5">
           {wipe.isError ? 'Chưa xóa được dữ liệu.' : 'Chưa xóa được tài khoản.'} Kiểm tra kết nối rồi thử lại; chưa có gì bị xóa.
         </p>
       ) : null}
-      <p className="mx-1 -mt-1.5 text-xs leading-[18px] text-muted-foreground sm:hidden">
+      <p className="mx-1 -mt-1.5 text-label leading-[18px] font-normal text-ink-soft sm:hidden">
         Jotly không có tính năng xuất dữ liệu. Các thao tác xóa không thể hoàn tác.
       </p>
 
-      <footer className="flex flex-wrap gap-5 px-1 text-sm text-muted-foreground max-sm:mt-2 max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-1.5 max-sm:text-xs">
+      <footer className="flex flex-wrap gap-x-5 gap-y-2 px-1 text-sm leading-[22px] text-ink-soft max-sm:mt-2 max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-1.5 max-sm:text-label max-sm:leading-[18px] max-sm:font-normal">
         <a href="#" className="link-underline">
           [Điều khoản sử dụng]
         </a>
@@ -474,10 +438,10 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         <AvatarField {...avatarProps} />
         {nameField(`${ids}-name-sheet`)}
         <div className="grid grid-cols-2 gap-2.5">
-          <Button variant="outline" className="press h-[50px] rounded-[14px] text-[15px] font-medium" onClick={() => openEdit(false)}>
+          <Button variant="outline" className="h-[50px]" onClick={() => openEdit(false)}>
             Hủy
           </Button>
-          <Button className="press h-[50px] rounded-[14px] text-[15px]" disabled={save.isPending} onClick={() => saveName(() => setEditOpen(false))}>
+          <Button className="h-[50px]" disabled={save.isPending} onClick={() => saveName(() => setEditOpen(false))}>
             Lưu
           </Button>
         </div>

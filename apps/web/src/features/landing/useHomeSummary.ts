@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
 import type { Score } from '@/lib/catalog'
-import { addDays, todayIn, type DateString } from '@/lib/date'
+import { addDays, daysEndingAt, todayIn, type DateString } from '@/lib/date'
 
 /** Tóm tắt tháng hiện tại cho trang chủ khi đã đăng nhập (thiết kế B5 · Landing đã đăng nhập). */
 export type HomeSummary = {
@@ -60,4 +60,33 @@ export function greeting(name: string, timeZone: string, now: Date = new Date())
   if (hour < 5) return `Khuya rồi, ${name}`
   const part = hour < 11 ? 'sáng' : hour < 13 ? 'trưa' : hour < 18 ? 'chiều' : 'tối'
   return `Chào buổi ${part}, ${name}`
+}
+
+/** Một ngày đã ghi trong 7 ngày gần nhất (dải tuần của mục "Một chạm" khi đã đăng nhập). */
+export type RecentDay = { score: Score; sub: string | null; backfilled: boolean }
+
+/**
+ * 7 ngày tới hôm nay (theo múi giờ hồ sơ) đọc từ lịch tháng (GET /calendar/{year}/{month}); tuần vắt qua hai tháng thì
+ * đọc cả hai. Khóa bắt đầu bằng 'entries' nên lưu một ngày xong (entries.refreshSummaries) dải tuần tự tải lại.
+ */
+export function useRecentDays(timeZone: string, enabled = true) {
+  const today = todayIn(timeZone)
+  return useQuery<Record<DateString, RecentDay>>({
+    queryKey: ['entries', 'recent-days', today],
+    queryFn: async () => {
+      const dates = daysEndingAt(today, 7)
+      const months = [...new Set(dates.map((d) => d.slice(0, 7)))]
+      const out: Record<DateString, RecentDay> = {}
+      for (const ym of months) {
+        const [year, month] = ym.split('-').map(Number)
+        const { data, error, response } = await api.GET('/calendar/{year}/{month}', { params: { path: { year, month } } })
+        if (error || !data) throw toApiError(response, error)
+        for (const d of data.days) {
+          if (dates.includes(d.entry_date)) out[d.entry_date] = { score: d.score as Score, sub: d.sub_icon, backfilled: d.backfilled }
+        }
+      }
+      return out
+    },
+    enabled,
+  })
 }

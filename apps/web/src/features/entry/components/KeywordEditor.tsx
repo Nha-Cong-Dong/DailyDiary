@@ -79,7 +79,7 @@ export function KeywordEditor({ keywords, onChange }: KeywordEditorProps) {
         )}
       </div>
       {error ? (
-        <span id={`${inputId}-error`} className="text-[13px] leading-5 font-medium text-destructive">
+        <span id={`${inputId}-error`} className="text-[13px] leading-5 font-medium text-danger">
           {error}
         </span>
       ) : null}
@@ -88,7 +88,6 @@ export function KeywordEditor({ keywords, onChange }: KeywordEditorProps) {
 }
 
 /** Viền và biểu tượng cảnh báo trùng từ khóa (thiết kế B9 · Sửa trang). */
-const WARN = '#B9772E'
 
 /**
  * Ô từ khóa luôn hiện của màn Sửa (thiết kế B9, B10): gõ rồi Enter hoặc bấm Thêm. Từ khóa trùng (không phân biệt
@@ -170,14 +169,16 @@ export function InlineKeywordEditor({ keywords, onChange, inputId }: KeywordEdit
                 submit()
               }
             }}
-            style={dup !== null ? { borderColor: WARN } : undefined}
-            className="h-11 min-w-0 flex-1 rounded-full border-dashed bg-card px-3.5 text-base md:h-9 md:w-40 md:flex-none md:bg-background md:px-3 md:text-sm"
+            className={cn(
+              'h-11 min-w-0 flex-1 rounded-full border-dashed bg-card px-3.5 text-base md:h-9 md:w-40 md:flex-none md:bg-paper md:px-3 md:text-sm',
+              dup !== null && 'border-peach-ink',
+            )}
           />
           {canAdd ? (
             <button
               type="button"
               onClick={submit}
-              className="press h-11 shrink-0 cursor-pointer rounded-full border-[1.5px] border-primary bg-primary px-4 text-sm font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring md:h-9 md:px-3 md:text-[13px]"
+              className="press h-11 shrink-0 cursor-pointer rounded-full border-[1.5px] border-primary bg-primary px-4 text-sm font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus md:h-9 md:px-3 md:text-[13px]"
             >
               Thêm
             </button>
@@ -194,7 +195,7 @@ export function InlineKeywordEditor({ keywords, onChange, inputId }: KeywordEdit
       <p id={msgId} role="status" className="flex min-h-[18px] items-center gap-1.5 text-xs leading-[18px] md:min-h-5 md:text-[13px] md:leading-5">
         {message ? (
           <>
-            <TriangleAlert className="size-[15px] shrink-0" style={{ color: WARN }} aria-hidden="true" />
+            <TriangleAlert className="size-[15px] shrink-0 text-peach-ink" aria-hidden="true" />
             {message}
           </>
         ) : null}

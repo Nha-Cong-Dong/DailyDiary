@@ -1,17 +1,15 @@
-import { ArrowLeft, CircleCheck, History } from 'lucide-react'
+import { ArrowLeft, CircleCheck, RotateCcw } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { MoodMark } from '@/components/diary/MoodMark'
+import { EntryCard } from '@/components/diary/EntryCard'
 import { ScorePicker } from '@/components/diary/ScorePicker'
 import { SyncStatus } from '@/components/diary/SyncStatus'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { flagHex, scoreLabel, type Score } from '@/lib/catalog'
+import { scoreLabel, type Score } from '@/lib/catalog'
 import { dayOfMonth, isValidDate, longDateLabel, todayIn, useNow, weekdayShort, type DateString } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
 import type { DraftFields } from '@/lib/storage'
-import { useDarkMode } from '@/lib/theme'
-import { cn } from '@/lib/utils'
 import { saveErrorMessage, useDeleteEntry, type DayEntry } from './entries'
 import { dateTimeLabel, dayMonth, daysBetween } from './entryDraft'
 import { ConflictDialog } from './components/ConflictDialog'
@@ -33,55 +31,37 @@ const sameExtras = (a: Extras, b: Extras) =>
 
 function BackfillChip() {
   return (
-    <span className="inline-flex animate-stamp items-center gap-1 rounded-full border-[1.5px] border-line bg-score-5 px-2 text-[11px] leading-[18px] font-bold tracking-[.02em] text-[#272218]">
-      <History className="size-[11px]" strokeWidth={2.6} aria-hidden="true" />
+    <span className="inline-flex animate-stamp items-center gap-1 rounded-full border-[1.5px] border-stroke bg-peach px-2 text-label font-bold text-on-accent">
+      <RotateCcw className="size-[13px]" strokeWidth={2.6} aria-hidden="true" />
       Ghi bù
     </span>
   )
 }
 
-/** Thẻ xem trước: trang ghi bù sẽ hiện thế nào trong Dòng thời gian. */
+/** Thẻ xem trước: trang ghi bù sẽ hiện thế nào trong Dòng thời gian (EntryCard thẻ, có dấu Ghi bù). */
 function TimelinePreview({ record, extras }: { record: DayEntry; extras: Extras }) {
   const { iconSetId, timeZone } = useProfile()
-  const dark = useDarkMode()
-  const title = extras.title.trim()
-  const body = extras.content.trim()
   return (
     <section aria-labelledby="bf-preview" className="flex animate-rise flex-col gap-3 [animation-delay:.12s]">
-      <h2 id="bf-preview" className="font-sans text-[15px] leading-[22px] font-semibold">
+      <h2 id="bf-preview" className="text-[15px] leading-[22px] font-semibold">
         Trong Dòng thời gian sẽ hiện như sau
       </h2>
       <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3.5">
         <div className="flex flex-col items-center gap-0.5 pt-3.5">
-          <span className="font-heading text-2xl leading-7 font-bold tabular-nums">{dayOfMonth(record.entry_date)}</span>
-          <span className="text-xs leading-4 text-muted-foreground">{weekdayShort(record.entry_date)}</span>
+          <span className="text-2xl leading-7 font-bold nums">{dayOfMonth(record.entry_date)}</span>
+          <span className="text-xs leading-4 text-ink-soft">{weekdayShort(record.entry_date)}</span>
         </div>
-        <div className="overflow-hidden rounded-[18px] border-[1.5px] border-line bg-card shadow-ink-sm">
-          <span
-            aria-hidden="true"
-            className={cn('block transition-[height] duration-250', extras.flag_color ? 'h-2.5 border-b-[1.5px] border-line' : 'h-0')}
-            style={extras.flag_color ? { backgroundColor: flagHex(extras.flag_color, dark) } : undefined}
-          />
-          <div className="grid grid-cols-[56px_minmax(0,1fr)] gap-4 py-4 pr-5 pl-4">
-            <span
-              role="img"
-              aria-label={`Điểm ${record.score}, ${scoreLabel(iconSetId, record.score)}`}
-              className="flex size-14 items-center justify-center rounded-full border-[1.5px] border-line bg-background"
-            >
-              <MoodMark iconSetId={iconSetId} score={record.score} subIcon={extras.sub_icon} size={42} />
-            </span>
-            <span className="flex min-w-0 flex-col gap-1">
-              <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] leading-5 text-muted-foreground tabular-nums">
-                <BackfillChip />
-                Điểm {record.score} · {scoreLabel(iconSetId, record.score)} · Ghi bù lúc {dateTimeLabel(timeZone, record.created_at, false)}
-              </span>
-              <span className={cn('font-heading text-[19px] leading-7 font-bold', !title && 'text-muted-foreground')}>
-                {title || 'Chỉ chấm điểm'}
-              </span>
-              {body ? <span className="line-clamp-2 text-[15px] leading-6 text-muted-foreground">{body}</span> : null}
-            </span>
-          </div>
-        </div>
+        <EntryCard
+          iconSetId={iconSetId}
+          score={record.score}
+          subIcon={extras.sub_icon}
+          flagColor={extras.flag_color}
+          dateLabel={`Điểm ${record.score} · ${scoreLabel(iconSetId, record.score)} · Ghi bù lúc ${dateTimeLabel(timeZone, record.created_at, false)}`}
+          backfill
+          title={extras.title.trim() || 'Chỉ chấm điểm'}
+          excerpt={extras.content.trim() || null}
+          emptyText="Chưa viết gì cho ngày này."
+        />
       </div>
     </section>
   )
@@ -156,9 +136,9 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
       </BackLink>
       <section aria-labelledby="bf-h" className="flex flex-col gap-5 md:gap-[18px]">
         <div className="flex animate-rise flex-col gap-1 md:gap-1.5">
-          <p className="flex flex-wrap items-center gap-2 text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">
+          <p className="flex flex-wrap items-center gap-2 text-[13px] leading-5 text-ink-soft md:text-sm md:leading-[22px]">
             {longDateLabel(date)}
-            <span className="rounded-full border-[1.5px] border-dashed border-border px-2 text-[11px] leading-[18px] font-semibold md:text-xs">
+            <span className="rounded-full border-[1.5px] border-dashed border-line-soft px-2 text-[11px] leading-[18px] font-semibold md:text-xs">
               {ago === 1 ? 'Hôm qua' : `${ago} ngày trước`}
             </span>
           </p>
@@ -185,13 +165,13 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
             <button
               type="button"
               onClick={undo}
-              className="link-underline cursor-pointer py-0.5 text-sm font-semibold focus-visible:outline-3 focus-visible:outline-ring"
+              className="link-underline cursor-pointer py-0.5 text-sm font-semibold focus-visible:outline-3 focus-visible:outline-focus"
             >
               Hoàn tác
             </button>
           </p>
         ) : (
-          <p className="-mt-1.5 text-sm leading-[22px] text-muted-foreground md:mt-0 md:text-[15px] md:leading-6">
+          <p className="-mt-1.5 text-sm leading-[22px] text-ink-soft md:mt-0 md:text-[15px] md:leading-6">
             Chấm điểm là ghi bù xong. Viết thêm hay không tùy bạn.
           </p>
         )}
@@ -214,13 +194,13 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
         <>
           <section
             aria-labelledby="bf-more"
-            className="flex animate-rise flex-col gap-[18px] rounded-[18px] border-[1.5px] border-line bg-card p-4 shadow-ink-sm md:gap-6 md:rounded-lg md:p-[clamp(20px,4vw,28px)] md:shadow-ink"
+            className="flex animate-rise flex-col gap-[18px] rounded-[18px] border-[1.5px] border-stroke bg-card p-4 shadow-sm md:gap-6 md:rounded-lg md:p-[clamp(20px,4vw,28px)] md:shadow-md"
           >
             <div className="flex items-baseline justify-between gap-3">
               <h2 id="bf-more" className="text-lg leading-[26px] font-semibold md:text-xl md:leading-7">
                 Thêm chút nữa?
               </h2>
-              <span className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5">Không bắt buộc</span>
+              <span className="text-xs leading-[18px] text-ink-soft md:text-[13px] md:leading-5">Không bắt buộc</span>
             </div>
             <ExtraFields
               sub={extras.sub_icon}
@@ -237,13 +217,13 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
               frequentIcons={frequentIcons}
             />
             {/* Điện thoại: trạng thái ở trên, nút Lưu rộng hết thẻ ở dưới (B10). */}
-            <div className="flex flex-col gap-2.5 border-t-[1.5px] border-dashed border-border pt-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3 md:pt-4">
+            <div className="flex flex-col gap-2.5 border-t-[1.5px] border-dashed border-line-soft pt-3 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3 md:pt-4">
               <SyncStatus
                 // Đang gửi / mất mạng / lỗi thì nói đúng trạng thái đó; còn lại đọc theo bản trên máy chủ.
                 status={['saving', 'unsynced', 'error'].includes(autosave.status.kind) ? autosave.status : { kind: 'idle' }}
                 timeZone={timeZone}
                 onRetry={autosave.retry}
-                className="text-xs leading-[18px] text-muted-foreground md:text-[13px] md:leading-5"
+                className="text-xs leading-[18px] text-ink-soft md:text-[13px] md:leading-5"
                 fallback={
                   dirty
                     ? 'Có thay đổi chưa lưu'
@@ -273,13 +253,13 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
         // Điện thoại giữ đúng B10: phần này chỉ hiện sau khi chấm.
         <section
           aria-labelledby="bf-more-locked"
-          className="flex flex-col gap-6 rounded-lg border-[1.5px] border-dashed border-border p-[clamp(20px,4vw,28px)] max-md:hidden"
+          className="flex flex-col gap-6 rounded-lg border-[1.5px] border-dashed border-line-soft p-[clamp(20px,4vw,28px)] max-md:hidden"
         >
           <div className="flex items-baseline justify-between gap-3">
-            <h2 id="bf-more-locked" className="text-xl leading-7 font-semibold text-muted-foreground">
+            <h2 id="bf-more-locked" className="text-xl leading-7 font-semibold text-ink-soft">
               Thêm chút nữa?
             </h2>
-            <span className="text-[13px] leading-5 text-muted-foreground">Mở sau khi chấm điểm</span>
+            <span className="text-[13px] leading-5 text-ink-soft">Mở sau khi chấm điểm</span>
           </div>
           <div inert aria-hidden="true" className="flex flex-col gap-6 opacity-45 select-none">
             <ExtraFields
@@ -324,24 +304,24 @@ export function BackfillEntry({ date }: { date: string }) {
   if (!valid) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày không hợp lệ</h1>
-        <p className="text-muted-foreground">Địa chỉ cần có dạng /day/2026-10-14/backfill, và là một ngày có thật.</p>
+        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
+        <p className="text-ink-soft">Địa chỉ cần có dạng /day/2026-10-14/backfill, và là một ngày có thật.</p>
       </>,
     )
   }
   if (date > today) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">{longDateLabel(date)}</h1>
-        <p className="text-muted-foreground">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
+        <h1 className="text-title font-bold">{longDateLabel(date)}</h1>
+        <p className="text-ink-soft">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
       </>,
     )
   }
   if (date === today) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Hôm nay vẫn đang diễn ra</h1>
-        <p className="text-muted-foreground">Không cần ghi bù, viết luôn cho hôm nay.</p>
+        <h1 className="text-title font-bold">Hôm nay vẫn đang diễn ra</h1>
+        <p className="text-ink-soft">Không cần ghi bù, viết luôn cho hôm nay.</p>
         <Button asChild>
           <Link to="/today">Viết cho hôm nay</Link>
         </Button>
@@ -350,7 +330,7 @@ export function BackfillEntry({ date }: { date: string }) {
   }
   if (isPending || (hadEntry === null && !isError)) {
     return frame(
-      <p role="status" className="text-muted-foreground">
+      <p role="status" className="text-ink-soft">
         Đang mở trang…
       </p>,
     )
@@ -365,8 +345,8 @@ export function BackfillEntry({ date }: { date: string }) {
   if (hadEntry) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày {dayMonth(date)} đã có trang</h1>
-        <p className="text-muted-foreground">Không cần ghi bù. Bạn có thể xem hoặc sửa trang này.</p>
+        <h1 className="text-title font-bold">Ngày {dayMonth(date)} đã có trang</h1>
+        <p className="text-ink-soft">Không cần ghi bù. Bạn có thể xem hoặc sửa trang này.</p>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">
             <Link to={`/day/${date}`}>Xem trang</Link>

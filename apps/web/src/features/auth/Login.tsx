@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 import { googleLoginUrl } from '@/api/client'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { Avatar } from '@/components/layout/Avatar'
+import { GoogleMark } from '@/components/layout/GoogleMark'
 import { Logo, LogoMark } from '@/components/layout/Logo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { Button } from '@/components/ui/button'
@@ -13,16 +14,15 @@ import { useMe } from '@/lib/profile'
 import { useDevLogin } from '@/lib/session'
 import { cn } from '@/lib/utils'
 import { loginErrorMessage, type LoginState } from './loginState'
-import { GoogleMark } from '@/components/layout/GoogleMark'
 
-/** Icon mầm cây trôi quanh thẻ (thiết kế B9 · Đăng nhập): vị trí, cỡ, góc nghiêng, độ trễ. */
-const FLOATS: { score: Score; size: number; className: string; rotate: number; delay: number }[] = [
-  { score: 5, size: 72, className: 'left-[7%] top-[14%]', rotate: -10, delay: 0 },
-  { score: 3, size: 52, className: 'right-[9%] top-[12%]', rotate: 8, delay: 1.1 },
-  { score: 1, size: 48, className: 'left-[13%] bottom-[14%]', rotate: 6, delay: 2 },
-  { score: 4, size: 64, className: 'right-[12%] bottom-[18%]', rotate: -6, delay: 0.6 },
-  { score: 2, size: 40, className: 'left-[28%] top-[6%]', rotate: 12, delay: 1.6 },
-  { score: 5, size: 40, className: 'right-[27%] bottom-[6%]', rotate: -14, delay: 2.4 },
+/** Icon mầm cây đứng yên quanh thẻ (thiết kế B9 · Đăng nhập): vị trí, cỡ, góc nghiêng. Ẩn trên điện thoại. */
+const SPROUTS: { score: Score; size: number; className: string; rotate: number }[] = [
+  { score: 5, size: 72, className: 'left-[7%] top-[14%]', rotate: -10 },
+  { score: 3, size: 52, className: 'right-[9%] top-[12%]', rotate: 8 },
+  { score: 1, size: 48, className: 'left-[13%] bottom-[14%]', rotate: 6 },
+  { score: 4, size: 64, className: 'right-[12%] bottom-[18%]', rotate: -6 },
+  { score: 2, size: 40, className: 'left-[28%] top-[6%]', rotate: 12 },
+  { score: 5, size: 40, className: 'right-[27%] bottom-[6%]', rotate: -14 },
 ]
 
 type Mode = 'idle' | 'redirecting' | 'error' | 'expired'
@@ -72,58 +72,57 @@ export function Login() {
 
   const mode: Mode = redirecting ? 'redirecting' : errorCode ? 'error' : expired ? 'expired' : 'idle'
   const copy = COPY[mode]
-  const text = copy.text
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="relative z-[2] mx-auto flex w-full max-w-[1120px] items-center gap-3 px-4 py-4 sm:px-[clamp(16px,4vw,40px)]">
-        <a
-          href="/"
-          aria-label="Jotly, trang chủ"
-          className="rounded-sm hover:[&_svg]:animate-wiggle focus-visible:outline-3 focus-visible:outline-ring [&_svg]:origin-[50%_60%]"
-        >
+      <header className="relative z-[2] mx-auto flex w-full max-w-[1120px] items-center gap-3 px-[clamp(16px,4vw,40px)] py-4">
+        <a href="/" aria-label="Jotly, trang chủ" className="flex min-h-11 items-center rounded-sm">
           <Logo size="sm" />
         </a>
         <div className="flex-1" />
         <ThemeToggle className="press size-10 rounded-[12px]" />
       </header>
 
-      <main className="relative flex flex-1 items-center justify-center overflow-hidden px-4 pt-8 pb-16 sm:px-[clamp(16px,4vw,40px)]">
-        {FLOATS.map((f, i) => (
+      <main className="relative flex flex-1 items-center justify-center overflow-hidden px-[clamp(16px,4vw,40px)] pt-8 pb-16">
+        {SPROUTS.map((f, i) => (
           <span
             key={i}
             aria-hidden="true"
-            className={cn('absolute hidden animate-float sm:block', f.className)}
-            style={{ rotate: `${f.rotate}deg`, animationDelay: `${f.delay}s` }}
+            className={cn('absolute hidden sm:block', f.className)}
+            style={{ rotate: `${f.rotate}deg` }}
           >
             <ScoreIcon iconSetId="sprout" score={f.score} size={f.size} />
           </span>
         ))}
 
-        <div className="relative z-[1] flex w-full max-w-[460px] animate-land flex-col items-center gap-[18px] rounded-[28px] border-[1.5px] border-line bg-card px-[clamp(24px,5vw,44px)] pt-10 pb-8 text-center shadow-ink-lg">
-          <LogoMark size={72} className={cn('origin-[50%_80%]', mode === 'redirecting' && 'animate-writing')} />
+        <div className="relative z-[1] flex w-full max-w-[460px] animate-land flex-col items-center gap-[18px] rounded-[28px] border-[1.5px] border-stroke bg-card px-[clamp(24px,5vw,44px)] pt-10 pb-8 text-center shadow-lg">
+          <LogoMark size={72} />
 
           <div aria-live="polite" className="flex flex-col gap-2">
-            <h1 className="text-[26px] leading-[34px] font-bold">{copy.title}</h1>
-            {text ? <p className="text-[15px] leading-6 text-muted-foreground">{text}</p> : null}
+            <h1 className="text-title">{copy.title}</h1>
+            {copy.text ? <p className="text-body text-ink-soft">{copy.text}</p> : null}
           </div>
 
           {mode === 'error' ? (
             <div
               role="alert"
-              className="flex w-full animate-shake items-start gap-2.5 rounded-md border-[1.5px] border-destructive bg-destructive-soft px-3.5 py-3 text-left text-sm leading-[22px]"
+              className="flex w-full animate-shake items-start gap-2.5 rounded-md border-[1.5px] border-danger bg-danger-soft px-3.5 py-3 text-left text-body"
             >
-              <AlertCircle className="mt-0.5 size-[18px] shrink-0 text-destructive" aria-hidden="true" />
-              <span>{loginErrorMessage(errorCode!)}</span>
+              <AlertCircle className="mt-0.5 size-[18px] shrink-0 text-danger" aria-hidden="true" />
+              <span className="min-w-0">{loginErrorMessage(errorCode!)}</span>
             </div>
           ) : null}
 
           {mode === 'expired' && expired ? (
-            <div className="flex w-full items-center gap-3 rounded-md border-[1.5px] border-dashed border-border bg-muted px-3.5 py-2.5 text-left">
+            <div className="flex w-full items-center gap-3 rounded-md border-[1.5px] border-dashed border-line-soft bg-sunk px-3.5 py-2.5 text-left">
               <Avatar name={expired.name} src={expired.avatarUrl} size={36} className="text-[13px]" />
               <span className="flex min-w-0 flex-col">
-                <span className="truncate text-sm leading-[22px] font-semibold">{expired.name}</span>
-                <span className="truncate text-[13px] leading-5 text-muted-foreground">{expired.email}</span>
+                <span className="truncate text-body font-semibold" title={expired.name}>
+                  {expired.name}
+                </span>
+                <span className="truncate text-label font-normal text-ink-soft" title={expired.email}>
+                  {expired.email}
+                </span>
               </span>
             </div>
           ) : null}
@@ -133,23 +132,14 @@ export function Login() {
               <>
                 <span
                   role="status"
-                  className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-border bg-muted text-base font-semibold text-muted-foreground"
+                  className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line-soft bg-sunk text-body font-semibold text-ink-soft"
                 >
                   <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
-                  <span>
-                    Đang chờ Google
-                    <span aria-hidden="true">
-                      {[0, 0.15, 0.3].map((d) => (
-                        <span key={d} className="inline-block animate-dot" style={{ animationDelay: `${d}s` }}>
-                          .
-                        </span>
-                      ))}
-                    </span>
-                  </span>
+                  Đang chờ Google…
                 </span>
                 <button
                   type="button"
-                  className="link-underline cursor-pointer self-center px-0 py-1 text-sm font-medium focus-visible:outline-3 focus-visible:outline-ring"
+                  className="link-underline min-h-11 cursor-pointer self-center px-2 py-1 text-body font-medium"
                   onClick={() => {
                     // Dừng việc chuyển sang Google đang diễn ra (nếu trình duyệt chưa rời trang).
                     window.stop()
@@ -163,7 +153,7 @@ export function Login() {
               <a
                 href={googleLoginUrl(browserTimeZone())}
                 onClick={() => setRedirecting(true)}
-                className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line bg-card pr-5 pl-4 text-base font-semibold shadow-[3px_3px_0_var(--score-3)] transition-[transform,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--score-3)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_var(--score-3)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
+                className="cta inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-stroke bg-card pr-5 pl-4 text-body font-semibold text-ink select-none"
               >
                 <GoogleMark />
                 {copy.button}
@@ -171,7 +161,7 @@ export function Login() {
             )}
           </div>
 
-          <p className="mt-1.5 text-xs leading-[18px] text-muted-foreground">
+          <p className="mt-1.5 text-label font-normal text-ink-soft">
             Khi tiếp tục, bạn đồng ý với{' '}
             {/* Chờ nội dung điều khoản thật trước khi ra mắt (MVP Bước 14). */}
             <a href="#" className="link-underline">
@@ -185,7 +175,7 @@ export function Login() {
           </p>
 
           {import.meta.env.DEV ? (
-            <div className="flex w-full flex-col gap-2 border-t-[1.5px] border-dashed border-border pt-5">
+            <div className="flex w-full flex-col gap-2 border-t-[1.5px] border-dashed border-line-soft pt-5">
               <Button
                 variant="outline"
                 disabled={dev.isPending}
@@ -196,7 +186,7 @@ export function Login() {
                 <FlaskConical aria-hidden="true" /> Đăng nhập thử (chỉ khi chạy dev)
               </Button>
               {dev.isError ? (
-                <p role="alert" className="text-[13px] leading-5 text-destructive">
+                <p role="alert" className="text-label font-normal text-danger">
                   Chưa đăng nhập thử được. Bật DEV_LOGIN=true trong apps/api/.env rồi chạy lại API.
                 </p>
               ) : null}

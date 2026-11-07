@@ -40,10 +40,10 @@ export function AvatarField({ name, src, busy, uploadError, onPick, onRemove }: 
 
   return (
     <div className="flex flex-wrap items-center gap-5">
-      <Avatar name={name} src={src} size={88} className="font-heading text-[30px] font-bold shadow-ink-sm" />
-      <div className="flex flex-col gap-1.5">
+      <Avatar name={name} src={src} size={88} className="font-bold shadow-sm" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" size="sm" className="h-10 px-3.5" disabled={busy} onClick={() => input.current?.click()}>
+          <Button variant="secondary" size="sm" className="h-10" disabled={busy} onClick={() => input.current?.click()}>
             <ImageUp aria-hidden="true" /> {busy ? 'Đang tải ảnh…' : 'Đổi ảnh'}
           </Button>
           {src && !busy ? (
@@ -68,7 +68,7 @@ export function AvatarField({ name, src, busy, uploadError, onPick, onRemove }: 
           }}
         />
         <span
-          className={shown ? 'text-[13px] leading-5 font-medium text-destructive' : 'text-[13px] leading-5 text-muted-foreground'}
+          className={shown ? 'text-label leading-5 font-medium text-danger' : 'text-label leading-5 font-normal text-ink-soft'}
           role={shown ? 'alert' : undefined}
         >
           {shown ?? `${photoFormatsLabel()}, tối đa ${maxSource}. Jotly cắt vuông ${avatar_edge_px}×${avatar_edge_px} px.`}

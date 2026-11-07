@@ -10,7 +10,7 @@ import { StepName } from './components/StepName'
 import { TimeZoneField } from './components/TimeZoneField'
 
 /**
- * Ba bước sau lần đăng nhập Google đầu tiên (thiết kế B6): tên → bộ icon → múi giờ.
+ * Ba bước sau lần đăng nhập Google đầu tiên (thiết kế B6-Onboard-1..3): tên → bộ icon → múi giờ.
  * Xong bước 3 thì PATCH /me một lần (tên, bộ icon, múi giờ, onboarded) rồi vào màn Hôm nay.
  */
 export function Onboarding() {
@@ -22,6 +22,8 @@ export function Onboarding() {
   const [nameError, setNameError] = useState<string | null>(null)
   const [iconSetId, setIconSetId] = useState(start.iconSetId)
   const [timeZone, setTimeZone] = useState(start.timeZone)
+  // Đã rời bước 1 ít nhất một lần: quay lại thì đưa focus về tiêu đề.
+  const [visited, setVisited] = useState(false)
 
   function next() {
     if (step === 1) {
@@ -30,6 +32,7 @@ export function Onboarding() {
       if (!trimmed) return setNameError('Tên không được để trống')
       if (trimmed.length > max) return setNameError(`Tên tối đa ${max} ký tự`)
       setName(trimmed)
+      setVisited(true)
       setStep(2)
     } else if (step === 2) {
       setStep(3)
@@ -43,7 +46,7 @@ export function Onboarding() {
 
   const back =
     step > 1 ? (
-      <Button variant="ghost" className="px-2" onClick={() => setStep((s) => (s - 1) as 1 | 2)}>
+      <Button variant="ghost" className="h-11 px-2" onClick={() => setStep((s) => (s - 1) as 1 | 2)}>
         Quay lại
       </Button>
     ) : (
@@ -58,12 +61,14 @@ export function Onboarding() {
         <>
           {back}
           {save.isError ? (
-            <span role="alert" className="text-[13px] text-destructive">
+            <span role="alert" className="text-label leading-5 font-medium text-danger">
               Chưa lưu được. Thử lại nhé.
             </span>
           ) : null}
-          <Button size="lg" className="press" onClick={next} disabled={save.isPending}>
-            {step === 3 ? (
+          <Button size="lg" onClick={next} disabled={save.isPending}>
+            {save.isPending ? (
+              'Đang lưu…'
+            ) : step === 3 ? (
               <>
                 Bắt đầu viết <Pencil aria-hidden="true" />
               </>
@@ -84,13 +89,18 @@ export function Onboarding() {
             setNameError(null)
           }}
           error={nameError}
+          revisit={visited}
         />
       ) : step === 2 ? (
         <>
           <StepHeading title="Chọn bộ icon chấm điểm">
             Năm mức, từ ngày tệ nhất đến ngày tuyệt nhất. Đổi lại được trong Hồ sơ.
           </StepHeading>
-          <IconSetPicker value={iconSetId} onChange={setIconSetId} />
+          <IconSetPicker
+            value={iconSetId}
+            onChange={setIconSetId}
+            className="grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3"
+          />
         </>
       ) : (
         <>

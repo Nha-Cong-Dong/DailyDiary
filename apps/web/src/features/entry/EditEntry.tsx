@@ -7,7 +7,7 @@ import { ScorePicker } from '@/components/diary/ScorePicker'
 import { usePhotoUploads } from '@/components/diary/usePhotoUploads'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { flagColors, scoreLabel } from '@/lib/catalog'
+import { scoreLabel } from '@/lib/catalog'
 import { isValidDate, longDateLabel, todayIn, useNow, type DateString } from '@/lib/date'
 import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
@@ -32,8 +32,6 @@ import { deletePhoto, makeUploadPhoto, reorderPhotos } from './uploadPhoto'
 import { useAutosave } from './useAutosave'
 import { useDay } from './useDay'
 import { useFrequentSubIcons } from './useFrequentSubIcons'
-
-const SAGE = flagColors.find((f) => f.id === 'sage')?.hex
 
 /** "Viết lúc 21:20, 16/10/2026 · Sửa lần cuối 21:15, 18/10, 2 ngày sau". */
 function metaLine(entry: DayEntry, timeZone: string): string {
@@ -188,14 +186,16 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
   const statusDot = (
     <span
       aria-hidden="true"
-      className={cn('size-[9px] rounded-full border-[1.5px] border-line md:size-2.5', dirty ? 'animate-[pulse_1.2s_ease-in-out_3] bg-score-5' : !savedNow && 'bg-muted')}
-      style={!dirty && savedNow && SAGE ? { backgroundColor: SAGE } : undefined}
+      className={cn(
+        'size-[9px] rounded-full border-[1.5px] border-stroke md:size-2.5',
+        dirty ? 'animate-pulse-3 bg-score-5' : savedNow ? 'bg-sage' : 'bg-sunk',
+      )}
     />
   )
 
   return (
     // Điện thoại (B10 · Sửa trang): trình sửa toàn màn, có thanh Hủy / Lưu riêng, không có thanh tab dưới.
-    <div className="max-md:fixed max-md:inset-0 max-md:z-50 max-md:overflow-y-auto max-md:bg-background">
+    <div className="max-md:fixed max-md:inset-0 max-md:z-50 max-md:overflow-y-auto max-md:bg-paper">
       <PhoneBar
         start={
           // Còn thay đổi chưa lưu thì useBlocker chặn và hỏi "Bỏ và rời trang".
@@ -219,9 +219,9 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         </BackLink>
 
         <div className="flex animate-rise flex-col gap-1 md:gap-1.5">
-          <p className="text-[13px] leading-5 text-muted-foreground md:text-sm md:leading-[22px]">{longDateLabel(date)}</p>
+          <p className="text-[13px] leading-5 text-ink-soft md:text-sm md:leading-[22px]">{longDateLabel(date)}</p>
           <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold max-md:hidden">Sửa trang</h1>
-          <p className="inline-flex items-center gap-1.5 text-xs leading-[18px] text-muted-foreground tabular-nums md:text-[13px] md:leading-5">
+          <p className="inline-flex items-center gap-1.5 text-xs leading-[18px] text-ink-soft tabular-nums md:text-[13px] md:leading-5">
             <Clock className="size-3.5 shrink-0" aria-hidden="true" />
             {metaLine(record, timeZone)}
           </p>
@@ -242,7 +242,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         {/* Máy tính: các trường nằm trong một thẻ. Điện thoại: nằm thẳng trên nền trang. */}
         <section
           aria-label="Nội dung trang"
-          className="flex animate-rise flex-col gap-[22px] [animation-delay:.1s] md:gap-7 md:rounded-lg md:border-[1.5px] md:border-line md:bg-card md:p-[clamp(20px,4vw,32px)] md:shadow-ink"
+          className="flex animate-rise flex-col gap-[22px] [animation-delay:.1s] md:gap-7 md:rounded-lg md:border-[1.5px] md:border-stroke md:bg-card md:p-[clamp(20px,4vw,32px)] md:shadow-md"
         >
           <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0 md:gap-3">
             <Legend>Điểm của ngày</Legend>
@@ -255,12 +255,12 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
               itemClassName="max-md:min-h-[76px] max-md:rounded-[14px]"
             />
             {draft.score !== base.score ? (
-              <p className="flex animate-pop flex-wrap items-center gap-1.5 text-xs leading-[18px] text-muted-foreground md:gap-2 md:text-[13px] md:leading-5">
+              <p className="flex animate-pop flex-wrap items-center gap-1.5 text-xs leading-[18px] text-ink-soft md:gap-2 md:text-[13px] md:leading-5">
                 Đã đổi từ {base.score} · {scoreLabel(iconSetId, base.score)} sang {draft.score} · {scoreLabel(iconSetId, draft.score)}.
                 <button
                   type="button"
                   onClick={() => set('score')(base.score)}
-                  className="link-underline cursor-pointer py-0.5 font-semibold text-foreground focus-visible:outline-3 focus-visible:outline-ring"
+                  className="link-underline cursor-pointer py-0.5 font-semibold text-ink focus-visible:outline-3 focus-visible:outline-focus"
                 >
                   Hoàn tác
                 </button>
@@ -300,7 +300,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
             </span>
             <PhotoUploader uploads={uploads} labelledBy={`${ids}-photos`} />
             {photoError ? (
-              <p role="alert" className="text-[13px] leading-5 font-medium text-destructive">
+              <p role="alert" className="text-[13px] leading-5 font-medium text-danger">
                 {photoError}
               </p>
             ) : null}
@@ -317,13 +317,13 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         {/* Máy tính: thanh lưu dính đáy. Điện thoại: chỉ còn dòng trạng thái cuối trang (nút Lưu ở thanh trên). */}
         <div
           className={cn(
-            'flex flex-wrap items-center justify-between gap-3 transition-shadow max-md:-mt-1.5 md:sticky md:bottom-4 md:z-20 md:rounded-[18px] md:border-[1.5px] md:border-line md:bg-card md:py-3 md:pr-3 md:pl-5',
-            dirty ? 'md:shadow-[4px_4px_0_var(--score-5)]' : 'md:shadow-ink',
+            'flex flex-wrap items-center justify-between gap-3 transition-shadow max-md:-mt-1.5 md:sticky md:bottom-4 md:z-20 md:rounded-[18px] md:border-[1.5px] md:border-stroke md:bg-card md:py-3 md:pr-3 md:pl-5',
+            dirty ? 'md:shadow-[4px_4px_0_var(--score-5)]' : 'md:shadow-md',
           )}
         >
           <span
             role="status"
-            className="inline-flex items-center gap-2 text-[13px] leading-5 text-muted-foreground md:gap-2.5 md:text-sm md:leading-[22px] md:font-medium md:text-foreground"
+            className="inline-flex items-center gap-2 text-[13px] leading-5 text-ink-soft md:gap-2.5 md:text-sm md:leading-[22px] md:font-medium md:text-ink"
           >
             {statusDot}
             {status}
@@ -391,22 +391,22 @@ export function EditEntry({ date }: { date: string }) {
   if (!valid) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày không hợp lệ</h1>
-        <p className="text-muted-foreground">Địa chỉ cần có dạng /day/2026-10-18/edit, và là một ngày có thật.</p>
+        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
+        <p className="text-ink-soft">Địa chỉ cần có dạng /day/2026-10-18/edit, và là một ngày có thật.</p>
       </>,
     )
   }
   if (date > today) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">{longDateLabel(date)}</h1>
-        <p className="text-muted-foreground">Ngày này chưa tới nên chưa sửa được.</p>
+        <h1 className="text-title font-bold">{longDateLabel(date)}</h1>
+        <p className="text-ink-soft">Ngày này chưa tới nên chưa sửa được.</p>
       </>,
     )
   }
   if (isPending) {
     return frame(
-      <p role="status" className="text-muted-foreground">
+      <p role="status" className="text-ink-soft">
         Đang mở trang…
       </p>,
     )
@@ -421,8 +421,8 @@ export function EditEntry({ date }: { date: string }) {
   if (!entry) {
     return frame(
       <>
-        <h1 className="text-title-2 font-bold">Ngày này chưa ghi</h1>
-        <p className="text-muted-foreground">Chưa có trang để sửa.</p>
+        <h1 className="text-title font-bold">Ngày này chưa ghi</h1>
+        <p className="text-ink-soft">Chưa có trang để sửa.</p>
         <Button asChild>
           <Link to={date === today ? '/today' : `/day/${date}/backfill`}>{date === today ? 'Viết cho hôm nay' : 'Ghi bù ngày này'}</Link>
         </Button>

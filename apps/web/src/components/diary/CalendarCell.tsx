@@ -25,7 +25,10 @@ type CalendarCellProps = {
   numberPosition?: 'top' | 'bottom'
 }
 
-/** Một ô ngày trong lịch tháng: main icon + sub icon, hoặc vòng nét đứt nếu ngày đã qua mà chưa ghi. */
+/**
+ * Một ô ngày (B11-Components · Ô lịch): main icon + sub icon, hoặc vòng nét đứt nếu chưa chấm. Hôm nay: nền đào tĩnh,
+ * viền mực, bóng 2px (không nhấp nháy). Đã qua: viền line-soft, di chuột viền mực. Chưa tới: không viền, số ink-faint.
+ */
 export function CalendarCell({
   day,
   weekday,
@@ -43,22 +46,23 @@ export function CalendarCell({
 }: CalendarCellProps) {
   const icon = size === 'md' ? 32 : 24
   const classes = cn(
-    'flex flex-col items-center justify-between rounded-sm border-[1.5px] text-foreground',
+    'flex flex-col items-center justify-between rounded-sm border-[1.5px] text-ink',
     size === 'md' ? 'min-h-[76px] px-0 pt-1.5 pb-1' : 'h-12 pt-1 pb-0.5',
     weekday && 'gap-1.5 py-2.5',
-    state === 'today' && 'border-line bg-secondary shadow-ink-sm',
-    state === 'past' && 'border-border',
+    state === 'today' && 'border-stroke bg-peach text-on-accent shadow-sm',
+    state === 'past' && 'border-line-soft',
     state === 'future' && 'border-transparent',
-    onClick && 'cursor-pointer hover:border-line focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+    onClick &&
+      'cursor-pointer transition-[border-color] duration-(--dur-fast) ease-out pointer-fine:hover:border-stroke focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus',
     className,
   )
   const number = (
     <span
       className={cn(
-        'tabular-nums',
-        size === 'md' ? 'text-[13px] leading-[18px]' : 'text-label leading-3',
+        'nums',
+        size === 'md' ? 'text-label' : 'text-[12px] leading-3',
         state === 'today' ? 'font-bold' : 'font-medium',
-        state === 'future' ? 'text-faint' : 'text-foreground',
+        state === 'future' ? 'text-ink-faint' : state === 'today' ? 'text-on-accent' : 'text-ink',
       )}
     >
       {day}
@@ -66,7 +70,7 @@ export function CalendarCell({
   )
   const content = (
     <>
-      {weekday ? <span className="text-label font-semibold text-muted-foreground">{weekday}</span> : null}
+      {weekday ? <span className={cn('text-label', state === 'today' ? 'text-on-accent' : 'text-ink-soft')}>{weekday}</span> : null}
       {numberPosition === 'top' ? number : null}
       <span className={cn('flex items-center justify-center', iconClassName)} style={{ width: icon, height: icon, ...iconStyle }}>
         {score ? (
@@ -74,7 +78,7 @@ export function CalendarCell({
         ) : state === 'future' ? null : (
           <span
             aria-hidden="true"
-            className="rounded-full border-[1.5px] border-dashed border-muted-foreground"
+            className={cn('rounded-full border-[1.5px] border-dashed', state === 'today' ? 'border-on-accent' : 'border-ink-soft')}
             style={{ width: icon * 0.8, height: icon * 0.8 }}
           />
         )}

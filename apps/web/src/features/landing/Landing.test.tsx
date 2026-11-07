@@ -1,7 +1,9 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { HomePage } from '@/routes/HomePage'
 import { makeEntry, makeMe, mockApi, renderWithMe } from '@/test/withMe'
+import { LookBack } from './LookBack'
+import { OneTapGuest } from './OneTapDemo'
 import { greeting, summarize } from './useHomeSummary'
 
 describe('Tóm tắt trang chủ', () => {
@@ -77,4 +79,58 @@ describe('Trang chủ', () => {
     expect(await screen.findAllByRole('link', { name: 'Tiếp tục với Google' })).toHaveLength(2)
     expect(paths.some((p) => p.startsWith('/calendar'))).toBe(false)
   })
+
+  it('đã đăng nhập: chọn một ngày trống trong tuần rồi chấm điểm thì lưu ghi bù cho đúng ngày đó', async () => {
+    const me = makeMe()
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: me.timezone }).format(new Date())
+    const calls = mockApi(me)
+    renderWithMe([{ path: '/', Component: HomePage }], '/', me)
+    const week = await screen.findByRole('group', { name: 'Chọn một ngày trong tuần' })
+    const days = within(week).getAllByRole('button')
+    expect(days).toHaveLength(7)
+    fireEvent.click(days[4])
+    const past = days[4].getAttribute('aria-label')!.replace(', chưa ghi', '')
+    expect(await screen.findByText('Ngày này còn trống. Chạm một mức để ghi bù.')).toBeInTheDocument()
+    // Nút chấm của thẻ "Một chạm" (ScorePicker, có data-score); chờ trang của ngày đó tải xong mới bật.
+    const three = () => document.querySelector<HTMLButtonElement>('[data-score="3"]')!
+    await waitFor(() => expect(three()).toBeEnabled())
+    fireEvent.click(three())
+    const date = days[4].getAttribute('data-date')
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT' && c.path === `/entries/${date}`)).toBe(true))
+    expect(date).not.toBe(today)
+    expect(past).toMatch(/^\S+( \S+)? \d+\/\d+$/)
+  })
 })
+
+describe('Một chạm (khách, dữ liệu mẫu)', () => {
+  it('chọn 14/10 còn trống rồi chấm điểm thì thành ghi bù; "Quay về hôm nay" đưa về hôm nay', () => {
+    render(<OneTapGuest />)
+    expect(screen.getByText('Chạm một mức là hôm nay đã được ghi.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Thứ Tư 14/10, chưa ghi' }))
+    expect(screen.getByText('Thứ Tư, 14/10 của bạn thế nào?')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Điểm 5, Nở rộ' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Ghi bùĐã ghi bù 14/10: điểm 5 · Nở rộ.')
+    expect(screen.getByRole('button', { name: 'Thứ Tư 14/10, điểm 5, ghi bù' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Quay về hôm nay' }))
+    expect(screen.getByText('Hôm nay của bạn thế nào?')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Điểm 4, Hé nở' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Điểm 4 · Hé nở. Đã ghi lại hôm nay.')
+  })
+})
+
+describe('Nhìn lại', () => {
+  it('chọn tab hoặc dùng mũi tên thì đổi phần, phần không hiện bị ẩn khỏi trình đọc màn hình', () => {
+    render(<LookBack />)
+    const day = screen.getByRole('tab', { name: 'Ngày' })
+    expect(day).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: 'Phần trước' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('tab', { name: 'Năm' }))
+    expect(screen.getByRole('tab', { name: 'Năm' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: 'Phần sau' })).toBeDisabled()
+    expect(document.getElementById('f2-slide-0')).toHaveAttribute('aria-hidden', 'true')
+    fireEvent.keyDown(screen.getByRole('tablist'), { key: 'Home' })
+    expect(day).toHaveAttribute('aria-selected', 'true')
+    expect(day).toHaveFocus()
+  })
+})
+

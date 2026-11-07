@@ -2,35 +2,95 @@
 @import "tw-animate-css";
 @import "./styles/shadcn-tailwind.css";
 @import "./styles/motion.css";
-/* Be Vietnam Pro và Young Serif (logo) tự host, đã cắt còn ký tự cần dùng: styles/fonts.css. */
+/* Commissioner (biến thiên) và Young Serif (logo) tự host, đã cắt còn ký tự cần dùng: styles/fonts.css. */
 @import "./styles/fonts.css";
-@import "@fontsource/lora/vietnamese-600.css";
-@import "@fontsource/lora/vietnamese-700.css";
-@import "@fontsource/lora/latin-600.css";
-@import "@fontsource/lora/latin-700.css";
 
 @custom-variant dark (&:is(.dark *));
 
-/* Hệ thiết kế Jotly: màu "Mực & giấy", chữ "Sổ tay", nền tảng "Sổ dán" (viền mực + bóng cứng). */
+/*
+ * Hệ thiết kế Jotly 1.1 (canvas ds/jotly/tokens.json): Neo Brutalism "tờ giấy dán lên trang".
+ * Giá trị thô nằm ở :root / .dark (bên dưới); khối @theme ánh xạ sang class Tailwind.
+ *
+ * Tên chuẩn dùng cho code mới:
+ *   nền      bg-paper bg-card bg-sunk bg-pressed bg-secondary
+ *   chữ      text-ink text-ink-soft text-ink-faint text-on-accent text-on-primary text-on-danger
+ *   viền     border-stroke border-line-soft border-disabled-line (edge = viền mực 1.5px liền)
+ *   nhấn     peach / peach-soft / peach-ink, sage / sage-soft / sage-ink, lavender / lavender-soft / lavender-ink
+ *   nguy hiểm danger / danger-soft / danger-fill
+ *   dữ liệu  score-1..5 (chỉ cho dữ liệu tâm trạng)
+ *   bóng     shadow-sm / md / lg / accent / danger / danger-sm
+ *   chữ      text-display / title / heading / reading / body / label
+ * Tên cũ (shadow-ink, bg-band, text-faint, font-heading, text-title-1…) vẫn chạy như bí danh trỏ về giá trị mới.
+ */
 @theme inline {
-    --font-sans: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
-    --font-heading: 'Lora', Georgia, serif;
+    --font-sans: 'Commissioner', 'Segoe UI', system-ui, sans-serif;
     --font-brand: 'Young Serif', Georgia, serif;
+    /* Bí danh cũ: tiêu đề giờ cùng họ Commissioner, cá tính nhờ trục FLAR (xem @utility font-heading). */
+    --font-heading: 'Commissioner', 'Segoe UI', system-ui, sans-serif;
 
-    /* Thang cỡ chữ T1 · Sổ tay */
-    --text-display: 56px;
-    --text-display--line-height: 68px;
-    --text-title-1: 40px;
-    --text-title-1--line-height: 50px;
-    --text-title-2: 30px;
-    --text-title-2--line-height: 40px;
-    --text-title-3: 22px;
-    --text-title-3--line-height: 30px;
+    /* Sáu cỡ chữ. FLAR và text-wrap đặt trong @utility cùng tên ở dưới. */
+    --text-display: clamp(40px, 6vw, 64px);
+    --text-display--line-height: 1.02;
+    --text-display--font-weight: 800;
+    --text-display--letter-spacing: -0.03em;
+    --text-title: var(--title-size);
+    --text-title--line-height: var(--title-line-height);
+    --text-title--font-weight: 700;
+    --text-title--letter-spacing: -0.015em;
+    --text-heading: 22px;
+    --text-heading--line-height: 30px;
+    --text-heading--font-weight: 600;
     --text-reading: 18px;
     --text-reading--line-height: 30px;
-    --text-label: 12px;
-    --text-label--line-height: 16px;
+    --text-reading--font-weight: 400;
+    --text-body: 16px;
+    --text-body--line-height: 24px;
+    --text-body--font-weight: 400;
+    --text-label: 13px;
+    --text-label--line-height: 18px;
+    --text-label--font-weight: 600;
+    /* Bí danh cũ của thang T1: title-1, title-2 → title; title-3 → heading. */
+    --text-title-1: var(--title-size);
+    --text-title-1--line-height: var(--title-line-height);
+    --text-title-1--letter-spacing: -0.015em;
+    --text-title-2: var(--title-size);
+    --text-title-2--line-height: var(--title-line-height);
+    --text-title-2--letter-spacing: -0.015em;
+    --text-title-3: 22px;
+    --text-title-3--line-height: 30px;
 
+    /* Màu Jotly 1.1 */
+    --color-paper: var(--paper);
+    --color-sunk: var(--sunk);
+    --color-ink: var(--ink);
+    --color-ink-soft: var(--ink-soft);
+    --color-ink-faint: var(--ink-faint);
+    --color-stroke: var(--stroke);
+    --color-line-soft: var(--line-soft);
+    --color-ink-shadow: var(--ink-shadow);
+    --color-peach: var(--peach);
+    --color-peach-soft: var(--peach-soft);
+    --color-peach-ink: var(--peach-ink);
+    --color-sage: var(--sage);
+    --color-sage-soft: var(--sage-soft);
+    --color-sage-ink: var(--sage-ink);
+    --color-lavender: var(--lavender);
+    --color-lavender-soft: var(--lavender-soft);
+    --color-lavender-ink: var(--lavender-ink);
+    --color-on-accent: var(--on-accent);
+    --color-on-primary: var(--on-primary);
+    --color-danger: var(--danger);
+    --color-danger-soft: var(--danger-soft);
+    --color-danger-fill: var(--danger-fill);
+    --color-on-danger: var(--on-danger);
+    --color-focus: var(--focus);
+    --color-notebook-margin: var(--notebook-margin);
+    --color-tape: var(--tape);
+    /* Lớp xem ảnh toàn màn luôn tối ở cả hai chế độ (PhotoViewer). */
+    --color-viewer-ink: #fef7ec;
+    --color-viewer-stroke: #bdb4a5;
+
+    /* Biến shadcn (component vendored dùng) */
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -63,18 +123,18 @@
     --color-foreground: var(--foreground);
     --color-background: var(--background);
 
-    /* Màu riêng của Jotly */
-    --color-line: var(--line);
-    --color-band: var(--band);
+    /* Bí danh cũ (trỏ về token 1.1) */
+    --color-line: var(--stroke);
+    --color-band: var(--sunk);
     --color-pressed: var(--pressed);
     --color-primary-hover: var(--primary-hover);
-    --color-destructive-soft: var(--destructive-soft);
-    --color-destructive-fill: var(--destructive-fill);
+    --color-destructive-soft: var(--danger-soft);
+    --color-destructive-fill: var(--danger-fill);
     --color-highlight: var(--highlight);
-    --color-disabled: var(--disabled);
-    --color-disabled-foreground: var(--disabled-foreground);
+    --color-disabled: var(--secondary);
+    --color-disabled-foreground: var(--ink-faint);
     --color-disabled-line: var(--disabled-line);
-    --color-faint: var(--faint);
+    --color-faint: var(--ink-faint);
     --color-rule: var(--rule);
     --color-score-1: var(--score-1);
     --color-score-2: var(--score-2);
@@ -82,7 +142,7 @@
     --color-score-4: var(--score-4);
     --color-score-5: var(--score-5);
 
-    /* Bo góc N3: sm ô lịch, md nút/ô nhập, lg thẻ/menu, xl hộp thoại/hero */
+    /* Bo góc: sm ô lịch/chip, md nút/ô nhập, lg thẻ lớn/ngăn kéo, full ảnh đại diện + vòng main icon. */
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 22px;
@@ -91,79 +151,175 @@
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
 
-    /* Độ nổi N3: bóng cứng, không nhòe */
-    --shadow-ink-sm: 3px 3px 0 var(--ink-shadow);
+    /* Bóng cứng lệch xuống phải, không nhòe. Ấn = dịch đúng độ lệch, bóng về 0. */
+    --shadow-2xs: none;
+    --shadow-xs: none;
+    --shadow-sm: 2px 2px 0 var(--ink-shadow);
+    --shadow-md: 4px 4px 0 var(--ink-shadow);
+    --shadow-lg: 6px 6px 0 var(--ink-shadow);
+    --shadow-xl: 6px 6px 0 var(--ink-shadow);
+    --shadow-accent: 4px 4px 0 var(--peach);
+    --shadow-accent-lg: 6px 6px 0 var(--peach);
+    --shadow-danger: 4px 4px 0 var(--danger);
+    --shadow-danger-sm: 2px 2px 0 var(--danger);
+    /* Hộp xác nhận xóa (B7-Profile). */
+    --shadow-danger-lg: 6px 6px 0 var(--danger);
+    /* Bí danh cũ */
+    --shadow-ink-sm: 2px 2px 0 var(--ink-shadow);
     --shadow-ink: 4px 4px 0 var(--ink-shadow);
     --shadow-ink-lg: 6px 6px 0 var(--ink-shadow);
-    --shadow-danger-sm: 3px 3px 0 var(--destructive);
-    --shadow-danger: 4px 4px 0 var(--destructive);
+
+    /* Đường cong chuyển động (ghi đè ease-out mặc định của Tailwind). Thời lượng: biến --dur-* trong :root,
+       dùng `duration-(--dur-fast)`. */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-move: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* FLAR (độ loe chân chữ) cho các cỡ tiêu đề; gộp với class cùng tên sinh từ @theme. */
+@utility text-display {
+    font-variation-settings: "FLAR" 100;
+    text-wrap: balance;
+}
+@utility text-title {
+    font-variation-settings: "FLAR" 60;
+    text-wrap: balance;
+}
+@utility text-heading {
+    font-variation-settings: "FLAR" 60;
+    text-wrap: balance;
+}
+@utility text-title-1 {
+    font-variation-settings: "FLAR" 60;
+}
+@utility text-title-2 {
+    font-variation-settings: "FLAR" 60;
+}
+@utility text-title-3 {
+    font-variation-settings: "FLAR" 60;
+}
+@utility font-heading {
+    font-variation-settings: "FLAR" 60;
+}
+@utility font-brand {
+    font-variation-settings: normal;
+}
+
+/* Viền mực của mọi vật thể: 1.5px liền màu stroke. edge-dashed: ô trống/tắt. */
+@utility edge {
+    border: var(--stroke-width) solid var(--stroke);
+}
+@utility edge-dashed {
+    border: var(--stroke-width) dashed var(--stroke);
+}
+/* Số trong lịch, đồng hồ, bộ đếm. */
+@utility nums {
+    font-variant-numeric: tabular-nums;
 }
 
 :root {
-    --background: #FEF7EC;
-    --foreground: #272218;
-    --card: #FFFCF8;
-    --card-foreground: #272218;
-    --popover: #FFFCF8;
-    --popover-foreground: #272218;
-    --primary: #272218;
-    --primary-foreground: #FEF7EC;
-    --secondary: #EFE7D9;
-    --secondary-foreground: #272218;
-    --muted: #F6EDE0;
-    --muted-foreground: #6A6255;
-    --accent: #EFE7D9;
-    --accent-foreground: #272218;
-    --destructive: #A43C33;
-    --border: #DFD6C8;
-    --input: #272218;
-    --ring: #266EA4;
-    --radius: 14px;
-
-    --line: #272218;
+    /* Jotly 1.1 · chế độ sáng */
+    --paper: #fffcf8;
+    --card: #ffffff;
+    --sunk: #f5efe6;
+    --pressed: #ece3d6;
+    --ink: #272218;
+    --ink-soft: #5e574b;
+    --ink-faint: #7a7266;
+    --stroke: #272218;
     --ink-shadow: #272218;
-    --band: #F3EBDD;
-    --pressed: #E7DDCC;
-    --primary-hover: #3D372C;
-    --destructive-soft: #FFE7E3;
-    --destructive-fill: #A43C33;
-    --highlight: #F8DFA8;
-    --disabled: #EFE7D9;
-    --disabled-foreground: #8D8579;
-    --disabled-line: #C9C0B2;
-    --faint: #B5AC9E;
-    --rule: #C0D4E3;
-    --cta-shadow: #D59BB0;
+    --line-soft: #dfd6c8;
+    --peach: #f1bd90;
+    --peach-soft: #fcebdc;
+    --peach-ink: #9a5520;
+    --sage: #b3bca1;
+    --sage-soft: #e8ece0;
+    --sage-ink: #566147;
+    --lavender: #cbaac7;
+    --lavender-soft: #f2e8f0;
+    --lavender-ink: #7a5575;
+    --on-accent: #272218;
+    --primary: #272218;
+    --on-primary: #fffcf8;
+    --primary-hover: #3d372c;
+    --danger: #a43c33;
+    --danger-soft: #ffe7e3;
+    --danger-fill: #a43c33;
+    --on-danger: #ffffff;
+    --focus: #272218;
+    --disabled-line: #c9c0b2;
+    --secondary: #efe7d9;
+    --highlight: #fcebdc;
+    /* Thẻ nhật ký "trang sổ" (B11-DayCard): dòng kẻ vở, lề đỏ, băng dính ảnh, lỗ đục. */
+    --rule: #c0d4e3;
+    --notebook-margin: #e7b9cb;
+    --tape: #e3dacb;
+    --hole-in: rgb(39 34 24 / 0.16);
+
+    --stroke-width: 1.5px;
+    --focus-width: 3px;
+    --title-size: 26px;
+    --title-line-height: 32px;
+
+    --dur-press: 100ms;
+    --dur-fast: 160ms;
+    --dur-base: 220ms;
+    --dur-sheet-in: 280ms;
+    --dur-sheet-out: 200ms;
+    --dur-morph: 320ms;
+    --dur-story: 700ms;
 
     /* Thang điểm 1–5 (Year in Pixels, lịch, main icon) */
-    --score-1: #746D9E;
-    --score-2: #A783AF;
-    --score-3: #D59BB0;
-    --score-4: #EFAA99;
-    --score-5: #FAC787;
+    --score-1: #746d9e;
+    --score-2: #a783af;
+    --score-3: #d59bb0;
+    --score-4: #efaa99;
+    --score-5: #fac787;
+
+    /* Biến shadcn trỏ vào token 1.1 */
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card-foreground: var(--ink);
+    --popover: var(--card);
+    --popover-foreground: var(--ink);
+    --primary-foreground: var(--on-primary);
+    --secondary-foreground: var(--ink);
+    --muted: var(--sunk);
+    --muted-foreground: var(--ink-soft);
+    --accent: var(--secondary);
+    --accent-foreground: var(--ink);
+    --destructive: var(--danger);
+    --border: var(--line-soft);
+    --input: var(--stroke);
+    --ring: var(--focus);
+    --radius: 14px;
+    --line: var(--stroke);
+    --band: var(--sunk);
+    --faint: var(--ink-faint);
+    --cta-shadow: var(--peach);
 
     /* Màu vẽ bên trong các bộ main icon */
     --icon-ink: #272218;
     --icon-face: #272218;
-    --icon-soil: #EFE7D9;
-    --icon-moon: #EDE7DD;
-    --icon-sakura-1: #BCA59D;
-    --icon-sakura-2: #E0BDC1;
-    --icon-sakura-3: #FACCDC;
-    --icon-sakura-4: #FAB2CD;
-    --icon-sakura-5: #F589B6;
-    --icon-sakura-wilt: #856B5D;
-    --icon-sakura-core: #F2CC7A;
-    --icon-sun-1: #C6BEA1;
-    --icon-sun-2: #E0CD91;
-    --icon-sun-3: #F8D376;
-    --icon-sun-4: #FFBE4D;
-    --icon-sun-5: #FFA33E;
-    --icon-cloud: #D3D8DE;
-    --icon-cloud-dark: #A4ACB4;
-    --icon-rain: #6FA5CB;
-    --icon-blush: #E58A8F;
-    --icon-tear: #98CCEB;
+    --icon-soil: #efe7d9;
+    --icon-moon: #ede7dd;
+    --icon-sakura-1: #bca59d;
+    --icon-sakura-2: #e0bdc1;
+    --icon-sakura-3: #faccdc;
+    --icon-sakura-4: #fab2cd;
+    --icon-sakura-5: #f589b6;
+    --icon-sakura-wilt: #856b5d;
+    --icon-sakura-core: #f2cc7a;
+    --icon-sun-1: #c6bea1;
+    --icon-sun-2: #e0cd91;
+    --icon-sun-3: #f8d376;
+    --icon-sun-4: #ffbe4d;
+    --icon-sun-5: #ffa33e;
+    --icon-cloud: #d3d8de;
+    --icon-cloud-dark: #a4acb4;
+    --icon-rain: #6fa5cb;
+    --icon-blush: #e58a8f;
+    --icon-tear: #98cceb;
 
     /* Tỉ lệ sub icon so với main icon (Project_Specs: 0,5–0,6) */
     --sub-icon-ratio: 0.55;
@@ -173,71 +329,65 @@
     --chart-3: var(--score-3);
     --chart-4: var(--score-4);
     --chart-5: var(--score-5);
-    --sidebar: #FFFCF8;
-    --sidebar-foreground: #272218;
-    --sidebar-primary: #272218;
-    --sidebar-primary-foreground: #FEF7EC;
-    --sidebar-accent: #EFE7D9;
-    --sidebar-accent-foreground: #272218;
-    --sidebar-border: #DFD6C8;
-    --sidebar-ring: #266EA4;
+    --sidebar: var(--card);
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--on-primary);
+    --sidebar-accent: var(--secondary);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--line-soft);
+    --sidebar-ring: var(--focus);
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --title-size: 30px;
+        --title-line-height: 38px;
+    }
 }
 
 .dark {
-    --background: #14110D;
-    --foreground: #FEF7EC;
-    --card: #1D1A15;
-    --card-foreground: #FEF7EC;
-    --popover: #1D1A15;
-    --popover-foreground: #FEF7EC;
-    --primary: #FEF7EC;
-    --primary-foreground: #272218;
-    --secondary: #2C2822;
-    --secondary-foreground: #FEF7EC;
-    --muted: #0E0C08;
-    --muted-foreground: #B2AA9D;
-    --accent: #2C2822;
-    --accent-foreground: #FEF7EC;
-    --destructive: #E6867A;
-    --border: #34302A;
-    --input: #BDB4A5;
-    --ring: #80B7E7;
+    --paper: #14110d;
+    --card: #1d1a15;
+    --sunk: #0e0c08;
+    --pressed: #36322c;
+    --ink: #fef7ec;
+    --ink-soft: #b2aa9d;
+    --ink-faint: #8f877a;
+    --stroke: #bdb4a5;
+    --ink-shadow: #4f493f;
+    --line-soft: #34302a;
+    --peach-soft: #33261b;
+    --peach-ink: #f1bd90;
+    --sage-soft: #252b1f;
+    --sage-ink: #b3bca1;
+    --lavender-soft: #2e2330;
+    --lavender-ink: #cbaac7;
+    --primary: #fef7ec;
+    --on-primary: #272218;
+    --primary-hover: #e5ddd0;
+    --danger: #e6867a;
+    --danger-soft: #3a211e;
+    --focus: #fef7ec;
+    --disabled-line: #3f3a33;
+    --secondary: #2c2822;
+    --highlight: #5a4a24;
+    --rule: #252f37;
+    --notebook-margin: #7a5575;
+    --tape: #6b645a;
+    --hole-in: rgb(0 0 0 / 0.45);
 
-    --line: #BDB4A5;
-    --ink-shadow: #4F493F;
-    --band: #1A1712;
-    --pressed: #36322C;
-    --primary-hover: #E5DDD0;
-    --destructive-soft: #3A211E;
-    --destructive-fill: #A43C33;
-    --highlight: #5A4A24;
-    --disabled: #2C2822;
-    --disabled-foreground: #68625A;
-    --disabled-line: #3F3A33;
-    --faint: #5C564D;
-    --rule: #252F37;
-    --cta-shadow: #4F493F;
+    --score-1: #635c8b;
+    --score-2: #9b78a3;
+    --score-3: #cb91a7;
+    --score-4: #eca796;
+    --score-5: #fac787;
 
-    --score-1: #635C8B;
-    --score-2: #9B78A3;
-    --score-3: #CB91A7;
-    --score-4: #ECA796;
-    --score-5: #FAC787;
-
-    --icon-ink: #EDE5D8;
-    --icon-soil: #2C2822;
-    --icon-moon: #2B2823;
-    --icon-cloud: #81878D;
-    --icon-cloud-dark: #5D646C;
-
-    --sidebar: #1D1A15;
-    --sidebar-foreground: #FEF7EC;
-    --sidebar-primary: #FEF7EC;
-    --sidebar-primary-foreground: #272218;
-    --sidebar-accent: #2C2822;
-    --sidebar-accent-foreground: #FEF7EC;
-    --sidebar-border: #34302A;
-    --sidebar-ring: #80B7E7;
+    --icon-ink: #ede5d8;
+    --icon-soil: #2c2822;
+    --icon-moon: #2b2823;
+    --icon-cloud: #81878d;
+    --icon-cloud-dark: #5d646c;
 }
 
 /* Dòng kẻ vở theo đúng chiều cao dòng của chữ bên trong */
@@ -252,20 +402,35 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border;
+        outline-color: var(--focus);
     }
-  body {
-    @apply bg-background text-foreground;
+    body {
+        @apply bg-paper text-ink;
     }
-  html {
-    @apply font-sans;
-    color-scheme: light;
+    html {
+        @apply font-sans;
+        color-scheme: light;
+        -webkit-tap-highlight-color: transparent;
     }
-  html.dark {
-    color-scheme: dark;
+    html.dark {
+        color-scheme: dark;
     }
-  h1, h2, h3 {
-    @apply font-heading;
+    h1, h2, h3 {
+        font-variation-settings: "FLAR" 60;
+        text-wrap: balance;
+    }
+    ::selection {
+        background: var(--peach);
+        color: var(--on-accent);
+    }
+    ::placeholder {
+        color: var(--ink-faint);
+    }
+    /* Focus bàn phím: viền liền 3px màu focus, cách vật 2px. :where giữ độ ưu tiên 0 để class đè được. */
+    :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+        outline: var(--focus-width) solid var(--focus);
+        outline-offset: 2px;
     }
 }

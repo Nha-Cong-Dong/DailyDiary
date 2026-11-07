@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Copy, Info, Link2, TriangleAlert, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { BottomSheet, SheetClose, SheetDescription, SheetTitle } from '@/components/diary/BottomSheet'
+import { PHOTO_TINTS } from '@/components/diary/photoTints'
 import { Toast } from '@/components/diary/Toast'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -26,8 +27,9 @@ import {
 import { useCopyLink } from './useCopyLink'
 import { useRevokeShare, useSaveShare } from './useShares'
 
-// Ô ảnh giữ chỗ cùng tông với PhotoTile, khi trang chưa có link xem ảnh (dữ liệu mẫu).
-const TINTS = ['bg-[#E7DCEB]', 'bg-[#F6E3D6]', 'bg-[#DCE6D5]']
+const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
+// Hàng trong danh sách phần: nền nhẹ khi di chuột / ấn (canvas .j-row), không dịch.
+const rowFeedback = 'transition-colors duration-(--dur-fast) ease-out pointer-fine:hover:bg-ink/[0.035] active:bg-ink/5'
 
 type ShareDialogProps = {
   entry: DemoEntry
@@ -43,8 +45,9 @@ function settingsOf(link: ShareLink | null): ShareSettings {
 }
 
 /**
- * Hộp thoại Chia sẻ một trang (thiết kế B8 · Chia sẻ): bật/tắt link, chọn từng phần người nhận được xem, xem trước.
- * Khi link đang bật, mỗi thay đổi được lưu ngay; tắt link thì link cũ hết hiệu lực, bật lại tạo link mới.
+ * Hộp thoại Chia sẻ một trang (B8-Share máy tính, B10-Share điện thoại): bật/tắt link, chọn từng phần người nhận
+ * được xem, xem trước. Khi link đang bật, mỗi thay đổi được lưu ngay; tắt link thì link cũ hết hiệu lực, bật lại tạo
+ * link mới.
  */
 export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProps) {
   const { displayName, avatarUrl, iconSetId } = useProfile()
@@ -59,7 +62,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
   const [photosOn, setPhotosOn] = useState(() => (link ? link.photo_ids.length > 0 : false))
   const [picked, setPicked] = useState<string[]>(() => (link?.photo_ids.length ? link.photo_ids : entry.photos.map((p) => p.id)))
   const [justOff, setJustOff] = useState(false)
-  // Điện thoại (thiết kế B10): xem trước gập lại, bấm để mở.
+  // Điện thoại (B10-Share): xem trước gập lại, bấm để mở.
   const [previewOpen, setPreviewOpen] = useState(false)
 
   const linkOn = !!link
@@ -111,20 +114,23 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
         layout="responsive"
         bare
         description="Chọn từng phần người nhận được xem."
-        className="gap-0 px-0 pt-0 pb-0 md:gap-0 md:overflow-hidden md:rounded-[24px] md:p-0 md:max-w-[min(980px,calc(100%-2rem))]"
+        className="gap-0 px-0 pt-0 pb-0 md:max-w-[min(980px,calc(100%-2rem))] md:gap-0 md:overflow-hidden md:rounded-[24px] md:p-0"
       >
-        <div className="flex items-start justify-between gap-4 border-b-[1.5px] border-dashed border-border py-5 pr-5 pl-7 max-md:border-b-0 max-md:px-4 max-md:pt-4 max-md:pb-0">
+        <div className="flex items-start justify-between gap-4 border-b-[1.5px] border-dashed border-line-soft py-5 pr-5 pl-7 max-md:border-b-0 max-md:px-4 max-md:pt-4 max-md:pb-0">
           <div className="flex flex-col gap-0.5">
-            <SheetTitle className="font-heading text-title-3 font-bold max-md:text-xl max-md:leading-7">
-              Chia sẻ trang {numericDate(entry.entry_date)}
-            </SheetTitle>
-            <SheetDescription className="text-sm leading-[22px] text-muted-foreground max-md:text-[13px] max-md:leading-5">
+            <SheetTitle className="text-heading font-bold">Chia sẻ trang {numericDate(entry.entry_date)}</SheetTitle>
+            <SheetDescription className="text-sm leading-[22px] text-ink-soft max-md:text-[13px] max-md:leading-5">
               <span className="max-md:hidden">Chọn từng phần người nhận được xem. Họ chỉ xem, không sửa được.</span>
               <span className="md:hidden">Người nhận chỉ xem, không sửa được.</span>
             </SheetDescription>
           </div>
           <SheetClose asChild>
-            <Button variant="outline" size="icon" aria-label="Đóng" className="press shrink-0 rounded-[12px] hover:[&_svg]:rotate-90 [&_svg]:transition-transform max-md:hidden">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Đóng"
+              className="shrink-0 rounded-[12px] max-md:hidden [&_svg]:transition-transform [&_svg]:duration-(--dur-base) [&_svg]:ease-out pointer-fine:hover:[&_svg]:rotate-90"
+            >
               <X aria-hidden="true" />
             </Button>
           </SheetClose>
@@ -133,16 +139,16 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
         {/* Từ 880 px: hai cột cuộn riêng, cột xem trước đứng yên khi danh sách dài (hàng Ảnh không bị chân hộp che). */}
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto max-md:flex-none max-md:overflow-visible min-[880px]:grid min-[880px]:grid-cols-[minmax(0,1fr)_minmax(300px,380px)] min-[880px]:grid-rows-[minmax(0,1fr)] min-[880px]:overflow-hidden">
           <div className="flex min-w-0 flex-col gap-6 px-7 py-6 max-md:gap-4 max-md:px-4 max-md:pt-4 max-md:pb-0 min-[880px]:min-h-0 min-[880px]:overflow-y-auto">
-            <section className="flex flex-col gap-3.5 rounded-[18px] border-[1.5px] border-line bg-background px-[18px] py-4 max-md:gap-3 max-md:rounded-[16px] max-md:px-3.5 max-md:py-3">
+            <section className="flex flex-col gap-3.5 rounded-[18px] border-[1.5px] border-stroke bg-paper px-[18px] py-4 max-md:gap-3 max-md:rounded-[16px] max-md:px-3.5 max-md:py-3">
               <div className="flex items-center gap-3.5 max-md:gap-3">
-                <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-[12px] border-[1.5px] border-line bg-card max-md:hidden">
-                  <Link2 className={cn('size-5 transition-transform duration-300', linkOn && '-rotate-45')} />
+                <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-[12px] border-[1.5px] border-stroke bg-card max-md:hidden">
+                  <Link2 className={cn('size-5 transition-transform duration-300 ease-out', linkOn && '-rotate-45')} />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span id={`${ids}-link`} className="text-[15px] leading-6 font-semibold">
+                  <span id={`${ids}-link`} className="text-body font-semibold">
                     Link chia sẻ
                   </span>
-                  <span role="status" className="text-[13px] leading-5 text-muted-foreground max-md:text-xs max-md:leading-[18px]">
+                  <span role="status" className="text-[13px] leading-5 text-ink-soft max-md:leading-[18px]">
                     {linkDesc}
                   </span>
                 </div>
@@ -156,27 +162,27 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
               <div className="flex flex-wrap gap-2 max-md:flex-nowrap">
                 <div
                   aria-label="Link chia sẻ"
-                  className="flex h-11 min-w-0 flex-[1_1_220px] items-center gap-2 rounded-[12px] border-[1.5px] border-line bg-card px-3.5 text-sm max-md:flex-1 max-md:px-3"
+                  className="flex h-11 min-w-0 flex-[1_1_220px] items-center gap-2 rounded-[12px] border-[1.5px] border-stroke bg-card px-3.5 text-sm max-md:flex-1 max-md:px-3"
                 >
-                  <Link2 className="size-4 shrink-0 text-muted-foreground max-md:hidden" aria-hidden="true" />
+                  <Link2 className="size-4 shrink-0 text-ink-soft max-md:hidden" aria-hidden="true" />
                   {url ? (
-                    <span key={url} className="animate-rise truncate tabular-nums select-all">
+                    <span key={url} className="animate-rise truncate select-all nums">
                       {displayUrl(url)}
                     </span>
                   ) : (
-                    <span className="truncate text-muted-foreground">
+                    <span className="truncate text-ink-soft">
                       <span className="max-md:hidden">Bật link chia sẻ để tạo link</span>
                       <span className="md:hidden">Bật để tạo link</span>
                     </span>
                   )}
                 </div>
                 <Button
-                  className="press min-w-32 rounded-[12px] max-md:w-[104px] max-md:min-w-0 max-md:shrink-0 max-md:gap-1.5 max-md:px-0"
+                  className="min-w-32 rounded-[12px] max-md:w-[104px] max-md:min-w-0 max-md:shrink-0 max-md:gap-1.5 max-md:px-0"
                   disabled={!url || !content}
                   onClick={() => url && copy(url, 'dialog')}
                 >
                   {copied === 'dialog' ? (
-                    <Check className="size-[18px] animate-stamp" aria-hidden="true" />
+                    <Check className="size-[18px] animate-stamp" strokeWidth={2.4} aria-hidden="true" />
                   ) : (
                     <Copy className="size-[18px] max-md:hidden" aria-hidden="true" />
                   )}
@@ -187,31 +193,35 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
 
             <section aria-labelledby={`${ids}-parts`} className="flex flex-col gap-2.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h3 id={`${ids}-parts`} className="font-sans text-[15px] leading-[22px] font-semibold">
+                <h3 id={`${ids}-parts`} className="text-body leading-[22px] font-semibold">
                   Người nhận được xem
                 </h3>
                 <div className="flex shrink-0 gap-3.5 whitespace-nowrap">
                   <button
                     type="button"
                     aria-label="Chọn tất cả"
-                    className="link-underline cursor-pointer py-1 text-[13px] font-medium"
+                    className={cn('link-underline cursor-pointer py-1 text-[13px] leading-[18px] font-medium max-md:min-h-11', focusRing)}
                     onClick={() => setAll(true)}
                   >
                     <span className="max-md:hidden">Chọn tất cả</span>
                     <span className="md:hidden">Tất cả</span>
                   </button>
-                  <button type="button" className="link-underline cursor-pointer py-1 text-[13px] font-medium" onClick={() => setAll(false)}>
+                  <button
+                    type="button"
+                    className={cn('link-underline cursor-pointer py-1 text-[13px] leading-[18px] font-medium max-md:min-h-11', focusRing)}
+                    onClick={() => setAll(false)}
+                  >
                     Bỏ hết
                   </button>
                 </div>
               </div>
-              <ul aria-label="Các phần được chia sẻ" className="flex flex-col rounded-[16px] border-[1.5px] border-line">
-                <li className="flex min-h-[52px] items-center gap-3 border-b-[1.5px] border-dashed border-border px-4 py-2 max-md:px-3.5 max-md:py-1.5">
+              <ul aria-label="Các phần được chia sẻ" className="flex flex-col rounded-[16px] border-[1.5px] border-stroke">
+                <li className="flex min-h-[52px] items-center gap-3 border-b-[1.5px] border-dashed border-line-soft px-4 py-2 max-md:px-3.5 max-md:py-1.5">
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="text-sm leading-[22px] font-medium">Ngày viết</span>
-                    <span className="text-xs leading-[18px] text-muted-foreground">{longDateLabel(entry.entry_date)}</span>
+                    <span className="text-[13px] leading-[18px] text-ink-soft">{longDateLabel(entry.entry_date)}</span>
                   </span>
-                  <span className="text-xs leading-[18px] font-semibold text-muted-foreground">Luôn hiện</span>
+                  <span className="text-label text-ink-soft">Luôn hiện</span>
                 </li>
                 {parts.map((k) => (
                   <PartRow
@@ -224,20 +234,20 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                   />
                 ))}
                 {shape.photos > 0 ? (
-                  <li className="flex flex-col gap-2.5 px-4 py-2 transition-colors hover:bg-foreground/[0.035] max-md:gap-2 max-md:px-3.5 max-md:py-1.5">
-                    <div className="flex min-h-9 items-center gap-3">
+                  <li className={cn('flex flex-col gap-2.5 px-4 py-2 max-md:gap-2 max-md:px-3.5 max-md:py-1.5', rowFeedback)}>
+                    <div className="flex min-h-9 items-center gap-3 max-md:min-h-10">
                       <span className="flex min-w-0 flex-1 flex-col">
                         <span id={`${ids}-photos`} className="text-sm leading-[22px] font-medium">
                           Ảnh
                         </span>
-                        <span className="truncate text-xs leading-[18px] text-muted-foreground">
+                        <span className="truncate text-[13px] leading-[18px] text-ink-soft">
                           {photosOn ? `${picked.length}/${shape.photos} ảnh được chọn` : `${shape.photos} ảnh`}
                         </span>
                       </span>
                       <Switch aria-labelledby={`${ids}-photos`} checked={photosOn} onCheckedChange={(on) => apply(draft, on)} />
                     </div>
                     {photosOn ? (
-                      <div role="group" aria-label="Chọn ảnh" className="flex animate-pop flex-wrap gap-2 pb-1.5">
+                      <div role="group" aria-label="Chọn ảnh" className="flex animate-pop flex-wrap gap-2 pb-1.5 max-md:gap-2.5 max-md:py-1.5">
                         {entry.photos.map((p, i) => {
                           const on = picked.includes(p.id)
                           return (
@@ -248,10 +258,10 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                               aria-pressed={on}
                               onClick={() => apply(draft, true, on ? picked.filter((x) => x !== p.id) : [...picked, p.id])}
                               className={cn(
-                                'relative flex h-[54px] w-[72px] cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-line text-[11px] text-[#6A6255] transition-[transform,opacity,box-shadow] duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97]',
-                                'overflow-hidden',
-                                TINTS[i % TINTS.length],
-                                on ? 'shadow-ink-sm' : 'opacity-45',
+                                'pick relative flex h-[54px] w-[72px] cursor-pointer items-center justify-center rounded-[10px] border-[1.5px] border-stroke text-[11px] text-ink-soft transition-opacity',
+                                focusRing,
+                                PHOTO_TINTS[i % PHOTO_TINTS.length],
+                                on ? 'shadow-sm' : 'opacity-45',
                               )}
                             >
                               {p.thumbUrl ? (
@@ -260,7 +270,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                                 p.label
                               )}
                               {on ? (
-                                <span aria-hidden="true" className="absolute -top-2 -right-2 flex size-[22px] animate-stamp items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                <span aria-hidden="true" className="absolute -top-2 -right-2 flex size-[22px] animate-stamp items-center justify-center rounded-full bg-primary text-on-primary">
                                   <Check className="size-3" strokeWidth={3} />
                                 </span>
                               ) : null}
@@ -273,8 +283,11 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                 ) : null}
               </ul>
               {!content ? (
-                <p role="status" className="flex animate-pop items-center gap-2 rounded-[12px] border-[1.5px] border-destructive bg-destructive-soft px-3.5 py-2.5 text-[13px] leading-5 max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:text-destructive">
-                  <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden="true" />
+                <p
+                  role="status"
+                  className="flex animate-pop items-center gap-2 rounded-[12px] border-[1.5px] border-danger bg-danger-soft px-3.5 py-2.5 text-[13px] leading-5 max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:text-danger"
+                >
+                  <TriangleAlert className="size-4 shrink-0 text-danger" aria-hidden="true" />
                   Bật ít nhất một phần để có thể chia sẻ.
                 </p>
               ) : null}
@@ -285,10 +298,17 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
               aria-expanded={previewOpen}
               aria-controls={`${ids}-preview-panel`}
               onClick={() => setPreviewOpen((v) => !v)}
-              className="flex h-11 cursor-pointer items-center justify-between rounded-[12px] border-[1.5px] border-dashed border-border bg-muted px-3.5 text-sm font-semibold transition-colors active:bg-foreground/5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
+              className={cn(
+                'flex h-11 cursor-pointer items-center justify-between rounded-[12px] border-[1.5px] border-dashed border-line-soft bg-sunk px-3.5 text-sm font-semibold md:hidden',
+                rowFeedback,
+                focusRing,
+              )}
             >
               {previewOpen ? 'Ẩn xem trước' : 'Xem trước'}
-              <ChevronDown className={cn('size-4 transition-transform duration-200', previewOpen && 'rotate-180')} aria-hidden="true" />
+              <ChevronDown
+                className={cn('size-4 transition-transform duration-200 ease-out', previewOpen && 'rotate-180')}
+                aria-hidden="true"
+              />
             </button>
           </div>
 
@@ -296,17 +316,17 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
             id={`${ids}-preview-panel`}
             aria-labelledby={`${ids}-preview`}
             className={cn(
-              'flex min-w-0 flex-col gap-3.5 border-t-[1.5px] border-dashed border-border bg-muted px-7 py-6 min-[880px]:min-h-0 min-[880px]:overflow-y-auto min-[880px]:border-t-0 min-[880px]:border-l-[1.5px]',
+              'flex min-w-0 flex-col gap-3.5 border-t-[1.5px] border-dashed border-line-soft bg-sunk px-7 py-6 min-[880px]:min-h-0 min-[880px]:overflow-y-auto min-[880px]:border-t-0 min-[880px]:border-l-[1.5px]',
               'max-md:border-t-0 max-md:bg-transparent max-md:px-4 max-md:pt-4 max-md:pb-0',
-              !previewOpen && 'max-md:hidden',
+              previewOpen ? 'max-md:animate-rise' : 'max-md:hidden',
             )}
           >
             <div className="flex items-baseline justify-between gap-3 max-md:sr-only">
-              <h3 id={`${ids}-preview`} className="font-sans text-[15px] leading-[22px] font-semibold">
+              <h3 id={`${ids}-preview`} className="text-body leading-[22px] font-semibold">
                 Xem trước
               </h3>
               {link ? (
-                <a href={`/s/${link.token}`} target="_blank" rel="noreferrer" className="link-underline text-[13px] leading-5 font-medium">
+                <a href={`/s/${link.token}`} target="_blank" rel="noreferrer" className={cn('link-underline text-[13px] leading-5 font-medium', focusRing)}>
                   Mở như người nhận
                 </a>
               ) : null}
@@ -318,25 +338,30 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
         {/* Điện thoại: nút Xong rộng hết bảng và lối mở như người nhận ngay dưới. */}
         <div className="flex flex-col gap-4 px-4 pt-4 pb-[max(24px,env(safe-area-inset-bottom))] md:hidden">
           <SheetClose asChild>
-            <Button className="press h-[50px] rounded-[14px] text-[15px]">Xong</Button>
+            <Button className="h-[50px] rounded-md">Xong</Button>
           </SheetClose>
           {link ? (
-            <a href={`/s/${link.token}`} target="_blank" rel="noreferrer" className="link-underline self-center text-[13px] font-medium">
+            <a
+              href={`/s/${link.token}`}
+              target="_blank"
+              rel="noreferrer"
+              className={cn('link-underline inline-flex min-h-11 items-center self-center text-[13px] font-medium', focusRing)}
+            >
               Mở như người nhận
             </a>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-border py-3.5 pr-5 pl-7 max-md:hidden">
-          <span className="inline-flex items-center gap-2 text-[13px] leading-5 text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-line-soft py-3.5 pr-5 pl-7 max-md:hidden">
+          <span className="inline-flex items-center gap-2 text-[13px] leading-5 text-ink-soft">
             <Info className="size-4 shrink-0" aria-hidden="true" />
             {linkOn ? 'Thay đổi được lưu ngay. Người nhận thấy bản mới khi mở lại link.' : 'Chọn xong thì bật link để chia sẻ.'}
           </span>
           <SheetClose asChild>
-            <Button className="press rounded-[12px] px-[22px]">Xong</Button>
+            <Button className="rounded-[12px] px-[22px]">Xong</Button>
           </SheetClose>
         </div>
       </BottomSheet>
-      <Toast>{toast}</Toast>
+      <Toast open={!!toast}>{toast}</Toast>
     </>
   )
 }
@@ -376,12 +401,17 @@ function PartRow({
   onChange: (on: boolean) => void
 }) {
   return (
-    <li className="flex min-h-[52px] items-center gap-3 border-b-[1.5px] border-dashed border-border px-4 py-2 transition-colors last:border-b-0 hover:bg-foreground/[0.035]">
+    <li
+      className={cn(
+        'flex min-h-[52px] items-center gap-3 border-b-[1.5px] border-dashed border-line-soft px-4 py-2 last:border-b-0 max-md:px-3.5 max-md:py-1.5',
+        rowFeedback,
+      )}
+    >
       <span className="flex min-w-0 flex-1 flex-col">
         <span id={id} className="text-sm leading-[22px] font-medium">
           {label}
         </span>
-        <span className="truncate text-xs leading-[18px] text-muted-foreground">{desc}</span>
+        <span className="truncate text-[13px] leading-[18px] text-ink-soft">{desc}</span>
       </span>
       <Switch aria-labelledby={id} checked={checked} onCheckedChange={onChange} />
     </li>

@@ -55,3 +55,16 @@ export function demoYear(): DemoPixel[][] {
     }),
   )
 }
+
+/** Một ngày trong dải 7 ngày của mục "Một chạm" (mẫu hoặc thật). */
+export type WeekDay = { date: string; score: Score | null; sub: string | null; backfilled: boolean }
+
+export const DEMO_TODAY_DATE = '2026-10-18'
+
+/** Tuần mẫu 12–18/10/2026 (14/10 còn trống để thử ghi bù; hôm nay chưa chấm). */
+export function demoWeek(): WeekDay[] {
+  return [12, 13, 14, 15, 16, 17, 18].map((day) => {
+    const e = day === DEMO_TODAY ? undefined : OCTOBER[day]
+    return { date: `2026-10-${day}`, score: e?.score ?? null, sub: e?.sub ?? null, backfilled: false }
+  })
+}

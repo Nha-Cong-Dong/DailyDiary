@@ -41,7 +41,7 @@ describe('ErrorPage', () => {
 describe('NotFoundPage', () => {
   it('đã đăng nhập: nằm trong khung app, có lối về Hôm nay và Dòng thời gian', () => {
     renderWithMe([{ path: '*', Component: NotFoundPage }], '/khong-co', makeMe())
-    expect(screen.getByText('LỖI 404')).toBeInTheDocument()
+    expect(screen.getByText('Lỗi 404')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Về Hôm nay' })).toHaveAttribute('href', '/today')
     expect(screen.getByRole('link', { name: 'Mở Dòng thời gian' })).toHaveAttribute('href', '/timeline')
     expect(screen.getByRole('link', { name: 'Hồ sơ của Minh An' })).toBeInTheDocument()
@@ -52,7 +52,7 @@ describe('NotFoundPage', () => {
       new Response(JSON.stringify({ error: { code: 'UNAUTHENTICATED', message: 'x' } }), { status: 401 }),
     )
     renderWithMe([{ path: '*', Component: NotFoundPage }], '/khong-co', null)
-    expect(await screen.findByText('LỖI 404')).toBeInTheDocument()
+    expect(await screen.findByText('Lỗi 404')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Jotly, trang chủ' })).toHaveAttribute('href', '/')
     expect(screen.queryByRole('link', { name: /Hồ sơ của/ })).not.toBeInTheDocument()
   })
