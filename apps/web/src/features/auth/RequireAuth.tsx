@@ -12,7 +12,7 @@ export function RequireAuth({ allowNotOnboarded = false }: { allowNotOnboarded?:
   const { data, error, isPending, refetch } = useMe()
   const location = useLocation()
   // /onboarding nằm ngoài khung app nên tự thêm lề.
-  const bare = allowNotOnboarded && 'mx-auto max-w-[1120px] px-4 py-8 sm:px-[clamp(16px,4vw,40px)]'
+  const bare = allowNotOnboarded && 'mx-auto max-w-[1120px] px-4 py-8 md:px-8 md:py-12'
 
   if (isPending) return <PageLoading className={cn(bare)} />
   if (error) {

@@ -1,24 +1,23 @@
-import { Eye, Image, Lock, Pencil, Search, Trash2 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { CircleCheck, Image as ImageIcon, Lock, Pencil } from 'lucide-react'
+import { useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { googleLoginUrl } from '@/api/client'
-import { MoodMark } from '@/components/diary/MoodMark'
+import { EntryCard } from '@/components/diary/EntryCard'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
+import { Stamp } from '@/components/diary/Stamp'
 import { Avatar } from '@/components/layout/Avatar'
 import { GoogleMark } from '@/components/layout/GoogleMark'
 import { Logo } from '@/components/layout/Logo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
-import { flagColors, flagHex, type Score } from '@/lib/catalog'
+import { flagColors, SCORES, scoreLabel, type Score } from '@/lib/catalog'
+import { browserTimeZone, daysEndingAt, todayIn, type DateString } from '@/lib/date'
 import { tierLimits } from '@/lib/limits'
-import { browserTimeZone, todayIn } from '@/lib/date'
-import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { AccountMenu } from './AccountMenu'
 import { DEMO_ICON_SET } from './demoData'
-import { MonthPreview, type PreviewMonth } from './MonthPreview'
-import { OneTapDemo } from './OneTapDemo'
-import { YearPreview } from './YearPreview'
-import { greeting, useHomeSummary, type HomeSummary } from './useHomeSummary'
+import { LookBack } from './LookBack'
+import { OneTapDemo, OneTapGuest } from './OneTapDemo'
+import { greeting, useHomeSummary, useRecentDays, type HomeSummary } from './useHomeSummary'
 
 // "Bắt đầu viết" vào app (chưa đăng nhập thì RequireAuth đưa sang /login).
 const START_HREF = '/today'
@@ -31,25 +30,26 @@ export type LandingAccount = {
   iconSetId: string
   timeZone: string
   shareCount: number
-  /** Chấm điểm nhanh cho hôm nay (lưu thật qua API, routes/HomePage ghép từ feature entry). */
+  /** Chấm điểm nhanh (lưu thật qua API, routes/HomePage ghép từ feature entry). */
   quickScore?: QuickScore
 }
 
+/** Chấm điểm nhanh cho ngày đang chọn trong dải 7 ngày (mặc định hôm nay; ngày trống thì thành ghi bù). */
 export type QuickScore = {
+  selected: DateString
+  onSelect: (date: DateString) => void
   value: Score | null
   onPick: (score: Score) => void
+  loading: boolean
   saving: boolean
   error: string | null
 }
 
 const wrap = 'mx-auto w-full max-w-[1120px] px-[clamp(16px,4vw,40px)]'
-const sectionPad = 'py-[clamp(80px,10vw,128px)]'
-// Thang chữ của trang: 13 nhỏ / 15 body / 17 dẫn / 20 H3 / 30 H2 / 60 Display (mảnh giao diện trong thẻ minh họa giữ cỡ của app).
-const sectionTitle = 'font-heading text-[clamp(26px,2.4vw,30px)] leading-[1.25] font-bold text-balance'
-const card = 'rounded-[20px] border-[1.5px] border-line bg-card'
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring'
-// Hiệu ứng nhỏ trong thẻ tính năng: nhấc nhẹ 2px theo đường cong chung, không nảy.
-const nudge = 'transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] group-hover/card:-translate-y-0.5'
+const wide = 'mx-auto w-full max-w-[1680px] px-[clamp(16px,4vw,56px)]'
+const sectionPad = 'py-[clamp(56px,7vw,96px)]'
+const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
+const LAVENDER = flagColors.find((f) => f.id === 'lavender')?.hex ?? null
 
 function GoogleButton({ inverted }: { inverted?: boolean }) {
   return (
@@ -57,11 +57,9 @@ function GoogleButton({ inverted }: { inverted?: boolean }) {
     <a
       href={googleLoginUrl(browserTimeZone())}
       className={cn(
-        'inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] pr-5 pl-4 text-[15px] font-semibold',
+        'inline-flex items-center gap-2.5 rounded-[16px] border-2 pr-5 pl-4 text-body font-semibold',
         focusRing,
-        inverted
-          ? 'press border-primary-foreground bg-primary-foreground text-primary'
-          : 'lift border-line bg-card shadow-ink-sm',
+        inverted ? 'press h-12 border-on-primary bg-on-primary text-primary' : 'lift-sm h-[52px] border-stroke bg-card text-ink shadow-sm',
       )}
     >
       <GoogleMark />
@@ -72,13 +70,13 @@ function GoogleButton({ inverted }: { inverted?: boolean }) {
 
 /** Chọn ngôn ngữ: MVP mới có tiếng Việt, EN hiện nhưng chưa bật (Project_Specs F-04). */
 function LanguageSwitch() {
-  const item = 'inline-flex h-full min-w-[34px] items-center justify-center rounded-[7px] px-1.5 text-[13px] font-semibold'
+  const item = 'inline-flex h-full min-w-[34px] items-center justify-center rounded-[7px] px-1.5 text-label'
   return (
-    <div role="group" aria-label="Ngôn ngữ" className="inline-flex h-9 gap-0.5 rounded-[10px] border-[1.5px] border-line p-[3px]">
-      <span aria-current="true" className={cn(item, 'bg-primary text-primary-foreground')}>
+    <div role="group" aria-label="Ngôn ngữ" className="inline-flex h-9 gap-0.5 rounded-[10px] border-2 border-stroke p-[3px]">
+      <span aria-current="true" className={cn(item, 'bg-primary text-on-primary')}>
         VI
       </span>
-      <button type="button" disabled title="English sắp có" aria-label="English, sắp có" className={cn(item, 'cursor-not-allowed text-muted-foreground')}>
+      <button type="button" disabled title="English sắp có" aria-label="English, sắp có" className={cn(item, 'cursor-not-allowed text-ink-soft')}>
         EN
       </button>
     </div>
@@ -87,21 +85,17 @@ function LanguageSwitch() {
 
 function SiteHeader({ account, todayWritten }: { account?: LandingAccount; todayWritten: boolean }) {
   const links = [
-    { href: '#tinh-nang', label: 'Tính năng' },
-    { href: '#year-in-pixels', label: 'Year in Pixels' },
+    { href: '#mot-cham', label: 'Một chạm' },
+    { href: '#nhin-lai', label: 'Nhìn lại' },
     { href: '#rieng-tu', label: 'Riêng tư' },
   ]
   return (
-    <header className={cn(wrap, 'py-6')}>
+    <header className={cn(wide, 'relative z-10 pt-5 pb-2')}>
       <nav
         aria-label="Điều hướng chính"
-        className="flex items-center gap-2 rounded-[18px] border-[1.5px] border-line bg-card py-2 pr-2.5 pl-[18px] shadow-ink-sm"
+        className="flex items-center gap-2 rounded-full border-2 border-stroke bg-card py-2 pr-2.5 pl-[22px] shadow-sm"
       >
-        <a
-          href="#"
-          aria-label="Jotly, trang chủ"
-          className="rounded-sm transition-transform duration-150 hover:[&_svg]:animate-wiggle active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring [&_svg]:origin-[50%_60%]"
-        >
+        <a href="#" aria-label="Jotly, trang chủ" className={cn('rounded-sm transition-[scale] duration-150 active:scale-[.97] motion-reduce:scale-100!', focusRing)}>
           <Logo />
         </a>
         <ul className="ml-2 hidden gap-0.5 md:flex">
@@ -109,7 +103,10 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
             <li key={l.href}>
               <a
                 href={l.href}
-                className="relative inline-flex h-10 items-center rounded-[12px] px-3 text-[15px] font-medium transition-[background-color,scale] duration-200 after:absolute after:inset-x-3 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-250 hover:bg-secondary hover:after:scale-x-100 active:scale-[.97] focus-visible:outline-3 focus-visible:outline-ring"
+                className={cn(
+                  'relative inline-flex h-10 items-center rounded-md px-3 text-body font-medium transition-[background-color] duration-(--dur-fast) ease-out after:absolute after:inset-x-3 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-(--dur-base) after:ease-out pointer-fine:hover:bg-secondary pointer-fine:hover:after:scale-x-100',
+                  focusRing,
+                )}
               >
                 {l.label}
               </a>
@@ -120,11 +117,11 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
           <span className="hidden sm:inline-flex">
             <LanguageSwitch />
           </span>
-          <ThemeToggle className="press size-10 rounded-[12px]" />
+          <ThemeToggle className="size-10 rounded-md border-2" />
           <Link
             to={START_HREF}
             className={cn(
-              'press inline-flex h-10 shrink-0 items-center rounded-[12px] bg-primary px-3.5 text-[15px] font-semibold text-primary-foreground hover:bg-primary-hover sm:px-4',
+              'press-solid inline-flex h-10 shrink-0 items-center rounded-md bg-primary px-4 text-body font-semibold text-on-primary pointer-fine:hover:bg-primary-hover',
               focusRing,
             )}
           >
@@ -150,358 +147,560 @@ function heroStatus(summary: HomeSummary | null | undefined): string {
   return `Tháng này bạn đã ghi ${summary.recorded}/${summary.daysSoFar} ngày · chuỗi hiện tại ${summary.streak} ngày.`
 }
 
-function previewMonth(account: LandingAccount, summary: HomeSummary): PreviewMonth {
-  const today = todayIn(account.timeZone)
-  return {
-    year: Number(today.slice(0, 4)),
-    month: Number(today.slice(5, 7)),
-    today: summary.daysSoFar,
-    days: summary.days,
-    iconSetId: account.iconSetId,
+// Nền hero: lưới ô kiểu Year in Pixels (1200 ô đủ phủ màn 1920 px), giả ngẫu nhiên cố định, chỉ để trang trí.
+const FIELD: string[] = (() => {
+  let seed = 2026
+  const rnd = () => {
+    seed = (seed * 16807) % 2147483647
+    return seed / 2147483647
   }
+  return Array.from({ length: 1200 }, () => {
+    const x = rnd()
+    if (x < 0.06) return 'border-line-soft'
+    if (x < 0.14) return 'border-line-soft bg-sunk'
+    const sc = x < 0.21 ? 1 : x < 0.36 ? 2 : x < 0.62 ? 3 : x < 0.85 ? 4 : 5
+    return `border-score-${sc} bg-score-${sc}`
+  })
+})()
+// Tailwind cần thấy tên lớp đầy đủ: border-score-1 bg-score-1 border-score-2 bg-score-2 border-score-3 bg-score-3
+// border-score-4 bg-score-4 border-score-5 bg-score-5
+
+// "Rõ ở giữa" (canvas huongMo mặc định): lưới hiện rõ nhất ở giữa hero, mờ dần ra mép; hai đốm nhỏ hai bên.
+const FIELD_MASK =
+  'radial-gradient(ellipse 30% 42% at 50% 50%, rgba(0,0,0,.62) 0%, rgba(0,0,0,.4) 40%, rgba(0,0,0,.14) 76%, rgba(0,0,0,0) 100%),' +
+  'radial-gradient(ellipse 17% 24% at 33% 35%, rgba(0,0,0,.26) 0%, rgba(0,0,0,.1) 55%, rgba(0,0,0,0) 100%),' +
+  'radial-gradient(ellipse 17% 24% at 67% 66%, rgba(0,0,0,.26) 0%, rgba(0,0,0,.1) 55%, rgba(0,0,0,0) 100%)'
+
+function HeroField() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-0 grid animate-fade [animation-duration:800ms] grid-cols-[repeat(auto-fill,32px)] auto-rows-[32px] content-center justify-center gap-2 overflow-hidden p-4"
+      style={{ maskImage: FIELD_MASK, WebkitMaskImage: FIELD_MASK } as CSSProperties}
+    >
+      {FIELD.map((cls, i) => (
+        <span key={i} className={cn('rounded-[6px] border', cls)} />
+      ))}
+    </div>
+  )
+}
+
+/** Ba lỗ đục bên lề trang sổ. */
+function Holes({ className, rings }: { className?: string; rings?: boolean }) {
+  return (
+    <div aria-hidden="true" className={cn('absolute inset-y-0 left-4 flex flex-col justify-evenly', className)}>
+      {[0, 1, 2].map((i) => (
+        <span key={i} className="relative size-4 rounded-full border-2 border-stroke bg-paper">
+          {rings ? (
+            <span className="absolute -top-1.5 -left-6 h-6 w-10 rounded-full border-[3px] border-stroke shadow-[inset_0_0_0_2.5px_var(--color-line-soft)]" />
+          ) : null}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/** Hai trang sổ MẪU bên phải hero: trang hôm qua phía sau, trang hôm nay phía trước, chạm thử đổi điểm tại chỗ. */
+function HeroNotebook() {
+  const [score, setScore] = useState<Score>(4)
+  const name = scoreLabel(DEMO_ICON_SET, score)
+  return (
+    <div className="relative w-full max-w-[420px] pt-2 pr-1.5 pb-3.5">
+      <div
+        aria-hidden="true"
+        className="ruled absolute top-0 left-0 flex h-[84%] w-[74%] -rotate-4 animate-stamp flex-col gap-0.5 rounded-lg border-2 border-stroke bg-card pt-4 pl-[50px] shadow-md [animation-delay:100ms]"
+      >
+        <Holes rings />
+        <span className="text-label text-ink-soft">Thứ Bảy · 17/10</span>
+        <span className="text-body font-semibold">Dọn lại góc học tập</span>
+      </div>
+
+      <article
+        aria-label="Trang nhật ký mẫu, Chủ nhật 18/10/2026"
+        className="tilt relative mt-11 ml-[clamp(36px,10vw,56px)] flex rotate-[1.5deg] animate-stamp flex-col gap-3.5 rounded-lg border-2 border-stroke bg-card pt-[22px] pr-[22px] pb-5 pl-[54px] shadow-lg [animation-delay:220ms]"
+      >
+        <Holes />
+        <span aria-hidden="true" className="absolute inset-y-0 left-[42px] w-0.5 bg-notebook-margin" />
+        <div className="flex items-center justify-between gap-3">
+          <span className="flex flex-col">
+            <span className="text-label text-ink-soft">Chủ nhật · 18/10/2026</span>
+            <span className="text-label">Hôm nay · {name}</span>
+          </span>
+          <span className="relative flex size-14 shrink-0 items-center justify-center rounded-full border-2 border-stroke bg-card shadow-sm">
+            <span role="img" aria-label={`Điểm ${score}, ${name}`} className="flex">
+              <ScoreIcon key={score} iconSetId={DEMO_ICON_SET} score={score} size={38} className="animate-pop" />
+            </span>
+            <span
+              aria-hidden="true"
+              className="absolute -right-2 -bottom-1.5 flex size-[26px] items-center justify-center rounded-full border-2 border-stroke bg-card text-[15px] leading-none"
+            >
+              😌
+            </span>
+          </span>
+        </div>
+        <h3 className="text-heading">Chiều mưa đọc sách</h3>
+        <p className="ruled pb-[30px] text-reading">Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở. Tối gọi điện cho mẹ.</p>
+        <fieldset className="flex min-w-0 flex-col gap-2">
+          <legend className="mb-2 text-label">Chạm để đổi điểm</legend>
+          <div className="flex gap-1">
+            {SCORES.map((n) => {
+              const on = n === score
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`Điểm ${n}, ${scoreLabel(DEMO_ICON_SET, n)}`}
+                  aria-pressed={on}
+                  onClick={() => setScore(n)}
+                  className={cn(
+                    'pick flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md border-2',
+                    focusRing,
+                    on ? 'border-stroke bg-lavender-soft shadow-sm' : 'border-line-soft pointer-fine:hover:border-stroke pointer-fine:hover:bg-card',
+                  )}
+                >
+                  <ScoreIcon iconSetId={DEMO_ICON_SET} score={n} size={28} />
+                </button>
+              )
+            })}
+          </div>
+        </fieldset>
+        <p className="flex items-center gap-1.5 text-label text-sage-ink">
+          <CircleCheck className="size-4" strokeWidth={2.5} aria-hidden="true" />
+          Đã lưu lúc 21:04
+        </p>
+      </article>
+    </div>
+  )
 }
 
 function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSummary | null }) {
-  const dark = useDarkMode()
-  const lavender = flagColors.find((f) => f.id === 'lavender')!
+  const rise = (delay: number) => ({ animationDelay: `${delay}ms` })
   return (
-    <section className={cn(wrap, 'flex flex-wrap items-center gap-[72px] pt-[clamp(56px,8vw,112px)] pb-[clamp(80px,10vw,136px)]')}>
-      <div className="flex min-w-0 flex-[1_1_400px] flex-col gap-5">
-        {account ? (
-          <Link
-            to="/profile"
-            className="group/hi inline-flex animate-rise items-center gap-2.5 self-start rounded-full border-[1.5px] border-line bg-card py-1 pr-3.5 pl-1 text-[15px] leading-[22px] font-medium transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            <Avatar name={account.name} src={account.avatarUrl} size={28} className="group-hover/hi:animate-wiggle" />
-            {greeting(account.name, account.timeZone)}
-          </Link>
-        ) : null}
-        <h1 className="group/h1 max-w-[560px] animate-rise text-[clamp(34px,4.4vw,60px)] leading-[1.12] font-bold tracking-[-0.02em] text-balance">
-          Chạm để ghi chú, mở để{' '}
-          <span className="relative inline-block whitespace-nowrap">
-            nhìn lại.
-            {/* Nét gạch vẽ tay chạy ra sau khi tiêu đề hiện; dày lên khi di chuột. */}
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 200 16"
-              preserveAspectRatio="none"
-              className="absolute -bottom-[0.3em] -left-[2%] h-[0.42em] w-[104%] overflow-visible"
-            >
-              <path
-                className="draw-in group-hover/h1:stroke-[7]"
-                pathLength={1}
-                d="M4 11c38-6 92-9 192-4"
-                fill="none"
-                stroke="var(--score-3)"
-                strokeWidth={4}
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-          </span>
-        </h1>
-        <p className="max-w-[400px] animate-rise text-[17px] leading-7 text-muted-foreground" style={{ animationDelay: '.12s' }}>
-          Mỗi ngày một trang. Chấm điểm, chọn biểu tượng, viết vài dòng nếu muốn.
-        </p>
-        <div className="mt-3 flex animate-rise flex-wrap items-center gap-x-[22px] gap-y-3.5" style={{ animationDelay: '.24s' }}>
+    <section aria-labelledby="hero-title" className="relative">
+      <HeroField />
+      <div
+        className={cn(
+          wide,
+          'relative z-[1] grid grid-cols-[minmax(0,1fr)] gap-y-14 pt-[clamp(32px,5vw,64px)] pb-[clamp(72px,8vw,112px)]',
+          'md:min-h-[640px] md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-x-10',
+          'min-[1180px]:min-h-[760px] min-[1180px]:grid-cols-[minmax(0,400px)_minmax(0,1fr)_minmax(0,420px)] min-[1180px]:gap-x-[clamp(28px,2.6vw,48px)]',
+        )}
+      >
+        <div className="flex min-w-0 flex-col gap-[22px] md:col-start-1 md:row-start-1 md:self-start md:pt-4 min-[1180px]:pt-6">
           {account ? (
-            <>
-              <Link
-                to="/today"
-                className={cn(
-                  'lift inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-line bg-card pr-[18px] pl-4 text-[15px] font-semibold shadow-ink-sm',
-                  focusRing,
-                )}
+            <Link
+              to="/profile"
+              className={cn(
+                'inline-flex animate-rise items-center gap-2.5 self-start rounded-full border-2 border-stroke bg-card py-1 pr-3.5 pl-1 text-body font-medium transition-[translate] duration-(--dur-fast) ease-out pointer-fine:hover:-translate-y-0.5 motion-reduce:translate-none!',
+                focusRing,
+              )}
+            >
+              <Avatar name={account.name} src={account.avatarUrl} size={28} className="text-[10px]" />
+              {greeting(account.name, account.timeZone)}
+            </Link>
+          ) : null}
+          <h1 id="hero-title" className="max-w-[520px] animate-rise text-display">
+            Chạm để ghi chú, mở để{' '}
+            <span className="relative inline-block whitespace-nowrap">
+              nhìn lại.
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 200 16"
+                preserveAspectRatio="none"
+                className="absolute -bottom-[0.22em] -left-[2%] h-[0.36em] w-[104%] overflow-visible"
               >
-                <Pencil className="size-[18px]" aria-hidden="true" />
-                Mở trang hôm nay
-              </Link>
-              <Link to="/timeline" className="link-underline text-[15px] font-medium">
-                Xem Dòng thời gian
-              </Link>
-            </>
-          ) : (
-            <>
-              <GoogleButton />
-              <a href="#mot-cham" className="link-underline text-[15px] font-medium">
-                Xem cách hoạt động
-              </a>
-            </>
-          )}
-        </div>
-        <p className="animate-rise text-[13px] leading-5 text-muted-foreground" style={{ animationDelay: '.32s' }}>
-          {account ? heroStatus(summary) : 'Đăng nhập bằng Gmail, không cần mật khẩu.'}
-        </p>
-      </div>
-
-      <div aria-hidden="true" className="flex min-w-0 flex-[1_1_400px] flex-col items-end">
-        <MonthPreview
-          className="w-full max-w-[400px] rotate-2"
-          // Đã đăng nhập: vẽ tháng hiện tại từ cùng số liệu với dòng "Tháng này bạn đã ghi X/Y ngày".
-          month={account && summary ? previewMonth(account, summary) : undefined}
-        />
-        <article
-          className={cn(card, 'group/tilt tilt -mt-[88px] w-full max-w-[340px] -rotate-[2.5deg] animate-drop-left self-start overflow-hidden shadow-ink')}
-          style={{ animationDelay: '.5s' }}
-        >
-          <div className="h-14 border-b-[1.5px] border-line" style={{ backgroundColor: flagHex(lavender.hex, dark) }} />
-          <div className="flex flex-col gap-2 px-5 pb-5">
-            <span className="-mt-[30px] flex size-[60px] items-center justify-center rounded-full border-[1.5px] border-line bg-card group-hover/tilt:[&>span>svg]:animate-wiggle">
-              <MoodMark
-                iconSetId={DEMO_ICON_SET}
-                score={4}
-                subIcon="😌"
-                size={44}
-                subClassName="animate-pop transition-[translate,rotate] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] group-hover/tilt:-translate-y-0.5 group-hover/tilt:-rotate-[4deg]"
-                subStyle={{ animationDelay: '1.7s' }}
-              />
+                <path
+                  className="draw-in stroke-peach"
+                  pathLength={1}
+                  d="M4 11c38-6 92-9 192-4"
+                  fill="none"
+                  strokeWidth={5}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
             </span>
-            <span className="text-xs leading-[18px] text-muted-foreground">Chủ nhật, 18/10 · Hôm nay</span>
-            <span className="font-heading text-lg leading-[26px] font-semibold">Chiều mưa đọc sách</span>
-            <span className="ruled text-sm leading-6">Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở.</span>
+          </h1>
+          <p className="max-w-[380px] animate-rise text-reading text-ink-soft" style={rise(70)}>
+            Nhật ký mỗi ngày một trang. Chấm điểm, chọn biểu tượng, viết vài dòng nếu muốn.
+          </p>
+          <div className="mt-3 flex animate-rise flex-wrap items-center gap-x-[22px] gap-y-3.5" style={rise(140)}>
+            {account ? (
+              <>
+                <Link
+                  to="/today"
+                  className={cn(
+                    'lift-sm inline-flex h-[52px] items-center gap-2.5 rounded-[16px] border-2 border-stroke bg-card pr-[18px] pl-4 text-body font-semibold shadow-sm',
+                    focusRing,
+                  )}
+                >
+                  <Pencil className="size-[18px]" aria-hidden="true" />
+                  Mở trang hôm nay
+                </Link>
+                <Link to="/timeline" className="link-underline text-body font-medium">
+                  Xem Dòng thời gian
+                </Link>
+              </>
+            ) : (
+              <>
+                <GoogleButton />
+                <a href="#mot-cham" className="link-underline text-body font-medium">
+                  Xem cách hoạt động
+                </a>
+              </>
+            )}
           </div>
-        </article>
+          <p className="animate-rise text-label font-normal text-ink-soft" style={rise(210)}>
+            {account ? heroStatus(summary) : 'Đăng nhập bằng Gmail, không cần mật khẩu.'}
+          </p>
+        </div>
+        <div className="flex min-w-0 justify-end md:col-start-2 md:row-start-1 md:self-end min-[1180px]:col-start-3">
+          <HeroNotebook />
+        </div>
       </div>
     </section>
   )
 }
 
-function FeatureCard({ visual, title, children }: { visual: ReactNode; title: string; children: ReactNode }) {
+/** Vạch chia giữa các mục (canvas "Mầm lớn dần"): icon mầm lớn dần từ Hạt tới Nở rộ khi cuộn xuống. */
+function Divider({ score }: { score: Score }) {
   return (
-    <article className={cn(card, 'group/card reveal-on-scroll lift flex flex-col gap-3 p-7 shadow-ink-sm')}>
-      <div className="mb-2">{visual}</div>
-      <h3 className="font-heading text-xl leading-7 font-semibold">{title}</h3>
-      <p className="text-[15px] leading-6 text-muted-foreground">{children}</p>
-    </article>
+    <div aria-hidden="true" className="reveal-on-scroll flex h-[76px] items-center gap-3.5">
+      <span className="h-[2.5px] min-w-0 flex-1 rounded-full bg-stroke" />
+      <span
+        title={scoreLabel(DEMO_ICON_SET, score)}
+        className="flex size-12 shrink-0 items-center justify-center rounded-full border-2 border-stroke bg-card shadow-sm"
+      >
+        <ScoreIcon iconSetId={DEMO_ICON_SET} score={score} size={30} />
+      </span>
+      <span className="h-[2.5px] min-w-0 flex-1 rounded-full bg-stroke" />
+    </div>
   )
 }
 
-function Features() {
-  const dark = useDarkMode()
+function OneTapSection({ account, todayIso, week }: { account?: LandingAccount; todayIso: DateString; week: ReturnType<typeof weekOf> }) {
+  const q = account?.quickScore
+  return (
+    <section id="mot-cham" aria-labelledby="mot-cham-title">
+      <div className={cn(wrap, sectionPad, 'flex flex-wrap items-center gap-16')}>
+        <div className="reveal-on-scroll flex min-w-0 flex-[1_1_340px] flex-col gap-3.5">
+          <h2 id="mot-cham-title" className="text-title">
+            {account ? 'Một chạm cho hôm nay' : 'Bận quá? Một chạm là đủ.'}
+          </h2>
+          <p className="max-w-[380px] text-reading text-ink-soft">
+            {account
+              ? 'Chấm điểm ngay tại đây, trang hôm nay của bạn sẽ được cập nhật. Muốn viết thêm thì mở trang hôm nay.'
+              : 'Thử chấm một mức: ngày hôm đó vào ngay lịch của bạn. Viết thêm lúc nào cũng được.'}
+          </p>
+        </div>
+        <div className="reveal-on-scroll flex min-w-0 flex-[1_1_420px]">
+          {account && q ? (
+            <OneTapDemo
+              signed
+              iconSetId={account.iconSetId}
+              today={todayIso}
+              week={week}
+              selected={q.selected}
+              onSelect={q.onSelect}
+              value={q.value}
+              onPick={q.onPick}
+              loading={q.loading}
+              saving={q.saving}
+              error={q.error}
+              footer={
+                <Link to="/today" className="link-underline self-start text-body font-semibold">
+                  Viết thêm cho hôm nay
+                </Link>
+              }
+            />
+          ) : (
+            <OneTapGuest />
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** Dải 7 ngày thật tới hôm nay (đã đăng nhập). */
+function weekOf(today: DateString, recent: ReturnType<typeof useRecentDays>['data']) {
+  return daysEndingAt(today, 7).map((date) => {
+    const r = recent?.[date]
+    return { date, score: r?.score ?? null, sub: r?.sub ?? null, backfilled: r?.backfilled ?? false }
+  })
+}
+
+/** Chồng ba ảnh minh họa cạnh nội dung trang mẫu. */
+function PhotoStack() {
+  return (
+    <div aria-hidden="true" className="relative my-1.5 mr-1.5 w-[132px] shrink-0">
+      <span className="absolute inset-0 -rotate-5 rounded-md border-2 border-stroke bg-card" />
+      <span className="absolute inset-0 rotate-[7deg] rounded-md border-2 border-stroke bg-card" />
+      <span className="relative flex rotate-2 flex-col gap-1.5 rounded-md border-2 border-stroke bg-card p-[9px] pb-[7px] shadow-lg">
+        <span className="absolute top-[7px] left-1/2 -ml-[13px] h-1.5 w-[26px] -rotate-[8deg] rounded-[3px] border-2 border-stroke bg-tape" />
+        <svg viewBox="0 0 112 92" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="block h-auto w-full rounded-[6px] stroke-ink">
+          <rect x="1" y="1" width="110" height="90" rx="6" className="fill-lavender-soft" />
+          <rect x="16" y="10" width="80" height="44" rx="4" className="fill-rule" />
+          <path d="M56 10v44 M16 32h80" />
+          <path d="M28 16l-3 7 M44 21l-3 7 M68 15l-3 7 M86 19l-3 7 M36 37l-3 7 M64 38l-3 7 M80 40l-3 7" strokeWidth={1.6} />
+          <path d="M8 60h96" />
+          <rect x="70" y="64" width="16" height="18" rx="3" className="fill-peach" />
+          <path d="M86 68c5 0 5 9 0 9" />
+          <rect x="20" y="73" width="38" height="10" rx="2" className="fill-sage" />
+          <rect x="24" y="64" width="32" height="9" rx="2" className="fill-lavender" />
+        </svg>
+        <span className="flex items-center justify-center gap-1.5 text-label text-ink-soft">
+          <ImageIcon className="size-4" aria-hidden="true" />3 ảnh
+        </span>
+      </span>
+    </div>
+  )
+}
+
+function DayAnatomy() {
   const maxPhotos = tierLimits().photos.per_day_max
-  const iconRow: [string, 1 | 2 | 3 | 4 | 5][] = [
-    ['sprout', 5],
-    ['face', 4],
-    ['moon', 4],
-    ['sakura', 4],
-    ['sun', 4],
-    ['bean', 3],
+  const items: [string, ReactNode][] = [
+    ['Điểm và biểu tượng', 'Chấm 1 đến 5 bằng một trong sáu bộ icon vẽ tay, thêm một sub icon cho chuyện chính của ngày.'],
+    ['Cờ hiệu', 'Gắn một màu cho ngày đáng nhớ. Year in Pixels tô được cả năm theo màu cờ.'],
+    ['Chữ và ảnh', `Một tiêu đề, vài dòng hay cả trang, và tối đa ${maxPhotos} ảnh mỗi ngày.`],
+    ['Từ khóa', 'Gắn từ khóa để tìm lại mọi ngày có cùng một chuyện.'],
+    [
+      'Ghi bù',
+      <>
+        Quên{' '}
+        <span className="relative inline-block whitespace-nowrap">
+          <del className="relative text-ink-soft no-underline">
+            hôm qua
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 100 12"
+              preserveAspectRatio="none"
+              className="absolute top-1/2 -left-[6%] -mt-1 h-2.5 w-[112%] overflow-visible"
+            >
+              <path d="M2 8C28 2 64 10 98 3" fill="none" strokeWidth={2.4} strokeLinecap="round" vectorEffect="non-scaling-stroke" className="stroke-ink" />
+            </svg>
+          </del>
+          <ins className="absolute bottom-[72%] left-1/2 -translate-x-1/2 -rotate-5 text-[15px] leading-[18px] font-bold whitespace-nowrap text-peach-ink no-underline">
+            14/10
+          </ins>
+        </span>{' '}
+        thì ghi bù ngày đó; trang cho biết ghi đúng ngày hay cập nhật muộn.
+      </>,
+    ],
   ]
   return (
-    <section id="tinh-nang" className={cn(wrap, sectionPad, 'flex flex-col gap-12')}>
-      <h2 className={sectionTitle}>Mỗi ngày, theo cách của bạn</h2>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))] gap-8">
-        <FeatureCard
-          title="Một trang mỗi ngày"
-          visual={
-            <div className="flex flex-wrap gap-2">
-              {[1, 2, 3].map((i) => (
-                <span key={i} className={cn('flex size-12 items-center justify-center rounded-[10px] border-[1.5px] border-line bg-muted', nudge)}>
-                  <Image className="size-[18px] text-muted-foreground" aria-hidden="true" />
-                </span>
-              ))}
-              <span className={cn('flex h-12 items-center rounded-[10px] border-[1.5px] border-dashed border-line px-2.5 text-[13px] font-semibold', nudge)}>
-                3/{maxPhotos}
-              </span>
-            </div>
-          }
-        >
-          Tiêu đề, nội dung, từ khóa và tối đa {maxPhotos} ảnh.
-        </FeatureCard>
-        <FeatureCard
-          title="Biểu tượng cho từng ngày"
-          visual={
-            <div className="flex flex-wrap items-center gap-1">
-              {/* Di chuột lên thẻ: các icon nhún lần lượt như làn sóng. */}
-              {iconRow.map(([set, score], i) => (
-                <span key={set} className="group-hover/card:animate-bob" style={{ animationDelay: `${i * 0.06}s` }}>
-                  <ScoreIcon iconSetId={set} score={score} size={40} />
-                </span>
-              ))}
-            </div>
-          }
-        >
-          Sáu bộ icon chấm điểm, chọn bộ bạn thích.
-        </FeatureCard>
-        <FeatureCard
-          title="Cờ hiệu"
-          visual={
-            <div className="flex flex-wrap gap-1.5">
-              {flagColors.map((f) => (
-                <span
-                  key={f.id}
-                  className={cn('h-6 w-8 rounded-[6px] border-[1.5px] border-line', nudge)}
-                  style={{ backgroundColor: flagHex(f.hex, dark) }}
-                />
-              ))}
-            </div>
-          }
-        >
-          Gắn một màu cho ngày đáng nhớ.
-        </FeatureCard>
-        <FeatureCard
-          title="Lịch tháng và thống kê"
-          visual={
-            <dl className="flex flex-wrap gap-6">
-              {[
-                ['Ngày đã ghi', '15/18'],
-                ['Điểm TB', '3,6'],
-                ['Ảnh', '24'],
-              ].map(([k, v]) => (
-                <div key={k} className="flex flex-col-reverse">
-                  <dd className="font-heading text-[22px] leading-[30px] font-bold group-hover/card:animate-bob">{v}</dd>
-                  <dt className="text-xs leading-[18px] text-muted-foreground">{k}</dt>
+    <section id="mot-trang" aria-labelledby="mot-trang-title" className={cn(wrap, sectionPad)}>
+      <div className="grid items-center gap-x-16 gap-y-12 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+        <div className="flex flex-col gap-8">
+          <h2 id="mot-trang-title" className="reveal-on-scroll text-title">
+            Một trang ngày có gì
+          </h2>
+          <div className="ruled reveal-on-scroll relative bg-[position:0_-4px] pl-[46px] leading-[30px]">
+            <span aria-hidden="true" className="absolute -top-3 -bottom-3 left-7 w-0.5 bg-notebook-margin" />
+            <dl className="flex flex-col gap-[30px]">
+              {items.map(([term, desc]) => (
+                <div key={term} className="flex flex-col">
+                  <dt className="text-body leading-[30px] font-semibold">{term}</dt>
+                  <dd className="text-body leading-[30px] text-ink-soft">{desc}</dd>
                 </div>
               ))}
             </dl>
-          }
-        >
-          Nhìn lại cả tháng chỉ trong một trang.
-        </FeatureCard>
-        <FeatureCard
-          title="Tìm theo từ khóa"
-          visual={
-            <div className="flex h-11 items-center gap-2 rounded-[12px] border-[1.5px] border-line bg-background px-3">
-              <Search className="size-[18px] text-muted-foreground group-hover/card:animate-seek" aria-hidden="true" />
-              <span className="text-[15px]">mưa</span>
-            </div>
-          }
-        >
-          Mở lại những ngày có cùng kỷ niệm.
-        </FeatureCard>
+          </div>
+        </div>
+        <div className="reveal-on-scroll relative min-w-0">
+          {/* Kẹp giấy giữ trang mẫu. */}
+          <svg
+            aria-hidden="true"
+            width="30"
+            height="74"
+            viewBox="0 0 30 74"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="absolute -top-[34px] left-16 z-[2] rotate-[7deg] overflow-visible"
+          >
+            <path d="M11 24v34a6 6 0 0 0 12 0V13a9 9 0 0 0-18 0v47a11 11 0 0 0 22 0V28" strokeWidth={5.5} className="stroke-ink" />
+            <path d="M11 24v34a6 6 0 0 0 12 0V13a9 9 0 0 0-18 0v47a11 11 0 0 0 22 0V28" strokeWidth={2.2} className="stroke-line-soft" />
+          </svg>
+          <EntryCard
+            variant="page"
+            ariaLabel="Trang ngày mẫu"
+            iconSetId={DEMO_ICON_SET}
+            score={4}
+            subIcon="😌"
+            flagColor={LAVENDER}
+            dateLabel="Chủ nhật, 18/10/2026"
+            dateParts={{ weekday: 'Chủ nhật', day: 18, month: 10, year: 2026 }}
+            statusLine="Hé nở · ghi đúng ngày"
+            title="Chiều mưa đọc sách"
+            excerpt="Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở. Tối nấu bát phở, gọi điện cho mẹ, kể chuyện tuần này."
+            photo={<PhotoStack />}
+            keywords={['đọc sách', 'mưa', 'mẹ']}
+            footer={
+              <>
+                <Stamp kind="saved">Đã lưu lúc 21:32</Stamp>
+                <span>Sửa lần cuối 21:32</span>
+              </>
+            }
+          />
+        </div>
       </div>
     </section>
+  )
+}
+
+/** Ô tích vẽ tay trước mỗi cam kết riêng tư (mỗi ô nghiêng một chút, nét tích hơi khác nhau). */
+function HandCheck({ d, tilt }: { d: string; tilt: string }) {
+  return (
+    <span aria-hidden="true" className={cn('relative mt-0.5 size-6 shrink-0 rounded-[6px] border-2 border-stroke bg-card', tilt)}>
+      <svg
+        width="16"
+        height="14"
+        viewBox="0 0 30 26"
+        fill="none"
+        strokeWidth={2.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="absolute top-1/2 left-1/2 -translate-1/2 overflow-visible stroke-ink"
+      >
+        <path d={d} vectorEffect="non-scaling-stroke" />
+      </svg>
+    </span>
   )
 }
 
 function Privacy() {
   const items = [
-    { icon: Lock, title: 'Riêng tư mặc định', text: 'Chỉ mình bạn xem được.' },
-    // Chia sẻ một trang qua link (F-10, ADR 0005): người viết tự quyết.
-    { icon: Eye, title: 'Bạn chọn người xem', text: 'Tự quyết định có chia sẻ hay không.' },
-    { icon: Trash2, title: 'Xóa bất cứ lúc nào', text: 'Xóa từng trang hoặc toàn bộ dữ liệu.' },
+    {
+      title: 'Riêng tư mặc định.',
+      text: 'Chỉ mình bạn xem được nhật ký của mình.',
+      d: 'M4 13c3 2.6 5.2 5.3 6.6 8.4C14 12.5 19.5 5.5 27 1.5',
+      tilt: '-rotate-2',
+    },
+    {
+      // Chia sẻ một trang qua link (F-10, ADR 0005): người viết tự quyết.
+      title: 'Bạn chọn người xem.',
+      text: 'Chia sẻ từng trang qua link chỉ xem, tắt link lúc nào cũng được.',
+      d: 'M3.5 14.5c3.4 2 5.6 4.6 7 7.6C14.6 13 20 6.8 26.5 2.6',
+      tilt: 'rotate-[1.5deg]',
+    },
+    {
+      title: 'Xóa bất cứ lúc nào.',
+      text: 'Xóa từng trang hoặc toàn bộ dữ liệu.',
+      d: 'M4.5 12.8c2.8 2.8 4.8 5.4 6.2 8.6C14.4 12 19 6 27.5 2',
+      tilt: '-rotate-1',
+    },
   ]
   return (
-    <section id="rieng-tu" className={cn(wrap, sectionPad, 'flex flex-col gap-12')}>
-      <h2 className={sectionTitle}>Nhật ký của bạn là của bạn</h2>
-      <div className="reveal-on-scroll grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-10">
-        {items.map((item) => (
-          <div key={item.title} className="group/pv flex flex-col gap-3">
-            <span className="flex size-11 items-center justify-center rounded-[12px] border-[1.5px] border-line bg-card shadow-ink-sm transition-[transform,box-shadow] duration-200 group-hover/pv:[transform:translate(-2px,-2px)] group-hover/pv:shadow-[5px_5px_0_var(--ink-shadow)] group-hover/pv:[&_svg]:animate-wiggle">
-              <item.icon className="size-5" aria-hidden="true" />
+    <section id="rieng-tu" aria-labelledby="rieng-tu-title">
+      <div className={cn(wrap, sectionPad, 'grid items-end gap-x-16 gap-y-10 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]')}>
+        <div className="reveal-on-scroll flex flex-col items-start gap-7">
+          <span
+            aria-hidden="true"
+            className="inline-flex -rotate-7 items-center gap-2 rounded-[12px] border-[2.5px] border-stroke bg-sage py-2 pr-4 pl-3 text-body font-bold text-on-accent shadow-sm outline-[1.5px] -outline-offset-[7px] outline-on-accent outline-dashed"
+          >
+            <Lock className="size-[18px]" strokeWidth={2.4} aria-hidden="true" />
+            Chỉ mình bạn
+          </span>
+          <h2
+            id="rieng-tu-title"
+            className="text-[clamp(36px,5vw,56px)] leading-[1.05] font-extrabold tracking-[-0.025em] [font-variation-settings:'FLAR'_100]"
+          >
+            Nhật ký của bạn là{' '}
+            <span className="rounded-[6px] bg-[linear-gradient(transparent_56%,color-mix(in_oklab,var(--color-sage)_55%,transparent)_56%,color-mix(in_oklab,var(--color-sage)_55%,transparent)_94%,transparent_94%)] px-[0.06em] [box-decoration-break:clone]">
+              của bạn
             </span>
-            <h3 className="font-heading text-xl leading-7 font-semibold">{item.title}</h3>
-            <p className="text-[15px] leading-6 text-muted-foreground">{item.text}</p>
-          </div>
-        ))}
+            .
+          </h2>
+        </div>
+        <div className="reveal-on-scroll flex flex-col gap-4 text-reading leading-7">
+          <ul className="flex flex-col gap-[18px]">
+            {items.map((item) => (
+              <li key={item.title} className="flex items-start gap-3.5">
+                <HandCheck d={item.d} tilt={item.tilt} />
+                <p>
+                  <strong className="font-semibold">{item.title}</strong> <span className="text-ink-soft">{item.text}</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+          <Link to="/privacy" className="link-underline self-start text-body font-semibold">
+            Đọc chính sách quyền riêng tư
+          </Link>
+        </div>
       </div>
     </section>
   )
 }
 
-/**
- * Trang chủ (thiết kế B5). Chưa đăng nhập: trang giới thiệu. Đã đăng nhập (`account`): lời chào, nút mở trang hôm
- * nay, menu tài khoản, chấm điểm nhanh cho hôm nay và Year in Pixels "của bạn".
- */
-export function Landing({ account }: { account?: LandingAccount }) {
-  const { data } = useHomeSummary(account?.timeZone ?? browserTimeZone(), Boolean(account))
-  const summary = account ? data : undefined
-  const todayWritten = Boolean(summary?.todayWritten)
+/** Khối kêu gọi cuối trang: tờ giấy mực có góc gấp, bóng đào (vùng peach duy nhất của trang). */
+function CallToAction({ account, todayWritten }: { account?: LandingAccount; todayWritten: boolean }) {
   return (
-    <div className="min-h-dvh overflow-x-clip">
-      <SiteHeader account={account} todayWritten={todayWritten} />
-      <main>
-        <Hero account={account} summary={summary} />
+    <section aria-labelledby="cta-title" className={cn(wrap, 'reveal-on-scroll pt-[clamp(40px,5vw,64px)] pb-[clamp(80px,10vw,128px)]')}>
+      <div className="relative flex flex-wrap items-center justify-between gap-6 rounded-[36px] rounded-tr-none border-2 border-stroke bg-primary p-[clamp(32px,5vw,56px)] text-on-primary shadow-accent-lg transition-[transform,box-shadow] duration-(--dur-fast) ease-out pointer-fine:hover:-translate-x-0.5 pointer-fine:hover:-translate-y-0.5 pointer-fine:hover:shadow-[8px_8px_0_var(--color-peach)] motion-reduce:transform-none!">
+        <span aria-hidden="true" className="pointer-events-none absolute -top-0.5 -right-0.5 size-[52px]">
+          <svg width="100%" height="100%" viewBox="0 0 52 52" className="block overflow-visible">
+            <path d="M0 0H52V52Z" className="fill-paper" />
+            <path d="M8 8H56V56Z" className="fill-peach" />
+            <path d="M1 1L51 51H9Q1 51 1 43Z" strokeWidth={2} strokeLinejoin="round" className="fill-secondary stroke-stroke" />
+          </svg>
+        </span>
+        {/* Cây bút chì trang trí ở mép dưới. */}
+        <svg
+          aria-hidden="true"
+          width="168"
+          height="34"
+          viewBox="0 0 168 34"
+          fill="none"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="absolute right-[clamp(20px,4vw,40px)] -bottom-[22px] -rotate-12 overflow-visible stroke-ink"
+        >
+          <path d="M29 11H147a9 9 0 0 1 0 18H29Z M29 11L9 20L29 29Z" stroke="none" className="fill-ink-shadow" />
+          <path d="M26 8H144a9 9 0 0 1 0 18H26Z" className="fill-peach" />
+          <path d="M26 8L6 17L26 26Z" className="fill-card" />
+          <path d="M6 17L12.5 14.1V19.9Z" className="fill-ink" />
+          <path d="M116 8V26 M122 8V26" />
+          <path d="M124 8V3.5H148" />
+        </svg>
+        <h2 id="cta-title" className="font-heading text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold">
+          {account && todayWritten ? 'Hôm nay đã có một trang. Viết thêm vài dòng?' : 'Hôm nay của bạn thế nào?'}
+        </h2>
+        {account ? (
+          <Link
+            to="/today"
+            className={cn('press inline-flex h-12 items-center gap-2.5 rounded-[16px] border-2 border-on-primary bg-on-primary pr-5 pl-4 text-body font-semibold text-primary', focusRing)}
+          >
+            <Pencil className="size-[18px]" aria-hidden="true" />
+            Mở trang hôm nay
+          </Link>
+        ) : (
+          <GoogleButton inverted />
+        )}
+      </div>
+    </section>
+  )
+}
 
-        <section id="mot-cham" className="border-y-[1.5px] border-line bg-band">
-          <div className={cn(wrap, sectionPad, 'flex flex-wrap items-center gap-16')}>
-            <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-3.5">
-              <h2 className={sectionTitle}>{account ? 'Một chạm cho hôm nay' : 'Bận quá? Một chạm là đủ.'}</h2>
-              <p className="max-w-[380px] text-[17px] leading-7 text-muted-foreground">
-                {account
-                  ? 'Chấm điểm ngay tại đây, trang hôm nay của bạn sẽ được cập nhật. Muốn viết thêm thì mở trang hôm nay.'
-                  : 'Chỉ cần chấm điểm, hôm nay đã được ghi lại. Viết thêm lúc nào cũng được.'}
-              </p>
-            </div>
-            <div className="flex min-w-0 flex-[1_1_420px]">
-              {account ? (
-                <OneTapDemo
-                  iconSetId={account.iconSetId}
-                  value={account.quickScore?.value ?? null}
-                  onChange={account.quickScore?.onPick}
-                  status={(score, label) =>
-                    account.quickScore?.error ??
-                    (account.quickScore?.saving ? 'Đang lưu…' : `Đã lưu cho hôm nay: điểm ${score} · ${label}.`)
-                  }
-                  footer={
-                    <Link to="/today" className="link-underline self-start text-[15px] font-semibold">
-                      Viết thêm cho hôm nay
-                    </Link>
-                  }
-                />
-              ) : (
-                <OneTapDemo />
-              )}
-            </div>
-          </div>
-        </section>
-
-        <Features />
-
-        <section id="year-in-pixels" className="border-t-[1.5px] border-line bg-band">
-          <div className={cn(wrap, sectionPad, 'flex flex-col gap-10')}>
-            <div className="flex flex-col gap-3">
-              <h2 className={sectionTitle}>{account ? `Năm ${todayIn(account.timeZone).slice(0, 4)} của bạn` : 'Cả năm, trong một bức tranh'}</h2>
-              <p className="text-[17px] leading-7 text-muted-foreground">
-                {account ? (
-                  <>
-                    Mỗi ô là một ngày bạn đã ghi. Bấm chú thích để lọc, hoặc{' '}
-                    <Link to="/pixels" className="link-underline font-semibold text-foreground">
-                      mở Year in Pixels
-                    </Link>
-                    .
-                  </>
-                ) : (
-                  'Mỗi ô là một ngày, mỗi màu là một mức điểm.'
-                )}
-              </p>
-            </div>
-            <YearPreview />
-          </div>
-        </section>
-
-        <Privacy />
-
-        <section className={cn(wrap, 'pb-[clamp(80px,10vw,128px)]')}>
-          <div className="flex flex-wrap items-center justify-between gap-6 rounded-[28px] border-[1.5px] border-line bg-primary p-[clamp(32px,5vw,56px)] text-primary-foreground shadow-[5px_5px_0_var(--cta-shadow)] transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] hover:[transform:translate(-2px,-2px)] hover:shadow-[7px_7px_0_var(--cta-shadow)]">
-            <h2 className="font-heading text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold text-balance">
-              {account && todayWritten ? 'Hôm nay đã có một trang. Viết thêm vài dòng?' : 'Hôm nay của bạn thế nào?'}
-            </h2>
-            {account ? (
-              <Link
-                to="/today"
-                className={cn(
-                  'press inline-flex h-12 items-center gap-2.5 rounded-[14px] border-[1.5px] border-primary-foreground bg-primary-foreground pr-5 pl-4 text-[15px] font-semibold text-primary',
-                  focusRing,
-                )}
-              >
-                <Pencil className="size-[18px]" aria-hidden="true" />
-                Mở trang hôm nay
-              </Link>
-            ) : (
-              <GoogleButton inverted />
-            )}
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t-[1.5px] border-line">
-        <div className={cn(wrap, 'flex flex-wrap items-center justify-between gap-4 py-7')}>
-          <div className="flex flex-wrap items-center gap-2">
-            <Logo size="sm" className="hover:[&_svg]:animate-wiggle [&_svg]:origin-[50%_60%]" />
-            <span className="ml-2 text-[13px] text-muted-foreground">Jot it down, keep it forever.</span>
-          </div>
-          <div className="flex flex-wrap gap-5 text-[13px]">
+function SiteFooter() {
+  return (
+    <footer className="overflow-hidden">
+      {/* Dải lỗ gáy sổ. */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          wide,
+          'h-4 bg-[radial-gradient(circle,var(--color-paper)_0,var(--color-paper)_3px,var(--color-stroke)_3.4px,var(--color-stroke)_5px,transparent_5.4px)] bg-[length:22px_16px] bg-center bg-repeat-x bg-clip-content',
+        )}
+      />
+      <div className={cn(wrap, 'flex flex-col gap-6 pt-10 pb-7')}>
+        <p aria-hidden="true" className="reveal-on-scroll -mb-[0.12em] font-brand text-[clamp(88px,22vw,264px)] leading-[0.8] tracking-[-0.02em]">
+          Jotly
+        </p>
+        <div className="reveal-on-scroll flex flex-wrap items-center justify-between gap-4 pt-5">
+          <span className="text-label font-normal text-ink-soft">Chạm để ghi chú, mở để nhìn lại.</span>
+          <div className="flex flex-wrap gap-5 text-label font-normal">
             {/* Chờ nội dung điều khoản thật trước khi ra mắt. */}
             <a href="#" className="link-underline">
               [Điều khoản sử dụng]
@@ -509,10 +708,42 @@ export function Landing({ account }: { account?: LandingAccount }) {
             <Link to="/privacy" className="link-underline">
               Chính sách quyền riêng tư
             </Link>
-            <span className="text-muted-foreground">© 2026 Jotly</span>
+            <span className="text-ink-soft">© 2026 Jotly</span>
           </div>
         </div>
-      </footer>
+      </div>
+    </footer>
+  )
+}
+
+/**
+ * Trang chủ (thiết kế B5). Chưa đăng nhập: trang giới thiệu với dữ liệu mẫu. Đã đăng nhập (`account`): lời chào, nút
+ * mở trang hôm nay, menu tài khoản, tóm tắt tháng và chấm điểm nhanh lưu thật cho 7 ngày gần nhất.
+ */
+export function Landing({ account }: { account?: LandingAccount }) {
+  const timeZone = account?.timeZone ?? browserTimeZone()
+  const { data } = useHomeSummary(timeZone, Boolean(account))
+  const { data: recent } = useRecentDays(timeZone, Boolean(account))
+  const summary = account ? data : undefined
+  const todayWritten = Boolean(summary?.todayWritten)
+  const todayIso = todayIn(timeZone)
+  return (
+    <div className="min-h-dvh overflow-x-clip bg-paper text-ink">
+      <SiteHeader account={account} todayWritten={todayWritten} />
+      <main>
+        <Hero account={account} summary={summary} />
+        <Divider score={1} />
+        <OneTapSection account={account} todayIso={todayIso} week={weekOf(todayIso, recent)} />
+        <Divider score={2} />
+        <LookBack signed={Boolean(account)} />
+        <Divider score={3} />
+        <DayAnatomy />
+        <Divider score={4} />
+        <Privacy />
+        <Divider score={5} />
+        <CallToAction account={account} todayWritten={todayWritten} />
+      </main>
+      <SiteFooter />
     </div>
   )
 }

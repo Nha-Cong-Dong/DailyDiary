@@ -1,65 +1,112 @@
-/* Chuyển động của Jotly (thiết kế B5 · Landing, bản có animation; làm dịu theo canvas 21/10/2026:
-   không vượt đà, biên độ nhỏ, một đường cong cubic-bezier(0.2, 0.8, 0.2, 1)).
-   Quy ước: animation vào trang dùng thuộc tính `translate`/`scale`/`rotate`; hiệu ứng di chuột dùng `transform`
-   để hai bên không đè nhau khi animation giữ trạng thái cuối (fill-mode both). */
+/*
+ * Chuyển động của Jotly 1.1 (canvas B11-Motion + lớp .jot-* / .j-* trong helmet các artboard).
+ * Đường cong: --ease-out (vào/ra), --ease-drawer (ngăn kéo), --ease-move (đổi chỗ, chuyển cảnh nối).
+ * Thời lượng: --dur-press 100, --dur-fast 160, --dur-base 220, --dur-sheet-in 280, --dur-sheet-out 200,
+ * --dur-morph 320 (khai báo trong index.css). Mọi animation trong app < 300ms trừ chuyển cảnh nối.
+ * Không vòng lặp vô hạn ngoài vòng chờ khi tải (animate-spin / j-spin).
+ *
+ * Quy ước: animation vào màn dùng thuộc tính `translate`/`scale`/`rotate`; cử chỉ di chuột/ấn dùng `transform`,
+ * để hai bên không đè nhau khi animation giữ trạng thái cuối (fill-mode both).
+ * Di chuột chỉ khi (hover: hover) and (pointer: fine): biến thể `hover:` của Tailwind 4 đã gói sẵn điều kiện này
+ * cho (hover: hover); các lớp dưới đây tự gói thêm pointer: fine.
+ */
 
 @theme {
-    --animate-rise: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    --animate-drop-right: drop-right 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-    --animate-drop-left: drop-left 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-    --animate-pop: pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    --animate-stamp: stamp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    --animate-wiggle: wiggle 0.6s ease;
-    --animate-bob: bob 0.55s ease both;
-    --animate-seek: seek 0.8s ease;
-    --animate-draw: draw 0.9s 0.8s cubic-bezier(0.6, 0, 0.3, 1) forwards;
-    /* Khai báo để keyframes `paint` luôn được xuất (dùng cả ở .paint-on-scroll bên dưới). */
-    --animate-paint: paint 0.6s ease both;
-    /* Dòng thời gian khi hôm nay chưa viết (thiết kế B8 · Timeline-Today): bút chạy ngang trên trang sổ,
-       ngôi sao lấp lánh, ô/cột "hôm nay" có vòng màu đào nhấp nháy. */
-    --animate-pencil: pencil 2.8s ease-in-out infinite alternate;
-    --animate-twinkle: twinkle 2.6s ease-in-out infinite;
-    --animate-pend: pend 2.2s ease-in-out infinite;
-    /* Menu tài khoản mở ra từ góc trên phải (thiết kế B5 · đã đăng nhập). */
-    --animate-menu: menu 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    /* Cột biểu đồ mọc từ đáy lên (Dòng thời gian · Nhịp tháng). */
-    --animate-grow: grow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
-    /* Ô "hôm nay" nhấp nháy vòng sáng (màn trống của người dùng mới). */
-    --animate-glow: glow 1.8s ease-out infinite;
+    /* --- Vào màn (canvas jot-*) --- */
+    --animate-rise: jot-rise 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    --animate-pop: jot-pop 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    --animate-stamp: jot-stamp 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    --animate-fade: jot-fade 160ms ease both;
+    --animate-fade-out: jot-fade-out 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    --animate-scrim: jot-fade 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    --animate-dialog: jot-in 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    --animate-sheet-in: jot-sheet-in 280ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    --animate-sheet-out: jot-sheet-out 200ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    --animate-toast: jot-toast 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    --animate-progress: jot-ring 1.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    --animate-pulse-3: jot-pulse 1.2s ease-in-out 3;
+    --animate-grow: jot-grow 220ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+    /* Thẻ hạ xuống chỗ (thẻ đăng nhập B9-Login): từ −8px, 220ms. */
+    --animate-land: jot-land 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    /* Lắc ngang báo lỗi (đăng nhập thất bại). */
+    --animate-shake: shake 0.45s ease both;
+    /* Dải ngoại tuyến trượt xuống dưới thanh trên. */
+    --animate-drop: drop 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+    --animate-menu: menu 160ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    /* Chỉ trang chủ / trang chia sẻ: chuỗi mở đầu hero (dur-story). */
+    --animate-paint-in: jot-paint 800ms cubic-bezier(0.77, 0, 0.175, 1) 450ms backwards;
+    --animate-draw: draw 700ms 600ms cubic-bezier(0.77, 0, 0.175, 1) forwards;
+    --animate-paint: paint 600ms ease both;
 
-    @keyframes rise {
-        from { opacity: 0; translate: 0 8px; }
+    @keyframes jot-rise {
+        from { opacity: 0; translate: 0 6px; }
         to { opacity: 1; translate: none; }
     }
-    /* Thẻ nghiêng hạ xuống, giữ nguyên góc nghiêng của chính thẻ (rotate-2 / -rotate-[2.5deg]). */
-    @keyframes drop-right {
-        from { opacity: 0; translate: 0 -12px; rotate: 2deg; }
-        to { opacity: 1; translate: none; rotate: 2deg; }
+    @keyframes jot-fade {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
-    @keyframes drop-left {
-        from { opacity: 0; translate: 0 -12px; rotate: -2.5deg; }
-        to { opacity: 1; translate: none; rotate: -2.5deg; }
+    @keyframes jot-fade-out {
+        from { opacity: 1; }
+        to { opacity: 0; }
     }
-    @keyframes pop {
+    @keyframes jot-pop {
+        from { opacity: 0; scale: 0.92; }
+        to { opacity: 1; scale: 1; }
+    }
+    @keyframes jot-stamp {
+        from { opacity: 0; scale: 1.04; }
+        to { opacity: 1; scale: 1; }
+    }
+    @keyframes jot-in {
         from { opacity: 0; scale: 0.96; }
         to { opacity: 1; scale: 1; }
     }
-    @keyframes stamp {
-        from { opacity: 0.6; transform: scale(0.96); }
+    @keyframes jot-sheet-in {
+        from { translate: 0 100%; }
+        to { translate: none; }
+    }
+    @keyframes jot-sheet-out {
+        from { translate: none; }
+        to { translate: 0 100%; }
+    }
+    /* Thông báo đáy giữa màn: phần tử đặt left-1/2 và tự giữ translate -50% ở trạng thái cuối. */
+    @keyframes jot-toast {
+        from { opacity: 0; translate: -50% calc(100% + 24px); }
+        to { opacity: 1; translate: -50% 0; }
+    }
+    @keyframes jot-ring {
+        from { stroke-dashoffset: 1; }
+        to { stroke-dashoffset: 0; }
+    }
+    @keyframes jot-pulse {
+        50% { opacity: 0.5; }
+    }
+    @keyframes jot-grow {
+        from { scale: 1 0; }
+        to { scale: 1 1; }
+    }
+    @keyframes jot-land {
+        from { opacity: 0; translate: 0 -8px; }
+        to { opacity: 1; translate: none; }
+    }
+    @keyframes shake {
+        0%, 100% { translate: 0 0; }
+        25% { translate: -3px 0; }
+        50% { translate: 2px 0; }
+        75% { translate: -1px 0; }
+    }
+    @keyframes drop {
+        from { opacity: 0; translate: 0 -100%; }
+        to { opacity: 1; translate: none; }
+    }
+    @keyframes jot-paint {
+        from { translate: -100% 0; }
+        to { translate: none; }
+    }
+    @keyframes menu {
+        from { opacity: 0; transform: translateY(-4px) scale(0.98); }
         to { opacity: 1; transform: none; }
-    }
-    @keyframes wiggle {
-        0%, 100% { rotate: 0deg; }
-        35% { rotate: -3deg; }
-        70% { rotate: 2deg; }
-    }
-    @keyframes bob {
-        0%, 100% { translate: 0 0; }
-        50% { translate: 0 -2px; }
-    }
-    @keyframes seek {
-        0%, 100% { translate: 0 0; }
-        50% { translate: 1.5px -1px; }
     }
     @keyframes draw {
         to { stroke-dashoffset: 0; }
@@ -68,153 +115,159 @@
         from { opacity: 0; scale: 0.7; }
         to { opacity: 1; scale: 1; }
     }
-    @keyframes pencil {
-        0% { translate: -26px 0; rotate: 2deg; }
-        50% { rotate: -2deg; }
-        100% { translate: 24px 0; rotate: 2deg; }
-    }
-    @keyframes twinkle {
-        0%, 100% { opacity: 0.3; scale: 0.85; }
-        50% { opacity: 1; scale: 1; }
-    }
-    @keyframes pend {
-        0%, 100% { box-shadow: 0 0 0 0 rgb(241 189 144 / 0); }
-        50% { box-shadow: 0 0 0 4px rgb(241 189 144 / 0.55); }
-    }
-    @keyframes menu {
-        from { opacity: 0; transform: translateY(-6px) scale(0.98); }
-        to { opacity: 1; transform: none; }
-    }
-    @keyframes grow {
-        from { scale: 1 0; }
-        to { scale: 1 1; }
-    }
-    @keyframes glow {
-        0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--score-5) 70%, transparent); }
-        60% { box-shadow: 0 0 0 5px transparent; }
-    }
-
-    /* Trạng thái phụ (thiết kế B9 · Đăng nhập, Lỗi, mất mạng, đang tải). */
-    --animate-land: land 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s backwards;
-    --animate-float: float 4.5s ease-in-out infinite;
-    --animate-shake: shake 0.45s ease both;
-    --animate-writing: write 1s ease-in-out infinite;
-    --animate-dot: dot 1.2s ease-in-out infinite;
-    --animate-sway: sway 3s ease-in-out infinite;
-    --animate-steam: steam 2.2s ease-in-out infinite;
-    --animate-blink: blink 1.6s ease-in-out infinite;
-    --animate-drop: drop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    --animate-shimmer: shimmer 1.4s linear infinite;
-
-    @keyframes land {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: none; }
-    }
-    @keyframes float {
-        0%, 100% { translate: 0 0; }
-        50% { translate: 0 -5px; }
-    }
-    @keyframes shake {
-        0%, 100% { translate: 0 0; }
-        25% { translate: -3px 0; }
-        50% { translate: 2px 0; }
-        75% { translate: -1px 0; }
-    }
-    @keyframes dot {
-        0%, 80%, 100% { opacity: 0.25; translate: 0 0; }
-        40% { opacity: 1; translate: 0 -2px; }
-    }
-    @keyframes sway {
-        0%, 100% { rotate: -1.5deg; }
-        50% { rotate: 1.5deg; }
-    }
-    @keyframes write {
-        0%, 100% { rotate: 0deg; }
-        50% { rotate: -2deg; }
-    }
-    @keyframes steam {
-        0% { opacity: 0; translate: 0 4px; }
-        40% { opacity: 1; }
-        100% { opacity: 0; translate: 0 -10px; }
-    }
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.35; }
-    }
-    @keyframes drop {
-        from { opacity: 0; translate: 0 -100%; }
-        to { opacity: 1; translate: none; }
-    }
-    @keyframes shimmer {
-        from { background-position: 100% 0; }
-        to { background-position: -100% 0; }
-    }
 }
 
-/* Khung xương khi đang tải: dải sáng chạy ngang, màu theo token nên tự đổi ở chế độ tối. */
+/* Khung xương khi đang tải: khối sunk phẳng (hệ 1.1 không dùng dải sáng chạy ngang). */
 @utility skeleton {
-    border-radius: 10px;
-    background-image: linear-gradient(90deg, var(--muted) 0%, var(--pressed) 40%, var(--muted) 80%);
-    background-size: 200% 100%;
-    animation: var(--animate-shimmer);
+    border-radius: var(--radius-sm);
+    background-color: var(--sunk);
 }
 
-/* Nút/thẻ "dán": nhấc lên khi di chuột (bóng dài ra), ấn xuống khi bấm. */
+/* ------------------------------------------------------------------------------------------------------------
+ * Cử chỉ "tờ giấy" (canvas .btn / .lift4 / .jot-lift / .jot-press / .j-*). Di chuột: nhấc 2px, bóng dài thêm 2px.
+ * Ấn: dịch đúng độ lệch bóng, bóng về 0, trong dur-press. Không phóng to/thu nhỏ vật có bóng.
+ * ---------------------------------------------------------------------------------------------------------- */
+
+/* Thẻ/nút có bóng md (4px): nhấc lên bóng 6px, ấn dịch 4px. Dùng với shadow-md. */
 @utility lift {
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-    &:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink-shadow); }
-    &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink-shadow); }
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink-shadow); }
+    }
+    &:active { transform: translate(4px, 4px); box-shadow: none; transition-duration: var(--dur-press); }
 }
 
-/* Nút chính "đặc mực" có bóng hồng (thiết kế .j-cta): nhấc lên bóng dài ra, ấn xuống bóng ngắn lại. */
+/* Vật có bóng sm (2px: chip, nút phụ, thẻ nhỏ): nhấc lên bóng 4px, ấn dịch 2px. Dùng với shadow-sm. */
+@utility lift-sm {
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink-shadow); }
+    }
+    &:active { transform: translate(2px, 2px); box-shadow: none; transition-duration: var(--dur-press); }
+}
+
+/* Nút chính: bóng đào 4px (shadow-accent); nhấc lên bóng 6px, ấn dịch 4px. Một nút mỗi màn. */
 @utility cta {
-    box-shadow: 4px 4px 0 var(--score-3);
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-    &:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--score-3); }
-    &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--score-3); }
+    box-shadow: var(--shadow-accent);
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow-accent-lg); }
+    }
+    &:active { transform: translate(4px, 4px); box-shadow: none; transition-duration: var(--dur-press); }
 }
 
-/* Nút đặc (không có bóng): chỉ nhấc và ấn. */
+/* Vật phẳng không bóng (pill, link dạng nút, tab): nhấc 1px khi di chuột, lún 1px khi ấn. */
 @utility press {
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-    &:hover { transform: translate(-2px, -2px); }
-    &:active { transform: translate(2px, 2px); box-shadow: none; }
+    transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { transform: translateY(-1px); }
+    }
+    &:active { transform: translateY(1px); transition-duration: var(--dur-press); }
 }
 
-/* Thẻ nghiêng trong hero: thẳng lại và nổi lên khi di chuột. */
+/* Nút đặc mực (default, destructive-solid): chỉ lún 1px khi ấn. */
+@utility press-solid {
+    transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-fast) var(--ease-out),
+        border-color var(--dur-fast) var(--ease-out);
+    &:active { transform: translateY(1px); }
+}
+
+/* Ô chọn (main icon, sub icon, cờ, ảnh): nhấc 2px khi di chuột, không bóng thêm. */
+@utility pick {
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out),
+        background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { transform: translateY(-2px); }
+    }
+    &:active { transform: translate(2px, 2px); box-shadow: none; transition-duration: var(--dur-press); }
+}
+
+/* Hàng danh sách / nút icon trong suốt: đổi nền khi di chuột/ấn, không dịch. */
+@utility row-press {
+    transition: background-color var(--dur-fast) var(--ease-out);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { background-color: var(--secondary); }
+    }
+    &:active { background-color: var(--pressed); }
+}
+
+/* Thẻ nghiêng trong hero trang chủ: thẳng lại và nổi lên khi di chuột. */
 @utility tilt {
-    transition: rotate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), translate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-        scale 0.35s ease, box-shadow 0.35s ease;
-    &:hover { rotate: 0deg; translate: 0 -3px; box-shadow: 6px 6px 0 var(--ink-shadow); z-index: 2; }
-    &:active { rotate: 0deg; translate: 0 -2px; scale: 0.99; }
+    transition: rotate var(--dur-base) var(--ease-out), translate var(--dur-base) var(--ease-out),
+        box-shadow var(--dur-base) var(--ease-out);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { rotate: 0deg; translate: 0 -2px; box-shadow: 6px 6px 0 var(--ink-shadow); z-index: 2; }
+    }
 }
 
-/* Link gạch chân: gạch dày và xa chữ hơn khi di chuột. */
+/* Link gạch chân (canvas .j-ulink): gạch xa và dày hơn khi di chuột, mờ khi ấn. */
 @utility link-underline {
     text-decoration: underline;
     text-decoration-thickness: 1.5px;
     text-underline-offset: 4px;
-    transition: text-underline-offset 0.2s ease, text-decoration-thickness 0.2s ease, opacity 0.15s;
-    &:hover { text-underline-offset: 7px; text-decoration-thickness: 2.5px; }
+    transition: text-underline-offset var(--dur-fast) var(--ease-out),
+        text-decoration-thickness var(--dur-fast) var(--ease-out), opacity var(--dur-press) ease;
+    @media (hover: hover) and (pointer: fine) {
+        &:hover { text-underline-offset: 6px; text-decoration-thickness: 2px; }
+    }
     &:active { opacity: 0.6; }
 }
+
+/* Mũi tên "quay lại" lùi 2px khi di chuột (canvas .j-back). */
+@utility back-nudge {
+    & svg { transition: translate var(--dur-fast) var(--ease-out); }
+    @media (hover: hover) and (pointer: fine) {
+        &:hover svg { translate: -2px 0; }
+    }
+}
+
+/* Nút sáng/tối: mặt trăng nghiêng khi di chuột, xoay thêm khi ấn (canvas .j-moon). */
+@utility moon-tilt {
+    & svg { transition: rotate 200ms var(--ease-out); }
+    @media (hover: hover) and (pointer: fine) {
+        &:hover svg { rotate: -12deg; }
+    }
+    &:active svg { rotate: -30deg; }
+}
+
+/* Cuộn không thanh cuộn (canvas .j-scroll, .j-hs) và dải ngày có thanh mảnh (.j-strip). */
+@utility scroll-quiet {
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+    &::-webkit-scrollbar { display: none; }
+}
+@utility scroll-strip {
+    scrollbar-width: thin;
+    scrollbar-color: var(--disabled-line) transparent;
+    overscroll-behavior-x: contain;
+}
+
+/* Chữ cắt 2/3 dòng (canvas .j-clamp, .j-clamp3). Tailwind line-clamp-2 cũng được. */
 
 /* Nét vẽ tay (gạch dưới tiêu đề hero): cần pathLength="1" trên <path>. */
 @utility draw-in {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
     animation: var(--animate-draw);
-    transition: stroke-width 0.25s ease;
 }
 
-/* Hiện dần khi cuộn tới (trình duyệt hỗ trợ scroll-driven animation); nơi khác hiện ngay. */
+/* Vòng tiến độ tải ảnh (canvas .j-prog): cần pathLength="1". */
+@utility progress-ring {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: var(--animate-progress);
+}
+
+/* Hiện dần khi cuộn tới (trang chủ, trang chia sẻ); trình duyệt không hỗ trợ thì hiện ngay. */
 @supports (animation-timeline: view()) {
     .reveal-on-scroll {
-        animation: rise linear both;
+        animation: jot-rise linear both;
         animation-timeline: view();
         animation-range: entry 0% entry 80%;
     }
-    /* Year in Pixels: khung đặt tên timeline, từng ô "tô màu" theo tiến độ cuộn (animation-range đặt riêng mỗi ô). */
     .paint-timeline {
         view-timeline-name: --pixels;
     }
@@ -224,7 +277,6 @@
     }
 }
 
-/* Khi in trang, nội dung "hiện khi cuộn" chưa từng vào khung nhìn vẫn phải hiện đủ. */
 @media print {
     .reveal-on-scroll,
     .paint-on-scroll {
@@ -232,12 +284,75 @@
     }
 }
 
+/* ------------------------------------------------------------------------------------------------------------
+ * Chuyển cảnh nối (View Transitions, canvas B11-Motion). components/diary/DayMorph.tsx đặt tên chia sẻ;
+ * vòng icon bay 320ms ease-move, phần còn lại mờ chéo 120ms. Trình duyệt không hỗ trợ: đổi ngay.
+ * ---------------------------------------------------------------------------------------------------------- */
+::view-transition-group(*) {
+    animation-duration: var(--dur-morph);
+    animation-timing-function: var(--ease-move);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 120ms;
+    animation-timing-function: ease;
+}
+::view-transition-old(.day-morph),
+::view-transition-new(.day-morph) {
+    height: 100%;
+    animation-duration: 120ms;
+}
+
+/* ------------------------------------------------------------------------------------------------------------
+ * Giảm chuyển động: bỏ dịch chuyển và phóng to, giữ đổi độ mờ và vòng chờ. Ấn vẫn mất bóng, không dịch.
+ * ---------------------------------------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-    *, ::before, ::after {
-        animation: none !important;
-        transition: none !important;
+    .animate-rise,
+    .animate-pop,
+    .animate-stamp,
+    .animate-dialog,
+    .animate-sheet-in,
+    .animate-grow,
+    .animate-menu,
+    .animate-paint-in,
+    .animate-drop,
+    .animate-land {
+        animation-name: jot-fade !important;
     }
-    .draw-in {
+    .animate-sheet-out {
+        animation-name: jot-fade-out !important;
+    }
+    /* Thông báo: chỉ hiện dần, vẫn giữ vị trí giữa màn. */
+    .animate-toast {
+        animation-name: jot-fade !important;
+        translate: -50% 0;
+    }
+    .animate-shake,
+    .animate-pulse-3,
+    .reveal-on-scroll,
+    .paint-on-scroll {
+        animation: none !important;
+    }
+    .lift:hover, .lift:active,
+    .lift-sm:hover, .lift-sm:active,
+    .cta:hover, .cta:active,
+    .press:hover, .press:active,
+    .press-solid:active,
+    .pick:hover, .pick:active,
+    .tilt:hover {
+        transform: none !important;
+        translate: none !important;
+    }
+    .draw-in,
+    .progress-ring {
+        animation: none;
         stroke-dashoffset: 0;
+    }
+    ::view-transition-group(*) {
+        animation: none !important;
+    }
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 150ms !important;
     }
 }

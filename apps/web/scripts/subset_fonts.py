@@ -1,16 +1,16 @@
-"""Tạo font tự host cho web (Bước 14, LCP): mỗi độ đậm một file woff2 chỉ chứa ký tự tiếng Việt + Latin cơ bản.
+"""Tạo font tự host cho web (hệ thiết kế Jotly 1.1): chỉ giữ ký tự tiếng Việt + Latin cơ bản.
 
 Chạy từ apps/web:
     uv run --no-project --with "fonttools[woff]==4.67.0" python scripts/subset_fonts.py
 
-- Be Vietnam Pro (400/500/600/700): ASCII, chữ tiếng Việt, vài dấu câu/mũi tên giao diện dùng (UNICODES bên dưới).
-  Ký tự ngoài bộ này (emoji, chữ nước khác) trình duyệt tự lấy font hệ thống. Nhỏ hơn khoảng 35% so với cặp file
-  latin + vietnamese của fontsource.
+- Commissioner (biến thiên): một file `commissioner-vi.woff2` cho toàn bộ giao diện. Giữ hai trục: wght 400–800 và
+  FLAR 0–100 (độ loe chân chữ, tiêu đề dùng FLAR cao); ghim VOLM = 0, slnt = 0. Ký tự: UNICODES bên dưới (ASCII, chữ
+  tiếng Việt, vài dấu câu/mũi tên giao diện dùng). Ký tự ngoài bộ này (emoji, chữ nước khác) trình duyệt lấy font hệ
+  thống.
 - Young Serif: chỉ chữ trong logo ("Jotly").
-- Lora giữ nguyên bản fontsource: giấy phép có Reserved Font Name "Lora", bản cắt bớt không được mang tên đó.
 
-Font gốc lấy từ google/fonts ở một commit cố định để chạy lại ra đúng file. Đổi UNICODES thì sửa luôn `unicode-range`
-trong src/styles/fonts.css.
+Font gốc lấy từ google/fonts ở một commit cố định để chạy lại ra đúng file. Đổi UNICODES hay trục thì sửa luôn
+`unicode-range`/`font-weight` trong src/styles/fonts.css.
 """
 
 import io
@@ -19,6 +19,7 @@ from pathlib import Path
 
 from fontTools import subset
 from fontTools.ttLib import TTFont
+from fontTools.varLib import instancer
 
 GOOGLE_FONTS = "https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl"
 OUT = Path(__file__).resolve().parent.parent / "src" / "assets" / "fonts"
@@ -31,18 +32,21 @@ UNICODES = (
 )
 
 FONTS = [
-    # (file gốc trên google/fonts, file ra, chỉ giữ các ký tự này thay vì UNICODES)
-    ("bevietnampro/BeVietnamPro-Regular.ttf", "be-vietnam-pro-400.woff2", None),
-    ("bevietnampro/BeVietnamPro-Medium.ttf", "be-vietnam-pro-500.woff2", None),
-    ("bevietnampro/BeVietnamPro-SemiBold.ttf", "be-vietnam-pro-600.woff2", None),
-    ("bevietnampro/BeVietnamPro-Bold.ttf", "be-vietnam-pro-700.woff2", None),
-    ("youngserif/YoungSerif-Regular.ttf", "young-serif-logo.woff2", "Jotly"),
+    # (file gốc trên google/fonts, file ra, giới hạn trục biến thiên, chỉ giữ các ký tự này thay vì UNICODES)
+    (
+        "commissioner/Commissioner[FLAR,VOLM,slnt,wght].ttf",
+        "commissioner-vi.woff2",
+        {"wght": (400, 800), "FLAR": (0, 100), "VOLM": 0, "slnt": 0},
+        None,
+    ),
+    ("youngserif/YoungSerif-Regular.ttf", "young-serif-logo.woff2", None, "Jotly"),
 ]
-LICENSES = [("bevietnampro/OFL.txt", "OFL-BeVietnamPro.txt"), ("youngserif/OFL.txt", "OFL-YoungSerif.txt")]
+LICENSES = [("commissioner/OFL.txt", "OFL-Commissioner.txt"), ("youngserif/OFL.txt", "OFL-YoungSerif.txt")]
 
 
 def fetch(path: str) -> bytes:
-    with urllib.request.urlopen(f"{GOOGLE_FONTS}/{path}", timeout=60) as resp:
+    url = f"{GOOGLE_FONTS}/{urllib.request.quote(path)}"
+    with urllib.request.urlopen(url, timeout=120) as resp:
         return resp.read()
 
 
@@ -58,8 +62,11 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     options = subset.Options()
     options.flavor = "woff2"
-    for source, target, text in FONTS:
+    options.layout_features = ["*"]
+    for source, target, axes, text in FONTS:
         font = TTFont(io.BytesIO(fetch(source)))
+        if axes:
+            font = instancer.instantiateVariableFont(font, axes, updateFontNames=False)
         subsetter = subset.Subsetter(options)
         if text:
             subsetter.populate(text=text)

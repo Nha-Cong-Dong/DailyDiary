@@ -24,3 +24,9 @@ Thumbs.db
 !.vscode/extensions.json
 .idea/
 
+# Log
+docs/Backlog.md
+
+
+# Trang giải thích dự án (chỉ dùng cục bộ)
+project-map/

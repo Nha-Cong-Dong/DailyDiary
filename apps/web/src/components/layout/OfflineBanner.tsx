@@ -3,11 +3,9 @@ import { Check, LoaderCircle, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { onReconnectSynced, resetReconnectSynced } from '@/lib/autosave'
-import { flagColors } from '@/lib/catalog'
 import { useOnline } from '@/lib/online'
 import { cn } from '@/lib/utils'
 
-const SAGE = flagColors.find((c) => c.id === 'sage')!.hex
 /** Thời gian giữ dải "Đã có mạng lại" trước khi tự ẩn. */
 export const BACK_ONLINE_MS = 4000
 
@@ -63,15 +61,14 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className={cn('animate-drop border-b-[1.5px] border-line', online ? 'bg-secondary' : 'bg-highlight')}
+      className={cn('animate-drop border-b-[1.5px] border-stroke', online ? 'bg-secondary text-ink' : 'bg-peach text-on-accent dark:bg-highlight dark:text-ink')}
     >
       <div className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-2.5 sm:px-[clamp(16px,4vw,40px)]">
         {online ? (
           <>
             <span
               aria-hidden="true"
-              className="inline-flex size-6 animate-stamp items-center justify-center rounded-full border-[1.5px] border-line text-[#272218]"
-              style={{ backgroundColor: SAGE }}
+              className="inline-flex size-6 animate-stamp items-center justify-center rounded-full border-[1.5px] border-stroke bg-sage text-on-accent"
             >
               <Check className="size-3.5" strokeWidth={3} />
             </span>
@@ -82,7 +79,7 @@ export function OfflineBanner() {
           </>
         ) : (
           <>
-            <WifiOff className="size-5 animate-blink" aria-hidden="true" />
+            <WifiOff className="size-5 shrink-0" aria-hidden="true" />
             <p className="flex-[1_1_360px] text-sm leading-[22px]">
               <strong className="font-semibold">Bạn đang ngoại tuyến.</strong> Những gì bạn viết vẫn được giữ trên trình
               duyệt này và sẽ tự lưu khi có mạng.

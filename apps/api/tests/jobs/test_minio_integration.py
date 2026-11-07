@@ -13,7 +13,7 @@ from botocore.config import Config
 from app.core.config import settings
 from app.db import collections as c
 from app.jobs.backup_db import backup_db, list_backups, restore_db
-from app.jobs.backup_photos import backup_photos
+from app.jobs.backup_photos import backup_photos, last_photo_backup
 from app.jobs.blobstore import S3BlobStore
 from tests.jobs.helpers import add_entry, add_user
 
@@ -92,8 +92,10 @@ async def test_backup_photos_through_minio(buckets):
     await source.put("u1/2026/10/01/a.webp", io.BytesIO(big))
     await source.put("u1/2026/10/01/b.webp", io.BytesIO(b"bb"))
 
+    assert await last_photo_backup(backup) is None
     r = await backup_photos(source, backup)
     assert (r.copied, r.failed) == (2, 0)
+    assert await last_photo_backup(backup) is not None  # mốc lần chạy đọc/ghi được qua S3 thật
     assert await backup.list("photos/") == {
         "photos/u1/2026/10/01/a.webp": len(big),
         "photos/u1/2026/10/01/b.webp": 2,

@@ -26,17 +26,17 @@ type BottomSheetProps = {
 }
 
 const overlay =
-  'fixed inset-0 z-50 bg-[rgb(20_17_13/0.55)] duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0'
+  'fixed inset-0 z-50 bg-[rgb(20_17_13/0.55)] data-open:animate-scrim data-closed:animate-fade-out'
 
 /** Khung bảng trượt: tràn ngang, bám đáy, bo góc trên, chừa vùng an toàn của điện thoại. */
 const sheet =
-  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-[24px] border-[1.5px] border-b-0 border-line bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-foreground outline-none duration-300 ease-[cubic-bezier(.2,.8,.2,1)] data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-8 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-8'
+  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col gap-4 overflow-y-auto rounded-t-lg border-[1.5px] border-b-0 border-stroke bg-card px-4 pt-2 pb-[max(24px,env(safe-area-inset-bottom))] text-ink shadow-lg outline-none data-open:animate-sheet-in data-closed:animate-sheet-out'
 
 /** Từ 768 px: hộp thoại giữa màn, rộng 440 px mặc định (đổi bằng `className`, vd. `md:max-w-[980px]`). */
 const centred =
-  'md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[calc(100dvh-2rem)] md:w-full md:max-w-[min(440px,calc(100%-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:gap-3.5 md:rounded-[22px] md:border-b-[1.5px] md:bg-popover md:p-7 md:data-open:slide-in-from-bottom-3 md:data-closed:slide-out-to-bottom-3'
+  'md:inset-x-auto md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[calc(100dvh-2rem)] md:w-full md:max-w-[min(440px,calc(100%-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:gap-3.5 md:rounded-lg md:border-b-[1.5px] md:bg-card md:p-7 md:data-open:animate-dialog md:data-closed:animate-fade-out'
 
-const grabber = 'h-1 w-10 shrink-0 self-center rounded-full bg-border'
+const grabber = 'h-1 w-10 shrink-0 self-center rounded-full bg-line-soft'
 
 export const SheetTitle = DialogPrimitive.Title
 export const SheetDescription = DialogPrimitive.Description
@@ -72,19 +72,19 @@ export function BottomSheet({
           className={cn(
             sheet,
             responsive && centred,
-            responsive && (danger ? 'md:shadow-[6px_6px_0_var(--destructive)]' : 'md:shadow-ink-lg'),
+            responsive && (danger ? 'md:shadow-danger-lg' : 'md:shadow-lg'),
             className,
           )}
         >
           <span aria-hidden="true" className={cn(grabber, responsive && 'md:hidden', bare && 'mt-2')} />
           {bare ? null : (
             <div className="flex flex-col gap-1.5 md:gap-2">
-              <DialogPrimitive.Title className="font-heading text-xl leading-7 font-bold md:text-[22px] md:leading-[30px]">
+              <DialogPrimitive.Title className="text-heading text-ink">
                 {title}
               </DialogPrimitive.Title>
               {description ? (
                 <DialogPrimitive.Description
-                  className={showDescription ? 'text-[15px] leading-6 text-muted-foreground' : 'sr-only'}
+                  className={showDescription ? 'text-body text-ink-soft' : 'sr-only'}
                 >
                   {description}
                 </DialogPrimitive.Description>
@@ -99,7 +99,7 @@ export function BottomSheet({
 }
 
 /**
- * Hàng nút cuối hộp: điện thoại xếp dọc, cao 50 px, nút chính ở trên; máy tính nằm ngang bên phải.
+ * Hàng nút cuối hộp: điện thoại xếp dọc, cao 48 px, nút chính ở trên; máy tính nằm ngang bên phải.
  * Truyền nút theo thứ tự trên điện thoại; `reverseOnDesktop` đảo lại trên máy tính (nút giữ nguyên ở trái, nút chính ở phải).
  */
 export function SheetActions({ children, reverseOnDesktop = false }: { children: ReactNode; reverseOnDesktop?: boolean }) {
@@ -108,7 +108,7 @@ export function SheetActions({ children, reverseOnDesktop = false }: { children:
       className={cn(
         'mt-1 flex flex-col gap-2.5 md:mt-2 md:flex-row md:justify-end',
         reverseOnDesktop && 'md:flex-row-reverse md:justify-start',
-        '[&>*]:h-[50px] [&>*]:w-full [&>*]:rounded-[14px] [&>*]:text-[15px] md:[&>*]:h-11 md:[&>*]:w-auto md:[&>*]:rounded-[12px] md:[&>*]:px-[18px]',
+        '[&>*]:h-12 [&>*]:w-full md:[&>*]:h-11 md:[&>*]:w-auto',
       )}
     >
       {children}

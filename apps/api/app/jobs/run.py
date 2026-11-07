@@ -1,11 +1,16 @@
 """Lệnh chạy chung cho tác vụ định kỳ (Bước 13): `uv run python -m app.jobs.run <tên> [tùy chọn]`.
 
 Tên tác vụ:
-- `purge_accounts`  làm nốt xóa tài khoản dang dở (đặt lịch mỗi giờ);
-- `purge_trash`     dọn trang trong thùng rác quá hạn khôi phục, kèm ảnh và link chia sẻ (mỗi ngày);
-- `backup_db`       sao lưu MongoDB lên kho sao lưu, giữ BACKUP_KEEP bản (00:00, 08:00, 16:00 giờ VN);
-- `backup_photos`   sao chép tăng dần kho ảnh sang kho sao lưu (mỗi ngày);
+- `purge_accounts`  làm nốt xóa tài khoản dang dở (mỗi lần lịch chạy);
+- `purge_trash`     dọn trang trong thùng rác quá hạn khôi phục, kèm ảnh và link chia sẻ (mỗi lần lịch chạy);
+- `backup_db`       sao lưu MongoDB lên kho sao lưu, giữ BACKUP_KEEP bản (chu kỳ BACKUP_DB_INTERVAL_HOURS);
+- `backup_photos`   sao chép tăng dần kho ảnh sang kho sao lưu (chu kỳ BACKUP_PHOTOS_INTERVAL_HOURS);
 - `restore_db`      khôi phục một bản sao lưu: `restore_db --target <db> [--key <key>] [--force]`.
+
+`backup_db --if-due` / `backup_photos --if-due` (dùng trong lịch GitHub Actions): chỉ chạy khi lần sao lưu gần
+nhất đã cũ hơn chu kỳ, nếu không thì in "chưa đến hạn" và thoát 0. Cron của GitHub chạy thưa và lệch giờ thất
+thường, nên tính hạn theo bản sao lưu thật trong kho thay vì theo giờ chạy. Không có cờ thì luôn chạy (chạy
+tay).
 
 In tóm tắt (chỉ số lượng, không có dữ liệu cá nhân). Mã thoát: 0 xong hoặc chưa cấu hình (bỏ qua êm),
 1 lỗi hoặc bị từ chối, 2 sai cú pháp lệnh. Lỗi lạ chỉ in tên loại lỗi: thông điệp lỗi MongoDB có thể chứa
@@ -15,18 +20,34 @@ document.
 import argparse
 import asyncio
 import sys
+from datetime import UTC, datetime, timedelta
 
 from app.core.config import settings
 from app.core.logging import configure_logging
 from app.core.storage import make_storage
 from app.db.client import make_client
-from app.jobs.backup_db import BackupError, backup_db, restore_db
-from app.jobs.backup_photos import backup_photos
+from app.jobs.backup_db import BackupError, backup_db, latest_backup_at, restore_db
+from app.jobs.backup_photos import backup_photos, last_photo_backup
 from app.jobs.blobstore import make_backup_store, make_photo_store
 from app.services.account import purge_pending
 from app.services.maintenance import purge_trash
 
 NOT_CONFIGURED = "Chưa cấu hình kho sao lưu (BACKUP_S3_BUCKET trống), bỏ qua."
+# Cho phép sớm hơn chu kỳ một chút: lịch chạy phút 17 mỗi giờ nhưng thực tế xê dịch vài phút; không có độ
+# trễ này thì bản trước lúc 00:17:40, lần chạy 08:17:10 bị coi là "chưa đủ 8 giờ" và phải chờ tới 09:17.
+DUE_SLACK = timedelta(minutes=30)
+
+
+def skip_if_not_due(job: str, last: datetime | None, every_hours: float) -> bool:
+    """True (và in lý do) khi lần sao lưu gần nhất còn mới hơn chu kỳ trừ DUE_SLACK."""
+    if last is None:
+        return False
+    age = datetime.now(UTC) - last
+    if age >= timedelta(hours=every_hours) - DUE_SLACK:
+        return False
+    hours = age.total_seconds() / 3600
+    print(f"{job}: chưa đến hạn (lần gần nhất {hours:.1f} giờ trước, chu kỳ {every_hours:g} giờ), bỏ qua.")
+    return True
 
 
 async def _purge_accounts(_: argparse.Namespace) -> int:
@@ -51,10 +72,14 @@ async def _purge_trash(_: argparse.Namespace) -> int:
     return 0
 
 
-async def _backup_db(_: argparse.Namespace) -> int:
+async def _backup_db(args: argparse.Namespace) -> int:
     store = make_backup_store()
     if store is None:
         print(NOT_CONFIGURED)
+        return 0
+    if args.if_due and skip_if_not_due(
+        "backup_db", await latest_backup_at(store), settings.backup_db_interval_hours
+    ):
         return 0
     client = make_client(settings.mongodb_uri)
     try:
@@ -67,7 +92,7 @@ async def _backup_db(_: argparse.Namespace) -> int:
     return 0
 
 
-async def _backup_photos(_: argparse.Namespace) -> int:
+async def _backup_photos(args: argparse.Namespace) -> int:
     backup = make_backup_store()
     if backup is None:
         print(NOT_CONFIGURED)
@@ -75,6 +100,10 @@ async def _backup_photos(_: argparse.Namespace) -> int:
     source = make_photo_store()
     if source is None:
         print("Chưa cấu hình kho ảnh (S3_ACCESS_KEY/S3_SECRET_KEY trống), bỏ qua.")
+        return 0
+    if args.if_due and skip_if_not_due(
+        "backup_photos", await last_photo_backup(backup), settings.backup_photos_interval_hours
+    ):
         return 0
     r = await backup_photos(source, backup)
     print(
@@ -113,6 +142,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="job", required=True)
     for name in JOBS:
         p = sub.add_parser(name)
+        if name in ("backup_db", "backup_photos"):
+            p.add_argument(
+                "--if-due", action="store_true", help="chỉ chạy khi lần sao lưu gần nhất đã cũ hơn chu kỳ"
+            )
         if name == "restore_db":
             p.add_argument("--target", required=True, help="tên DB đích (nên là DB mới, trống)")
             p.add_argument("--key", help="key bản sao lưu; mặc định bản mới nhất")

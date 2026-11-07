@@ -40,7 +40,7 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         align={align}
-        className={cn("z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-[20px] border-[1.5px] border-line bg-card p-2 text-card-foreground shadow-ink-lg data-[state=closed]:overflow-hidden data-open:animate-menu", className)}
+        className={cn("z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border-[1.5px] border-stroke bg-card p-1.5 text-ink shadow-lg data-[state=closed]:overflow-hidden data-open:animate-menu", className)}
         {...props}
       />
     </DropdownMenuPrimitive.Portal>
@@ -70,7 +70,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex min-h-11 cursor-pointer items-center gap-3 rounded-[12px] px-3 text-sm font-medium outline-hidden transition-[background-color,padding-left] duration-200 select-none focus:bg-secondary focus:pl-4 focus:[&_svg]:animate-wiggle data-inset:pl-7 data-[variant=destructive]:font-semibold data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive-soft data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
+        "group/dropdown-menu-item relative flex min-h-11 cursor-pointer items-center gap-3 rounded-[12px] px-3 text-body font-medium outline-hidden transition-colors duration-(--dur-fast) select-none focus:bg-secondary active:bg-pressed data-inset:pl-7 data-[variant=destructive]:font-semibold data-[variant=destructive]:text-danger data-[variant=destructive]:focus:bg-danger-soft data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[18px]",
         className
       )}
       {...props}
@@ -167,7 +167,7 @@ function DropdownMenuLabel({
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
-        "px-1.5 py-1 text-xs font-medium text-muted-foreground data-inset:pl-7",
+        "px-1.5 py-1 text-label text-ink-soft data-inset:pl-7",
         className
       )}
       {...props}
@@ -182,7 +182,7 @@ function DropdownMenuSeparator({
   return (
     <DropdownMenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn("my-1 border-t-[1.5px] border-dashed border-border", className)}
+      className={cn("my-1 border-t-[1.5px] border-dashed border-line-soft", className)}
       {...props}
     />
   )
@@ -196,7 +196,7 @@ function DropdownMenuShortcut({
     <span
       data-slot="dropdown-menu-shortcut"
       className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground group-focus/dropdown-menu-item:text-accent-foreground",
+        "ml-auto text-xs tracking-widest text-ink-soft group-focus/dropdown-menu-item:text-accent-foreground",
         className
       )}
       {...props}
@@ -241,7 +241,7 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
-      className={cn("z-50 min-w-[96px] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-lg bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/10 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
+      className={cn("z-50 min-w-[96px] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-lg bg-card p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/10 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
       {...props}
     />
   )

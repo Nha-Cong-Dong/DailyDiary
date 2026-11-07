@@ -41,10 +41,12 @@ function ConfirmField({
           id={id}
           type={type}
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
           spellCheck={false}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-12 bg-background text-base"
+          className="bg-paper"
         />
       </div>
       <SheetActions reverseOnDesktop>
@@ -87,7 +89,7 @@ export function DeleteDataDialog({
       <ConfirmField
         label={
           <>
-            Gõ <strong className="font-bold text-destructive">XÓA</strong> để xác nhận
+            Gõ <strong className="font-bold text-danger">XÓA</strong> để xác nhận
           </>
         }
         type="text"
@@ -132,7 +134,7 @@ export function DeleteAccountDialog({
       showDescription
       className="md:max-w-[min(480px,calc(100%-2rem))]"
     >
-      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-6 marker:text-destructive">
+      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-body text-ink">
         <li>
           {pageCount === undefined
             ? 'Mọi trang nhật ký, kèm điểm và ảnh'
@@ -143,7 +145,7 @@ export function DeleteAccountDialog({
         {shareCount ? <li>{shareCount} link chia sẻ, người nhận sẽ không mở được nữa</li> : null}
         <li>Hồ sơ, ảnh đại diện, bộ icon, múi giờ và cài đặt</li>
       </ul>
-      <p className="text-sm leading-[22px] text-muted-foreground">
+      <p className="text-sm leading-[22px] text-ink-soft">
         Góp ý bạn từng gửi được giữ lại nhưng không còn tên hay email của bạn. Bản sao lưu tự động có thể còn dữ liệu
         tối đa 7 ngày rồi bị ghi đè, không dùng để khôi phục tài khoản. Tài khoản Google của bạn không bị ảnh hưởng;
         đăng nhập lại sau này sẽ bắt đầu một cuốn nhật ký mới. Jotly gửi email xác nhận về {email} sau khi xóa.
@@ -151,7 +153,7 @@ export function DeleteAccountDialog({
       <ConfirmField
         label={
           <>
-            Gõ email <strong className="font-bold break-all text-destructive">{email}</strong> để xác nhận
+            Gõ email <strong className="font-bold break-all text-danger">{email}</strong> để xác nhận
           </>
         }
         type="email"

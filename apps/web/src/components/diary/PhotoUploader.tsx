@@ -17,7 +17,7 @@ const caption = 'text-xs leading-[18px]'
 function ProgressRing({ progress }: { progress: number }) {
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true" className="-rotate-90">
-      <circle cx="20" cy="20" r="15" strokeWidth="4" className="stroke-[#FFFCF8]/70" />
+      <circle cx="20" cy="20" r="15" strokeWidth="4" className="stroke-paper/70" />
       <circle
         cx="20"
         cy="20"
@@ -27,7 +27,7 @@ function ProgressRing({ progress }: { progress: number }) {
         pathLength={1}
         strokeDasharray={1}
         strokeDashoffset={1 - progress}
-        className="stroke-[#272218] transition-[stroke-dashoffset] duration-300"
+        className="stroke-ink transition-[stroke-dashoffset] duration-300"
       />
     </svg>
   )
@@ -44,9 +44,9 @@ function RejectedText({ reason }: { reason: RejectReason }) {
   const [title, detail] = REJECTED[reason]()
   return (
     <>
-      <ImageOff className="size-5 text-destructive" aria-hidden="true" />
+      <ImageOff className="size-5 text-danger" aria-hidden="true" />
       <span className={cn(caption, 'font-semibold')}>{title}</span>
-      <span className={cn(caption, 'text-muted-foreground')}>{detail}</span>
+      <span className={cn(caption, 'text-ink-soft')}>{detail}</span>
     </>
   )
 }
@@ -59,12 +59,12 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
     <li
       className={cn(
         tileBase,
-        'animate-pop transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5',
+        'animate-pop pick',
         tile.status === 'rejected'
-          ? 'border-dashed border-destructive bg-destructive-soft p-1.5'
+          ? 'border-dashed border-danger bg-danger-soft p-1.5'
           : tile.status === 'failed'
-            ? 'border-dashed border-line bg-muted p-1.5'
-            : cn('border-line text-[#6A6255]', !preview && tint),
+            ? 'border-dashed border-stroke bg-sunk p-1.5'
+            : cn('border-stroke text-ink-soft', !preview && tint),
       )}
     >
       {preview ? <img src={preview} alt={name} className="absolute inset-0 size-full rounded-[10.5px] object-cover md:rounded-[12.5px]" /> : null}
@@ -75,7 +75,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
         </>
       ) : null}
       {tile.status === 'uploading' ? (
-        <span className="relative flex flex-col items-center gap-1 rounded-[10px] bg-[#FFFCF8]/75 px-1.5 py-1 text-[#6A6255]">
+        <span className="relative flex flex-col items-center gap-1 rounded-[10px] bg-paper/75 px-1.5 py-1 text-ink-soft">
           <ProgressRing progress={tile.progress} />
           <span role="status" className={caption}>
             Đang tải…
@@ -89,7 +89,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
             type="button"
             onClick={onRetry}
             aria-label={`Thử tải lại ảnh ${name}`}
-            className="press inline-flex h-7 cursor-pointer items-center gap-1 rounded-sm border-[1.5px] border-line bg-card px-2.5 text-xs font-semibold focus-visible:outline-3 focus-visible:outline-ring"
+            className="press inline-flex h-7 cursor-pointer items-center gap-1 rounded-sm border-[1.5px] border-stroke bg-card px-2.5 text-xs font-semibold focus-visible:outline-3 focus-visible:outline-focus"
           >
             <RotateCw className="size-3" aria-hidden="true" />
             Thử lại
@@ -103,7 +103,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
         aria-label={`Bỏ ảnh ${name}`}
         className={cn(
           // Nút bỏ nằm chờm ra ngoài góc ô (B9, B10).
-          'absolute -top-2 -right-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-line bg-card text-foreground transition-[opacity,transform] hover:scale-105 focus-visible:opacity-100 focus-visible:outline-3 focus-visible:outline-ring md:-top-[9px] md:-right-[9px] md:size-[26px]',
+          'absolute -top-2 -right-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-stroke bg-card text-ink transition-opacity duration-(--dur-fast) focus-visible:opacity-100 focus-visible:outline-3 focus-visible:outline-focus md:-top-[9px] md:-right-[9px] md:size-[26px]',
           // Ô lỗi luôn hiện nút bỏ; ô ảnh chỉ hiện khi rê chuột (máy cảm ứng thì luôn hiện).
           tile.status === 'rejected' || tile.status === 'failed'
             ? 'opacity-100'
@@ -175,9 +175,9 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
         }}
         onDrop={onDrop}
         className={cn(
-          '-m-2 rounded-[18px] border-[1.5px] p-2 transition-colors',
+          '-m-2 rounded-[18px] border-[1.5px] p-2 transition-colors duration-(--dur-fast)',
           dragging
-            ? 'border-line bg-[repeating-linear-gradient(90deg,rgb(241_189_144/.28)_0_14px,transparent_14px_28px)]'
+            ? 'border-dashed border-stroke bg-peach-soft'
             : 'border-transparent',
         )}
       >
@@ -187,7 +187,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
           ))}
           <li>
             {full ? (
-              <span className={cn(tileBase, 'border-dashed border-disabled-line bg-disabled p-1.5 text-disabled-foreground')}>
+              <span className={cn(tileBase, 'border-dashed border-disabled-line bg-secondary p-1.5 text-ink-faint')}>
                 <ImagePlus className="size-5" aria-hidden="true" />
                 <span className={cn(caption, 'font-semibold')}>
                   Đủ {per_day_max}/{per_day_max}
@@ -214,12 +214,12 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
                   onClick={() => inputRef.current?.click()}
                   className={cn(
                     tileBase,
-                    'cursor-pointer border-dashed border-line bg-transparent transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
+                    'cursor-pointer border-dashed border-stroke bg-transparent pick pointer-fine:hover:bg-card focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus',
                     dragging && 'border-solid bg-card',
                   )}
                 >
                   <ImagePlus className="size-5 md:size-6" aria-hidden="true" />
-                  <span className="text-[11px] leading-4 font-medium md:text-[13px] md:leading-[18px]">{dragging ? 'Thả ảnh vào đây' : 'Thêm ảnh'}</span>
+                  <span className="text-[11px] leading-4 font-medium md:text-label md:font-medium">{dragging ? 'Thả ảnh vào đây' : 'Thêm ảnh'}</span>
                 </button>
               </>
             )}
@@ -227,7 +227,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
         </ul>
       </div>
       {usage?.warn ? (
-        <p className="flex items-start gap-1.5 text-[13px] leading-5 font-medium text-destructive">
+        <p className="flex items-start gap-1.5 text-label text-danger">
           <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>
             {usage.full
@@ -236,7 +236,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
           </span>
         </p>
       ) : null}
-      <p role="status" className="min-h-5 text-[13px] leading-5 text-muted-foreground">
+      <p role="status" className="min-h-5 text-label font-medium text-ink-soft">
         {note}
       </p>
     </div>

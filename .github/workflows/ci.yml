@@ -16,6 +16,9 @@ jobs:
   api:
     # Ghim 24.04: ubuntu-latest đã lên Ubuntu 26 (kernel >= 6.19) và mongo:8.0.34 không khởi động được trên đó
     # (SERVER-121912). Bỏ ghim khi MongoDB có bản vá và đã nâng image.
+    # Ghim 24.04 chưa đủ (GitHub vẫn cấp máy kernel mới ngẫu nhiên): thêm GLIBC_TUNABLES=glibc.pthread.rseq=1 cho
+    # container mongo (CircleCI và Railway báo cách này chạy được; =0 thì không). MongoDB chuyển sang cache theo luồng
+    # thay vì theo CPU, chậm hơn một chút, không ảnh hưởng test.
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -26,6 +29,7 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: dd
           MONGO_INITDB_ROOT_PASSWORD: dd
+          GLIBC_TUNABLES: glibc.pthread.rseq=1
         ports: ["27017:27017"]
         options: >-
           --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
@@ -89,6 +93,7 @@ jobs:
         env:
           MONGO_INITDB_ROOT_USERNAME: dd
           MONGO_INITDB_ROOT_PASSWORD: dd
+          GLIBC_TUNABLES: glibc.pthread.rseq=1 # xem chú thích ở job api
         ports: ["27017:27017"]
         options: >-
           --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
