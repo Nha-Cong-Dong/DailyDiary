@@ -157,7 +157,10 @@ export function DevUiPage() {
       <Section title="Button">
         <div className="flex flex-col gap-4">
           {BUTTONS.map(([variant, text]) => (
-            <div key={variant} className="grid grid-cols-[150px_auto_auto] items-center justify-start gap-4">
+            <div
+              key={variant}
+              className="grid grid-cols-1 items-center justify-items-start gap-2 sm:grid-cols-[150px_auto_auto] sm:justify-start sm:gap-4"
+            >
               <Label>{variant}</Label>
               <Button variant={variant}>{text}</Button>
               {variant === 'link' ? (

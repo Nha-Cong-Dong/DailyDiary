@@ -19,8 +19,8 @@ test('chấm điểm hôm nay → tải lại vẫn còn → xóa trang → hoà
 
   await page.goto(`/day/${today}`)
   // Máy tính: nút thùng rác cạnh Sửa; điện thoại: nút "Xóa trang này" cuối trang.
+  // Xóa không hỏi lại (canvas): trang vào thùng rác ngay, thông báo có "Hoàn tác" trong 6 giây.
   await page.getByRole('button', { name: /^Xóa (nhật ký ngày này|trang này)$/ }).filter({ visible: true }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Xóa nhật ký' }).click()
   await expect(page.getByRole('button', { name: 'Khôi phục trang' })).toBeVisible()
 
   await page.getByRole('status').getByRole('button', { name: 'Hoàn tác' }).click()
