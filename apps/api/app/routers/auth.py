@@ -54,7 +54,11 @@ async def google_login(request: Request, tz: str | None = None, next: str | None
     request.session["tz"] = _safe_tz(tz)
     if next in RETURN_PATHS:
         request.session["next"] = next
-    return await oauth.google.authorize_redirect(request, settings.google_redirect_uri)
+    # prompt=select_account: luôn hiện màn chọn tài khoản. Thiếu nó Google vào lại ngay tài khoản gần nhất
+    # (đăng xuất xong vẫn vào lại cùng tài khoản, không đổi được).
+    return await oauth.google.authorize_redirect(
+        request, settings.google_redirect_uri, prompt="select_account"
+    )
 
 
 @router.get("/google/callback")
