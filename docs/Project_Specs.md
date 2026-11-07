@@ -229,8 +229,8 @@ Trần chống lạm dụng (`shared/limits.json`). Vượt → 429 + `Retry-Aft
 
 ### 4.6. Tương thích
 
-Chrome, Edge, Firefox, Safari bản mới trên máy tính; trình duyệt điện thoại từ 360 px. Font: Be Vietnam Pro (chữ
-thường), Lora (tiêu đề), Young Serif (logo).
+Chrome, Edge, Firefox, Safari bản mới trên máy tính; trình duyệt điện thoại từ 360 px. Font: Commissioner biến thiên
+(toàn bộ giao diện, tiêu đề dùng trục FLAR), Young Serif (chỉ chữ "Jotly" trong logo).
 
 ### 4.7. Theo dõi và đo lường — tạm gỡ
 
