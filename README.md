@@ -176,8 +176,8 @@ lệch giờ); không có cờ thì luôn chạy. Chi tiết: [`docs/Deploy.md`]
 Mã thoát: `0` thành công hoặc chưa cấu hình, `1` lỗi, `2` sai cú pháp.
 
 Font tự host: trong `apps/web`, chạy
-`uv run --no-project --with "fonttools[woff]==4.67.0" python scripts/subset_fonts.py` để tạo lại Be Vietnam Pro và Young
-Serif đã cắt còn ký tự tiếng Việt và Latin vào `src/assets/fonts/`.
+`uv run --no-project --with "fonttools[woff]==4.67.0" python scripts/subset_fonts.py` để tạo lại Commissioner (biến thiên, trục wght và FLAR) và
+Young Serif đã cắt còn ký tự tiếng Việt và Latin vào `src/assets/fonts/`.
 
 ## Triển khai
 

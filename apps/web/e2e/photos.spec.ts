@@ -43,7 +43,8 @@ test('thêm ảnh ở Hôm nay → Trang ngày hiện ảnh bằng link ký → 
   await expect(page.getByRole('button', { name: 'Ảnh · 1/10' })).toBeVisible()
 
   await page.goto(`/day/${today}`)
-  const thumb = page.getByRole('button', { name: 'Mở ảnh 1 trên 1' }).locator('img')
+  // Trang ngày hiện ảnh đầu ngày dạng ảnh dán: nút "Xem ảnh, N ảnh" bọc ảnh nhỏ.
+  const thumb = page.getByRole('button', { name: 'Xem ảnh, 1 ảnh' }).locator('img')
   await expect(thumb).toHaveAttribute('src', /X-Amz-Signature=/)
   const signed = (await thumb.getAttribute('src'))!
   expect((await page.request.get(signed)).status()).toBe(200)

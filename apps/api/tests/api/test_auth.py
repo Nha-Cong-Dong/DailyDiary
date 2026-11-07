@@ -18,12 +18,19 @@ pytestmark = pytest.mark.anyio
 
 
 @pytest.fixture
-def google(monkeypatch):
+def authorize_calls() -> list[dict]:
+    """Tham số mỗi lần /auth/google/login gọi authorize_redirect (redirect_uri và các tham số thêm)."""
+    return []
+
+
+@pytest.fixture
+def google(monkeypatch, authorize_calls):
     """Giả lập Google: có client id/secret, không gọi mạng, token trả userinfo sửa được trong test."""
     monkeypatch.setattr(config.settings, "google_client_id", "test-id")
     monkeypatch.setattr(config.settings, "google_client_secret", "test-secret")
 
-    async def fake_redirect(request, redirect_uri):
+    async def fake_redirect(request, redirect_uri, **kwargs):
+        authorize_calls.append({"redirect_uri": redirect_uri, **kwargs})
         return RedirectResponse("https://accounts.google.com/o/oauth2/auth?fake=1", status_code=302)
 
     monkeypatch.setattr(oauth.google, "authorize_redirect", fake_redirect)
@@ -46,6 +53,16 @@ async def test_login_without_google_keys_redirects_with_error(anon, monkeypatch)
     r = await anon.get("/auth/google/login")
     assert r.status_code == 303
     assert r.headers["location"].endswith("/login?error=not_configured")
+
+
+async def test_login_always_asks_google_to_show_the_account_chooser(anon, google, authorize_calls):
+    # Thiếu prompt=select_account thì Google bỏ qua màn chọn tài khoản, vào thẳng tài khoản gần nhất:
+    # đăng xuất hay "Thử lại với Google" sau lỗi đều tự vào lại tài khoản cũ, không đổi được.
+    r = await anon.get("/auth/google/login")
+    assert r.status_code == 302
+    assert len(authorize_calls) == 1
+    assert authorize_calls[0]["prompt"] == "select_account"
+    assert authorize_calls[0]["redirect_uri"] == config.settings.google_redirect_uri
 
 
 async def test_callback_creates_user_sets_cookies_and_sends_new_user_to_onboarding(anon, db, google):

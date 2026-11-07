@@ -29,7 +29,7 @@ export function PixelCell({ score, state, label, className, style }: PixelCellPr
       style={style}
       className={cn(
         'aspect-square rounded-[4px] border',
-        score ? SCORE_BG[score] : state === 'future' ? 'border-border bg-transparent' : 'border-border bg-muted',
+        score ? SCORE_BG[score] : state === 'future' ? 'border-line-soft bg-transparent' : 'border-line-soft bg-sunk',
         className,
       )}
     />
@@ -83,8 +83,8 @@ export function PixelLegend({ className, active = null, onToggle, onHighlight, h
                 onFocus={() => onHighlight?.(item.key)}
                 onBlur={() => onHighlight?.(null)}
                 className={cn(
-                  'group/leg inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] px-2.5 transition-transform hover:[transform:translateY(-2px)] active:[transform:scale(.95)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
-                  active === item.key ? 'border-line' : 'border-transparent',
+                  'group/leg inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] px-2.5 press focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                  active === item.key ? 'border-stroke bg-lavender-soft' : 'border-transparent',
                 )}
               >
                 {swatch}

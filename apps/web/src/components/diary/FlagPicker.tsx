@@ -19,7 +19,7 @@ type FlagPickerProps = {
   className?: string
 }
 
-const motion = 'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-0.5 active:scale-[.97]'
+const motion = 'pick'
 
 type Swatch = { hex: string; label: string }
 
@@ -36,8 +36,8 @@ export function FlagPicker({ value, onChange, compact, form, className }: FlagPi
     : compact
       ? 'h-[30px] rounded-sm sm:h-7 sm:w-10'
       : 'h-11 w-[52px] rounded-[10px]'
-  const ring = (on: boolean) => (on ? 'outline-[2.5px] outline-line' : 'outline-transparent')
-  const tile = cn('cursor-pointer outline-offset-3 focus-visible:outline-3 focus-visible:outline-ring', motion, size)
+  const ring = (on: boolean) => (on ? 'outline-[2.5px] outline-stroke' : 'outline-transparent')
+  const tile = cn('cursor-pointer outline-offset-3 focus-visible:outline-3 focus-visible:outline-focus', motion, size)
 
   const swatches: Swatch[] = [
     ...flagColors.map((flag) => ({ hex: flag.hex, label: `Cờ ${flag.name}` })),
@@ -70,7 +70,7 @@ export function FlagPicker({ value, onChange, compact, form, className }: FlagPi
           aria-label="Không cờ"
           aria-pressed={value === null}
           onClick={() => onChange(null)}
-          className={cn(tile, 'border-[1.5px] border-dashed border-line bg-transparent', ring(value === null))}
+          className={cn(tile, 'border-[1.5px] border-dashed border-stroke bg-transparent', ring(value === null))}
         />
       ) : null}
       {swatches.map((s) => {
@@ -83,7 +83,7 @@ export function FlagPicker({ value, onChange, compact, form, className }: FlagPi
             aria-pressed={on}
             onClick={() => onChange(on && !form ? null : s.hex)}
             style={{ backgroundColor: flagHex(s.hex, dark) }}
-            className={cn(tile, 'border-[1.5px] border-line', ring(on))}
+            className={cn(tile, 'border-[1.5px] border-stroke', ring(on))}
           />
         )
       })}
@@ -150,7 +150,7 @@ function AddColor({
         onClick={open}
         className={cn(
           className,
-          'flex size-full items-center justify-center border-[1.5px] border-dashed border-line bg-transparent text-muted-foreground disabled:cursor-wait disabled:opacity-60',
+          'flex size-full items-center justify-center border-[1.5px] border-dashed border-stroke bg-transparent text-ink-soft disabled:cursor-wait disabled:opacity-60',
         )}
       >
         <Plus aria-hidden className="size-4" strokeWidth={2.25} />

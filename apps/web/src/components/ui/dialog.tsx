@@ -37,7 +37,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-[rgb(20_17_13/0.55)] duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-[rgb(20_17_13/0.55)] data-open:animate-scrim data-closed:animate-fade-out",
         className
       )}
       {...props}
@@ -59,7 +59,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-3.5 rounded-lg border-[1.5px] border-line bg-popover p-7 text-base text-popover-foreground shadow-ink-lg duration-300 ease-[cubic-bezier(.2,.8,.2,1)] outline-none sm:max-w-[440px] data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-3 data-closed:animate-out data-closed:fade-out-0",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-3.5 rounded-lg border-[1.5px] border-stroke bg-card p-7 text-body text-ink shadow-lg outline-none sm:max-w-[440px] data-open:animate-dialog data-closed:animate-fade-out",
           className
         )}
         {...props}
@@ -128,7 +128,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-title-3 font-bold",
+        "text-heading text-ink",
         className
       )}
       {...props}
@@ -144,7 +144,7 @@ function DialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn(
-        "text-[15px] leading-6 text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+        "text-body text-ink-soft *:[a]:underline *:[a]:underline-offset-4 *:[a]:hover:text-ink",
         className
       )}
       {...props}

@@ -1,0 +1,241 @@
+{
+  "title": "Chọn thế giới thiết kế mới cho Jotly",
+  "question": "Lần quay chọn \"Bản in thử\". Giữ hướng này, lấy một hướng khác, hoặc quay lại.",
+  "options": [
+    {
+      "id": "assigned",
+      "kind": "assigned",
+      "label": "Bản in thử",
+      "kicker": "THE ROLL",
+      "lineage": "Bản in thử của nhà sách: trang đã dàn chữ, biên tập viên ghi bút chì xanh bên lề",
+      "thesis": "Mỗi ngày là một trang sách đang in của chính bạn: chữ dàn như sách thật, ghi chú bút chì xanh ở lề.",
+      "palette": [
+        "#FCFCFA",
+        "#E4E8ED",
+        "#1D2026",
+        "#1F4E5A",
+        "#4F7FC9"
+      ],
+      "materials": [
+        "giấy in trắng mát",
+        "vải bìa xanh mòng két ở thanh điều hướng",
+        "bút chì xanh không in"
+      ],
+      "viewport": "Thanh vải bìa bên trái; giữa là trang sách khổ chữ 62 ký tự với dòng đầu trang, số ngày mở chương, chọn điểm, vùng viết có dòng kẻ, chú thích âm lịch và số trang (ngày thứ mấy trong năm); lề phải ghi bút chì xanh: điểm, từ khóa, cờ, đã lưu.",
+      "risk": "Nếu dàn chữ rụt rè sẽ thành một app trắng có chữ có chân; cần khổ chữ, lề và số trang làm thật.",
+      "raised": [
+        {
+          "from": "variable-font-specimen",
+          "raise": "Thứ bậc chỉ bằng cỡ chữ: không khung, không thẻ, chữ tự gánh cấu trúc."
+        },
+        {
+          "from": "vernacular-ephemera-cassette-j-card",
+          "raise": "Chữ chưa lưu viết bút chì xám, đã lưu thành mực: trạng thái lưu nhìn thấy ngay trên chữ."
+        },
+        {
+          "from": "pop-culture-shelf-streaming-title-card-wall",
+          "raise": "Trang đang mở nổi lên, các trang quanh nó lùi lại nhạt đi."
+        },
+        {
+          "from": "design-annual-s-plate-section",
+          "raise": "Giấy không bao giờ trắng trơn: lệch rất nhẹ ấm/mát để chữ đọc như in, không như màn hình."
+        },
+        {
+          "from": "wayfinding-cartography-signage-terminal-yellow-wayfinding",
+          "raise": "Mỗi lúc chỉ hiện bước kế tiếp: chấm điểm xong mới mở phần viết thêm."
+        }
+      ],
+      "html": ".impeccable/mocks/decision/assigned-proof.html"
+    },
+    {
+      "id": "model-pick",
+      "kind": "pick",
+      "label": "Sổ một ngày một trang",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Sổ tay một ngày một trang của dân journaling: bìa vải, lưới mảnh, ruy băng đánh dấu",
+      "thesis": "Một cuốn sổ bìa vải mở đôi: trang trái là hôm qua, trang phải là hôm nay, ruy băng đánh dấu chỗ đang viết.",
+      "palette": [
+        "#FBFBF8",
+        "#2B3A67",
+        "#DCE3EB",
+        "#22252B",
+        "#D9A527"
+      ],
+      "materials": [
+        "bìa vải chàm",
+        "giấy mỏng lưới 4 mm",
+        "ruy băng vàng nghệ",
+        "nhãn tháng ở mép trang"
+      ],
+      "viewport": "Thanh trên mỏng; giữa màn là cuốn sổ mở đôi trên mặt bàn xám: trái hôm qua (nhạt), phải hôm nay với số ngày, chọn điểm, tiêu đề, chữ, từ khóa; chân trang có âm lịch, giờ lưu, số trang; nhãn tháng thò ra mép phải.",
+      "risk": "Quen thuộc nhất: nhiều app nhật ký đi theo hướng cuốn sổ; dễ thành giả lập đồ vật nếu bóng và gáy làm quá tay.",
+      "html": ".impeccable/mocks/decision/model-pick-techo.html"
+    },
+    {
+      "id": "challenger-thumb-index",
+      "kind": "challenger",
+      "catalogId": "rw-manual-acetate-tab-board",
+      "label": "Mục lục ngón tay",
+      "verdict": "competitive",
+      "lineage": "Sổ tay tra cứu có tấm chia màu và nhãn tab ở mép sách",
+      "thesis": "Cả năm là một cuốn sách có nhãn tab màu ở mép: mỗi tháng một tab, tab dày theo số ngày đã ghi.",
+      "palette": [
+        "#1C8C8C",
+        "#E0662A",
+        "#E9B421",
+        "#2D54B8",
+        "#17191C"
+      ],
+      "materials": [
+        "tấm chia màu đậm",
+        "lá trang trong mờ",
+        "nhãn tab đục lỗ"
+      ],
+      "viewport": "Thanh điều hướng trái; giữa là lá trang hôm nay trong mờ trên tấm màu của tháng; dải tab tháng dọc mép phải, chiều cao theo số trang đã ghi.",
+      "case": "Hòa tốt về độ rõ: tab tháng là điều hướng và cho thấy sách dày lên; thua về độ gần gũi vì màu đậm, chuyển động cứng, không nhẹ nhàng.",
+      "risk": "Màu tấm chia đậm và bước nhảy 90 ms dễ lặp lại cái cứng của Lịch bloc.",
+      "html": ".impeccable/mocks/decision/challenger-thumb-index.html",
+      "hero": "https://impeccable.style/worlds/cards/rw-manual-acetate-tab-board-hero.webp"
+    },
+    {
+      "id": "challenger-design-annual",
+      "kind": "challenger",
+      "catalogId": "design-annual-s-plate-section",
+      "label": "Niên giám thiết kế",
+      "verdict": "declined",
+      "lineage": "Phần bản in của niên giám thiết kế",
+      "thesis": "Mỗi ngày một bản in có dấu chữ thập căn chỉnh và con dấu tròn.",
+      "palette": [
+        "#F5F4F6",
+        "#16181A",
+        "#DCDDF3"
+      ],
+      "materials": [
+        "giấy không tráng phủ",
+        "dấu chữ thập in"
+      ],
+      "viewport": "Lưới bản in 12 cột với thanh nhãn chữ mono trên cùng.",
+      "risk": "Nhãn mono in hoa bị cấm; dấu căn chỉnh thành trang trí.",
+      "case": "Thua cả hai trục: hợp người làm đồ họa nhưng không gánh được việc viết mỗi ngày.",
+      "kept": "Giấy lệch tông rất nhẹ để chữ đọc như in."
+    },
+    {
+      "id": "challenger-streaming",
+      "kind": "challenger",
+      "catalogId": "pop-culture-shelf-streaming-title-card-wall",
+      "label": "Tường phim",
+      "verdict": "declined",
+      "lineage": "Tường áp phích của dịch vụ xem phim",
+      "thesis": "Các ngày là áp phích xếp hàng ngang, ô được chọn phóng to.",
+      "palette": [
+        "#141414",
+        "#E50914",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "áp phích tràn ô",
+        "nền tối"
+      ],
+      "viewport": "Hàng ngang cuộn các tháng, ô ngày phóng to khi chọn.",
+      "risk": "Không liên quan sách vở; nền tối một màu nhấn bị cấm.",
+      "case": "Thua cả hai trục.",
+      "kept": "Trang đang chọn nổi lên, phần còn lại lùi nhạt."
+    },
+    {
+      "id": "challenger-jcard",
+      "kind": "challenger",
+      "catalogId": "vernacular-ephemera-cassette-j-card",
+      "label": "Bìa băng cát-xét",
+      "verdict": "declined",
+      "lineage": "Bìa băng tự chép, viết bút bi trên giấy kẻ",
+      "thesis": "Mỗi tháng một cuộn băng, mặt A mặt B.",
+      "palette": [
+        "#FFFFFF",
+        "#1F3FA6",
+        "#9A9A9A",
+        "#C8102E"
+      ],
+      "materials": [
+        "giấy kẻ",
+        "bút bi xanh",
+        "bút chì"
+      ],
+      "viewport": "Bìa băng mở phẳng với danh sách bài viết tay.",
+      "risk": "Hoài cổ, chữ viết tay khó đọc dài.",
+      "case": "Thua cả hai trục.",
+      "kept": "Bút chì là chưa chắc, mực là đã lưu."
+    },
+    {
+      "id": "challenger-airport",
+      "kind": "challenger",
+      "catalogId": "wayfinding-cartography-signage-terminal-yellow-wayfinding",
+      "label": "Biển chỉ đường sân bay",
+      "verdict": "declined",
+      "lineage": "Hệ biển vàng của sân bay quốc tế",
+      "thesis": "Mỗi màn chỉ ra quyết định kế tiếp.",
+      "palette": [
+        "#FFD200",
+        "#111111",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "bảng vàng treo",
+        "hình chỉ dẫn"
+      ],
+      "viewport": "Dải vàng trên cùng chỉ việc kế tiếp.",
+      "risk": "Ồn ào, không nhẹ nhàng.",
+      "case": "Thua cả hai trục.",
+      "kept": "Mỗi lúc chỉ hiện bước kế tiếp."
+    },
+    {
+      "id": "challenger-specimen",
+      "kind": "challenger",
+      "catalogId": "variable-font-specimen",
+      "label": "Mẫu chữ biến thiên",
+      "verdict": "declined",
+      "lineage": "Trang giới thiệu font biến thiên",
+      "thesis": "Điểm tâm trạng kéo độ đậm của chữ.",
+      "palette": [
+        "#FAFAF7",
+        "#111111",
+        "#FF4F00"
+      ],
+      "materials": [
+        "giấy trắng",
+        "chữ khổng lồ"
+      ],
+      "viewport": "Một chữ khổng lồ và thanh trượt trục chữ.",
+      "risk": "Trò chơi chữ, không phải nhật ký.",
+      "case": "Thua cả hai trục.",
+      "kept": "Thứ bậc chỉ bằng cỡ chữ, không trang trí."
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "code"
+  },
+  "canon": true,
+  "canonCard": {
+    "kind": "canon",
+    "label": "Chuẩn của thể loại",
+    "thesis": "App nhật ký như mọi app nhật ký: danh sách bài bên trái, trình soạn bên phải, làm thật kỹ.",
+    "palette": [
+      "#FFFFFF",
+      "#111827",
+      "#2563EB"
+    ],
+    "materials": [
+      "lưới sạch",
+      "font hệ thống"
+    ],
+    "viewport": "Thanh điều hướng, danh sách bài theo tháng, trình soạn với chọn điểm dạng nút tròn.",
+    "risk": "Giống hệt các app khác; dễ rơi vào cái khô kiểu Notion bạn muốn tránh.",
+    "html": ".impeccable/mocks/decision/canon.html"
+  },
+  "steer": true
+}

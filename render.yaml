@@ -29,6 +29,9 @@ services:
         value: "false"
       - key: COOKIE_SECURE
         value: "true"
+      # Web (jotly.io.vn) và API (api.jotly.io.vn) dùng chung cookie phiên; thiếu biến này ghi dữ liệu lỗi CSRF_FAILED.
+      - key: COOKIE_DOMAIN
+        value: jotly.io.vn
       - key: SESSION_SECRET
         generateValue: true
 

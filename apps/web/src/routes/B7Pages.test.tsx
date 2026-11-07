@@ -20,18 +20,17 @@ describe('Chi tiết một ngày', () => {
     expect(await screen.findByRole('heading', { name: 'Ngày không hợp lệ' })).toBeInTheDocument()
   })
 
-  it('hiện trang; xóa cần xác nhận, báo khôi phục được 30 ngày và có Hoàn tác', async () => {
+  it('hiện trang; xóa không hỏi lại (canvas B7), báo hạn khôi phục và có Hoàn tác', async () => {
     mockApi(makeMe(), { '2026-10-18': makeEntry('2026-10-18', { title: 'Chiều mưa đọc sách' }) })
     renderAt([{ path: '/day/:date', Component: DayPage }], '/day/2026-10-18')
     expect(await screen.findByRole('heading', { name: 'Chiều mưa đọc sách' })).toBeInTheDocument()
-    expect(screen.getByText(/ghi đúng ngày/)).toBeInTheDocument()
+    expect(screen.getAllByText(/ghi đúng ngày/).length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Chia sẻ' })).toBeEnabled()
 
     fireEvent.click(screen.getByRole('button', { name: 'Xóa nhật ký ngày này' }))
-    const dialog = await screen.findByRole('alertdialog')
-    expect(within(dialog).getByText(/Khôi phục được trong 30 ngày/)).toBeInTheDocument()
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Xóa nhật ký' }))
-    expect(await screen.findByText(/Đã xóa trang ngày 18\/10/)).toBeInTheDocument()
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(await screen.findByText(/Đã chuyển trang ngày 18\/10 vào thùng rác/)).toBeInTheDocument()
+    expect(screen.getByText(/Đã xóa trang này. Khôi phục được tới/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Hoàn tác' }))
     expect(await screen.findByRole('heading', { name: 'Chiều mưa đọc sách' })).toBeInTheDocument()
   })
@@ -109,8 +108,10 @@ describe('Hồ sơ & cài đặt', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: 'Tối' }))
     expect(getThemePreference()).toBe('dark')
-    fireEvent.click(screen.getByRole('radio', { name: 'Theo hệ thống' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Hệ thống' }))
     expect(getThemePreference()).toBe('system')
+    fireEvent.click(screen.getByRole('radio', { name: 'Theo giờ' }))
+    expect(getThemePreference()).toBe('hour')
 
     // Không còn xuất dữ liệu (canvas, quyết định 21/10/2026).
     expect(screen.queryByText('Tải dữ liệu về')).not.toBeInTheDocument()

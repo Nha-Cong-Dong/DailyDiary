@@ -14,7 +14,7 @@ const ITEMS = [
   { to: '/pixels', label: 'Year in Pixels', short: 'Cả năm', icon: LayoutGrid },
 ] as const
 
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
 
 /** Thanh trên: máy tính có đủ mục và nút; điện thoại chỉ giữ logo và tìm kiếm, các mục chuyển xuống thanh dưới. */
 // Trang một ngày (/day/...) thuộc nhánh Dòng thời gian.
@@ -47,7 +47,7 @@ export function AppHeader() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 border-b-[1.5px] border-line bg-background',
+        'sticky top-0 z-30 border-b-[1.5px] border-stroke bg-paper',
         ownHeader && 'max-md:hidden',
         phoneChrome && 'max-md:invisible',
       )}
@@ -59,7 +59,7 @@ export function AppHeader() {
         <Link
           to="/today"
           aria-label="Jotly, Hôm nay"
-          className={cn('rounded-sm transition-transform duration-150 hover:[&_svg]:animate-wiggle active:scale-[.97] [&_svg]:origin-[50%_60%]', focusRing)}
+          className={cn('flex min-h-11 items-center rounded-sm transition-transform duration-150 ease-out active:scale-[.97] motion-reduce:transform-none', focusRing)}
         >
           <Logo size="sm" />
         </Link>
@@ -70,10 +70,10 @@ export function AppHeader() {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    'relative inline-flex h-10 items-center rounded-[12px] border-[1.5px] px-3.5 text-sm transition-[background-color,scale] duration-200 active:scale-[.97]',
+                    'relative inline-flex h-10 items-center rounded-[12px] border-[1.5px] px-3.5 text-sm transition-[background-color,scale] duration-200 ease-out active:scale-[.97] motion-reduce:active:scale-100',
                     isActive || forced === item.to
-                      ? 'border-line bg-secondary font-semibold shadow-[2px_2px_0_var(--ink-shadow)]'
-                      : 'border-transparent font-medium after:absolute after:inset-x-3.5 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-250 hover:bg-secondary hover:after:scale-x-100',
+                      ? 'border-stroke bg-secondary font-semibold shadow-[2px_2px_0_var(--ink-shadow)]'
+                      : 'border-transparent font-medium after:absolute after:inset-x-3.5 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-250 after:ease-out pointer-fine:hover:bg-secondary pointer-fine:hover:after:scale-x-100',
                     focusRing,
                   )
                 }
@@ -84,18 +84,18 @@ export function AppHeader() {
           ))}
         </ul>
         <div className="flex-1" />
-        <Button asChild variant="outline" size="icon" className="press border-transparent md:size-10 md:rounded-[12px] md:border-line">
+        <Button asChild variant="outline" size="icon" className="row-press border-transparent md:size-10 md:rounded-[12px] md:border-stroke">
           <NavLink to="/search" aria-label="Tìm theo từ khóa">
             <Search aria-hidden="true" />
           </NavLink>
         </Button>
-        <ThemeToggle className="press hidden size-10 rounded-[12px] md:inline-flex" />
+        <ThemeToggle className="hidden size-10 rounded-[12px] md:inline-flex" />
         <NavLink
           to="/profile"
           aria-label={`Hồ sơ của ${displayName}`}
           className={cn('press hidden rounded-full md:inline-flex', focusRing)}
         >
-          <Avatar name={displayName} src={avatarUrl} size={40} className="text-[15px]" />
+          <Avatar name={displayName} src={avatarUrl} size={40} className="text-sm" />
         </NavLink>
       </nav>
     </header>
@@ -111,7 +111,7 @@ export function BottomTabs() {
     <nav
       aria-label="Các màn hình chính"
       className={cn(
-        'fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-line bg-card px-2 pt-1.5 pb-[max(14px,env(safe-area-inset-bottom))] md:hidden',
+        'fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-stroke bg-card px-2 pt-1.5 pb-[max(14px,env(safe-area-inset-bottom))] md:hidden',
         phoneChrome === 'none' && 'invisible',
       )}
     >
@@ -122,8 +122,8 @@ export function BottomTabs() {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-[3px] rounded-md pt-1 text-[11px] leading-[14px] transition-transform duration-150 active:scale-[.97]',
-                  isActive || forced === item.to ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground',
+                  'flex min-h-12 flex-col items-center gap-[3px] rounded-md pt-1 text-[11px] leading-[14px] transition-transform duration-150 ease-out active:scale-[.97] motion-reduce:active:scale-100',
+                  isActive || forced === item.to ? 'font-semibold text-ink' : 'font-medium text-ink-soft',
                   focusRing,
                 )
               }
@@ -133,7 +133,7 @@ export function BottomTabs() {
                   <span
                     className={cn(
                       'inline-flex h-8 w-[52px] items-center justify-center rounded-full border-[1.5px]',
-                      isActive || forced === item.to ? 'border-line bg-secondary shadow-[2px_2px_0_var(--ink-shadow)]' : 'border-transparent',
+                      isActive || forced === item.to ? 'border-stroke bg-secondary shadow-[2px_2px_0_var(--ink-shadow)]' : 'border-transparent',
                     )}
                   >
                     <item.icon className="size-5" aria-hidden="true" />

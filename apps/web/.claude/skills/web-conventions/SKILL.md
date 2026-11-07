@@ -31,7 +31,9 @@ Cây thư mục chuẩn và quy ước bên trong thư mục feature: `docs/Proj
 ## Giao diện
 - Ưu tiên máy tính nhưng phải dùng được từ 360 px; luồng chọn biểu tượng và thêm ảnh phải dễ bấm trên điện thoại.
 - Kích thước sub icon lấy từ biến CSS `--sub-icon-ratio` (mặc định 0.55).
-- Màu, chữ, bo góc, bóng: dùng token trong `src/index.css` (`bg-card`, `border-line`, `shadow-ink`, `text-title-3`…), không viết mã hex trong component. Xem mẫu ở `/dev/ui`.
+- Màu, chữ, bo góc, bóng, chuyển động: dùng token hệ thiết kế 1.1 trong `src/index.css` và `src/styles/motion.css`
+  (`bg-paper`, `bg-card`, `text-ink-soft`, `border-stroke`, `shadow-md`, `shadow-accent`, `text-heading`, `lift`, `animate-rise`…),
+  không viết mã hex trong component. Tên cũ (`border-line`, `shadow-ink`, `text-title-3`…) chỉ là bí danh. Xem mẫu ở `/dev/ui`.
 - Màu cờ hiệu, danh sách icon đọc từ `shared/`.
 - Mọi danh sách có trạng thái đang tải, lỗi, rỗng.
 - Đạt LCP < 2,5 s, CLS < 0,1: đặt kích thước cố định cho ảnh thu nhỏ và ô lịch.

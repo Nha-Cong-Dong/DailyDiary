@@ -1,4 +1,5 @@
 import createClient from 'openapi-fetch'
+import { trackedFetch } from '@/lib/serverWake'
 import type { paths } from './schema'
 
 export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
@@ -16,7 +17,8 @@ export const api = createClient<paths>({
   baseUrl: API_URL,
   credentials: 'include',
   // Gọi globalThis.fetch lúc request (không giữ tham chiếu lúc tạo client) để test mock được.
-  fetch: (...args) => globalThis.fetch(...args),
+  // trackedFetch theo dõi request chậm để báo "Đang đánh thức máy chủ…".
+  fetch: (...args) => trackedFetch(() => globalThis.fetch(...args)),
 })
 
 api.use({

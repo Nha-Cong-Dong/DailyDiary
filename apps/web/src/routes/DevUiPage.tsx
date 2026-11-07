@@ -1,61 +1,86 @@
 import { CircleAlert, CircleCheck, Info, Pencil } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CalendarCell, type DayState } from '@/components/diary/CalendarCell'
-import { EntryCard } from '@/components/diary/EntryCard'
+import { EntryCard, EntryPhoto } from '@/components/diary/EntryCard'
 import { FlagPicker } from '@/components/diary/FlagPicker'
 import { AddKeywordButton, KeywordChip } from '@/components/diary/KeywordChip'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { PixelCell, PixelLegend } from '@/components/diary/PixelCell'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { ScorePicker } from '@/components/diary/ScorePicker'
+import { Stamp } from '@/components/diary/Stamp'
 import { SubIconPicker } from '@/components/diary/SubIconPicker'
+import { Toast } from '@/components/diary/Toast'
+import { Logo, LogoMark } from '@/components/layout/Logo'
+import { ThemePicker } from '@/components/layout/ThemeToggle'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Segmented } from '@/components/ui/segmented'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { HealthStatus } from '@/features/health/HealthStatus'
 import { flagColors, iconSets, SCORES, type Score } from '@/lib/catalog'
 import { tierLimits } from '@/lib/limits'
 
-// Trang xem nhanh hệ thiết kế (MVP Bước 2). Chỉ có ở môi trường dev, dữ liệu là mẫu cố định.
+// Trang xem nhanh hệ thiết kế Jotly 1.1 (canvas B11-Foundations, B11-Components, B11-DayCard, B11-Theme, B5-Logo).
+// Chỉ có ở môi trường dev, dữ liệu là mẫu cố định.
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 border-t-[1.5px] border-border pt-8">
-      <h2 className="text-title-2 font-semibold">{title}</h2>
+    <section className="flex flex-col gap-5">
+      <h2 className="text-heading">{title}</h2>
       {children}
     </section>
   )
 }
 
 function Label({ children }: { children: ReactNode }) {
-  return <p className="text-label font-semibold tracking-[0.08em] text-muted-foreground uppercase">{children}</p>
+  return <p className="text-label text-ink-soft">{children}</p>
 }
 
 const TYPE_SCALE = [
-  ['Display · Lora 700 · 56/68', 'font-heading text-display font-bold tracking-[-0.01em]', 'Chạm để ghi chú'],
-  ['H1 · Lora 700 · 40/50', 'font-heading text-title-1 font-bold', 'Mở để nhìn lại cả một năm'],
-  ['H2 · Lora 600 · 30/40', 'font-heading text-title-2 font-semibold', 'Dòng thời gian tháng 10'],
-  ['H3 · Lora 600 · 22/30', 'font-heading text-title-3 font-semibold', 'Chiều mưa đọc sách'],
-  ['Nội dung · 400 · 18/30', 'text-reading max-w-[680px]', 'Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở.'],
-  ['Body · 400 · 16/26', 'text-base leading-[26px]', 'Chỉ cần chấm điểm là ngày hôm đó đã được ghi lại.'],
-  ['Nhỏ · 500 · 14/22', 'text-sm leading-[22px] font-medium tabular-nums', 'Tạo 21:04 · Sửa 21:32'],
-  ['Nhãn · 600 · 12/16 · +8%', 'text-label font-semibold tracking-[0.08em] uppercase', 'Year in Pixels'],
+  ['display · clamp 40–64 · 800 · FLAR 100', 'text-display', 'Chạm để ghi chú, mở để nhìn lại.'],
+  ['title · 30/38 (điện thoại 26/32) · 700 · FLAR 60', 'text-title', 'Hôm nay, thứ Sáu 30/10'],
+  ['heading · 22/30 · 600 · FLAR 60', 'text-heading', 'Chiều mưa đọc sách'],
+  ['reading · 18/30 · 400', 'text-reading max-w-[680px]', 'Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở.'],
+  ['body · 16/24 · 400', 'text-body', 'Chấm điểm ngay tại đây, trang hôm nay sẽ được cập nhật.'],
+  ['label · 13/18 · 600', 'text-label', 'Còn 3 giờ 12 phút trước khi sang ngày mới'],
 ] as const
 
 const SWATCHES = [
-  ['Nền', 'bg-background'],
-  ['Bề mặt', 'bg-card'],
-  ['Lõm', 'bg-muted'],
-  ['Mềm', 'bg-secondary'],
-  ['Viền mảnh', 'bg-border'],
-  ['Mực', 'bg-line'],
-  ['Chữ phụ', 'bg-muted-foreground'],
-  ['Nguy hiểm', 'bg-destructive'],
-  ['Dòng kẻ', 'bg-rule'],
-  ['Điểm 1', 'bg-score-1'],
-  ['Điểm 3', 'bg-score-3'],
-  ['Điểm 5', 'bg-score-5'],
+  ['paper', 'bg-paper'],
+  ['card', 'bg-card'],
+  ['sunk', 'bg-sunk'],
+  ['pressed', 'bg-pressed'],
+  ['secondary', 'bg-secondary'],
+  ['ink', 'bg-ink'],
+  ['ink-soft', 'bg-ink-soft'],
+  ['ink-faint', 'bg-ink-faint'],
+  ['line-soft', 'bg-line-soft'],
+  ['rule', 'bg-rule'],
+  ['peach', 'bg-peach'],
+  ['peach-soft', 'bg-peach-soft'],
+  ['sage', 'bg-sage'],
+  ['sage-soft', 'bg-sage-soft'],
+  ['lavender', 'bg-lavender'],
+  ['lavender-soft', 'bg-lavender-soft'],
+  ['danger', 'bg-danger'],
+  ['danger-soft', 'bg-danger-soft'],
+  ['score-1', 'bg-score-1'],
+  ['score-5', 'bg-score-5'],
+] as const
+
+const BUTTONS = [
+  ['cta', 'Mở trang hôm nay'],
+  ['default', 'Lưu nhật ký'],
+  ['secondary', 'Thêm ảnh'],
+  ['destructive', 'Xóa nhật ký'],
+  ['destructive-solid', 'Xóa vĩnh viễn'],
+  ['ghost', 'Hủy'],
+  ['outline', 'Mở thùng rác'],
+  ['link', 'Xem dòng thời gian'],
 ] as const
 
 const WEEK: { dow: string; day: number; score: Score | null; sub: string | null; state: DayState }[] = [
@@ -66,6 +91,7 @@ const WEEK: { dow: string; day: number; score: Score | null; sub: string | null;
   { dow: 'T6', day: 16, score: 5, sub: '🌸', state: 'past' },
   { dow: 'T7', day: 17, score: 3, sub: '🍀', state: 'past' },
   { dow: 'CN', day: 18, score: 4, sub: '😌', state: 'today' },
+  { dow: 'T2', day: 19, score: null, sub: null, state: 'future' },
 ]
 
 export function DevUiPage() {
@@ -74,21 +100,43 @@ export function DevUiPage() {
   const [sub, setSub] = useState<string | null>('😌')
   const [flag, setFlag] = useState<string | null>(flagColors.at(-1)!.hex)
   const [keywords, setKeywords] = useState(['đọc sách', 'mưa', 'trà gừng'])
+  const [view, setView] = useState<'list' | 'cal'>('list')
+  const [toast, setToast] = useState(false)
+  const [shared, setShared] = useState(true)
   const maxPhotos = tierLimits().photos.per_day_max
 
+  useEffect(() => {
+    if (!toast) return
+    const id = window.setTimeout(() => setToast(false), 6000)
+    return () => window.clearTimeout(id)
+  }, [toast])
+
   return (
-    <div className="flex flex-col gap-10">
-      <header className="flex flex-col gap-2">
-        <Label>Jotly · Bước 2</Label>
-        <h1 className="text-title-1 font-bold">Hệ thiết kế</h1>
-        <HealthStatus />
+    <div className="flex flex-col gap-12">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-title">Hệ thiết kế Jotly 1.1</h1>
+          <HealthStatus />
+        </div>
+        <ThemePicker />
       </header>
 
+      <Section title="Logo">
+        <div className="flex flex-wrap items-end gap-8">
+          <Logo size="lg" />
+          <Logo />
+          <Logo size="sm" />
+          <LogoMark size={64} />
+          <LogoMark size={40} />
+          <LogoMark size={24} />
+        </div>
+      </Section>
+
       <Section title="Kiểu chữ">
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-5">
           {TYPE_SCALE.map(([meta, cls, text]) => (
-            <div key={meta} className="grid gap-2 border-t border-border py-4 md:grid-cols-[240px_minmax(0,1fr)] md:items-baseline md:gap-6">
-              <span className="text-sm leading-[22px] text-muted-foreground">{meta}</span>
+            <div key={meta} className="grid gap-1 md:grid-cols-[300px_minmax(0,1fr)] md:items-baseline md:gap-6">
+              <Label>{meta}</Label>
               <span className={cls}>{text}</span>
             </div>
           ))}
@@ -96,65 +144,115 @@ export function DevUiPage() {
       </Section>
 
       <Section title="Màu">
-        <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+        <div className="grid grid-cols-3 gap-4 sm:grid-cols-5 lg:grid-cols-10">
           {SWATCHES.map(([name, cls]) => (
             <div key={name} className="flex flex-col gap-1.5">
-              <div className={`h-14 rounded-[12px] border border-border ${cls}`} />
-              <span className="text-[13px] font-semibold">{name}</span>
+              <div className={`h-12 rounded-sm border-[1.5px] border-stroke ${cls}`} />
+              <span className="text-label">{name}</span>
             </div>
           ))}
         </div>
       </Section>
 
-      <Section title="Nút">
+      <Section title="Button">
         <div className="flex flex-col gap-4">
-          {(['default', 'secondary', 'ghost', 'destructive'] as const).map((variant) => (
-            <div key={variant} className="flex flex-wrap items-center gap-3">
-              <Button variant={variant}>{variant === 'destructive' ? 'Xóa nhật ký' : variant === 'ghost' ? 'Hủy' : variant === 'secondary' ? 'Thêm ảnh' : 'Lưu nhật ký'}</Button>
-              <Button variant={variant} disabled>
-                Vô hiệu
-              </Button>
+          {BUTTONS.map(([variant, text]) => (
+            <div
+              key={variant}
+              className="grid grid-cols-1 items-center justify-items-start gap-2 sm:grid-cols-[150px_auto_auto] sm:justify-start sm:gap-4"
+            >
+              <Label>{variant}</Label>
+              <Button variant={variant}>{text}</Button>
+              {variant === 'link' ? (
+                <span />
+              ) : (
+                <Button variant={variant} disabled>
+                  Vô hiệu
+                </Button>
+              )}
             </div>
           ))}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
+            <Button size="sm">Chấm điểm</Button>
+            <Button>Lưu nhật ký</Button>
+            <Button size="lg">Lưu nhật ký</Button>
             <Button variant="secondary" size="icon" aria-label="Sửa nhật ký">
               <Pencil aria-hidden="true" />
             </Button>
-            <Button variant="secondary" size="icon" aria-label="Sửa nhật ký" disabled>
-              <Pencil aria-hidden="true" />
-            </Button>
-            <Button size="lg">Lưu nhật ký · lớn</Button>
-            <Button size="sm">Chấm điểm</Button>
           </div>
         </div>
+      </Section>
+
+      <Section title="Card, Segmented, Stamp, Switch, Toast">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="p-5">raised</Card>
+          <Card elevation="low" className="p-5">
+            low
+          </Card>
+          <Card elevation="flat" className="p-5">
+            flat
+          </Card>
+          <Card asChild interactive className="p-5">
+            <button type="button" onClick={() => setToast(true)}>
+              interactive: bấm để hiện thông báo
+            </button>
+          </Card>
+        </div>
+        <div className="flex flex-wrap items-center gap-5">
+          <Segmented
+            ariaLabel="Cách xem"
+            options={[
+              { value: 'list', label: 'Danh sách' },
+              { value: 'cal', label: 'Lịch' },
+            ]}
+            value={view}
+            onChange={setView}
+            className="w-[280px]"
+          />
+          <Label>Đang xem: {view === 'list' ? 'Danh sách' : 'Lịch'}</Label>
+          <label className="flex min-h-11 items-center gap-3 text-body font-semibold">
+            <Switch checked={shared} onCheckedChange={setShared} />
+            Cho phép xem
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Stamp kind="saved">Đã lưu lúc 21:32</Stamp>
+          <Stamp kind="saving" />
+          <Stamp kind="unsynced" />
+          <Stamp kind="error" />
+          <Stamp kind="trash">Trong thùng rác, còn 23 ngày</Stamp>
+        </div>
+        <Toast open={toast} action={{ label: 'Hoàn tác', onClick: () => setToast(false) }}>
+          Đã chuyển vào thùng rác
+        </Toast>
       </Section>
 
       <Section title="Ô nhập">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex flex-col gap-2">
-            <label htmlFor="dev-title" className="text-sm leading-[22px] font-semibold">
+            <label htmlFor="dev-title" className="text-body font-semibold">
               Tiêu đề
             </label>
             <Input id="dev-title" placeholder="Hôm nay thế nào?" />
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="dev-keyword" className="text-sm leading-[22px] font-semibold">
+            <label htmlFor="dev-keyword" className="text-body font-semibold">
               Từ khóa
             </label>
             <Input id="dev-keyword" defaultValue="mưa" aria-invalid="true" aria-describedby="dev-keyword-msg" />
-            <span id="dev-keyword-msg" className="flex items-center gap-1.5 text-[13px] leading-5 font-medium text-destructive">
+            <span id="dev-keyword-msg" className="flex items-center gap-1.5 text-label text-danger">
               <CircleAlert className="size-4" aria-hidden="true" />
               Từ khóa này đã có trong ngày
             </span>
           </div>
           <div className="flex flex-col gap-2">
-            <label htmlFor="dev-email" className="text-sm leading-[22px] font-semibold">
+            <label htmlFor="dev-email" className="text-body font-semibold">
               Tài khoản Google
             </label>
             <Input id="dev-email" type="email" defaultValue="ban@gmail.com" disabled />
           </div>
           <div className="flex flex-col gap-2 sm:col-span-2 lg:col-span-4">
-            <label htmlFor="dev-body" className="text-sm leading-[22px] font-semibold">
+            <label htmlFor="dev-body" className="text-body font-semibold">
               Nội dung
             </label>
             <Textarea
@@ -208,12 +306,12 @@ export function DevUiPage() {
         <div className="grid gap-8 lg:grid-cols-2">
           {iconSets.map((set) => (
             <div key={set.id} className="flex flex-col gap-3">
-              <h3 className="text-title-3 font-semibold">{set.name}</h3>
+              <h3 className="text-heading">{set.name}</h3>
               <div className="grid grid-cols-5 gap-3">
                 {set.levels.map((l) => (
                   <div key={l.score} className="flex flex-col items-center gap-2">
                     <ScoreIcon iconSetId={set.id} score={l.score as Score} size={56} />
-                    <span className="text-center text-[13px] leading-[18px]">
+                    <span className="text-center text-label font-medium">
                       {l.score} · {l.label}
                     </span>
                   </div>
@@ -231,7 +329,7 @@ export function DevUiPage() {
           ].map(([size, label]) => (
             <div key={label} className="flex flex-col items-center gap-3">
               <MoodMark iconSetId="sprout" score={4} subIcon="😌" size={size as number} />
-              <span className="text-[13px] text-muted-foreground">{label}</span>
+              <span className="text-label text-ink-soft">{label}</span>
             </div>
           ))}
         </div>
@@ -239,16 +337,16 @@ export function DevUiPage() {
 
       <Section title="Viết nhật ký: chấm điểm, sub icon, cờ hiệu">
         <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="flex flex-col gap-7 rounded-lg border-[1.5px] border-line bg-card p-5 shadow-ink sm:p-8">
+          <div className="flex flex-col gap-7 rounded-lg border-[1.5px] border-stroke bg-card p-5 shadow-md sm:p-8">
             <div className="flex flex-col gap-2">
-              <label htmlFor="dev-icon-set" className="text-[15px] leading-6 font-semibold">
+              <label htmlFor="dev-icon-set" className="text-body font-semibold">
                 Bộ icon
               </label>
               <select
                 id="dev-icon-set"
                 value={iconSetId}
                 onChange={(e) => setIconSetId(e.target.value)}
-                className="h-11 rounded-md border-[1.5px] border-line bg-card px-3"
+                className="h-11 rounded-md border-[1.5px] border-stroke bg-card px-3 text-body"
               >
                 {iconSets.map((set) => (
                   <option key={set.id} value={set.id}>
@@ -258,41 +356,76 @@ export function DevUiPage() {
               </select>
             </div>
             <fieldset className="flex flex-col gap-3">
-              <legend className="mb-3 text-[15px] leading-6 font-semibold">
-                Hôm nay của bạn <span className="font-normal text-muted-foreground">· bắt buộc</span>
+              <legend className="mb-3 text-body font-semibold">
+                Hôm nay của bạn <span className="font-normal text-ink-soft">· bắt buộc</span>
               </legend>
-              <ScorePicker iconSetId={iconSetId} value={score} onChange={setScore} />
+              <ScorePicker iconSetId={iconSetId} value={score} onChange={setScore} caption="label" />
             </fieldset>
             <fieldset>
-              <legend className="mb-3 text-[15px] leading-6 font-semibold">Biểu tượng mong muốn</legend>
+              <legend className="mb-3 text-body font-semibold">Biểu tượng mong muốn</legend>
               <SubIconPicker value={sub} onChange={setSub} />
             </fieldset>
             <fieldset>
-              <legend className="mb-3 text-[15px] leading-6 font-semibold">
+              <legend className="mb-3 text-body font-semibold">
                 Cờ hiệu · {flagColors.find((f) => f.hex === flag)?.name ?? 'không gắn'}
               </legend>
               <FlagPicker value={flag} onChange={setFlag} />
             </fieldset>
           </div>
           <div className="flex flex-col gap-7">
-            <Label>Xem trước · thẻ dòng thời gian</Label>
+            <Label>Thẻ trong Dòng thời gian (B11-DayCard)</Label>
             <EntryCard
-              dateLabel={`Chủ nhật, 18/10/2026${score ? ` · điểm ${score}` : ''}`}
+              dateLabel="Chủ nhật · 18/10"
               iconSetId={iconSetId}
               score={score ?? 3}
               subIcon={sub}
               flagColor={flag}
               title="Chiều mưa đọc sách"
               excerpt="Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở."
-              keywords={['đọc sách', 'mưa', 'trà gừng']}
-              meta="Tạo 21:04"
+              keywords={['đọc sách', 'mưa']}
+              photoCount={3}
+              interactive
+            />
+            <EntryCard dateLabel="Thứ Sáu · 16/10" iconSetId={iconSetId} score={5} footer="Mở để viết thêm" />
+            <EntryCard
+              dateLabel="Thứ Tư · 14/10"
+              iconSetId={iconSetId}
+              score={3}
+              backfill
+              title="Một ngày bình thường"
+              excerpt="Ghi lại sau bốn ngày. Không nhớ nhiều, chỉ nhớ trời đẹp."
+              footer="Ghi bù ngày 18/10"
             />
           </div>
         </div>
       </Section>
 
+      <Section title="Trang ngày (EntryCard variant page)">
+        <EntryCard
+          variant="page"
+          className="max-w-[620px]"
+          dateLabel="Chủ nhật, 18/10/2026"
+          dateParts={{ weekday: 'Chủ nhật', day: 18, month: 10, year: 2026 }}
+          statusLine="Hé nở · ghi đúng ngày"
+          iconSetId={iconSetId}
+          score={score ?? 4}
+          subIcon={sub}
+          flagColor={flag}
+          title="Chiều mưa đọc sách"
+          excerpt="Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở. Tối nấu bát phở, gọi điện cho mẹ, kể chuyện tuần này."
+          photo={<EntryPhoto alt="Ảnh 1 trong 3 của ngày 18/10/2026" caption="1 / 3 ảnh" />}
+          keywords={['đọc sách', 'mưa', 'mẹ']}
+          footer={
+            <>
+              <Stamp kind="saved">Đã lưu lúc 21:32</Stamp>
+              <span>Sửa lần cuối 18/10</span>
+            </>
+          }
+        />
+      </Section>
+
       <Section title="Lịch tháng & Year in Pixels">
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-8 gap-1.5 sm:gap-2">
           {WEEK.map((d) => (
             <CalendarCell
               key={d.day}
@@ -303,7 +436,7 @@ export function DevUiPage() {
               iconSetId={iconSetId}
               state={d.state}
               label={`${d.day}/10${d.score ? `, điểm ${d.score}` : ', chưa ghi'}`}
-              onClick={() => undefined}
+              onClick={d.state === 'future' ? undefined : () => undefined}
             />
           ))}
         </div>
@@ -312,12 +445,7 @@ export function DevUiPage() {
             const day = i + 1
             const s = day > 18 ? null : SCORES[(day * 7) % 5]
             return (
-              <PixelCell
-                key={day}
-                score={day === 14 ? null : s}
-                state={day > 18 ? 'future' : 'past'}
-                label={`${day}/10`}
-              />
+              <PixelCell key={day} score={day === 14 ? null : s} state={day > 18 ? 'future' : 'past'} label={`${day}/10`} />
             )
           })}
         </div>

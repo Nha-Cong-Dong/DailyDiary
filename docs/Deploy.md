@@ -165,8 +165,30 @@ service `api` có `restart: unless-stopped`. Xem log: `docker compose -f docker-
 (log không chứa nội dung nhật ký).
 
 **Phương án dự phòng (Render):** `render.yaml` vẫn dựng được service `jotly-api` (Render → New → Blueprint). Khi dùng lại
-phải thêm biến `COOKIE_DOMAIN=jotly.io.vn` (file chưa có), đổi DNS `api` thành `CNAME → jotly-api.onrender.com`
-(DNS only) và tắt route tunnel.
+nhập các biến `sync: false` (lấy từ `apps/api/.env.prod`; `COOKIE_DOMAIN=jotly.io.vn` đã có trong file từ 07/11/2026),
+đổi DNS `api` thành `CNAME → jotly-api.onrender.com` (DNS only) và tắt route tunnel. Render chỉ deploy nhánh `main`
+(Blueprint `autoDeployTrigger: checksPass`, lọc theo `buildFilter`); deploy tay: Deploys → Manual Deploy → Deploy latest commit.
+
+**Giữ API không ngủ (chỉ khi API chạy ở gói miễn phí, vd. Render free ngủ sau 15 phút).** Web hiện "Đang đánh thức
+máy chủ…" khi request chậm (`apps/web/src/lib/serverWake.ts`), nhưng cách tốt hơn là đừng để API ngủ. Dùng một
+Cloudflare Worker gọi `/health` mỗi 10 phút (Cron Trigger của Worker chạy đúng giờ, khác lịch của GitHub Actions
+vốn lệch vài giờ nên không đủ):
+
+1. Cloudflare → **Workers & Pages → Create application → Create Worker** → tên `jotly-keepalive` → Deploy →
+   **Edit code**, thay bằng:
+   ```js
+   export default {
+     async scheduled(_event, _env, ctx) {
+       ctx.waitUntil(fetch('https://api.jotly.io.vn/health').then((r) => console.log('health', r.status)))
+     },
+   }
+   ```
+2. Worker → **Settings → Triggers → Cron Triggers → Add** → `*/10 * * * *`.
+3. Kiểm tra: tab **Logs** của Worker có dòng `health 200` mỗi 10 phút.
+
+Gói miễn phí 750 giờ mỗi tháng của Render vừa đủ cho một dịch vụ bật liên tục (khoảng 744 giờ). Chưa kiểm tra điều
+khoản của Render về việc ping giữ thức; nếu bị chặn, nâng gói trả phí hoặc chuyển sang VPS (không ngủ, không cần
+Worker này). Máy chủ luôn bật (máy cá nhân, VPS) thì **không cần** Worker này.
 
 ## 7. Cloudflare Pages (web)
 
@@ -277,4 +299,4 @@ không có commit 60 ngày thì GitHub tắt lịch — bật lại ở tab Acti
 | Jobs xanh nhưng lâu không có bản sao lưu mới | Đọc log nhóm `backup_db`/`backup_photos`: "chưa đến hạn" là bình thường; "Chưa cấu hình kho sao lưu" là thiếu `BACKUP_S3_BUCKET`; hoặc lịch đã bị GitHub tắt (tab Actions) |
 | Web gọi `localhost:8000` | Bản build thiếu `VITE_API_URL`; build lại (mục 7.1) |
 | Workflow Jobs không tự chạy | Lịch bị tắt sau 60 ngày không commit; hoặc cron GitHub trễ |
-| CI job `api`/`e2e` lỗi "MongoDB cannot start … kernel 6.19" | Runner kernel mới (SERVER-121912); chạy lại job |
+| CI job `api`/`e2e` lỗi "MongoDB cannot start … kernel 6.19" | Runner kernel mới (SERVER-121912). `ci.yml` đặt `GLIBC_TUNABLES=glibc.pthread.rseq=1` cho container mongo để tránh lỗi; vẫn lỗi thì chạy lại job, hoặc đổi image sang `mongo:7.0` (kém khớp với Atlas) |

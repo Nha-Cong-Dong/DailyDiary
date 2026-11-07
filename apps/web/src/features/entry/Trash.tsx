@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 
 type TrashItem = components['schemas']['TrashItemOut']
 
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
 
 /** Trang đã xóa còn khôi phục được (GET /entries/trash). Key dưới ['entries'] nên xóa/khôi phục một trang thì đọc lại. */
 function useTrash() {
@@ -77,7 +77,7 @@ export function Trash() {
       </Link>
       <div className="flex animate-rise flex-col gap-1.5">
         <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Thùng rác</h1>
-        <p className="text-[15px] leading-6 text-muted-foreground">
+        <p className="text-[15px] leading-6 text-ink-soft">
           Trang bạn xóa nằm ở đây {days} ngày rồi mới bị xóa hẳn. Khôi phục để trang quay lại đúng ngày của nó.
         </p>
       </div>
@@ -91,13 +91,13 @@ export function Trash() {
         </p>
       ) : null}
       {restore.isError ? (
-        <p role="alert" className="text-sm font-medium text-destructive">
+        <p role="alert" className="text-sm font-medium text-danger">
           Chưa khôi phục được. Có thể ngày đó đã có trang mới; thử tải lại trang.
         </p>
       ) : null}
 
       {isPending ? (
-        <p role="status" className="text-muted-foreground">
+        <p role="status" className="text-ink-soft">
           Đang tải…
         </p>
       ) : isError ? (
@@ -105,27 +105,27 @@ export function Trash() {
           <AlertDescription>Chưa tải được thùng rác. Thử tải lại trang nhé.</AlertDescription>
         </Alert>
       ) : items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-[18px] border-[1.5px] border-dashed border-border p-8 text-center">
-          <Trash2 className="size-8 text-muted-foreground" aria-hidden="true" />
+        <div className="flex flex-col items-center gap-2 rounded-[18px] border-[1.5px] border-dashed border-line-soft p-8 text-center">
+          <Trash2 className="size-8 text-ink-soft" aria-hidden="true" />
           <p className="font-semibold">Thùng rác trống</p>
-          <p className="text-sm text-muted-foreground">Không có trang nào bị xóa trong {days} ngày qua.</p>
+          <p className="text-sm text-ink-soft">Không có trang nào bị xóa trong {days} ngày qua.</p>
         </div>
       ) : (
         <ul className="flex flex-col gap-3">
           {items.map((item) => (
             <li
               key={item.entry_date}
-              className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[16px] border-[1.5px] border-line bg-card p-4 shadow-ink-sm"
+              className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[16px] border-[1.5px] border-stroke bg-card p-4 shadow-sm"
             >
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-background">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full border-[1.5px] border-stroke bg-paper">
                 <MoodMark iconSetId={iconSetId} score={item.score as Score} size={32} />
               </span>
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-[13px] text-muted-foreground">
+                <span className="text-[13px] text-ink-soft">
                   {longDateLabel(item.entry_date)} · Điểm {item.score} · {scoreLabel(iconSetId, item.score as Score)}
                 </span>
                 <span className="truncate font-heading text-lg font-bold">{item.title ?? 'Chỉ chấm điểm'}</span>
-                <span className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
+                <span className="inline-flex items-center gap-2 text-[13px] text-ink-soft">
                   {item.photo_count ? (
                     <span className="inline-flex items-center gap-1">
                       <Image className="size-3.5" aria-hidden="true" /> {item.photo_count} ảnh ·

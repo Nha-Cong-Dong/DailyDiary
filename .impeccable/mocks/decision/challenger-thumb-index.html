@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Hanken+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--board:#1C8C8C;--leaf:rgba(252,253,252,.9);--ink:#17191C;--soft:#56606A;--rule:#D3DCE0;--m1:#E0662A;--m2:#E9B421;--m3:#4E9A3E;--m4:#1C8C8C;--m5:#2D54B8;--m6:#7146B0;--m7:#9A5A36}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#F1F2F0;font:15px/1.5 "Hanken Grotesk",sans-serif;color:var(--ink);display:grid;grid-template-columns:230px 1fr 64px}
+nav{padding:30px 20px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--rule)}
+.logo{display:flex;align-items:center;gap:10px;font:700 22px "Hanken Grotesk";margin-bottom:26px}
+.logo i{width:26px;height:30px;background:#fff;border:1px solid var(--ink);border-top:6px solid #C9474F;display:grid;place-items:center;font:600 16px "Source Serif 4";font-style:normal}
+nav a{padding:9px 10px;color:var(--soft)}nav a.on{color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--board)}
+nav .soon{margin-top:auto;font-size:14px}
+main{background:var(--board);position:relative;padding:44px 0 0 90px}
+.leaf{width:780px;height:820px;background:var(--leaf);padding:48px 70px;position:relative;box-shadow:3px 3px 0 rgba(0,0,0,.18)}
+.leaf:before,.leaf:after{content:"";position:absolute;left:22px;width:14px;height:14px;border-radius:50%;background:var(--board)}
+.leaf:before{top:120px}.leaf:after{top:640px}
+.head{display:flex;justify-content:space-between;font:600 13px "Hanken Grotesk";color:var(--soft)}
+h1{font:600 64px/1 "Source Serif 4";margin-top:26px}
+.sub{font:17px "Source Serif 4";color:var(--soft);margin-top:6px}
+h2{font:700 15px "Hanken Grotesk";margin:36px 0 12px}
+.score{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--ink)}
+.score span{padding:12px 0;text-align:center;font-size:13px;border-right:1px solid var(--rule)}
+.score span:last-child{border:0}
+.score .on{background:var(--ink);color:#fff;font-weight:700}
+.t{font:600 26px "Source Serif 4";margin:32px 0 8px}
+.lines{font:17px/26px "Source Serif 4";max-width:62ch;background:repeating-linear-gradient(transparent 0 25px,var(--rule) 25px 26px);height:208px}
+.foot{position:absolute;bottom:30px;left:70px;right:70px;display:flex;justify-content:space-between;font-size:13px;color:var(--soft);border-top:1px solid var(--rule);padding-top:8px}
+.rail{display:flex;flex-direction:column;padding-top:44px;gap:3px}
+.rail span{color:#fff;font:700 12px "Hanken Grotesk";writing-mode:vertical-rl;text-align:center;border-radius:0 8px 8px 0;width:40px}
+.rail .on{width:64px;margin-left:-24px}
+</style></head><body>
+<nav><div class="logo"><i>J</i>Jotly</div><a class="on">Hôm nay</a><a>Dòng thời gian</a><a>Năm</a><a>Tìm kiếm</a><a>Hồ sơ</a><a class="soon">Nhật ký chung, sắp có</a></nav>
+<main>
+<section class="leaf">
+<div class="head"><span>Tháng 10, 2026</span><span>15 trang đã ghi trong tháng</span></div>
+<h1>Thứ Bảy, 31</h1>
+<div class="sub">Âm lịch 22 tháng Chín, năm Bính Ngọ</div>
+<h2>Hôm nay thế nào?</h2>
+<div class="score"><span>1 Hạt</span><span>2 Mầm</span><span>3 Nụ</span><span class="on">4 Hé nở</span><span>5 Nở rộ</span></div>
+<div class="t">Chiều mưa ở quán cũ</div>
+<div class="lines">Ngồi đọc nốt cuốn sách còn dang dở tới khi mưa tạnh. Quán vẫn bật bài hát cũ như hồi sinh viên. Về nhà nấu canh chua, gọi cho mẹ.</div>
+<div class="foot"><span>đọc sách, mưa, canh chua</span><span>Đã lưu lúc 21:04</span></div>
+</section>
+</main>
+<div class="rail">
+<span style="background:var(--m1);height:64px">T6</span>
+<span style="background:var(--m2);height:88px">T7</span>
+<span style="background:var(--m3);height:96px">T8</span>
+<span style="background:var(--m6);height:80px">T9</span>
+<span class="on" style="background:var(--m4);height:58px">T10</span>
+<span style="background:#B9C2C6;height:14px"></span>
+<span style="background:#B9C2C6;height:14px"></span>
+</div>
+</body></html>
