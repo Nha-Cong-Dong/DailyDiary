@@ -1,10 +1,12 @@
 import { Outlet } from 'react-router'
 import { PageLoading } from '@/components/layout/PageStates'
+import { WakingBanner } from '@/components/layout/WakingBanner'
 
 export function RootLayout() {
   return (
     <div className="min-h-dvh bg-paper text-ink">
       <Outlet />
+      <WakingBanner />
     </div>
   )
 }
