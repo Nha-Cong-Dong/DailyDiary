@@ -1,14 +1,15 @@
 import { LoaderCircle } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { LogoMark } from './Logo'
+import { useT } from '@/lib/i18n'
 
 // Các màn trạng thái phụ dùng chung (thiết kế B9 · Lỗi, mất mạng, đang tải): đang tải, 404, lỗi máy chủ.
 
-/** Nút chính có bóng hồng của thiết kế (giống dải kêu gọi ở landing). */
-const cta =
-  'inline-flex h-12 items-center gap-2.5 rounded-md border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground cta focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:cursor-wait'
+/** Nút chính (bóng đào, buttonVariants cta cỡ lg). */
+const cta = cn(buttonVariants({ variant: 'cta', size: 'lg' }), 'disabled:cursor-wait')
 
 function Centered({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -23,12 +24,13 @@ function Centered({ children, className }: { children: ReactNode; className?: st
   )
 }
 
-/** Logo cây bút "đang viết" + chữ, dùng khi chờ dữ liệu. */
-export function WritingLogo({ label = 'Đang mở cuốn sổ…' }: { label?: string }) {
+/** Logo cuốn sổ (đứng yên, B9-States) + chữ, dùng khi chờ dữ liệu. */
+export function WritingLogo({ label }: { label?: string }) {
+  const t = useT()
   return (
-    <span className="inline-flex items-center gap-2.5 text-sm leading-[22px] text-muted-foreground">
-      <LogoMark size={30} className="origin-[50%_80%] animate-writing" />
-      {label}
+    <span className="inline-flex items-center gap-2.5 text-sm leading-[22px] text-ink-soft">
+      <LogoMark size={30} />
+      {label ?? t('components:states.opening')}
     </span>
   )
 }
@@ -38,8 +40,9 @@ export function WritingLogo({ label = 'Đang mở cuốn sổ…' }: { label?: s
  * để dùng được cho mọi màn, không mô phỏng riêng màn nào.
  */
 export function PageLoading({ className }: { className?: string }) {
+  const t = useT()
   return (
-    <div role="status" aria-label="Đang mở cuốn sổ" className={cn('flex animate-rise flex-col gap-6', className)}>
+    <div role="status" aria-label={t('components:states.openingAria')} className={cn('flex animate-rise flex-col gap-6', className)}>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div aria-hidden="true" className="flex flex-col gap-2.5">
           <span className="skeleton block h-[30px] w-[220px] max-w-full" />
@@ -49,7 +52,7 @@ export function PageLoading({ className }: { className?: string }) {
       </div>
       <div aria-hidden="true" className="grid grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))] gap-3.5">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="flex flex-col gap-2.5 rounded-[18px] border-[1.5px] border-border bg-card px-[18px] py-4">
+          <div key={i} className="flex flex-col gap-2.5 rounded-[18px] border-[1.5px] border-line-soft bg-card px-[18px] py-4">
             <span className="skeleton block h-3 w-3/5" />
             <span className="skeleton block h-[26px] w-2/5" />
             <span className="skeleton block h-3 w-[70%]" />
@@ -58,7 +61,7 @@ export function PageLoading({ className }: { className?: string }) {
       </div>
       <div aria-hidden="true" className="flex flex-col gap-3.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="grid grid-cols-[56px_minmax(0,1fr)] gap-4 rounded-[18px] border-[1.5px] border-border bg-card px-5 py-[18px]">
+          <div key={i} className="grid grid-cols-[56px_minmax(0,1fr)] gap-4 rounded-[18px] border-[1.5px] border-line-soft bg-card px-5 py-[18px]">
             <span className="skeleton block size-14 rounded-full" />
             <span className="flex flex-col gap-2.5">
               <span className="skeleton block h-3 w-[45%]" />
@@ -74,6 +77,7 @@ export function PageLoading({ className }: { className?: string }) {
 
 /** Trang không tồn tại (404). */
 export function NotFoundState() {
+  const t = useT()
   return (
     <Centered>
       <svg
@@ -86,29 +90,29 @@ export function NotFoundState() {
         strokeLinecap="round"
         strokeLinejoin="round"
         role="img"
-        aria-label="Một trang giấy bị xé"
+        aria-label={t('components:states.tornPage')}
       >
-        <g className="origin-top animate-sway [transform-box:fill-box]">
+        <g>
           <path d="M24 10h52l12 12v40l-6 4l-5-3l-6 5l-6-4l-5 4l-6-3l-6 4l-6-4l-6 3l-6-4z" fill="var(--card)" />
-          <path d="M76 10v12h12" fill="var(--muted)" />
+          <path d="M76 10v12h12" fill="var(--sunk)" />
           <path d="M34 28h30 M34 36h22" stroke="var(--rule)" />
           <path d="M51 46c0-4.5 6.5-4.5 6.5-8.6c0-2.5-2-4.4-4.8-4.4c-2.5 0-4.5 1.5-4.9 3.8" strokeWidth="2.4" />
           <circle cx="51.6" cy="52" r="1.6" fill="var(--icon-ink)" stroke="none" />
         </g>
-        <path d="M30 76l-6 4l-5-3 M58 82l6 4l5-3" stroke="var(--muted-foreground)" strokeDasharray="3 4" />
-        <path d="M40 90l8-5l8 4l7-4" stroke="var(--muted-foreground)" />
+        <path d="M30 76l-6 4l-5-3 M58 82l6 4l5-3" stroke="var(--ink-soft)" strokeDasharray="3 4" />
+        <path d="M40 90l8-5l8 4l7-4" stroke="var(--ink-soft)" />
       </svg>
-      <p className="text-[13px] leading-5 font-semibold tracking-[0.08em] text-muted-foreground">LỖI 404</p>
-      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Không tìm thấy trang này</h1>
-      <p className="max-w-[420px] text-base leading-[26px] text-muted-foreground">
-        Đường dẫn có thể bị gõ sai, hoặc trang này đã bị xóa.
+      <p className="text-label text-ink-soft">{t('components:states.error404')}</p>
+      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">{t('components:states.notFound')}</h1>
+      <p className="max-w-[420px] text-body leading-[26px] text-ink-soft">
+        {t('components:states.notFoundBody')}
       </p>
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-[22px] gap-y-3.5">
         <Link to="/today" className={cta}>
-          Về Hôm nay
+          {t('components:states.goToday')}
         </Link>
-        <Link to="/timeline" className="link-underline text-[15px] font-medium focus-visible:outline-3 focus-visible:outline-ring">
-          Mở Dòng thời gian
+        <Link to="/timeline" className="link-underline text-body font-medium">
+          {t('components:states.openTimeline')}
         </Link>
       </div>
     </Centered>
@@ -120,6 +124,7 @@ export function NotFoundState() {
  * "Đang thử…" tới khi xong; thử lại vẫn hỏng thì đếm số lần thử.
  */
 export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; status?: number }) {
+  const t = useT()
   const [retrying, setRetrying] = useState(false)
   const [tries, setTries] = useState(0)
 
@@ -133,7 +138,7 @@ export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; 
     }
   }
 
-  const code = status ? `Mã lỗi: ${status}` : ''
+  const code = status ? t('components:states.errorCode', { status }) : ''
   return (
     <Centered>
       <svg
@@ -146,28 +151,28 @@ export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; 
         strokeLinecap="round"
         strokeLinejoin="round"
         role="img"
-        aria-label="Một tách trà đang bốc hơi"
+        aria-label={t('components:states.teacup')}
       >
-        <path className="animate-steam" d="M40 10c-3 4 3 6 0 10 M52 6c-3 4 3 6 0 10 M64 10c-3 4 3 6 0 10" />
+        <path d="M40 10c-3 4 3 6 0 10 M52 6c-3 4 3 6 0 10 M64 10c-3 4 3 6 0 10" />
         {/* Thân tách dùng màu bìa oải hương của logo, cố định ở cả hai chế độ như logo. */}
-        <path d="M24 30h56v18a22 22 0 0 1-22 22H46a22 22 0 0 1-22-22z" fill="#CBAAC7" />
+        <path d="M24 30h56v18a22 22 0 0 1-22 22H46a22 22 0 0 1-22-22z" fill="var(--lavender)" />
         <path d="M80 36h4a8 8 0 0 1 0 16h-5" />
         <path d="M16 76h72" strokeWidth="2.4" />
         <path
           d="M44 46c-2-1.6-3-2.7-3-3.9c0-1 .8-1.8 1.8-1.8c.6 0 1.1.3 1.3.8c.3-.5.7-.8 1.3-.8c1 0 1.8.8 1.8 1.8c0 1.2-1 2.3-3.2 3.9z"
-          fill="#F1BD90"
+          fill="var(--peach)"
         />
       </svg>
-      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Jotly đang gặp trục trặc</h1>
-      <p className="max-w-[440px] text-base leading-[26px] text-muted-foreground">
-        Nhật ký của bạn vẫn an toàn. Pha một tách trà rồi thử lại sau ít phút nhé.
+      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">{t('components:states.serverTitle')}</h1>
+      <p className="max-w-[440px] text-body leading-[26px] text-ink-soft">
+        {t('components:states.serverBody')}
       </p>
       <button type="button" className={cn(cta, 'mt-2 cursor-pointer')} disabled={retrying} onClick={retry}>
         {retrying ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-        {retrying ? 'Đang thử…' : 'Thử lại'}
+        {retrying ? t('components:states.trying') : t('components:states.retry')}
       </button>
-      <p role="status" className="text-xs leading-[18px] text-muted-foreground">
-        {tries ? `Vẫn chưa được, lần thử ${tries}.${code ? ` ${code}` : ''}` : code}
+      <p role="status" className="text-label font-medium text-ink-soft">
+        {tries ? `${t('components:states.stillFailing', { tries })}${code ? ` ${code}` : ''}` : code}
       </p>
     </Centered>
   )

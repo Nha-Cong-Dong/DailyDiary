@@ -1,11 +1,13 @@
 name: Jobs
 
-# Tác vụ vận hành trên production (đặc tả mục 6). Một lịch mỗi giờ; bước "Chọn tác vụ" quyết định giờ nào chạy gì:
-#   mọi giờ          purge_accounts  (hoàn tất xóa tài khoản)
-#   01, 09, 17 UTC   backup_db       (= 08:00, 16:00, 00:00 giờ Việt Nam; giữ BACKUP_KEEP bản)
-#   19 UTC           purge_trash, backup_photos (= 02:00 giờ Việt Nam)
-# Lưu ý: cron của GitHub có thể trễ vài phút tới vài chục phút; repo công khai không có commit 60 ngày thì GitHub tự
-# tắt lịch (bật lại ở tab Actions). Chạy tay: Actions → Jobs → Run workflow.
+# Tác vụ vận hành trên production (đặc tả mục 6). Lịch đặt mỗi giờ, nhưng thực tế GitHub chạy thưa và lệch giờ thất
+# thường (có ngày chỉ 4–8 tiếng một lần), nên mỗi lần chạy làm đủ 4 tác vụ và hai tác vụ sao lưu tự tính hạn theo
+# bản sao lưu thật trong kho (`--if-due`), không theo giờ chạy:
+#   purge_accounts, purge_trash   mỗi lần chạy (rẻ, chạy lại không sao)
+#   backup_db --if-due            khi bản DB mới nhất cũ hơn BACKUP_DB_INTERVAL_HOURS (mặc định 8 giờ)
+#   backup_photos --if-due        khi lượt sao lưu ảnh gần nhất cũ hơn BACKUP_PHOTOS_INTERVAL_HOURS (mặc định 24 giờ)
+# Repo công khai không có commit 60 ngày thì GitHub tự tắt lịch (bật lại ở tab Actions).
+# Chạy tay: Actions → Jobs → Run workflow; chọn một tác vụ cụ thể thì chạy ngay, không xét hạn.
 # Khóa đặt ở Settings → Secrets and variables → Actions (danh sách ở env bên dưới).
 
 on:
@@ -14,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: Tác vụ (auto = theo giờ như lịch)
+        description: Tác vụ (auto = như lịch, sao lưu chỉ chạy khi đến hạn)
         type: choice
         default: auto
         options: [auto, purge_accounts, purge_trash, backup_db, backup_photos]
@@ -49,20 +51,21 @@ jobs:
         run: |
           if [ "$ASKED" != "auto" ]; then
             tasks="$ASKED"
+            if_due=""
           else
-            hour=$(date -u +%H)
-            tasks="purge_accounts"
-            case "$hour" in 01|09|17) tasks="$tasks backup_db" ;; esac
-            [ "$hour" = "19" ] && tasks="$tasks purge_trash backup_photos"
+            tasks="purge_accounts purge_trash backup_db backup_photos"
+            if_due="--if-due"
           fi
           echo "tasks=$tasks" >> "$GITHUB_OUTPUT"
-          echo "Tác vụ: $tasks"
+          echo "if_due=$if_due" >> "$GITHUB_OUTPUT"
+          echo "Tác vụ: $tasks ${if_due:+(sao lưu: $if_due)}"
 
       # Chạy hết các tác vụ đã chọn rồi mới báo lỗi, để một tác vụ hỏng không chặn tác vụ khác (vd sao lưu).
       # Khóa production chỉ có ở bước này, các bước cài đặt phía trên không thấy.
       - name: Chạy
         env:
           TASKS: ${{ steps.pick.outputs.tasks }}
+          IF_DUE: ${{ steps.pick.outputs.if_due }}
           ENV: production
           PYTHONUTF8: "1"
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
@@ -87,8 +90,11 @@ jobs:
         run: |
           failed=""
           for t in $TASKS; do
+            extra=""
+            case "$t" in backup_*) extra="$IF_DUE" ;; esac
             echo "::group::$t"
-            uv run --no-dev python -m app.jobs.run "$t" || failed="$failed $t"
+            # shellcheck disable=SC2086 # $extra cố ý không ngoặc kép: rỗng thì không truyền đối số nào
+            uv run --no-dev python -m app.jobs.run "$t" $extra || failed="$failed $t"
             echo "::endgroup::"
           done
           if [ -n "$failed" ]; then echo "::error::Lỗi:$failed"; exit 1; fi

@@ -1,0 +1,239 @@
+{
+  "title": "Chọn thế giới thiết kế mới cho Jotly (lần 2)",
+  "question": "Lần quay mới chọn \"Sách tranh\". Giữ hướng này, lấy một hướng khác, hoặc quay lại.",
+  "options": [
+    {
+      "id": "assigned",
+      "kind": "assigned",
+      "label": "Sách tranh",
+      "kicker": "THE ROLL",
+      "lineage": "Sách tranh hiện đại: mỗi trang đôi một bức tranh phẳng màu bột, chữ dàn yên bên cạnh",
+      "thesis": "Mỗi ngày là một trang đôi của cuốn sách tranh: bên trái bức tranh tô theo điểm hôm nay, bên phải chữ của bạn.",
+      "palette": [
+        "#FDFDFB",
+        "#F2C58F",
+        "#5E9A64",
+        "#A9C8E8",
+        "#23262B"
+      ],
+      "materials": [
+        "màu bột phẳng",
+        "giấy trắng in sách",
+        "bộ biểu tượng vẽ lại thành tranh lớn"
+      ],
+      "viewport": "Thanh trên mỏng; giữa màn là trang đôi: trái là ô tranh màu của điểm với biểu tượng điểm vẽ to (mầm, nụ, hoa) và chú thích; phải là ngày, tiêu đề, chọn điểm bằng năm chấm màu, chữ trên dòng kẻ, từ khóa; chân trang âm lịch, giờ lưu, số trang.",
+      "risk": "Cần vẽ tranh cho đủ 6 bộ biểu tượng ở cỡ lớn; nếu vẽ vụng sẽ thành sách thiếu nhi.",
+      "raised": [
+        {
+          "from": "rw-timetable-slide-rack",
+          "raise": "Chữ trong app chỉ ba cỡ; thứ bậc bằng độ đậm và đường kẻ, không bằng hộp."
+        },
+        {
+          "from": "emigre-bitmap-specimen",
+          "raise": "Một hình lặp ở nhiều cỡ: biểu tượng điểm là tranh lớn trên trang, chấm nhỏ trên lịch, ô màu trên Year in Pixels."
+        },
+        {
+          "from": "pop-culture-shelf-character-goods-catalog",
+          "raise": "Mỗi mức điểm có chỗ cố định của nó: tên, màu tranh, một câu ngắn."
+        },
+        {
+          "from": "wayfinding-cartography-signage-midnight-transit-diagram",
+          "raise": "Tháng đang xem đậm nhất, các tháng khác vẫn hiện nhưng nhạt để giữ bối cảnh."
+        },
+        {
+          "from": "ikeda-datamatics",
+          "raise": "Chọn một ngày thì ngày đó rõ, phần còn lại lùi xuống."
+        }
+      ],
+      "html": ".impeccable/mocks/decision/r1-assigned-picturebook.html"
+    },
+    {
+      "id": "model-pick",
+      "kind": "pick",
+      "label": "Kệ sách",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Kệ sách ở nhà: mỗi tháng một cuốn bìa vải, gáy dày dần",
+      "thesis": "Cả năm là một kệ sách: mỗi tháng một cuốn bìa vải, gáy dày theo số trang đã ghi; hôm nay là cuốn đang mở.",
+      "palette": [
+        "#E6E8EA",
+        "#FCFCFA",
+        "#2B3A67",
+        "#3F7F6E",
+        "#B9774A"
+      ],
+      "materials": [
+        "vải bìa nhiều màu",
+        "giấy sách",
+        "kệ gỗ sơn xám"
+      ],
+      "viewport": "Bên trái là kệ năm 2026 với 12 gáy sách (dày theo số trang, tháng chưa tới mờ); bên phải là trang sách đang mở của hôm nay với dòng đầu trang, số ngày, chọn điểm, chữ trên dòng kẻ, âm lịch ở chân trang.",
+      "risk": "Quen thuộc: hình ảnh kệ sách hay gặp ở app đọc sách; gáy sách chiếm chỗ trên điện thoại.",
+      "html": ".impeccable/mocks/decision/r1-pick-bookshelf.html"
+    },
+    {
+      "id": "challenger-grid",
+      "kind": "challenger",
+      "catalogId": "crouwel-grid-specimen",
+      "label": "Giấy lưới dựng hình",
+      "verdict": "competitive",
+      "lineage": "Mẫu chữ dựng trên lưới ô vuông của Wim Crouwel",
+      "thesis": "Mọi thứ dựng trên lưới ô li xanh nhạt: số ngày ghép từ ô, lịch và Year in Pixels là chính lưới đó.",
+      "palette": [
+        "#FBFCFD",
+        "#DCE6F2",
+        "#2F5FB3",
+        "#1B1E24",
+        "#F2B45A"
+      ],
+      "materials": [
+        "giấy lưới xanh",
+        "số ghép từ ô vuông"
+      ],
+      "viewport": "Điều hướng trái; giữa là số ngày 31 ghép từ ô lưới, ngày và âm lịch, chọn điểm năm ô, vùng viết; phải là lịch tháng bằng ô màu.",
+      "case": "Hòa về độ rõ: lưới thống nhất lịch, năm và trang viết; thua về độ gần gũi vì thiên về người làm đồ họa hơn người yêu sách.",
+      "risk": "Có thể khô và máy móc nếu lưới quá rõ.",
+      "html": ".impeccable/mocks/decision/r1-challenger-grid.html",
+      "hero": "https://impeccable.style/worlds/cards/crouwel-grid-specimen-hero.webp"
+    },
+    {
+      "id": "challenger-transit",
+      "kind": "challenger",
+      "catalogId": "wayfinding-cartography-signage-midnight-transit-diagram",
+      "label": "Bản đồ tàu điện đêm",
+      "verdict": "declined",
+      "lineage": "Bản đồ tuyến tàu men xanh đêm",
+      "thesis": "Mỗi tháng một tuyến tàu.",
+      "palette": [
+        "#14213D",
+        "#E63946",
+        "#F4A261",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "men sứ",
+        "tuyến màu"
+      ],
+      "viewport": "Bản đồ tuyến trên nền xanh đêm.",
+      "risk": "Nền tối, không có chất sách.",
+      "case": "Thua cả hai trục: người yêu sách không nhận ra mình trong thế giới này.",
+      "kept": "Tháng đang xem đậm nhất, các tháng khác nhạt."
+    },
+    {
+      "id": "challenger-timetable",
+      "kind": "challenger",
+      "catalogId": "rw-timetable-slide-rack",
+      "label": "Lịch bay trên bàn đèn",
+      "verdict": "declined",
+      "lineage": "Lịch bay bỏ túi trên bàn đèn vàng",
+      "thesis": "Một cỡ chữ duy nhất, khối nghiêng 11 độ.",
+      "palette": [
+        "#E2B33C",
+        "#1C1C1C",
+        "#F3EEDC",
+        "#C8331E"
+      ],
+      "materials": [
+        "kính màu",
+        "bàn đèn"
+      ],
+      "viewport": "Dãy tấm kính nghiêng trên nền vàng.",
+      "risk": "Nghiêng và vàng gắt, không nhẹ nhàng.",
+      "case": "Thua cả hai trục: người yêu sách không nhận ra mình trong thế giới này.",
+      "kept": "Thứ bậc bằng độ đậm và đường kẻ, ít cỡ chữ."
+    },
+    {
+      "id": "challenger-bitmap",
+      "kind": "challenger",
+      "catalogId": "emigre-bitmap-specimen",
+      "label": "Mẫu chữ điểm ảnh",
+      "verdict": "declined",
+      "lineage": "Mẫu chữ bitmap của Emigre",
+      "thesis": "Chữ điểm ảnh to như áp phích.",
+      "palette": [
+        "#FFFFFF",
+        "#000000",
+        "#FF3B00"
+      ],
+      "materials": [
+        "điểm ảnh",
+        "lưới chấm"
+      ],
+      "viewport": "Tiêu đề điểm ảnh khổng lồ.",
+      "risk": "Ồn và kỹ thuật số, ngược với sách.",
+      "case": "Thua cả hai trục: người yêu sách không nhận ra mình trong thế giới này.",
+      "kept": "Một hình lặp ở nhiều cỡ."
+    },
+    {
+      "id": "challenger-characters",
+      "kind": "challenger",
+      "catalogId": "pop-culture-shelf-character-goods-catalog",
+      "label": "Danh mục nhân vật",
+      "verdict": "declined",
+      "lineage": "Catalog nhân vật dễ thương",
+      "thesis": "Mỗi mức điểm là một nhân vật.",
+      "palette": [
+        "#FFE4EC",
+        "#CDEBF7",
+        "#FFF3B0",
+        "#333333"
+      ],
+      "materials": [
+        "màu phấn",
+        "viền trắng"
+      ],
+      "viewport": "Lưới nhân vật màu phấn.",
+      "risk": "Quá dễ thương, mất chất sách.",
+      "case": "Thua cả hai trục: người yêu sách không nhận ra mình trong thế giới này.",
+      "kept": "Mỗi mức điểm có tên, màu, một câu riêng."
+    },
+    {
+      "id": "challenger-datamatics",
+      "kind": "challenger",
+      "catalogId": "ikeda-datamatics",
+      "label": "Trường dữ liệu",
+      "verdict": "declined",
+      "lineage": "Tác phẩm dữ liệu đen trắng",
+      "thesis": "Mã vạch và sóng sin.",
+      "palette": [
+        "#000000",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "vạch mảnh",
+        "số mono"
+      ],
+      "viewport": "Tường mã vạch nhấp nháy.",
+      "risk": "Lạnh, nhấp nháy, ngược với yên tĩnh.",
+      "case": "Thua cả hai trục: người yêu sách không nhận ra mình trong thế giới này.",
+      "kept": "Chọn một mục thì mục đó rõ, phần còn lại lùi."
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "code"
+  },
+  "canon": true,
+  "canonCard": {
+    "kind": "canon",
+    "label": "Chuẩn của thể loại",
+    "thesis": "App nhật ký như mọi app nhật ký: danh sách bài bên trái, trình soạn bên phải, làm thật kỹ.",
+    "palette": [
+      "#FFFFFF",
+      "#111827",
+      "#2563EB"
+    ],
+    "materials": [
+      "lưới sạch",
+      "font hệ thống"
+    ],
+    "viewport": "Thanh điều hướng, danh sách bài theo tháng, trình soạn với chọn điểm dạng nút tròn.",
+    "risk": "Giống hệt các app khác; dễ rơi vào cái khô kiểu Notion bạn muốn tránh.",
+    "html": ".impeccable/mocks/decision/canon.html"
+  },
+  "steer": true
+}

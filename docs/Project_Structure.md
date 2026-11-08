@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 32 (25/10/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 39 (08/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -31,7 +31,7 @@ dailydiary/
 ├── .mcp.json                         # MCP server cho Claude Code (Context7)
 ├── .gitignore  .gitattributes  .editorconfig
 ├── docker-compose.yml                # local: MongoDB, MinIO + minio-init (bucket ảnh và sao lưu), Mailpit (bắt email)
-├── render.yaml                       # Render Blueprint: backend production (Singapore, gói free, api.jotly.io.vn) — không dùng nữa
+├── render.yaml                       # Render Blueprint: không dùng từ 30/10/2026, giữ làm phương án dự phòng cho API
 ├── docker-compose.prod.yml           # backend production chạy trên máy cá nhân (cổng 127.0.0.1:8000), ra Internet qua dịch vụ Windows cloudflared (api.jotly.io.vn)
 ├── .dockerignore                     # ngữ cảnh build của apps/api/Dockerfile (gốc repo): chỉ apps/api + shared/
 │
@@ -42,7 +42,9 @@ dailydiary/
 │                                     # privacy-check, date-timezone-rules, seed-demo-data
 ├── .github/workflows/
 │   ├── ci.yml                        # job api / web / e2e
-│   └── jobs.yml                      # cron mỗi giờ: purge_accounts, backup_db, purge_trash, backup_photos (production)
+│   └── jobs.yml                      # cron mỗi giờ: purge_accounts, purge_trash, backup_db --if-due, backup_photos --if-due (production)
+│
+├── project-map/                      # [không commit] trang Vite + React giải thích dự án cho người mới (npm run dev, cổng 5174); chỉ dùng cục bộ
 │
 ├── docs/
 │   ├── Project_Specs.md              # đặc tả hệ thống hiện tại (màn hình, tính năng, phi tính năng, kiến trúc, vận hành)
@@ -50,6 +52,7 @@ dailydiary/
 │   ├── MVP_Plan.md                   # kế hoạch theo bước, các quyết định Q1..Qn
 │   ├── Deploy.md                     # hướng dẫn triển khai production từng bước, việc định kỳ, sự cố thường gặp
 │   ├── Roadmap.md                    # định hướng: bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định
+│   ├── Backlog.md                    # việc tồn đọng sau bản 1.0 (danh sách duy nhất)
 │   └── adr/                          # quyết định kiến trúc: NNNN-<ten>.md
 │
 ├── shared/                           # dùng chung cho api và web; chỉ sửa ở đây
@@ -114,8 +117,9 @@ dailydiary/
         └── src/
             ├── main.tsx  App.tsx  index.css  vite-env.d.ts
             ├── assets/
-            │   └── fonts/            # [sinh bằng scripts/subset_fonts.py] Be Vietnam Pro 400–700, Young Serif (chữ logo)
-            │                         # đã cắt còn ký tự tiếng Việt + Latin; OFL-*.txt (giấy phép). Lora vẫn lấy từ fontsource
+            │   └── fonts/            # [sinh bằng scripts/subset_fonts.py] commissioner-vi.woff2 (Commissioner biến thiên,
+            │                         # wght 400–800 + FLAR 0–100), young-serif-logo.woff2 (chữ logo); đã cắt còn ký tự
+            │                         # tiếng Việt + Latin; OFL-Commissioner.txt, OFL-YoungSerif.txt (giấy phép)
             ├── api/
             │   ├── client.ts         # openapi-fetch, credentials: "include"
             │   ├── openapi.json      # [sinh tự động] từ scripts/export_openapi.py
@@ -138,9 +142,9 @@ dailydiary/
             │   │                     # dung lượng ảnh (components/StorageUsage.tsx)
             │   ├── entry/            # màn Hôm nay, chi tiết một ngày, Sửa trang cũ, Ghi bù, Thùng rác (Trash.tsx); bản điện thoại B10;
             │   │                     # entries.ts: GET/PUT/DELETE /entries + khôi phục; useDay.ts (dayQuery); uploadPhoto.ts
-            │   │                     # (nén + PUT presigned, có tiến độ); useRecentDays.ts (7 ngày qua), useFrequentSubIcons.ts
+            │   │                     # (nén + PUT presigned, có tiến độ); useRecentDays.ts (dải tháng hiện tại), useFrequentSubIcons.ts
             │   │                     # (sub icon hay dùng); useAutosave.ts (tự lưu + nháp + xung đột, components/ConflictDialog.tsx);
-            │   │                     # components/ vì ≥ 6 component
+            │   │                     # components/DayClock.tsx (dải 24 giờ), MonthStrip.tsx (dải ngày của tháng); components/ vì ≥ 6 component
             │   ├── timeline/         # dòng thời gian theo tháng: danh sách, nhịp điểm, lịch, thống kê tháng, hôm nay chưa viết +
             │   │                     # chấm điểm nhanh, bản điện thoại (thiết kế B8, B10);
             │   │                     # GET /entries?month (danh sách), GET /calendar/{y}/{m} (lịch + chuỗi ngày)
@@ -152,24 +156,32 @@ dailydiary/
             │   ├── feedback/         # form góp ý (FeedbackDialog, useSendFeedback); trang Hồ sơ ghép vào
             │   └── legal/            # trang pháp lý công khai: PrivacyPolicy.tsx (chính sách quyền riêng tư, đặc tả 4.1; email liên hệ)
             ├── components/
-            │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên> (đã chỉnh theo hệ thiết kế;
-            │   │                     # có dialog, alert-dialog, switch, dropdown-menu; button có biến thể cta)
+            │   ├── ui/               # component shadcn: npx shadcn@4.22.0 add <tên> (đã chỉnh theo hệ thiết kế 1.1;
+            │   │                     # có dialog, alert-dialog, switch, dropdown-menu; button có biến thể cta) + tự viết theo
+            │   │                     # B11-Components: card.tsx (Card raised/low/flat/interactive), segmented.tsx (Segmented)
             │   ├── diary/            # thành phần nhật ký dùng chung: main/sub icon, chọn điểm, cờ hiệu,
             │   │                     # chip từ khóa, ô lịch, ô pixel, thẻ nhật ký, ô ảnh + trình xem ảnh, tải ảnh (PhotoUploader),
             │   │                     # BottomSheet (bảng trượt/hộp thoại dùng chung cả app: layout responsive | sheet), Toast (thông báo nổi dùng chung), SyncStatus (Đang lưu / Đã lưu / Chưa đồng bộ),
-            │   │                     # xem nhanh một ngày (DayPeek)
+            │   │                     # xem nhanh một ngày (DayPeek); Stamp (dấu Đã lưu / Đang lưu / Chưa đồng bộ / Lỗi / Trong thùng rác),
+            │   │                     # DayMorph (chuyển cảnh nối icon ngày → trang ngày, React <ViewTransition>); NotebookPage + FlagRibbon (khung trang sổ:
+            │   │                     # lỗ đục, lề hồng, ruy băng cờ); EntryCard + EntryPhoto + EntryPhotoStack (thẻ / trang ngày B11-DayCard, B7)
             │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang,
-            │                         # thanh ngoại tuyến (OfflineBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark),
+            │                         # thanh ngoại tuyến (OfflineBanner), thẻ nổi "Đang đánh thức máy chủ…" (WakingBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark), nút chọn ngôn ngữ VI/EN (LanguageSwitch),
             │                         # khung công khai (PlainFrame: 404/lỗi khi chưa đăng nhập)
             ├── lib/                  # query.ts, limits.ts, utils.ts, catalog.ts (icons/cờ từ shared/),
-            │                         # theme.ts (sáng/tối), date.ts (ngày theo múi giờ hồ sơ),
+            │                         # theme.ts (Sáng / Tối / Hệ thống / Theo giờ), date.ts (ngày theo múi giờ hồ sơ),
+            │                         # motion.ts (đường cong, thời lượng, giảm chuyển động, withViewTransition), flyTo.ts (icon bay vào ô hôm nay),
             │                         # profile.ts (GET/PATCH /me), session.ts (đăng xuất, đăng nhập thử), text.ts (bỏ dấu, tô sáng),
             │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
-            │                         # image.ts (kiểm tra loại/kích thước, nén WebP + ảnh thu nhỏ: preparePhoto/prepareAvatar), online.ts (trạng thái mạng);
+            │                         # i18n.ts (i18next: ngôn ngữ vi/en lưu ở localStorage, t cho code ngoài component, useT/useLanguage cho component; tiếng Anh tải riêng), rich.tsx (chữ dịch có thẻ <b> giữa câu), image.ts (kiểm tra loại/kích thước, nén WebP + ảnh thu nhỏ: preparePhoto/prepareAvatar), online.ts (trạng thái mạng), serverWake.ts (nhận ra request chậm khi máy chủ ngủ dậy, chờ máy chủ thức trước khi sang Google);
             │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`);
             │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh)
-            ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes, hiệu ứng di chuột/cuộn),
-            │                         # fonts.css (@font-face cho font tự host trong assets/fonts/)
+            ├── locales/              # bản dịch giao diện (ADR 0006): vi/ (nguồn chuẩn) và en/, mỗi tính năng một file <nhóm>.ts
+            │                         # (common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search,
+            │                         # share, feedback, legal), index.ts gom lại, shape.ts (kiểu Shape: bản dịch phải đủ khóa tiếng Việt),
+            │                         # i18next.d.ts (kiểu khóa lấy từ vi/)
+            ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes jot-*, cử chỉ lift/cta/press/pick,
+            │                         # chuyển cảnh nối View Transitions, giảm chuyển động), fonts.css (@font-face cho font tự host trong assets/fonts/)
             └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me và API nhật ký khi render test),
                                       # demoApi.ts (giả API chia sẻ)
 ```
@@ -337,3 +349,9 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 31 | 25/10/2026 | Bước 14 (triển khai): `docs/Deploy.md`, `apps/api/Dockerfile` (bỏ nhãn (B4)), `.dockerignore` ở gốc repo (ngữ cảnh build là gốc), `render.yaml`, `.github/workflows/jobs.yml`, `apps/web/public/_headers`; `core/security.py` thêm `SecurityHeadersMiddleware`, `tests/api/test_security_headers.py` |
 | 32 | 25/10/2026 | Viết lại `Project_Specs.md` (bản 2.0) chỉ mô tả hệ thống hiện tại; tách bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định sang `docs/Roadmap.md` |
 | 33 | 29/10/2026 | Chuyển backend production từ Render sang máy cá nhân: thêm `docker-compose.prod.yml` (API; tunnel là dịch vụ Windows cloudflared, không nằm trong compose); `render.yaml` giữ lại nhưng không dùng |
+| 34 | 30/10/2026 | Chốt bản 1.0: thêm `docs/Backlog.md` (việc tồn đọng); viết lại `README.md`, cập nhật `Deploy.md`, `Project_Specs.md`, `MVP_Plan.md`, `Roadmap.md` theo hạ tầng mới (API trên máy cá nhân, Pages Direct Upload) |
+| 35 | 02/11/2026 | Lịch `jobs.yml`: mỗi lần chạy làm đủ 4 tác vụ, sao lưu dùng `--if-due` (hạn tính theo kho sao lưu, mốc ảnh ở `state/backup_photos.json` trên B2); thêm `tests/unit/test_config.py` (Settings cắt khoảng trắng) |
+| 36 | 06/11/2026 | Dựng lại nền giao diện theo canvas hệ thiết kế 1.1 (nhánh `feat/ui-redesign2`): font Commissioner biến thiên thay Be Vietnam Pro + Lora (`assets/fonts/commissioner-vi.woff2`, `OFL-Commissioner.txt`; bỏ `be-vietnam-pro-*.woff2`, `OFL-BeVietnamPro.txt`, thư viện `@fontsource/lora`); thêm `components/ui/card.tsx`, `segmented.tsx`, `components/diary/Stamp.tsx`, `DayMorph.tsx`, `lib/motion.ts`, `lib/flyTo.ts`; `lib/theme.ts` thêm chế độ Theo giờ; lượt 2: `components/diary/NotebookPage.tsx` (thay `features/share/components/NotebookPage.tsx` và khung chép cục bộ ở search, pixels, entry), `features/entry/components/DayClock.tsx`, `MonthStrip.tsx` (thay `RecentDays.tsx`) |
+| 37 | 06/11/2026 | Thêm `project-map/` (có trong `.gitignore`): trang Vite + React minh họa mối liên hệ giữa các thành phần và công cụ ngoài, giải thích kiểu cho bé 5 tuổi; không thuộc bản build, không nằm trong CI |
+| 38 | 07/11/2026 | Thêm `lib/serverWake.ts` (+ test) và `components/layout/WakingBanner.tsx`: báo "Đang đánh thức máy chủ…" khi API ở gói miễn phí ngủ dậy; `api/client.ts` bọc fetch bằng `trackedFetch`; `Login.tsx` chờ máy chủ thức trước khi sang Google. `Deploy.md` mục 6 thêm cách giữ API không ngủ bằng Cloudflare Worker cron (cấu hình trên dashboard, không có file trong repo) |
+| 39 | 08/11/2026 | Thêm tiếng Anh cho giao diện web (ADR 0006): `src/locales/` (`vi/`, `en/`, `shape.ts`, `i18next.d.ts`), `lib/i18n.ts` (+ test), `lib/rich.tsx`, thư viện `i18next`, `react-i18next`; `lib/date.ts` lấy tên thứ, tháng từ bản dịch; ô chọn ngôn ngữ ở Landing và Hồ sơ hoạt động |

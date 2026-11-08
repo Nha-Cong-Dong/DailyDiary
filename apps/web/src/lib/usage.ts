@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
 import type { components } from '@/api/schema'
 import { megabytesLabel } from './image'
+import { t } from './i18n'
 
 export type DataSummary = components['schemas']['DataSummaryOut']
 
@@ -57,7 +58,7 @@ export function storageUsage(summary: Pick<DataSummary, 'used_bytes' | 'quota_by
 
 /** Dung lượng đã dùng: dưới 0,1 MB mà khác 0 thì ghi "< 0,1 MB" để khỏi hiện "0 MB" khi đã có ảnh. */
 function usedLabel(bytes: number): string {
-  if (bytes > 0 && bytes < 0.1 * 1024 * 1024) return '< 0,1 MB'
+  if (bytes > 0 && bytes < 0.1 * 1024 * 1024) return t('lib:usage.underTenth')
   return megabytesLabel(bytes)
 }
 

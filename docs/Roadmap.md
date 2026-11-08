@@ -3,7 +3,7 @@
 |                 |                                                                                      |
 | --------------- | ------------------------------------------------------------------------------------ |
 | **Vai trò**     | Bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng và nhật ký quyết định. Hệ thống **đang chạy** mô tả ở [`Project_Specs.md`](Project_Specs.md) |
-| **Cập nhật**    | 25/10/2026 (tách từ đặc tả bản 1.0)                                                  |
+| **Cập nhật**    | 30/10/2026                                                  |
 
 ## 1. Bối cảnh
 
@@ -133,7 +133,7 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 | Lộ dữ liệu nhật ký                                      | Lọc `user_id` mọi truy vấn, kho ảnh riêng tư, không log nội dung, test truy cập chéo          |
 | Mất dữ liệu do sự cố nhà cung cấp                       | Sao lưu 3 lần/ngày sang nhà cung cấp khác; thử khôi phục định kỳ                             |
 | Chi phí lưu ảnh vượt dự kiến                            | Nén ảnh, không lưu ảnh gốc, hạn mức theo người, theo dõi hằng tuần                           |
-| Render Free ngủ làm lần mở đầu chậm                     | Chấp nhận ở beta; lên gói trả phí khi có người dùng thật                                     |
+| API chạy trên máy cá nhân: máy tắt hoặc mất mạng là ngừng | Chấp nhận ở giai đoạn tự dùng; chuyển lên VPS hoặc nền tảng trả phí trước khi mời người dùng thật |
 | Quy định bảo vệ dữ liệu cá nhân (chuyển dữ liệu ra nước ngoài) | Rà soát pháp lý trước khi ra mắt công khai                                            |
 | Phản ứng tiêu cực khi bắt đầu thu phí                   | Nguyên tắc mục 3                                                                             |
 | Tiền ảo phức tạp về kỹ thuật và pháp lý                 | Sổ cái riêng; tìm hiểu quy định trước giai đoạn 3                                            |
@@ -166,3 +166,5 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 | 24/10/2026 | Kho sao lưu Backblaze B2; chính sách quyền riêng tư `/privacy`, từ 16 tuổi; tối ưu LCP | Bước 13–14 |
 | 25/10/2026 | Hạ tầng: Render Free (Singapore, Docker), Cloudflare Pages + R2, GitHub Actions cron, `jotly.io.vn`; dùng lại DB beta, migration chạy tay bằng user riêng; header bảo mật | Bước 14 |
 | 25/10/2026 | Đặc tả chỉ mô tả hệ thống hiện tại (bản 2.0); bối cảnh và định hướng tách sang file này | – |
+| 29/10/2026 | API chuyển từ Render sang Docker trên máy cá nhân + Cloudflare Tunnel; web dùng Pages Direct Upload; `COOKIE_DOMAIN=jotly.io.vn` | Bước 14, `Deploy.md` |
+| 30/10/2026 | OAuth Google In production (thương hiệu đã xác minh); **chốt bản 1.0**, việc còn lại gom vào `Backlog.md` | Bước 14–15 |

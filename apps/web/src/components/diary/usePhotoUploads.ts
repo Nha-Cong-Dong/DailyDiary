@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '@/api/client'
+import { t } from '@/lib/i18n'
 import { checkPhoto, isHeic } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
 import type { PhotoItem } from './PhotoViewer'
@@ -139,7 +140,7 @@ export function usePhotoUploads(initial: PhotoItem[], upload: UploadPhoto, { onR
       const byKey = new Map(started.map((t) => [t.key, t]))
       setTiles(plan.tiles.map((t) => byKey.get(t.key) ?? t))
       const max = tierLimits().photos.per_day_max
-      setNote(plan.skipped ? `Chỉ thêm được ${started.length} ảnh, mỗi trang tối đa ${max} ảnh.` : null)
+      setNote(plan.skipped ? t('components:photo.noteSkipped', { count: started.length, max }) : null)
       started.forEach((t) => run(t.key, t.file))
     },
     [run, tiles],

@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { PlainFrame } from '@/components/layout/PlainFrame'
+import { t } from '@/lib/i18n'
 import { tierLimits } from '@/lib/limits'
 
 /**
@@ -9,15 +11,13 @@ import { tierLimits } from '@/lib/limits'
  * Chưa được rà soát pháp lý: làm trước khi ra mắt công khai (đặc tả 4.1, mục Pháp lý).
  */
 export const CONTACT_EMAIL = 'bachvuongtri@gmail.com'
-const UPDATED = '25/10/2026'
+const UPDATED = '30/10/2026'
 const MIN_AGE = 16
-
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h2 id={id} className="text-[22px] leading-8 font-bold max-sm:text-xl max-sm:leading-7">
+      <h2 id={id} className="text-heading">
         {title}
       </h2>
       {children}
@@ -26,33 +26,37 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 function List({ children }: { children: ReactNode }) {
-  return <ul className="flex list-disc flex-col gap-2 pl-5 marker:text-muted-foreground">{children}</ul>
+  return <ul className="flex list-disc flex-col gap-2 pl-5 marker:text-ink-soft">{children}</ul>
 }
 
 const Mail = () => (
-  <a href={`mailto:${CONTACT_EMAIL}`} className={`link-underline font-medium break-all ${focusRing}`}>
+  <a href={`mailto:${CONTACT_EMAIL}`} className="link-underline font-medium break-all">
     {CONTACT_EMAIL}
   </a>
 )
 
 export function PrivacyPolicy() {
+  const { i18n } = useTranslation() // vẽ lại khi đổi ngôn ngữ
   const { restore_days } = tierLimits().entry
   return (
     <PlainFrame>
-      <title>Chính sách quyền riêng tư · Jotly</title>
-      <article className="mx-auto flex w-full max-w-[720px] flex-col gap-10 py-6 text-[15px] leading-7 md:py-10 md:text-base md:leading-[28px]">
+      <title>{t('legal:pageTitle')}</title>
+      <article className="mx-auto flex w-full max-w-[720px] flex-col gap-10 py-6 text-body md:py-10 md:text-reading">
         <header className="flex flex-col gap-2">
-          <p className="text-[13px] leading-5 text-muted-foreground">Cập nhật lần cuối: {UPDATED}</p>
-          <h1 className="text-[32px] leading-10 font-bold tracking-[-0.01em] md:text-[40px] md:leading-[48px]">
-            Chính sách quyền riêng tư
-          </h1>
-          <p className="text-muted-foreground">
+          {i18n.language === 'en' ? (
+            <p role="note" className="rounded-md border-[1.5px] border-line-soft bg-sunk px-3.5 py-2.5 text-label font-medium">
+              {t('legal:englishNotice')}
+            </p>
+          ) : null}
+          <p className="text-label font-normal text-ink-soft">{t('legal:updated', { when: UPDATED })}</p>
+          <h1 className="text-title">{t('legal:heading')}</h1>
+          <p className="text-ink-soft">
             Jotly là nhật ký cá nhân. Trang này nói rõ Jotly lưu gì, để làm gì, ai xem được và bạn xóa như thế nào.
             Jotly đang ở giai đoạn thử nghiệm (beta).
           </p>
         </header>
 
-        <section aria-label="Tóm tắt" className="rounded-[18px] border-[1.5px] border-line bg-card p-5 shadow-ink-sm md:p-6">
+        <section aria-label="Tóm tắt" className="rounded-lg border-[1.5px] border-stroke bg-card p-5 shadow-sm md:p-6">
           <List>
             <li>Nhật ký mặc định chỉ mình bạn xem được. Chỉ khi bạn tự tạo link chia sẻ thì người có link mới xem được.</li>
             <li>Jotly không bán dữ liệu, không chạy quảng cáo, không dùng nhật ký của bạn để huấn luyện AI.</li>
@@ -122,9 +126,9 @@ export function PrivacyPolicy() {
               Jotly dùng các nhà cung cấp hạ tầng sau để chạy dịch vụ. Dữ liệu có thể được lưu ở máy chủ ngoài Việt Nam:
               <ul className="mt-2 flex list-[circle] flex-col gap-1.5 pl-5">
                 <li>Google: đăng nhập; gửi email (góp ý, xác nhận xóa tài khoản).</li>
-                <li>Render: chạy máy chủ ứng dụng (Singapore).</li>
+                <li>Máy chủ ứng dụng (API): do Jotly tự vận hành, kết nối ra Internet qua Cloudflare.</li>
                 <li>MongoDB Atlas: cơ sở dữ liệu (Singapore).</li>
-                <li>Cloudflare: phục vụ trang web và lưu ảnh (kho ảnh R2).</li>
+                <li>Cloudflare: phục vụ trang web, chuyển tiếp kết nối tới máy chủ ứng dụng và lưu ảnh (kho ảnh R2).</li>
                 <li>GitHub: chạy các tác vụ định kỳ (dọn dữ liệu đã xóa, sao lưu).</li>
                 <li>Backblaze: lưu bản sao lưu (máy chủ ở Canada).</li>
               </ul>
@@ -198,7 +202,7 @@ export function PrivacyPolicy() {
         <Section id="pv-lien-he" title="10. Liên hệ">
           <p>
             Câu hỏi về quyền riêng tư: <Mail />. Nếu đang đăng nhập, bạn cũng có thể dùng nút Góp ý trong{' '}
-            <Link to="/profile" className={`link-underline font-medium ${focusRing}`}>
+            <Link to="/profile" className="link-underline font-medium">
               Hồ sơ
             </Link>
             .

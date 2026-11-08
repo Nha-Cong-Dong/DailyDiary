@@ -4,6 +4,7 @@ import { Avatar } from '@/components/layout/Avatar'
 import { Button } from '@/components/ui/button'
 import { checkPhoto, megabytesLabel, photoAccept, photoFormatsLabel } from '@/lib/image'
 import { tierLimits } from '@/lib/limits'
+import { useT } from '@/lib/i18n'
 
 type AvatarFieldProps = {
   name: string
@@ -22,6 +23,7 @@ type AvatarFieldProps = {
  */
 export function AvatarField({ name, src, busy, uploadError, onPick, onRemove }: AvatarFieldProps) {
   const id = useId()
+  const t = useT()
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const { avatar_edge_px } = tierLimits().profile
@@ -32,7 +34,11 @@ export function AvatarField({ name, src, busy, uploadError, onPick, onRemove }: 
     if (!file) return
     const check = checkPhoto(file)
     if (check.ok === false) {
-      return setError(check.reason === 'type' ? `Chỉ nhận ảnh ${photoFormatsLabel()}.` : `Ảnh lớn hơn ${maxSource}. Chọn ảnh nhỏ hơn.`)
+      return setError(
+        check.reason === 'type'
+          ? t('profile:avatar.badType', { formats: photoFormatsLabel() })
+          : t('profile:avatar.tooBig', { max: maxSource }),
+      )
     }
     setError(null)
     onPick(file)
@@ -40,20 +46,20 @@ export function AvatarField({ name, src, busy, uploadError, onPick, onRemove }: 
 
   return (
     <div className="flex flex-wrap items-center gap-5">
-      <Avatar name={name} src={src} size={88} className="font-heading text-[30px] font-bold shadow-ink-sm" />
-      <div className="flex flex-col gap-1.5">
+      <Avatar name={name} src={src} size={88} className="font-bold shadow-sm" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" size="sm" className="h-10 px-3.5" disabled={busy} onClick={() => input.current?.click()}>
-            <ImageUp aria-hidden="true" /> {busy ? 'Đang tải ảnh…' : 'Đổi ảnh'}
+          <Button variant="secondary" size="sm" className="h-10" disabled={busy} onClick={() => input.current?.click()}>
+            <ImageUp aria-hidden="true" /> {busy ? t('profile:avatar.uploading') : t('profile:avatar.change')}
           </Button>
           {src && !busy ? (
             <Button variant="ghost" size="sm" className="h-10" onClick={onRemove}>
-              Gỡ ảnh
+              {t('profile:avatar.remove')}
             </Button>
           ) : null}
         </div>
         <label htmlFor={id} className="sr-only">
-          Chọn ảnh đại diện
+          {t('profile:avatar.pickLabel')}
         </label>
         <input
           ref={input}
@@ -68,10 +74,10 @@ export function AvatarField({ name, src, busy, uploadError, onPick, onRemove }: 
           }}
         />
         <span
-          className={shown ? 'text-[13px] leading-5 font-medium text-destructive' : 'text-[13px] leading-5 text-muted-foreground'}
+          className={shown ? 'text-label leading-5 font-medium text-danger' : 'text-label leading-5 font-normal text-ink-soft'}
           role={shown ? 'alert' : undefined}
         >
-          {shown ?? `${photoFormatsLabel()}, tối đa ${maxSource}. Jotly cắt vuông ${avatar_edge_px}×${avatar_edge_px} px.`}
+          {shown ?? t('profile:avatar.hint', { formats: photoFormatsLabel(), max: maxSource, edge: avatar_edge_px })}
         </span>
       </div>
     </div>

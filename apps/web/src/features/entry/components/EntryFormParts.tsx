@@ -12,6 +12,7 @@ import { flagName, subIcons } from '@/lib/catalog'
 import { tierLimits } from '@/lib/limits'
 import { cn } from '@/lib/utils'
 import { FREQUENT_COUNT } from '../useFrequentSubIcons'
+import { useT } from '@/lib/i18n'
 
 const legendClass = 'mb-2.5 p-0 text-sm leading-5 font-semibold md:mb-3 md:text-[15px] md:leading-6'
 /** Nhãn trường (label/tiêu đề nhóm) cùng cỡ với legend: điện thoại 14px, máy tính 15px. */
@@ -22,7 +23,7 @@ export function BackLink({ to, children, className }: { to: string; children: Re
     <Link
       to={to}
       className={cn(
-        'press inline-flex h-10 items-center gap-1.5 self-start rounded-[12px] pr-3 pl-2 text-sm font-medium hover:[&_svg]:-translate-x-0.5 focus-visible:outline-3 focus-visible:outline-ring [&_svg]:transition-transform',
+        'press inline-flex h-10 items-center gap-1.5 self-start rounded-[12px] pr-3 pl-2 text-sm font-medium hover:[&_svg]:-translate-x-0.5 focus-visible:outline-3 focus-visible:outline-focus [&_svg]:transition-transform',
         className,
       )}
     >
@@ -34,7 +35,7 @@ export function BackLink({ to, children, className }: { to: string; children: Re
 
 /** Nút/link chỉ có icon 44×44 trên thanh điện thoại; nền tối nhẹ khi bấm. */
 export const phoneIconButton =
-  'inline-flex size-11 cursor-pointer items-center justify-center rounded-[12px] text-foreground transition-colors active:bg-foreground/8 focus-visible:outline-3 focus-visible:outline-offset-[-3px] focus-visible:outline-ring'
+  'inline-flex size-11 cursor-pointer items-center justify-center rounded-[12px] text-ink transition-colors active:bg-ink/8 focus-visible:outline-3 focus-visible:outline-offset-[-3px] focus-visible:outline-focus'
 
 /**
  * Thanh trên của một màn trên điện thoại (thiết kế B10): trái / tiêu đề giữa / phải, cột 96px hai bên.
@@ -54,7 +55,7 @@ export function PhoneBar({
 }) {
   const Title = heading ? 'h1' : 'p'
   return (
-    <div className="fixed inset-x-0 top-0 z-[31] grid h-[60px] grid-cols-[96px_minmax(0,1fr)_96px] items-center border-b-[1.5px] border-line bg-background px-1.5 md:hidden">
+    <div className="fixed inset-x-0 top-0 z-[31] grid h-[60px] grid-cols-[96px_minmax(0,1fr)_96px] items-center border-b-[1.5px] border-stroke bg-paper px-1.5 md:hidden">
       <div className="flex items-center">{start}</div>
       <Title className="truncate text-center font-sans text-base leading-[22px] font-semibold">{title}</Title>
       <div className="flex items-center justify-end">{end}</div>
@@ -98,7 +99,7 @@ export function ConfirmDialog({
   const action = (
     <Button
       variant={cancelIsPrimary ? 'outline' : 'destructive-solid'}
-      className={cn(cancelIsPrimary && 'border-destructive text-destructive hover:bg-destructive-soft')}
+      className={cn(cancelIsPrimary && 'border-danger text-danger hover:bg-danger-soft')}
       onClick={onAction}
     >
       {actionLabel}
@@ -133,7 +134,7 @@ export function Notice({ children, className }: { children: ReactNode; className
   return (
     <p
       className={cn(
-        'flex items-start gap-2.5 rounded-[14px] border-[1.5px] border-dashed border-border bg-muted px-4 py-3 text-sm leading-[22px]',
+        'flex items-start gap-2.5 rounded-[14px] border-[1.5px] border-dashed border-line-soft bg-sunk px-4 py-3 text-sm leading-[22px]',
         className,
       )}
     >
@@ -180,6 +181,7 @@ function FrequentSubIcons({
   onChange: (v: string | null) => void
   frequent?: string[]
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const top = frequent?.length ? frequent : subIcons.slice(0, FREQUENT_COUNT)
   const row = value && !top.includes(value) ? [value, ...top.slice(0, FREQUENT_COUNT - 1)] : top
@@ -193,35 +195,36 @@ function FrequentSubIcons({
             type="button"
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="press inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-[12px] border-[1.5px] border-dashed border-line px-3 text-sm font-medium focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
+            className="press inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-[12px] border-[1.5px] border-dashed border-stroke px-3 text-sm font-medium focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus"
           >
             {open ? (
               <>
-                <ChevronUp className="size-4" aria-hidden="true" /> Thu gọn
+                <ChevronUp className="size-4" aria-hidden="true" /> {t('entry:form.collapse')}
               </>
             ) : (
               <>
-                <Plus className="size-4" aria-hidden="true" /> Thêm {more}
+                <Plus className="size-4" aria-hidden="true" /> {t('entry:form.more', { count: more })}
               </>
             )}
           </button>
         ) : null}
       </div>
-      {open ? null : <p className="text-xs leading-[18px] text-muted-foreground">Hay dùng nhất trong nhật ký của bạn.</p>}
+      {open ? null : <p className="text-xs leading-[18px] text-ink-soft">{t('entry:form.frequentHint')}</p>}
     </div>
   )
 }
 
 /** Sub icon, cờ hiệu, tiêu đề, nội dung: phần "không bắt buộc" dùng chung cho màn Sửa và Ghi bù. */
 export function ExtraFields(props: ExtraFieldsProps) {
+  const t = useT()
   const ids = useId()
   const limits = tierLimits().entry
-  const flagLabel = flagName(props.flag) ?? 'Không cờ'
-  const fieldBg = props.flatOnPhone ? 'bg-card md:bg-background' : 'bg-background'
+  const flagLabel = flagName(props.flag) ?? t('entry:form.noFlag')
+  const fieldBg = props.flatOnPhone ? 'bg-card md:bg-paper' : 'bg-paper'
   return (
     <>
       <fieldset className="m-0 min-w-0 border-0 p-0">
-        <Legend>Sub icon</Legend>
+        <Legend>{t('entry:form.subIcon')}</Legend>
         {/* Điện thoại: một hàng cuộn ngang tràn tới mép (B10). */}
         <SubIconPicker
           value={props.sub}
@@ -234,12 +237,12 @@ export function ExtraFields(props: ExtraFieldsProps) {
         </div>
       </fieldset>
       <fieldset className="m-0 min-w-0 border-0 p-0">
-        <Legend>Cờ hiệu · {flagLabel}</Legend>
+        <Legend>{t('entry:form.flagLegend', { flag: flagLabel })}</Legend>
         <FlagPicker value={props.flag} onChange={props.onFlag} form />
       </fieldset>
       <div className="flex flex-col gap-1.5 md:gap-2">
         <label htmlFor={`${ids}-title`} className={fieldLabelClass}>
-          Tiêu đề
+          {t('entry:form.title')}
         </label>
         <Input
           id={`${ids}-title`}
@@ -252,7 +255,7 @@ export function ExtraFields(props: ExtraFieldsProps) {
       </div>
       <div className="flex flex-col gap-1.5 md:gap-2">
         <label htmlFor={`${ids}-body`} className={fieldLabelClass}>
-          Nội dung
+          {t('entry:form.content')}
         </label>
         <Textarea
           id={`${ids}-body`}

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import type { Score } from '@/lib/catalog'
 import type { DayState } from './CalendarCell'
 import type { PixelFilter } from './pixelFilter'
+import { useT } from '@/lib/i18n'
 
 type PixelCellProps = {
   score: Score | null
@@ -29,21 +30,21 @@ export function PixelCell({ score, state, label, className, style }: PixelCellPr
       style={style}
       className={cn(
         'aspect-square rounded-[4px] border',
-        score ? SCORE_BG[score] : state === 'future' ? 'border-border bg-transparent' : 'border-border bg-muted',
+        score ? SCORE_BG[score] : state === 'future' ? 'border-line-soft bg-transparent' : 'border-line-soft bg-sunk',
         className,
       )}
     />
   )
 }
 
-const LEGEND: { key: PixelFilter; label: string; aria: string; score: Score | null; state: DayState }[] = [
-  { key: 1, label: '1', aria: 'Chỉ xem ngày điểm 1', score: 1, state: 'past' },
-  { key: 2, label: '2', aria: 'Chỉ xem ngày điểm 2', score: 2, state: 'past' },
-  { key: 3, label: '3', aria: 'Chỉ xem ngày điểm 3', score: 3, state: 'past' },
-  { key: 4, label: '4', aria: 'Chỉ xem ngày điểm 4', score: 4, state: 'past' },
-  { key: 5, label: '5', aria: 'Chỉ xem ngày điểm 5', score: 5, state: 'past' },
-  { key: 'missing', label: 'Chưa ghi', aria: 'Chỉ xem ngày chưa ghi', score: null, state: 'past' },
-  { key: 'future', label: 'Chưa tới', aria: 'Chỉ xem ngày chưa tới', score: null, state: 'future' },
+const LEGEND: { key: PixelFilter; score: Score | null; state: DayState }[] = [
+  { key: 1, score: 1, state: 'past' },
+  { key: 2, score: 2, state: 'past' },
+  { key: 3, score: 3, state: 'past' },
+  { key: 4, score: 4, state: 'past' },
+  { key: 5, score: 5, state: 'past' },
+  { key: 'missing', score: null, state: 'past' },
+  { key: 'future', score: null, state: 'future' },
 ]
 
 type PixelLegendProps = {
@@ -59,9 +60,17 @@ type PixelLegendProps = {
 
 /** Chú thích màu dưới lưới pixels; có thể dùng làm bộ lọc. */
 export function PixelLegend({ className, active = null, onToggle, onHighlight, hide = [] }: PixelLegendProps) {
+  const t = useT()
+  const text = (key: PixelFilter) =>
+    key === 'missing'
+      ? { label: t('components:pixelLegend.missing'), aria: t('components:pixelLegend.missingAria') }
+      : key === 'future'
+        ? { label: t('components:pixelLegend.future'), aria: t('components:pixelLegend.futureAria') }
+        : { label: String(key), aria: t('components:pixelLegend.scoreAria', { score: key }) }
   return (
     <ul className={cn('flex flex-wrap items-center text-label', onToggle ? 'gap-1' : 'gap-3.5', className)}>
-      {LEGEND.filter((item) => !hide.includes(item.key)).map((item) => {
+      {LEGEND.filter((entry) => !hide.includes(entry.key)).map((entry) => {
+        const item = { ...entry, ...text(entry.key) }
         const swatch = (
           <PixelCell
             score={item.score}
@@ -83,8 +92,8 @@ export function PixelLegend({ className, active = null, onToggle, onHighlight, h
                 onFocus={() => onHighlight?.(item.key)}
                 onBlur={() => onHighlight?.(null)}
                 className={cn(
-                  'group/leg inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] px-2.5 transition-transform hover:[transform:translateY(-2px)] active:[transform:scale(.95)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
-                  active === item.key ? 'border-line' : 'border-transparent',
+                  'group/leg inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] px-2.5 press focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus',
+                  active === item.key ? 'border-stroke bg-lavender-soft' : 'border-transparent',
                 )}
               >
                 {swatch}

@@ -12,6 +12,7 @@ import {
   todayIn,
   useNow,
 } from '@/lib/date'
+import { useT } from '@/lib/i18n'
 
 function offsetMinutes(timeZone: string, at: Date): number {
   const [h, m] = formatInTimeZone(at, timeZone, 'xxx').split(':').map(Number)
@@ -46,18 +47,19 @@ type TimeZoneFieldProps = {
 /** Chọn múi giờ IANA (tự nhận theo trình duyệt), kèm giờ hiện tại và thời gian còn lại của hôm nay. */
 export function TimeZoneField({ value, onChange, saved }: TimeZoneFieldProps) {
   const id = useId()
+  const t = useT()
   const now = useNow()
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-sm leading-[22px] font-semibold">
-        Múi giờ
+        {t('profile:timeZone.label')}
       </label>
       <select
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         aria-describedby={`${id}-hint`}
-        className="h-12 cursor-pointer rounded-md border-[1.5px] border-line bg-background px-3 text-[15px] text-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="h-12 w-full cursor-pointer rounded-md edge bg-paper px-3 text-body text-ink transition-shadow duration-(--dur-fast) ease-out focus-visible:shadow-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
         {optionsWith(value).map((o) => (
           <option key={o.tz} value={o.tz}>
@@ -65,32 +67,32 @@ export function TimeZoneField({ value, onChange, saved }: TimeZoneFieldProps) {
           </option>
         ))}
       </select>
-      <span id={`${id}-hint`} className="inline-flex items-center gap-1.5 text-[13px] leading-5 text-muted-foreground">
+      <span id={`${id}-hint`} className="inline-flex items-start gap-1.5 text-label leading-5 font-normal text-ink-soft sm:items-center">
         {value === DETECTED ? (
           <>
-            <Check className="size-3.5" strokeWidth={2.4} aria-hidden="true" />
-            Tự nhận theo trình duyệt. Mỗi ngày chốt lúc 00:00 theo múi giờ này. Chỉ mình bạn thấy.
+            <Check className="mt-[3px] size-3.5 shrink-0 sm:mt-0" strokeWidth={2.4} aria-hidden="true" />
+            {t('profile:timeZone.detected')}
           </>
         ) : (
-          'Mỗi ngày chốt lúc 00:00 theo múi giờ này. Chỉ mình bạn thấy.'
+          t('profile:timeZone.hint')
         )}
       </span>
 
-      <div className="mt-1 flex items-center gap-3.5 rounded-[16px] border-[1.5px] border-dashed border-faint bg-muted px-[18px] py-4">
+      <div className="mt-1 flex items-center gap-3.5 rounded-[16px] border-[1.5px] border-dashed border-ink-faint bg-sunk px-[18px] py-4">
         <Clock className="size-7 shrink-0" aria-hidden="true" />
-        <div aria-live="polite" className="flex flex-col tabular-nums">
-          <span className="text-[15px] leading-6 font-semibold">
-            Bây giờ là {timeIn(value, now)}, {shortDateLabel(todayIn(value, now))}
+        <div aria-live="polite" className="flex flex-col nums">
+          <span className="text-body font-semibold">
+            {t('profile:timeZone.now', { time: timeIn(value, now), date: shortDateLabel(todayIn(value, now)) })}
           </span>
-          <span className="text-sm leading-[22px] text-muted-foreground">
-            Hôm nay còn {durationLabel(minutesLeftToday(value, now))} để ghi.
+          <span className="text-sm leading-[22px] text-ink-soft">
+            {t('profile:timeZone.left', { left: durationLabel(minutesLeftToday(value, now)) })}
           </span>
         </div>
       </div>
 
       {saved && saved !== value ? (
-        <p role="status" className="text-[13px] leading-5 text-muted-foreground">
-          Các ngày đã ghi không đổi. Múi giờ mới áp dụng từ ngày đang viết.
+        <p role="status" className="animate-fade text-label leading-5 font-normal text-ink-soft">
+          {t('profile:timeZone.changed')}
         </p>
       ) : null}
     </div>

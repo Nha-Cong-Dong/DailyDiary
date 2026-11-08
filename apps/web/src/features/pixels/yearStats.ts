@@ -1,9 +1,12 @@
 import type { Score } from '@/lib/catalog'
 import { addDays, daysInMonth, type DateString } from '@/lib/date'
+import { currentLang } from '@/lib/i18n'
 
 /** Một ô của Year in Pixels. `none`: ngày không tồn tại (30/2…); `pre`: trước khi bắt đầu dùng Jotly. */
 export type PixelKind = 'none' | 'pre' | 'future' | 'missing' | 'score'
 export type YearCell = { date: DateString; day: number; month: number; kind: PixelKind; score: Score | null }
+
+export type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
 export type YearDay = { entry_date: DateString; score: Score }
 
@@ -77,7 +80,8 @@ export function yearStats(year: number, days: YearDay[], today: DateString, join
   }
 }
 
-/** "3,6": số thập phân kiểu Việt Nam, một chữ số. */
+/** "3,6" (tiếng Việt) / "3.6" (English): số thập phân một chữ số theo ngôn ngữ giao diện. */
 export function decimal(x: number): string {
-  return x.toFixed(1).replace('.', ',')
+  const text = x.toFixed(1)
+  return currentLang() === 'vi' ? text.replace('.', ',') : text
 }

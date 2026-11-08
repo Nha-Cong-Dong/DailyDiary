@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { setLanguage } from '@/lib/i18n'
 import { ProfilePage } from '@/routes/ProfilePage'
 import { makeEntry, makeMe, mockApi, renderWithMe } from '@/test/withMe'
 
@@ -24,6 +25,25 @@ describe('Xóa dữ liệu và tài khoản (F-07)', () => {
     expect(await screen.findByText(/Đã xóa toàn bộ dữ liệu/)).toBeInTheDocument()
     expect(calls.find((c) => c.method === 'DELETE')).toMatchObject({ path: '/entries', body: { confirm: 'XÓA' } })
     expect(calls.some((c) => c.path === '/me' && c.method === 'DELETE')).toBe(false)
+  })
+
+  it('English: gõ "DELETE" để xác nhận, máy chủ vẫn nhận "XÓA"', async () => {
+    await setLanguage('en')
+    const me = makeMe()
+    const calls = mockApi(me, store())
+    renderWithMe([{ path: '/profile', Component: ProfilePage }], '/profile', me)
+    fireEvent.click((await screen.findAllByRole('button', { name: /Delete data|Delete all data/ }))[0])
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete all data?' })
+    const field = within(dialog).getByLabelText(/to confirm/)
+    const action = within(dialog).getByRole('button', { name: 'Delete permanently' })
+    fireEvent.change(field, { target: { value: 'XÓA' } })
+    expect(action).toBeDisabled()
+    fireEvent.change(field, { target: { value: 'delete' } })
+    expect(action).toBeEnabled()
+    fireEvent.click(action)
+
+    expect(await screen.findByText(/All data deleted/)).toBeInTheDocument()
+    expect(calls.find((c) => c.method === 'DELETE')).toMatchObject({ path: '/entries', body: { confirm: 'XÓA' } })
   })
 
   it('xóa tài khoản: gửi DELETE /me với email, hiện "Tài khoản đã được xóa", Về trang chủ', async () => {

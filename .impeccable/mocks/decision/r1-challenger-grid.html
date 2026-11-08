@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FBFCFD;--grid:#DCE6F2;--ink:#1B1E24;--soft:#5A6270;--blue:#2F5FB3;--s1:#2F4B7C;--s2:#8FB2DA;--s3:#CFCABD;--s4:#F2B45A;--s5:#E2656E}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;font:15px/1.5 "Albert Sans",sans-serif;color:var(--ink);background:var(--paper) linear-gradient(var(--grid) 1px,transparent 1px) 0 0/16px 16px,var(--paper) linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/16px 16px;background-blend-mode:multiply;display:grid;grid-template-columns:240px 1fr 360px}
+nav{padding:32px 24px;display:flex;flex-direction:column;gap:2px;background:rgba(251,252,253,.92);border-right:1px solid #cfd9e6}
+.logo{display:flex;align-items:center;gap:10px;font:700 22px "Albert Sans";margin-bottom:28px}
+.logo i{width:26px;height:30px;background:#fff;box-shadow:inset 0 6px 0 #C9474F,0 0 0 1px #c3cdd9;display:grid;place-items:center;padding-top:5px;font:700 15px "Albert Sans";font-style:normal;color:var(--blue)}
+nav a{padding:8px 10px;color:var(--soft)}nav a.on{color:var(--ink);font-weight:700;background:#E8EFF8}
+nav .soon{margin-top:auto;font-size:13px}
+main{padding:48px 64px}
+.num{display:flex;gap:16px}
+.dg{display:grid;grid-template-columns:repeat(5,16px);grid-template-rows:repeat(7,16px)}
+.dg b{background:var(--blue)}
+.dt{font:500 22px "Albert Sans";margin-top:14px}
+.dt small{display:block;font-size:14px;color:var(--soft);font-weight:400}
+h2{font:700 16px "Albert Sans";margin:40px 0 12px}
+.score{display:grid;grid-template-columns:repeat(5,96px);gap:16px}
+.score span{height:64px;background:#fff;border:1px solid #cfd9e6;display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:13px;color:var(--soft)}
+.score i{width:16px;height:16px;display:block;margin-bottom:6px}
+.score .on{border:2px solid var(--ink);color:var(--ink);font-weight:700}
+.t{font:700 26px "Albert Sans";margin:40px 0 10px}
+.lines{font:18px/32px "Albert Sans";max-width:36em;background:#fff;border:1px solid #cfd9e6;padding:0 16px;height:180px}
+aside{padding:48px 32px;background:rgba(251,252,253,.92);border-left:1px solid #cfd9e6}
+aside h3{font:700 15px "Albert Sans";margin-bottom:12px}
+.cal{display:grid;grid-template-columns:repeat(7,32px);gap:4px}
+.cal i{height:32px;background:#EDF1F6}
+.meta{margin-top:30px;font-size:14px;color:var(--soft);line-height:2}
+</style></head><body>
+<nav><div class="logo"><i>J</i>Jotly</div><a class="on">Hôm nay</a><a>Dòng thời gian</a><a>Năm</a><a>Tìm kiếm</a><a>Hồ sơ</a><a class="soon">Nhật ký chung, sắp có</a></nav>
+<main>
+<div class="num">
+<div class="dg"><b></b><b></b><b></b><b></b><b></b><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i><i></i><b></b><i></i><b></b><b></b><b></b><b></b><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i><i></i><b></b><b></b><b></b><b></b><b></b><b></b></div>
+<div class="dg"><i></i><i></i><b></b><i></i><i></i><i></i><b></b><b></b><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i><i></i><b></b><i></i><i></i><i></i><b></b><b></b><b></b><i></i></div>
+</div>
+<div class="dt">Thứ Bảy, 31 tháng 10, 2026<small>Âm lịch 22 tháng 9, năm Bính Ngọ</small></div>
+<h2>Hôm nay thế nào?</h2>
+<div class="score"><span><i style="background:var(--s1)"></i>Hạt</span><span><i style="background:var(--s2)"></i>Mầm</span><span><i style="background:var(--s3)"></i>Nụ</span><span class="on"><i style="background:var(--s4)"></i>Hé nở</span><span><i style="background:var(--s5)"></i>Nở rộ</span></div>
+<div class="t">Chiều mưa ở quán cũ</div>
+<div class="lines">Ngồi đọc nốt cuốn sách còn dang dở tới khi mưa tạnh. Quán vẫn bật bài hát cũ như hồi sinh viên. Về nhà nấu canh chua, gọi cho mẹ.</div>
+</main>
+<aside><h3>Tháng 10</h3>
+<div class="cal"><i></i><i></i><i></i><i style="background:var(--s3)"></i><i style="background:var(--s4)"></i><i></i><i style="background:var(--s5)"></i><i style="background:var(--s3)"></i><i style="background:var(--s2)"></i><i style="background:var(--s3)"></i><i style="background:var(--s4)"></i><i></i><i style="background:var(--s5)"></i><i style="background:var(--s4)"></i><i style="background:var(--s3)"></i><i style="background:var(--s4)"></i><i></i><i style="background:var(--s2)"></i><i style="background:var(--s5)"></i><i style="background:var(--s3)"></i><i style="background:var(--s4)"></i></div>
+<div class="meta">16 trang đã ghi<br>Điểm trung bình 3,6<br>Đã lưu lúc 21:04</div></aside>
+</body></html>

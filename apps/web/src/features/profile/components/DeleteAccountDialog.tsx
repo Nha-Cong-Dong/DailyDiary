@@ -3,6 +3,8 @@ import { BottomSheet, SheetActions } from '@/components/diary/BottomSheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { isConfirmWord, isSameEmail } from '../confirm'
+import { useT } from '@/lib/i18n'
+import { rich } from '@/lib/rich'
 
 type DialogBase = {
   open: boolean
@@ -31,6 +33,7 @@ function ConfirmField({
   onAction: () => void
 }) {
   const id = useId()
+  const t = useT()
   return (
     <>
       <div className="flex flex-col gap-2">
@@ -41,10 +44,12 @@ function ConfirmField({
           id={id}
           type={type}
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
           spellCheck={false}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-12 bg-background text-base"
+          className="bg-paper"
         />
       </div>
       <SheetActions reverseOnDesktop>
@@ -52,7 +57,7 @@ function ConfirmField({
           {actionLabel}
         </Button>
         <Button variant="outline" onClick={onCancel}>
-          Giữ lại
+          {t('profile:delete.keep')}
         </Button>
       </SheetActions>
     </>
@@ -67,7 +72,9 @@ export function DeleteDataDialog({
   pageCount,
   photoCount,
 }: DialogBase & { pageCount?: number; photoCount?: number }) {
+  const t = useT()
   const [text, setText] = useState('')
+  const word = t('profile:delete.data.word')
   const close = (o: boolean) => {
     if (!o) setText('')
     onOpenChange(o)
@@ -79,22 +86,25 @@ export function DeleteDataDialog({
       layout="responsive"
       role="alertdialog"
       danger
-      title="Xóa toàn bộ dữ liệu?"
-      description={`${pageCount !== undefined ? `${pageCount} trang` : 'Mọi trang'}, kèm mọi điểm, ${photoCount ? `${photoCount} ảnh` : 'ảnh'} và link chia sẻ, sẽ bị xóa vĩnh viễn (cả trang đang trong thùng rác). Tài khoản, cài đặt và ảnh đại diện vẫn giữ để bạn viết tiếp. Bản sao lưu tự động có thể còn dữ liệu tối đa 7 ngày rồi bị ghi đè.`}
+      title={t('profile:delete.data.title')}
+      description={t('profile:delete.data.description', {
+        pages: pageCount !== undefined ? t('profile:delete.data.pages', { count: pageCount }) : t('profile:delete.data.allPages'),
+        photos: photoCount ? t('profile:delete.data.photos', { count: photoCount }) : t('profile:delete.data.photosWord'),
+      })}
       showDescription
       className="md:max-w-[min(460px,calc(100%-2rem))]"
     >
       <ConfirmField
         label={
-          <>
-            Gõ <strong className="font-bold text-destructive">XÓA</strong> để xác nhận
-          </>
+          rich(t('profile:delete.data.confirmLabel', { word }), {
+            b: (c) => <strong className="font-bold text-danger">{c}</strong>,
+          })
         }
         type="text"
         value={text}
         onChange={setText}
-        ok={isConfirmWord(text)}
-        actionLabel="Xóa vĩnh viễn"
+        ok={isConfirmWord(text, word)}
+        actionLabel={t('profile:delete.data.action')}
         onCancel={() => close(false)}
         onAction={() => {
           onConfirm()
@@ -115,6 +125,7 @@ export function DeleteAccountDialog({
   photoCount,
   shareCount = 0,
 }: DialogBase & { email: string; pageCount?: number; photoCount?: number; shareCount?: number }) {
+  const t = useT()
   const [text, setText] = useState('')
   const close = (o: boolean) => {
     if (!o) setText('')
@@ -127,38 +138,38 @@ export function DeleteAccountDialog({
       layout="responsive"
       role="alertdialog"
       danger
-      title="Xóa tài khoản Jotly?"
-      description="Bạn sẽ được đăng xuất ngay. Những thứ sau sẽ bị xóa vĩnh viễn:"
+      title={t('profile:delete.account.title')}
+      description={t('profile:delete.account.description')}
       showDescription
       className="md:max-w-[min(480px,calc(100%-2rem))]"
     >
-      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-6 marker:text-destructive">
+      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-body text-ink">
         <li>
           {pageCount === undefined
-            ? 'Mọi trang nhật ký, kèm điểm và ảnh'
+            ? t('profile:delete.account.allPages')
             : pageCount
-              ? `${pageCount} trang nhật ký, kèm điểm${photoCount ? ` và ${photoCount} ảnh` : ' và ảnh'}`
-              : 'Hồ sơ trống, không còn trang nhật ký nào'}
+              ? photoCount
+                ? t('profile:delete.account.pagesPhotos', { pages: pageCount, photos: photoCount })
+                : t('profile:delete.account.pagesNoPhotos', { pages: pageCount })
+              : t('profile:delete.account.empty')}
         </li>
-        {shareCount ? <li>{shareCount} link chia sẻ, người nhận sẽ không mở được nữa</li> : null}
-        <li>Hồ sơ, ảnh đại diện, bộ icon, múi giờ và cài đặt</li>
+        {shareCount ? <li>{t('profile:delete.account.shares', { count: shareCount })}</li> : null}
+        <li>{t('profile:delete.account.profile')}</li>
       </ul>
-      <p className="text-sm leading-[22px] text-muted-foreground">
-        Góp ý bạn từng gửi được giữ lại nhưng không còn tên hay email của bạn. Bản sao lưu tự động có thể còn dữ liệu
-        tối đa 7 ngày rồi bị ghi đè, không dùng để khôi phục tài khoản. Tài khoản Google của bạn không bị ảnh hưởng;
-        đăng nhập lại sau này sẽ bắt đầu một cuốn nhật ký mới. Jotly gửi email xác nhận về {email} sau khi xóa.
+      <p className="text-sm leading-[22px] text-ink-soft">
+        {t('profile:delete.account.note', { email })}
       </p>
       <ConfirmField
         label={
-          <>
-            Gõ email <strong className="font-bold break-all text-destructive">{email}</strong> để xác nhận
-          </>
+          rich(t('profile:delete.account.confirmLabel', { email }), {
+            b: (c) => <strong className="font-bold break-all text-danger">{c}</strong>,
+          })
         }
         type="email"
         value={text}
         onChange={setText}
         ok={isSameEmail(text, email)}
-        actionLabel="Xóa tài khoản"
+        actionLabel={t('profile:delete.account.action')}
         onCancel={() => close(false)}
         onAction={() => {
           onConfirm()
@@ -171,19 +182,20 @@ export function DeleteAccountDialog({
 
 /** Màn kết thúc sau khi xóa tài khoản (thiết kế B7 · Hồ sơ): không đóng được bằng chạm nền, chỉ có Về trang chủ. */
 export function AccountDeletedDialog({ open, onHome }: { open: boolean; onHome: () => void }) {
+  const t = useT()
   return (
     <BottomSheet
       open={open}
       onOpenChange={() => undefined}
       layout="responsive"
       role="alertdialog"
-      title="Tài khoản đã được xóa"
-      description="Cảm ơn bạn đã viết cùng Jotly. Nhật ký, link chia sẻ và hồ sơ của bạn đã được xóa; ảnh được dọn khỏi kho trong ít phút."
+      title={t('profile:delete.done.title')}
+      description={t('profile:delete.done.description')}
       showDescription
     >
       <SheetActions>
         <Button variant="cta" onClick={onHome}>
-          Về trang chủ
+          {t('profile:delete.done.home')}
         </Button>
       </SheetActions>
     </BottomSheet>

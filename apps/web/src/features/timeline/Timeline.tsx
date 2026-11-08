@@ -5,6 +5,7 @@ import { BottomSheet } from '@/components/diary/BottomSheet'
 import { DayPeek } from '@/components/diary/DayPeek'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Segmented } from '@/components/ui/segmented'
 import { scoreLabel, type Score } from '@/lib/catalog'
 import { timeIn, todayIn, useNow } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
@@ -19,6 +20,7 @@ import {
   isMonth,
   monthBounds,
   monthLabel,
+  monthLabelMidSentence,
   monthOf,
   nearestScore,
   weekdayDate,
@@ -29,6 +31,7 @@ import { TimelineList } from './TimelineList'
 import { useCalendar } from './useCalendar'
 import { useMonth } from './useMonth'
 import { useQuickScore } from './useQuickScore'
+import { useT } from '@/lib/i18n'
 
 /** Số trang hiện trước khi bấm "Xem thêm". */
 const LIMIT = 7
@@ -42,10 +45,10 @@ const SCORE_BG: Record<Score, string> = {
 const delay = (s: number) => ({ animationDelay: `${s.toFixed(2)}s` }) as CSSProperties
 /** Điện thoại (dưới 768 px, thiết kế B10): bấm một ngày mở bảng xem nhanh thay vì cuộn tới trang. */
 const isPhone = () => !(window.matchMedia?.('(min-width: 768px)').matches ?? true)
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
 
 /** Dòng thời gian theo tháng (thiết kế B8): thống kê, nhịp tháng, danh sách trang, lịch và từ khóa trong tháng. */
 export function Timeline() {
+  const tr = useT()
   const { timeZone, iconSetId } = useProfile()
   const today = todayIn(timeZone, useNow())
   const [params, setParams] = useSearchParams()
@@ -65,16 +68,11 @@ export function Timeline() {
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
-  if (isPending || calendar.isPending)
-    return (
-      <p role="status" className="text-muted-foreground">
-        Đang mở dòng thời gian…
-      </p>
-    )
+  if (isPending || calendar.isPending) return <TimelineSkeleton />
   if (isError || calendar.isError)
     return (
       <Alert variant="destructive">
-        <AlertDescription>Không tải được dòng thời gian. Thử tải lại trang.</AlertDescription>
+        <AlertDescription>{tr('timeline:loadError')}</AlertDescription>
       </Alert>
     )
 
@@ -136,79 +134,94 @@ export function Timeline() {
   const pending = current && t.days.some((d) => d.kind === 'open')
   const stats: { label: string; short: string; value: string; sub: string; phoneSub: string; swatch?: Score }[] = [
     {
-      label: 'Ngày đã ghi',
-      short: 'Ngày đã ghi',
+      label: tr('timeline:stats.recorded.label'),
+      short: tr('timeline:stats.recorded.short'),
       value: `${t.recorded}/${t.countable}`,
       sub: pending
-        ? `Hôm nay chưa ghi${t.missed ? ` · ${t.missed} ngày trống` : ''}`
+        ? t.missed
+          ? tr('timeline:stats.pendingMissed', { count: t.missed })
+          : tr('timeline:stats.pending')
         : t.missed
-          ? `${t.missed} ngày bỏ trống`
-          : 'Không bỏ ngày nào',
-      phoneSub: pending ? 'Hôm nay chưa ghi' : t.missed ? `${t.missed} ngày trống` : 'Không bỏ ngày nào',
+          ? tr('timeline:stats.skipped', { count: t.missed })
+          : tr('timeline:stats.noSkipped'),
+      phoneSub: pending
+        ? tr('timeline:stats.pending')
+        : t.missed
+          ? tr('timeline:stats.empty', { count: t.missed })
+          : tr('timeline:stats.noSkipped'),
     },
     {
-      label: 'Điểm trung bình',
-      short: 'Điểm TB',
+      label: tr('timeline:stats.average.label'),
+      short: tr('timeline:stats.average.short'),
       value: t.average === null ? '–' : decimal(t.average),
-      sub: avgLevel ? `Gần mức ${scoreLabel(iconSetId, avgLevel)}` : 'Chưa có điểm',
-      phoneSub: avgLevel ? `Gần mức ${scoreLabel(iconSetId, avgLevel)}` : 'Chưa có điểm',
+      sub: avgLevel ? tr('timeline:stats.nearLevel', { label: scoreLabel(iconSetId, avgLevel) }) : tr('timeline:stats.noScores'),
+      phoneSub: avgLevel ? tr('timeline:stats.nearLevel', { label: scoreLabel(iconSetId, avgLevel) }) : tr('timeline:stats.noScores'),
       swatch: avgLevel ?? undefined,
     },
     current && t.currentStreak > 0
       ? {
-          label: 'Chuỗi hiện tại',
-          short: 'Chuỗi hiện tại',
-          value: `${t.currentStreak} ngày`,
-          sub: pending ? `Viết hôm nay để lên ${t.currentStreak + 1} ngày` : `Dài nhất tháng: ${t.longestStreak} ngày`,
-          phoneSub: pending ? `Viết hôm nay để lên ${t.currentStreak + 1}` : `Dài nhất: ${t.longestStreak} ngày`,
+          label: tr('timeline:stats.currentStreak.label'),
+          short: tr('timeline:stats.currentStreak.short'),
+          value: tr('timeline:days', { count: t.currentStreak }),
+          sub: pending
+            ? tr('timeline:stats.writeToReach', { n: t.currentStreak + 1 })
+            : tr('timeline:stats.longestInMonth', { count: t.longestStreak }),
+          phoneSub: pending
+            ? tr('timeline:stats.writeToReachShort', { n: t.currentStreak + 1 })
+            : tr('timeline:stats.longestShort', { count: t.longestStreak }),
         }
       : current
         ? // Chuỗi đang là 0: lấy chuỗi dài nhất làm số chính, không nhấn vào điều chưa làm.
           {
-            label: 'Chuỗi dài nhất',
-            short: 'Chuỗi dài nhất',
-            value: `${t.longestStreak} ngày`,
-            sub: pending ? 'Viết hôm nay để bắt đầu chuỗi mới' : 'Chuỗi hiện tại chưa bắt đầu',
-            phoneSub: pending ? 'Viết hôm nay để bắt đầu' : 'Chưa có chuỗi mới',
+            label: tr('timeline:stats.longestStreak.label'),
+            short: tr('timeline:stats.longestStreak.short'),
+            value: tr('timeline:days', { count: t.longestStreak }),
+            sub: pending ? tr('timeline:stats.startNew') : tr('timeline:stats.notStarted'),
+            phoneSub: pending ? tr('timeline:stats.startNewShort') : tr('timeline:stats.noNewStreak'),
           }
         : {
-            label: 'Chuỗi dài nhất',
-            short: 'Chuỗi dài nhất',
-            value: `${t.longestStreak} ngày`,
-            sub: 'Liền mạch trong tháng',
-            phoneSub: 'Liền mạch trong tháng',
+            label: tr('timeline:stats.longestStreak.label'),
+            short: tr('timeline:stats.longestStreak.short'),
+            value: tr('timeline:days', { count: t.longestStreak }),
+            sub: tr('timeline:stats.unbroken'),
+            phoneSub: tr('timeline:stats.unbroken'),
           },
     {
-      label: 'Ảnh',
-      short: 'Ảnh',
+      label: tr('timeline:stats.photos.label'),
+      short: tr('timeline:stats.photos.short'),
       value: String(t.photos),
-      sub: `trong ${t.photoDays} ngày`,
-      phoneSub: 'trong tháng',
+      sub: tr('timeline:stats.photoDays', { count: t.photoDays }),
+      phoneSub: tr('timeline:stats.inMonth'),
     },
     {
-      label: 'Sub icon hay dùng',
-      short: 'Sub icon hay dùng',
+      label: tr('timeline:stats.topSubIcon.label'),
+      short: tr('timeline:stats.topSubIcon.short'),
       value: t.topSubIcon?.icon ?? '–',
-      sub: t.topSubIcon ? `${t.topSubIcon.count} lần` : 'Chưa dùng',
+      sub: t.topSubIcon ? tr('timeline:stats.usedTimes', { count: t.topSubIcon.count }) : tr('timeline:stats.notUsed'),
       phoneSub: '',
     },
   ]
+  const views = [
+    { value: 'list', label: tr('timeline:views.list') },
+    { value: 'cal', label: tr('timeline:views.cal') },
+  ] as const
   const peekDay = peek === null ? null : (t.days[peek - 1] ?? null)
 
-  const navButton = 'size-10 rounded-[12px] disabled:border-dashed disabled:border-border'
+  // Canvas vẽ 40px; nâng lên 44px cho đủ vùng chạm. Tắt: viền nét đứt (Button outline).
+  const navButton = 'rounded-[12px]'
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-2 md:hidden">
-        <h1 aria-live="polite" className="text-2xl leading-8 font-bold">
+        <h1 aria-live="polite" className="text-title nums">
           {monthLabel(month)}
         </h1>
-        <div role="group" aria-label="Chọn tháng" className="flex gap-1.5">
+        <div role="group" aria-label={tr('timeline:monthNav.group')} className="flex gap-1.5">
           <Button
             variant="outline"
             size="icon"
             className={navButton}
-            aria-label={prev ? `Tháng trước, ${monthLabel(prev)}` : 'Không có tháng trước'}
+            aria-label={prev ? tr('timeline:monthNav.prev', { month: monthLabel(prev) }) : tr('timeline:monthNav.noPrev')}
             disabled={!prev}
             onClick={() => prev && go(prev)}
           >
@@ -218,7 +231,7 @@ export function Timeline() {
             variant="outline"
             size="icon"
             className={navButton}
-            aria-label={next ? `Tháng sau, ${monthLabel(next)}` : 'Không có tháng sau'}
+            aria-label={next ? tr('timeline:monthNav.next', { month: monthLabel(next) }) : tr('timeline:monthNav.noNext')}
             disabled={!next}
             onClick={() => next && go(next)}
           >
@@ -229,33 +242,33 @@ export function Timeline() {
 
       <div className="flex animate-rise flex-wrap items-end justify-between gap-4 max-md:hidden">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Dòng thời gian</h1>
-          <p className="text-[15px] leading-6 text-muted-foreground">Mỗi trang là một ngày, mới nhất ở trên.</p>
+          <h1 className="text-title">{tr('timeline:title')}</h1>
+          <p className="text-body text-ink-soft">{tr('timeline:subtitle')}</p>
         </div>
-        <div role="group" aria-label="Chọn tháng" className="inline-flex flex-wrap items-center gap-1.5">
+        <div role="group" aria-label={tr('timeline:monthNav.group')} className="inline-flex flex-wrap items-center gap-1.5">
           {!current ? (
-            <Button variant="outline" className="mr-1.5 h-10 rounded-[12px] px-3.5" onClick={() => go(max)}>
-              Về tháng này
+            <Button variant="outline" className="mr-1.5 rounded-[12px] px-3.5" onClick={() => go(max)}>
+              {tr('timeline:monthNav.backToCurrent')}
             </Button>
           ) : null}
           <Button
             variant="outline"
             size="icon"
             className={navButton}
-            aria-label={prev ? `Tháng trước, ${monthLabel(prev)}` : 'Không có tháng trước'}
+            aria-label={prev ? tr('timeline:monthNav.prev', { month: monthLabel(prev) }) : tr('timeline:monthNav.noPrev')}
             disabled={!prev}
             onClick={() => prev && go(prev)}
           >
             <ChevronLeft aria-hidden="true" />
           </Button>
-          <span aria-live="polite" className="min-w-[156px] text-center font-heading text-xl leading-7 font-bold">
+          <span aria-live="polite" className="min-w-[156px] text-center font-heading text-xl leading-7 font-bold nums">
             {monthLabel(month)}
           </span>
           <Button
             variant="outline"
             size="icon"
             className={navButton}
-            aria-label={next ? `Tháng sau, ${monthLabel(next)}` : 'Không có tháng sau'}
+            aria-label={next ? tr('timeline:monthNav.next', { month: monthLabel(next) }) : tr('timeline:monthNav.noNext')}
             disabled={!next}
             onClick={() => next && go(next)}
           >
@@ -267,10 +280,10 @@ export function Timeline() {
       {/* Điện thoại: lưới 2×2 như Year in Pixels, không cuộn ngang để không thẻ nào bị cắt hay nằm ngoài màn. */}
       <dl key={`p${month}`} className="grid grid-cols-2 gap-2.5 md:hidden">
         {stats.slice(0, 4).map((st) => (
-          <div key={st.label} className="flex min-w-0 flex-col rounded-[16px] border-[1.5px] border-line bg-card px-3.5 py-2.5">
-            <dt className="text-xs leading-[18px] text-muted-foreground">{st.short}</dt>
-            <dd className="font-heading text-[22px] leading-[30px] font-bold whitespace-nowrap">{st.value}</dd>
-            <dd className="text-[11px] leading-4 text-muted-foreground">{st.phoneSub}</dd>
+          <div key={st.label} className="flex min-w-0 flex-col rounded-[16px] border-[1.5px] border-stroke bg-card px-3.5 py-2.5">
+            <dt className="text-[13px] leading-[18px] text-ink-soft">{st.short}</dt>
+            <dd className="font-heading text-[22px] leading-[30px] font-bold whitespace-nowrap nums">{st.value}</dd>
+            <dd className="text-[11px] leading-4 text-ink-soft">{st.phoneSub}</dd>
           </div>
         ))}
       </dl>
@@ -279,22 +292,21 @@ export function Timeline() {
         {stats.map((st, i) => (
           <div
             key={st.label}
-            className={cn(
-              'group flex animate-pop flex-col gap-0.5 rounded-[18px] border-[1.5px] border-line bg-card px-[18px] py-4 transition-transform hover:-translate-y-0.5',
-            )}
+            // Canvas .j-stat: di chuột nhấc 2px (chỉ chuột), không bóng.
+            className="flex animate-pop flex-col gap-0.5 rounded-[18px] border-[1.5px] border-stroke bg-card px-[18px] py-4 transition-transform duration-(--dur-fast) ease-out pointer-fine:hover:-translate-y-0.5 motion-reduce:transform-none"
             style={delay(0.05 + i * 0.06)}
           >
-            <dt className="text-[13px] leading-5 text-muted-foreground">{st.label}</dt>
-            <dd className="inline-flex items-center gap-2 font-heading text-[26px] leading-[34px] font-bold whitespace-nowrap">
+            <dt className="text-[13px] leading-5 text-ink-soft">{st.label}</dt>
+            <dd className="inline-flex items-center gap-2 font-heading text-[26px] leading-[34px] font-bold whitespace-nowrap nums">
               {st.swatch ? (
                 <span
                   aria-hidden="true"
-                  className={cn('size-3.5 shrink-0 rounded-[4px] border-[1.5px] border-line', SCORE_BG[st.swatch])}
+                  className={cn('size-3.5 shrink-0 rounded-[4px] border-[1.5px] border-stroke', SCORE_BG[st.swatch])}
                 />
               ) : null}
-              <span className="inline-block group-hover:animate-bob">{st.value}</span>
+              <span>{st.value}</span>
             </dd>
-            <dd className="text-[13px] leading-5 text-muted-foreground">{st.sub}</dd>
+            <dd className="text-[13px] leading-5 text-ink-soft">{st.sub}</dd>
           </div>
         ))}
       </dl>
@@ -306,33 +318,13 @@ export function Timeline() {
         <MonthRhythmCompact key={`rc${month}`} data={t} />
       </div>
 
-      <div
-        role="radiogroup"
-        aria-label="Cách xem"
-        className="grid grid-cols-2 gap-0.5 rounded-[14px] border-[1.5px] border-line bg-card p-[3px] md:hidden"
-      >
-        {(
-          [
-            ['list', 'Danh sách'],
-            ['cal', 'Lịch'],
-          ] as const
-        ).map(([k, label]) => (
-          <button
-            key={k}
-            type="button"
-            role="radio"
-            aria-checked={view === k}
-            onClick={() => setView(k)}
-            className={cn(
-              'h-[38px] cursor-pointer rounded-[11px] text-sm transition-colors duration-200',
-              view === k ? 'bg-foreground font-semibold text-background' : 'font-medium',
-              focusRing,
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Segmented
+        options={views}
+        value={view}
+        onChange={setView}
+        ariaLabel={tr('timeline:views.label')}
+        className="md:hidden"
+      />
 
       <div className="flex flex-wrap items-start gap-8">
         <section
@@ -340,16 +332,18 @@ export function Timeline() {
           className={cn('flex min-w-0 flex-[1_1_520px] flex-col gap-3 md:gap-4', view === 'cal' && 'max-md:hidden')}
         >
           <div className="flex items-baseline justify-between gap-3 max-md:sr-only">
-            <h2 id="list-h" className="scroll-mt-24 text-xl leading-7 font-semibold">
-              Các trang trong tháng
+            <h2 id="list-h" className="scroll-mt-24 font-heading text-xl leading-7 font-semibold">
+              {tr('timeline:list.heading')}
             </h2>
-            <span className="text-[13px] leading-5 text-muted-foreground">
-              {t.recorded} trang{t.missed ? ` · ${t.missed} ngày trống` : ''}
+            <span className="text-[13px] leading-5 text-ink-soft nums">
+              {tr('timeline:pages', { count: t.recorded })}
+              {t.missed ? ` · ${tr('timeline:stats.empty', { count: t.missed })}` : ''}
             </span>
           </div>
           {t.items.length ? (
             <TimelineList
               items={t.items}
+              peekDate={peekDay?.entry ? peekDay.date : null}
               monthNum={monthNum}
               today={todayNum}
               iconSetId={iconSetId}
@@ -364,7 +358,7 @@ export function Timeline() {
                 setSelected(null)
                 document.getElementById('list-h')?.scrollIntoView?.({ block: 'start' })
               }}
-              endText={`Đầu ${monthLabel(month).toLowerCase()}`}
+              endText={tr('timeline:list.startOfMonth', { month: monthLabelMidSentence(month) })}
               todayDate={current ? today : null}
               justScored={justScored}
               onQuickScore={(score) => {
@@ -377,14 +371,14 @@ export function Timeline() {
               }}
             />
           ) : (
-            <p className="rounded-[14px] border-[1.5px] border-dashed border-border p-5 text-[15px] leading-6 text-muted-foreground">
-              Tháng này chưa có trang nào.
+            <p className="rounded-[14px] border-[1.5px] border-dashed border-line-soft p-5 text-body text-ink-soft">
+              {tr('timeline:list.emptyMonth')}
             </p>
           )}
         </section>
 
         <aside
-          aria-label="Lịch tháng"
+          aria-label={tr('timeline:calendar.aria')}
           className={cn(
             'flex min-w-[min(100%,300px)] flex-[0_1_360px] flex-col gap-4 min-[900px]:sticky min-[900px]:top-24',
             view === 'list' && 'max-md:hidden',
@@ -400,10 +394,10 @@ export function Timeline() {
           />
           {t.keywords.length ? (
             <div
-              className="flex animate-rise flex-col gap-2 md:gap-2.5 md:rounded-[20px] md:border-[1.5px] md:border-line md:bg-card md:p-[18px]"
+              className="flex animate-rise flex-col gap-2 md:gap-2.5 md:rounded-[20px] md:border-[1.5px] md:border-stroke md:bg-card md:p-[18px]"
               style={delay(0.22)}
             >
-              <h2 className="font-sans text-sm leading-5 font-semibold md:text-[15px] md:leading-[22px]">Từ khóa trong tháng</h2>
+              <h2 className="text-sm leading-5 font-semibold md:text-body md:font-semibold">{tr('timeline:keywords.heading')}</h2>
               <ul className="flex flex-wrap gap-1.5">
                 {t.keywords.map((k) => (
                   <li key={k.label}>
@@ -411,11 +405,11 @@ export function Timeline() {
                     <Link
                       to="/search"
                       state={{ q: k.label }}
-                      aria-label={`Tìm “${k.label}”, ${k.count} trang`}
-                      className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-line py-1 pr-2.5 pl-3 text-[13px] leading-5 font-medium transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px"
+                      aria-label={tr('timeline:keywords.search', { keyword: k.label, count: k.count })}
+                      className="press inline-flex min-h-8 items-center gap-1.5 rounded-full border-[1.5px] border-stroke py-1 pr-2.5 pl-3 text-[13px] leading-5 font-medium select-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     >
                       {k.label}
-                      <span className="min-w-[18px] rounded-full bg-secondary px-[5px] text-center text-[11px] leading-4 font-semibold">
+                      <span className="min-w-[18px] rounded-full bg-secondary px-[5px] text-center text-[11px] leading-4 font-semibold nums">
                         {k.count}
                       </span>
                     </Link>
@@ -434,14 +428,47 @@ export function Timeline() {
         {peekDay ? (
           <DayPeek
             date={peekDay.date}
+            morphDate={peekDay.entry ? peekDay.date : undefined}
             entry={peekDay.entry}
             iconSetId={iconSetId}
-            meta={peekDay.entry ? `Viết lúc ${timeIn(timeZone, new Date(peekDay.entry.created_at))}` : undefined}
+            meta={
+              peekDay.entry
+                ? tr('timeline:meta.wroteAt', { time: timeIn(timeZone, new Date(peekDay.entry.created_at)) })
+                : undefined
+            }
             state={peekDay.kind === 'open' ? 'today' : peekDay.kind === 'missing' ? 'past' : 'future'}
             onNavigate={() => setPeek(null)}
           />
         ) : null}
       </BottomSheet>
+    </div>
+  )
+}
+
+/** Đang tải: khung xương phẳng (khối sunk, hệ 1.1), giữ đúng bố cục để màn không nhảy khi có dữ liệu. */
+function TimelineSkeleton() {
+  const t = useT()
+  return (
+    <div role="status" className="flex flex-col gap-6">
+      <span className="sr-only">{t('timeline:loading')}</span>
+      <div aria-hidden="true" className="flex flex-col gap-2">
+        <span className="skeleton h-8 w-56" />
+        <span className="skeleton h-5 w-72 max-md:hidden" />
+      </div>
+      <div aria-hidden="true" className="grid grid-cols-2 gap-2.5 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] md:gap-3.5">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span key={i} className={cn('skeleton h-[84px] rounded-[16px] md:h-[96px] md:rounded-[18px]', i === 4 && 'max-md:hidden')} />
+        ))}
+      </div>
+      <span aria-hidden="true" className="skeleton h-[100px] rounded-[16px] md:h-[172px] md:rounded-[20px]" />
+      <div aria-hidden="true" className="flex flex-wrap items-start gap-8">
+        <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-3.5">
+          {Array.from({ length: 3 }, (_, i) => (
+            <span key={i} className="skeleton h-[132px] rounded-[18px]" />
+          ))}
+        </div>
+        <span className="skeleton h-[420px] min-w-[min(100%,300px)] flex-[0_1_360px] rounded-[20px] max-md:hidden" />
+      </div>
     </div>
   )
 }

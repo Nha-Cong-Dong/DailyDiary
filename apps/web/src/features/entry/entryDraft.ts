@@ -1,6 +1,7 @@
 import type { PhotoItem } from '@/components/diary/PhotoViewer'
 import type { Score } from '@/lib/catalog'
 import { dayOfMonth, timeIn, todayIn, type DateString } from '@/lib/date'
+import { t } from '@/lib/i18n'
 import type { DayEntry, EntryWrite } from './entries'
 
 /** Các trường sửa được của một trang (F-01). */
@@ -17,15 +18,15 @@ export type EntryDraft = {
 export type DraftField = keyof EntryDraft
 
 const FIELDS: DraftField[] = ['score', 'sub_icon', 'flag_color', 'title', 'content', 'keywords', 'photos']
-const LABEL: Record<DraftField, string> = {
-  score: 'điểm',
-  sub_icon: 'sub icon',
-  flag_color: 'cờ hiệu',
-  title: 'tiêu đề',
-  content: 'nội dung',
-  keywords: 'từ khóa',
-  photos: 'ảnh',
-}
+const LABEL_KEY = {
+  score: 'score',
+  sub_icon: 'subIcon',
+  flag_color: 'flagColor',
+  title: 'title',
+  content: 'content',
+  keywords: 'keywords',
+  photos: 'photos',
+} as const satisfies Record<DraftField, string>
 
 export function draftOf(entry: DayEntry): EntryDraft {
   return {
@@ -52,8 +53,8 @@ export function changedFields(saved: EntryDraft, current: EntryDraft): DraftFiel
 
 /** ["title", "content", "photos"] → "tiêu đề, nội dung và ảnh". */
 export function fieldsLabel(fields: DraftField[]): string {
-  const names = fields.map((f) => LABEL[f])
-  return names.length > 1 ? `${names.slice(0, -1).join(', ')} và ${names.at(-1)}` : (names[0] ?? '')
+  const names = fields.map((f) => t(`entry:draftFields.${LABEL_KEY[f]}`))
+  return names.length > 1 ? t('entry:fmt.fieldsAnd', { list: names.slice(0, -1).join(', '), last: names.at(-1) }) : (names[0] ?? '')
 }
 
 /**
@@ -106,10 +107,10 @@ export function isBackfilled(entry: Pick<DayEntry, 'entry_date' | 'created_at'>,
 export function dateTimeLabel(timeZone: string, iso: string, withYear = true): string {
   const at = new Date(iso)
   const [y, m, d] = todayIn(timeZone, at).split('-').map(Number)
-  return `${timeIn(timeZone, at)}, ${d}/${m}${withYear ? `/${y}` : ''}`
+  return t(withYear ? 'entry:fmt.dateTime' : 'entry:fmt.dateTimeNoYear', { time: timeIn(timeZone, at), d, m, y })
 }
 
 /** "16/10". */
 export function dayMonth(date: string): string {
-  return `${dayOfMonth(date)}/${Number(date.slice(5, 7))}`
+  return t('entry:fmt.dayMonth', { d: dayOfMonth(date), m: Number(date.slice(5, 7)) })
 }

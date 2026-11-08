@@ -2,27 +2,31 @@ import { Fragment, useState } from 'react'
 import { PixelCell, PixelLegend } from '@/components/diary/PixelCell'
 import { pixelFilterOf, type PixelFilter } from '@/components/diary/pixelFilter'
 import { demoYear } from './demoData'
+import { useT } from '@/lib/i18n'
 
 const YEAR = demoYear()
+type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
 /**
  * Lưới Year in Pixels minh họa, không bao giờ cuộn ngang:
  * - từ 768 px: 12 hàng (tháng) × 31 cột (ngày);
  * - điện thoại: xoay lại thành 12 cột (tháng) × 31 hàng (ngày), mỗi ô khoảng 22 px ở màn 360 px.
  * Một lưới phẳng duy nhất (nhãn tháng rồi 31 ô, lặp 12 lần); chỉ đổi hướng xếp bằng grid-auto-flow.
- * Các ô "tô màu" dần theo tiến độ cuộn; chú thích bên dưới lọc/làm nổi theo mức điểm.
+ * Các ô "tô màu" dần theo tiến độ cuộn; chú thích bên dưới lọc/làm nổi theo mức điểm (`filterable`; tắt khi lưới chỉ là
+ * hình minh họa nằm trong vùng aria-hidden, vd. mục Nhìn lại).
  */
-export function YearPreview() {
+export function YearPreview({ filterable = true }: { filterable?: boolean }) {
+  const t = useT()
   const [filter, setFilter] = useState<PixelFilter | null>(null)
   const [highlight, setHighlight] = useState<PixelFilter | null>(null)
   const focus = highlight ?? filter
 
   return (
-    <div className="paint-timeline rounded-[20px] border-[1.5px] border-line bg-card p-4 shadow-ink sm:p-6">
+    <div className="paint-timeline rounded-lg border-2 border-stroke bg-card p-4 shadow-lg sm:p-6">
       <div className="grid grid-flow-col auto-cols-fr grid-rows-[auto_repeat(31,auto)] gap-[3px] md:grid-flow-row md:grid-cols-[32px_repeat(31,minmax(0,1fr))] md:grid-rows-none md:gap-1">
         {YEAR.map((days, m) => (
           <Fragment key={m}>
-            <span className="pb-1 text-center text-label font-semibold text-muted-foreground md:pb-0 md:text-left">T{m + 1}</span>
+            <span className="pb-1 text-center text-label text-ink-soft md:pb-0 md:text-left">{t(`landing:yearPreview.months.${(m + 1) as Month}`)}</span>
             {days.map((px, d) => {
               if (!px) return <span key={d} />
               const state = px.future ? 'future' : 'past'
@@ -34,7 +38,7 @@ export function YearPreview() {
                   key={d}
                   score={px.score}
                   state={state}
-                  label={`${px.day}/${px.month}${px.future ? '' : px.score ? ` · điểm ${px.score}` : ' · chưa ghi'}`}
+                  label={`${t('landing:date.dm', { day: px.day, month: px.month })}${px.future ? '' : px.score ? t('landing:yearPreview.score', { score: px.score }) : t('landing:yearPreview.empty')}`}
                   className="paint-on-scroll transition-[transform,filter,box-shadow] duration-150 hover:relative hover:z-[2] hover:shadow-[0_0_0_1.5px_var(--icon-ink)] hover:[transform:scale(1.35)] active:[transform:scale(1.2)]"
                   style={{
                     animationRange: `cover ${start.toFixed(1)}% cover ${(start + 10).toFixed(1)}%`,
@@ -49,8 +53,8 @@ export function YearPreview() {
       <PixelLegend
         className="mt-[18px]"
         active={filter}
-        onToggle={(key) => setFilter((f) => (f === key ? null : key))}
-        onHighlight={setHighlight}
+        onToggle={filterable ? (key) => setFilter((f) => (f === key ? null : key)) : undefined}
+        onHighlight={filterable ? setHighlight : undefined}
       />
     </div>
   )

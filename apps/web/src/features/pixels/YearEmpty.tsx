@@ -1,10 +1,12 @@
 import { ArrowRight } from 'lucide-react'
 import { Fragment } from 'react'
 import { Link } from 'react-router'
+import { Button } from '@/components/ui/button'
 import { scoreLabel, SCORES, type Score } from '@/lib/catalog'
 import type { DateString } from '@/lib/date'
 import { cn } from '@/lib/utils'
-import type { YearCell } from './yearStats'
+import type { Month, YearCell } from './yearStats'
+import { useT } from '@/lib/i18n'
 
 const SCORE_BG: Record<Score, string> = {
   1: 'bg-score-1',
@@ -14,7 +16,7 @@ const SCORE_BG: Record<Score, string> = {
   5: 'bg-score-5',
 }
 
-/** Year in Pixels của người dùng mới (thiết kế B9 · màn trống): bảng chưa tô, ô hôm nay nhấp nháy. */
+/** Year in Pixels của người dùng mới (thiết kế B9 · màn trống): bảng chưa tô, ô hôm nay màu đào nhấp nháy ba lần. */
 export function YearEmpty({
   year,
   grid,
@@ -26,21 +28,22 @@ export function YearEmpty({
   today: DateString
   iconSetId: string
 }) {
+  const t = useT()
   return (
     <div className="flex animate-rise flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Year in Pixels</h1>
-          <p className="text-[15px] leading-6 text-muted-foreground">Năm của bạn bắt đầu từ hôm nay.</p>
+          <h1 className="text-title">{t('pixels:title')}</h1>
+          <p className="text-body text-ink-soft">{t('pixels:empty.subtitle')}</p>
         </div>
-        <span className="font-heading text-title-3 font-bold tabular-nums">{year}</span>
+        <span className="nums text-heading font-bold">{year}</span>
       </div>
-      <section aria-labelledby="year-empty-h" className="rounded-[22px] border-[1.5px] border-line bg-card p-4 shadow-ink sm:p-6">
+      <section aria-labelledby="year-empty-h" className="rounded-lg border-[1.5px] border-stroke bg-card p-4 shadow-md sm:p-6">
         <div aria-hidden="true" className="overflow-x-auto p-1">
           <div className="grid min-w-[720px] grid-cols-[36px_repeat(31,minmax(0,1fr))] items-center gap-1">
             {grid.map((row, m) => (
               <Fragment key={m}>
-                <span className="text-xs leading-4 font-semibold text-muted-foreground">T{m + 1}</span>
+                <span className="text-label text-ink-soft">{t(`pixels:grid.monthHeader.${(m + 1) as Month}`)}</span>
                 {row.map((c, d) =>
                   c.kind === 'none' ? (
                     <span key={d} />
@@ -50,10 +53,10 @@ export function YearEmpty({
                       className={cn(
                         'aspect-square rounded-[5px]',
                         c.date === today
-                          ? 'animate-glow border-2 border-line bg-secondary'
+                          ? 'animate-pulse-3 border-2 border-stroke bg-peach'
                           : c.kind === 'pre'
-                            ? 'border border-dashed border-faint'
-                            : 'border border-border',
+                            ? 'border border-dashed border-ink-faint'
+                            : 'border border-line-soft',
                       )}
                     />
                   ),
@@ -62,40 +65,39 @@ export function YearEmpty({
             ))}
           </div>
         </div>
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t-[1.5px] border-dashed border-border pt-[18px]">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t-[1.5px] border-dashed border-line-soft pt-[18px]">
           <div className="flex max-w-[460px] flex-col gap-1">
             <h2 id="year-empty-h" className="text-xl leading-7 font-bold">
-              Tô ô đầu tiên của năm
+              {t('pixels:empty.heading')}
             </h2>
-            <p className="text-sm leading-[22px] text-muted-foreground">
-              Ô đang nhấp nháy là hôm nay. Mỗi ngày chấm điểm sẽ tô màu một ô, cuối năm thành cả một bức tranh.
+            <p className="text-sm leading-[22px] text-ink-soft">
+              {t('pixels:empty.body')}
             </p>
           </div>
-          <Link
-            to="/today"
-            className="group inline-flex h-12 items-center gap-2 rounded-[14px] cta border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring"
-          >
-            Chấm điểm hôm nay
-            <ArrowRight className="size-[18px] transition-transform group-hover:translate-x-[3px]" aria-hidden="true" />
-          </Link>
+          <Button asChild variant="cta" size="lg" className="group">
+            <Link to="/today">
+              {t('pixels:empty.cta')}
+              <ArrowRight className="size-[18px] transition-transform duration-(--dur-fast) ease-out pointer-fine:group-hover:translate-x-[3px]" aria-hidden="true" />
+            </Link>
+          </Button>
         </div>
-        <ul aria-label="Màu theo điểm" className="mt-4 flex flex-wrap items-center gap-2">
-          <li aria-hidden="true" className="mr-1 text-[13px] leading-5 text-muted-foreground">
-            Màu theo điểm
+        <ul aria-label={t('pixels:legend.scoreAria')} className="mt-4 flex flex-wrap items-center gap-2">
+          <li aria-hidden="true" className="mr-1 text-label font-normal text-ink-soft">
+            {t('pixels:legend.scoreTitle')}
           </li>
           {SCORES.map((k) => (
             <li
               key={k}
-              className="inline-flex h-[30px] animate-paint items-center gap-1.5 rounded-full border-[1.5px] border-border pr-2.5 pl-2 text-xs leading-[18px]"
+              className="inline-flex h-[30px] animate-paint items-center gap-1.5 rounded-full border-[1.5px] border-line-soft pr-2.5 pl-2 text-label font-normal"
               style={{ animationDelay: `${(0.3 + k * 0.08).toFixed(2)}s` }}
             >
-              <span aria-hidden="true" className={cn('size-3.5 rounded-[4px] border border-line', SCORE_BG[k])} />
-              {k} · {scoreLabel(iconSetId, k)}
+              <span aria-hidden="true" className={cn('size-3.5 rounded-[4px] border border-stroke', SCORE_BG[k])} />
+              {t('pixels:scoreRow', { score: k, label: scoreLabel(iconSetId, k) })}
             </li>
           ))}
-          <li className="inline-flex h-[30px] items-center gap-1.5 rounded-full border-[1.5px] border-border pr-2.5 pl-2 text-xs leading-[18px]">
-            <span aria-hidden="true" className="size-3.5 rounded-[4px] border border-dashed border-faint" />
-            Trước khi dùng Jotly
+          <li className="inline-flex h-[30px] items-center gap-1.5 rounded-full border-[1.5px] border-line-soft pr-2.5 pl-2 text-label font-normal">
+            <span aria-hidden="true" className="size-3.5 rounded-[4px] border border-dashed border-ink-faint" />
+            {t('pixels:legend.beforeJotly')}
           </li>
         </ul>
       </section>

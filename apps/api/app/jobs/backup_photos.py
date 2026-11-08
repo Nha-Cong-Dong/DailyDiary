@@ -7,6 +7,8 @@
   mất vào manifest `photos/_missing.json`, xóa khỏi sao lưu khi đã mất quá 7 ngày (đặc tả: dữ liệu đã xóa còn
   trong sao lưu tối đa 7 ngày). Object xuất hiện lại thì bỏ khỏi manifest.
 - Lỗi chép một object không dừng cả lượt; đếm vào `failed` để lệnh chạy trả mã lỗi, lần sau chép lại.
+- Lượt không lỗi ghi mốc bắt đầu vào `state/backup_photos.json` (ngoài `photos/` để không bị coi là ảnh);
+  `run backup_photos --if-due` đọc mốc này để biết đã đến hạn chưa.
 
 Không ghi log key hay nội dung; chỉ số lượng.
 """
@@ -26,6 +28,7 @@ logger = logging.getLogger("dailydiary.backup")
 PREFIX = "photos/"
 MISSING_KEY = f"{PREFIX}_missing.json"
 MISSING_GRACE = timedelta(days=7)
+LAST_RUN_KEY = "state/backup_photos.json"
 
 
 @dataclass
@@ -37,20 +40,35 @@ class PhotoBackupResult:
     removed: int = 0  # đã xóa khỏi sao lưu vì mất quá 7 ngày
 
 
+async def _read_json(store: BlobStore, key: str) -> dict:
+    body = await store.get(key)
+    try:
+        return json.loads((await anyio.to_thread.run_sync(body.read)).decode("utf-8"))
+    finally:
+        body.close()
+
+
+async def _write_json(store: BlobStore, key: str, data: dict) -> None:
+    await store.put(key, io.BytesIO(json.dumps(data).encode("utf-8")))
+
+
 async def _load_missing(store: BlobStore, exists: bool) -> dict[str, datetime]:
     if not exists:
         return {}
-    body = await store.get(MISSING_KEY)
-    try:
-        data = json.loads((await anyio.to_thread.run_sync(body.read)).decode("utf-8"))
-    finally:
-        body.close()
+    data = await _read_json(store, MISSING_KEY)
     return {k: datetime.fromisoformat(v) for k, v in data.get("missing", {}).items()}
 
 
 async def _save_missing(store: BlobStore, missing: dict[str, datetime]) -> None:
     data = {"version": 1, "missing": {k: v.isoformat() for k, v in sorted(missing.items())}}
-    await store.put(MISSING_KEY, io.BytesIO(json.dumps(data).encode("utf-8")))
+    await _write_json(store, MISSING_KEY, data)
+
+
+async def last_photo_backup(store: BlobStore) -> datetime | None:
+    """Mốc bắt đầu của lượt sao lưu ảnh không lỗi gần nhất, None khi chưa có."""
+    if LAST_RUN_KEY not in await store.list(LAST_RUN_KEY):
+        return None
+    return datetime.fromisoformat((await _read_json(store, LAST_RUN_KEY))["started_at"])
 
 
 async def backup_photos(
@@ -98,6 +116,8 @@ async def backup_photos(
     if missing != before:
         await _save_missing(backup, missing)
     result.missing, result.removed = len(missing), len(expired)
+    if not result.failed:  # còn object lỗi thì không ghi mốc: lần chạy theo lịch kế tiếp làm lại ngay
+        await _write_json(backup, LAST_RUN_KEY, {"version": 1, "started_at": now.astimezone(UTC).isoformat()})
     logger.info(
         "sao lưu ảnh: chép %d, giữ nguyên %d, lỗi %d; mất ở kho chính %d, xóa khỏi sao lưu %d",
         result.copied,

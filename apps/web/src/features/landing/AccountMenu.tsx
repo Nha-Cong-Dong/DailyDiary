@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SIGNED_OUT, useLogout } from '@/lib/session'
+import { useT } from '@/lib/i18n'
 
 type Props = {
   name: string
@@ -20,30 +21,31 @@ type Props = {
 
 /** Menu tài khoản trên trang chủ khi đã đăng nhập (thiết kế B5 · Landing đã đăng nhập). */
 export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }: Props) {
+  const t = useT()
   const logout = useLogout()
   const navigate = useNavigate()
   const items = [
-    { to: '/today', label: 'Trang hôm nay', icon: Pencil, tag: todayWritten ? 'Đã ghi' : null },
-    { to: '/timeline', label: 'Dòng thời gian', icon: List },
-    { to: '/pixels', label: 'Year in Pixels', icon: LayoutGrid },
-    { to: '/profile/shares', label: 'Trang đang chia sẻ', icon: Link2, count: shareCount },
-    { to: '/profile', label: 'Hồ sơ & cài đặt', icon: Settings },
-    { to: '/profile', label: 'Góp ý cho Jotly', icon: MessageSquare, state: { feedback: true } },
+    { to: '/today', label: t('landing:account.today'), icon: Pencil, tag: todayWritten ? t('landing:account.written') : null },
+    { to: '/timeline', label: t('landing:account.timeline'), icon: List },
+    { to: '/pixels', label: t('landing:account.pixels'), icon: LayoutGrid },
+    { to: '/profile/shares', label: t('landing:account.shares'), icon: Link2, count: shareCount },
+    { to: '/profile', label: t('landing:account.profile'), icon: Settings },
+    { to: '/profile', label: t('landing:account.feedback'), icon: MessageSquare, state: { feedback: true } },
   ]
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
-        aria-label={`Tài khoản của ${name}`}
-        className="rounded-full transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.04] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97] data-[state=open]:shadow-[0_0_0_2px_var(--card),0_0_0_3.5px_var(--line)]"
+        aria-label={t('landing:account.label', { name })}
+        className="cursor-pointer rounded-full transition-[scale,box-shadow] duration-(--dur-fast) ease-out pointer-fine:hover:scale-[1.04] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[.97] motion-reduce:scale-100! data-[state=open]:shadow-[0_0_0_2px_var(--color-card),0_0_0_3.5px_var(--color-stroke)]"
       >
         <Avatar name={name} src={avatarUrl} size={40} className="text-sm" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={12} className="w-[292px]">
-        <div className="flex items-center gap-3 border-b-[1.5px] border-dashed border-border px-2.5 pt-2.5 pb-3">
+      <DropdownMenuContent align="end" sideOffset={12} className="w-[292px] rounded-[28px] p-2">
+        <div className="flex items-center gap-3 border-b-[1.5px] border-dashed border-line-soft px-2.5 pt-2.5 pb-3">
           <Avatar name={name} src={avatarUrl} size={44} />
           <span className="flex min-w-0 flex-col">
-            <span className="text-[15px] leading-[22px] font-semibold">{name}</span>
-            <span className="truncate text-[13px] leading-5 text-muted-foreground">{email}</span>
+            <span className="text-body font-semibold">{name}</span>
+            <span className="truncate text-label font-normal text-ink-soft">{email}</span>
           </span>
         </div>
         <div className="flex flex-col gap-0.5 py-1">
@@ -52,9 +54,9 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
               <Link to={item.to} state={item.state}>
                 <item.icon aria-hidden="true" />
                 <span className="flex-1">{item.label}</span>
-                {item.tag ? <span className="text-xs text-muted-foreground">{item.tag}</span> : null}
+                {item.tag ? <span className="text-label font-normal text-ink-soft">{item.tag}</span> : null}
                 {item.count ? (
-                  <span className="min-w-[22px] rounded-full bg-primary px-1.5 text-center text-[11px] leading-[18px] font-bold text-primary-foreground">
+                  <span className="min-w-[22px] rounded-full bg-primary px-1.5 text-center text-[11px] leading-[18px] font-bold text-on-primary">
                     {item.count}
                   </span>
                 ) : null}
@@ -69,7 +71,7 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
           onSelect={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
         >
           <LogOut aria-hidden="true" />
-          Đăng xuất
+          {t('landing:account.signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

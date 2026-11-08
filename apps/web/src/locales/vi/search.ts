@@ -1,0 +1,72 @@
+// Bản dịch tiếng Việt, nhóm "search" (nguồn chuẩn: khóa ở đây quyết định khóa của mọi ngôn ngữ khác).
+export default {
+  title: 'Tìm theo từ khóa',
+  subtitle: 'Tìm trong tiêu đề, nội dung và từ khóa của mọi trang.',
+  scoreOnly: 'Chỉ chấm điểm',
+  input: {
+    label: 'Từ khóa',
+    placeholder: 'Tìm trong nhật ký',
+    clear: 'Xóa từ khóa',
+    back: 'Quay lại Dòng thời gian',
+  },
+  topKeywords: 'Từ khóa hay dùng',
+  idle: {
+    heading: 'Bạn muốn tìm lại điều gì?',
+    hint: 'Gõ một từ khóa, gõ không dấu cũng được. Hoặc bấm thử:',
+    recent: 'Trang gần đây',
+    recentMeta: '{{date}} · Điểm {{score}}',
+  },
+  filters: {
+    group: 'Bộ lọc',
+    byScore: 'Lọc theo điểm',
+    score: 'Điểm',
+    scoreSome: 'Điểm {{list}}',
+    scoreAria: 'Điểm {{score}}, {{label}}',
+    time: 'Thời gian',
+    photos: 'Có ảnh',
+    clear: 'Bỏ lọc',
+  },
+  periods: {
+    month: 'Tháng này',
+    '3m': '3 tháng',
+    year: 'Năm nay',
+    all: 'Mọi lúc',
+  },
+  newUser: {
+    noMatch: 'Chưa có trang nào chứa “{{query}}”',
+    title: 'Chưa có trang nào để tìm',
+    body: 'Khi bạn viết và gắn từ khóa, mọi trang sẽ tìm được ở đây. Ví dụ: tìm “cà phê” để mở lại những ngày có ly cà phê.',
+    cta: 'Viết trang đầu tiên',
+  },
+  error: 'Không tìm được lúc này. Thử lại sau ít phút.',
+  loading: 'Đang tìm…',
+  results: {
+    count_other: '{{count}} kết quả cho “{{query}}”',
+    hidden_other: ' · {{count}} trang khác bị ẩn bởi bộ lọc',
+    loadingMore: 'Đang tải…',
+    more_other: 'Xem thêm {{count}} kết quả cũ hơn',
+  },
+  card: {
+    scoreAria: 'Điểm {{score}}, {{label}}',
+    phoneMeta: '{{date}} · Điểm {{score}}',
+    phoneDate: '{{weekday}}, {{day}}/{{month}}/{{year}}',
+    meta: '{{date}} · Điểm {{score}} · {{label}}',
+    photos_other: '{{count}} ảnh',
+  },
+  filtered: {
+    title: 'Không có trang nào khớp với bộ lọc',
+    body_other: 'Có {{count}} trang chứa “{{query}}”, nhưng không trang nào hợp với điểm, thời gian hoặc ảnh bạn chọn.',
+  },
+  notFound: {
+    title: 'Không tìm thấy “{{query}}”',
+    hint: 'Thử một từ ngắn hơn, hoặc gõ không dấu.',
+  },
+  sheet: {
+    scoreTitle: 'Lọc theo điểm',
+    pickScore: 'Chọn điểm',
+    scoreRow: 'Điểm {{score}}, {{label}}',
+    deselect: 'Bỏ chọn',
+    done: 'Xong',
+    periodTitle: 'Khoảng thời gian',
+  },
+} as const

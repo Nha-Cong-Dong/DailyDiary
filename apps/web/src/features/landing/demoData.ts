@@ -1,5 +1,6 @@
 import type { Score } from '@/lib/catalog'
 import { daysInMonth } from '@/lib/date'
+import { t } from '@/lib/i18n'
 
 // Dữ liệu minh họa cố định cho landing (không phải dữ liệu người dùng): tháng 10/2026, "hôm nay" là ngày 18.
 export const DEMO_YEAR = 2026
@@ -27,7 +28,10 @@ export const OCTOBER: Record<number, DemoDay> = {
   18: { score: 4, sub: '😌' },
 }
 
-export const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+/** Nhãn thứ viết tắt, bắt đầu từ thứ Hai (dịch lúc gọi). */
+export function weekdaysMonFirst(): string[] {
+  return (['1', '2', '3', '4', '5', '6', '0'] as const).map((d) => t(`common:date.weekdayShort.${d}`))
+}
 
 const MONTH_LENGTHS = Array.from({ length: 12 }, (_, m) => daysInMonth(DEMO_YEAR, m + 1))
 
@@ -54,4 +58,17 @@ export function demoYear(): DemoPixel[][] {
       return { day, month, score, future: false }
     }),
   )
+}
+
+/** Một ngày trong dải 7 ngày của mục "Một chạm" (mẫu hoặc thật). */
+export type WeekDay = { date: string; score: Score | null; sub: string | null; backfilled: boolean }
+
+export const DEMO_TODAY_DATE = '2026-10-18'
+
+/** Tuần mẫu 12–18/10/2026 (14/10 còn trống để thử ghi bù; hôm nay chưa chấm). */
+export function demoWeek(): WeekDay[] {
+  return [12, 13, 14, 15, 16, 17, 18].map((day) => {
+    const e = day === DEMO_TODAY ? undefined : OCTOBER[day]
+    return { date: `2026-10-${day}`, score: e?.score ?? null, sub: e?.sub ?? null, backfilled: false }
+  })
 }

@@ -1,0 +1,17 @@
+import common from './common'
+import catalog from './catalog'
+import errors from './errors'
+import components from './components'
+import landing from './landing'
+import auth from './auth'
+import profile from './profile'
+import entry from './entry'
+import timeline from './timeline'
+import pixels from './pixels'
+import search from './search'
+import share from './share'
+import feedback from './feedback'
+import legal from './legal'
+import lib from './lib'
+
+export const vi = { common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search, share, feedback, legal, lib } as const

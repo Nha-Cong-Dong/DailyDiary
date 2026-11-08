@@ -1,6 +1,8 @@
 import { CircleCheck, Send } from 'lucide-react'
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/api/client'
+import { t } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,18 +11,19 @@ import { useProfile } from '@/lib/profile'
 import { useSendFeedback } from './useSendFeedback'
 
 function errorText(error: unknown): string {
-  if (error instanceof ApiError && error.status === 429) return 'Bạn vừa gửi khá nhiều góp ý. Thử lại sau ít phút nhé.'
+  if (error instanceof ApiError && error.status === 429) return t('feedback:rateLimited')
   if (error instanceof ApiError && error.status === 422) return error.message
-  return 'Chưa gửi được. Kiểm tra kết nối rồi thử lại.'
+  return t('feedback:failed')
 }
 
 type FeedbackDialogProps = { open: boolean; onOpenChange: (open: boolean) => void }
 
 /**
- * Form góp ý (F-09; thiết kế chưa có, chốt 23/10/2026: mở từ Hồ sơ và menu tài khoản). Ghi rõ góp ý đi kèm email tài
+ * Form góp ý (F-09; canvas chỉ vẽ lối vào trong Hồ sơ B7/B10, hộp thoại dựng theo hệ 1.1; mở từ Hồ sơ và menu tài khoản). Ghi rõ góp ý đi kèm email tài
  * khoản để Jotly trả lời được. Gửi xong hiện lời cảm ơn; đóng lại thì form trống cho lần sau.
  */
 export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
+  useTranslation() // chỉ để vẽ lại khi đổi ngôn ngữ; gọi `t` của @/lib/i18n (kiểu chặt hơn khi có biến)
   const { email } = useProfile()
   const send = useSendFeedback()
   const [message, setMessage] = useState('')
@@ -42,13 +45,13 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       <DialogContent className="max-w-[520px]">
         {send.isSuccess ? (
           <div role="status" className="flex flex-col items-center gap-3 py-4 text-center">
-            <CircleCheck className="size-10" aria-hidden="true" />
-            <DialogTitle className="font-heading text-xl font-bold">Cảm ơn bạn!</DialogTitle>
-            <DialogDescription className="text-[15px] leading-6">
-              Góp ý đã tới Jotly. Nếu cần hỏi thêm, Jotly sẽ trả lời qua {email || 'email tài khoản của bạn'}.
+            <CircleCheck className="size-10 animate-pop text-sage-ink" aria-hidden="true" />
+            <DialogTitle className="text-heading font-bold">{t('feedback:thanks')}</DialogTitle>
+            <DialogDescription className="text-body text-ink-soft">
+              {t('feedback:sent', { email: email || t('feedback:yourAccountEmail') })}
             </DialogDescription>
-            <Button className="mt-2 h-11" onClick={() => change(false)}>
-              Đóng
+            <Button className="mt-2" onClick={() => change(false)}>
+              {t('feedback:close')}
             </Button>
           </div>
         ) : (
@@ -60,14 +63,13 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             }}
           >
             <DialogHeader>
-              <DialogTitle className="font-heading text-xl font-bold">Góp ý cho Jotly</DialogTitle>
-              <DialogDescription className="text-[15px] leading-6">
-                Điều gì làm bạn khó chịu, hay bạn muốn Jotly có thêm gì? Góp ý gửi kèm email tài khoản ({email}) để
-                Jotly trả lời được.
+              <DialogTitle className="text-heading font-bold">{t('feedback:title')}</DialogTitle>
+              <DialogDescription className="text-body text-ink-soft">
+                {t('feedback:description', { email })}
               </DialogDescription>
             </DialogHeader>
             <label htmlFor={`${ids}-msg`} className="sr-only">
-              Nội dung góp ý
+              {t('feedback:messageLabel')}
             </label>
             <Textarea
               id={`${ids}-msg`}
@@ -76,20 +78,20 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               maxLength={max}
               rows={6}
               autoFocus
-              placeholder="Ví dụ: mình muốn có nhắc viết lúc 21 giờ…"
+              placeholder={t('feedback:placeholder')}
               aria-describedby={`${ids}-count`}
-              className="min-h-36 text-[15px] leading-6"
+              className="min-h-36"
             />
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span id={`${ids}-count`} className="text-[13px] text-muted-foreground tabular-nums">
+              <span id={`${ids}-count`} className="text-label font-normal text-ink-soft nums">
                 {message.length}/{max}
               </span>
-              <Button type="submit" className="h-11" disabled={!text || send.isPending}>
-                <Send aria-hidden="true" /> {send.isPending ? 'Đang gửi…' : 'Gửi góp ý'}
+              <Button type="submit" disabled={!text || send.isPending}>
+                <Send aria-hidden="true" /> {send.isPending ? t('feedback:sending') : t('feedback:send')}
               </Button>
             </div>
             {send.isError ? (
-              <p role="alert" className="text-[13px] leading-5 font-medium text-destructive">
+              <p role="alert" className="text-label leading-5 font-medium text-danger">
                 {errorText(send.error)}
               </p>
             ) : null}

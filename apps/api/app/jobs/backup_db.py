@@ -84,6 +84,15 @@ async def list_backups(store: BlobStore) -> list[str]:
     return sorted(keys, key=lambda k: KEY_RE.match(k).group(1), reverse=True)  # type: ignore[union-attr]
 
 
+async def latest_backup_at(store: BlobStore) -> datetime | None:
+    """Mốc UTC của bản sao lưu DB mới nhất (đọc từ tên key), None khi chưa có bản nào."""
+    keys = await list_backups(store)
+    if not keys:
+        return None
+    stamp = KEY_RE.match(keys[0]).group(1)  # type: ignore[union-attr]
+    return datetime.strptime(stamp, "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC)
+
+
 async def _dump_collection(db: AsyncDatabase, name: str, path: Path) -> int:
     coll = db.get_collection(name, codec_options=RAW)
     count, chunk = 0, []

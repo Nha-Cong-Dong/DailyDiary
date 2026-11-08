@@ -14,6 +14,7 @@ from app.jobs.backup_db import (
     RestoreRefused,
     backup_db,
     backup_key,
+    latest_backup_at,
     list_backups,
     restore_db,
 )
@@ -123,6 +124,17 @@ def test_backup_key_uses_utc():
     assert backup_key(datetime(2026, 10, 25, 0, 0, tzinfo=vn)) == (
         "db/2026/10/24/dailydiary-20261024T170000Z.tar.gz"
     )
+
+
+async def test_latest_backup_at_reads_newest_key_timestamp():
+    store = FakeBlobStore({"db/README.txt": b"x"})
+    assert await latest_backup_at(store) is None
+
+    older = datetime(2026, 10, 31, 23, 59, 1, tzinfo=UTC)
+    newer = datetime(2026, 11, 1, 1, 2, 3, tzinfo=UTC)
+    store.objects[backup_key(newer)] = b"b"
+    store.objects[backup_key(older)] = b"a"
+    assert await latest_backup_at(store) == newer
 
 
 async def test_restore_refuses_live_db_and_db_with_data(db, mongo, target):

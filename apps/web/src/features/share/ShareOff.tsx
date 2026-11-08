@@ -1,11 +1,16 @@
-import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
+import { cn } from '@/lib/utils'
 import { PublicFrame } from './components/PublicFrame'
+import { useT } from '@/lib/i18n'
 
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring'
+const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus'
 
-/** Cuốn sổ đã khóa: bìa và khóa giữ màu logo ở cả hai chế độ, nét vẽ theo màu mực. */
+/**
+ * Cuốn sổ đã khóa: bìa và khóa giữ màu logo ở cả hai chế độ, nét vẽ theo màu mực. Sổ nghiêng nhẹ khi di chuột lên
+ * hình; ổ khóa hiện ra sau, bốn nét "rung" tự vẽ (một lần, không lặp).
+ */
 function LockedBook() {
+  const t = useT()
   return (
     <svg
       width="220"
@@ -17,10 +22,10 @@ function LockedBook() {
       strokeLinecap="round"
       strokeLinejoin="round"
       role="img"
-      aria-label="Cuốn sổ đã khóa"
+      aria-label={t('share:off.bookAria')}
       className="group/book"
     >
-      <g className="origin-[50%_100%] transition-[rotate] duration-300 [transform-box:fill-box] group-hover/book:-rotate-3">
+      <g className="origin-[50%_100%] transition-[rotate] duration-(--dur-base) ease-out [transform-box:fill-box] motion-reduce:transition-none pointer-fine:group-hover/book:-rotate-3 motion-reduce:pointer-fine:group-hover/book:rotate-0">
         <path d="M30 20h52a8 8 0 0 1 8 8v52a8 8 0 0 1-8 8H30z" fill="#CBAAC7" />
         <path d="M30 20h-2a6 6 0 0 0-6 6v56a6 6 0 0 0 6 6h2z" fill="#B3BCA1" />
         <path d="M90 30v48" stroke="#FFFCF8" strokeWidth="3" />
@@ -30,8 +35,8 @@ function LockedBook() {
         />
         <path d="M44 88v8l4-3l4 3v-8" fill="#F1BD90" />
       </g>
-      <g className="origin-center animate-pop [animation-delay:.65s] [transform-box:fill-box]">
-        <path d="M70 58v-6a8 8 0 0 1 16 0v6" className="group-hover/book:animate-bob" />
+      <g className="origin-center animate-pop [animation-delay:650ms] [transform-box:fill-box]">
+        <path d="M70 58v-6a8 8 0 0 1 16 0v6" />
         <rect x="64" y="57" width="28" height="22" rx="5" fill="#F1BD90" />
         <path d="M78 65v6" />
       </g>
@@ -43,35 +48,35 @@ function LockedBook() {
   )
 }
 
-/** Link chia sẻ không mở được: đã tắt, trang đã xóa, hoặc gõ sai (thiết kế B8 · Chia sẻ · link đã tắt). */
+/** Link chia sẻ không mở được: đã tắt, trang đã xóa, hoặc gõ sai (B8-Off). Mọi lý do đều cùng một trang. */
 export function ShareOff() {
+  const t = useT()
   return (
-    <PublicFrame title="Jotly · Trang không mở được" cta={false}>
+    <PublicFrame title={t('share:off.pageTitle')} cta={false}>
       <main className="flex flex-1 items-center justify-center px-[clamp(16px,4vw,40px)] pt-16 pb-20">
         <div className="flex max-w-[520px] flex-col items-center gap-4 text-center">
           <div className="relative flex animate-rise items-center justify-center">
-            <span aria-hidden="true" className="absolute size-[200px] rounded-full border-[1.5px] border-dashed border-border bg-muted" />
-            <span className="relative inline-flex animate-[bob_3.6s_ease-in-out_1s_infinite]">
+            <span aria-hidden="true" className="absolute size-[200px] rounded-full border-[1.5px] border-dashed border-line-soft bg-sunk" />
+            <span className="relative inline-flex">
               <LockedBook />
             </span>
           </div>
-          <h1 className="mt-3 animate-rise text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold text-balance [animation-delay:.5s]">
-            Trang này không mở được
-          </h1>
-          <p className="animate-rise text-base leading-[26px] text-pretty text-muted-foreground [animation-delay:.6s]">
-            Người viết đã tắt link, đã xóa trang, hoặc link bị gõ sai. Trên Jotly, mọi trang đều riêng tư trừ khi người
-            viết chọn chia sẻ.
+          <h1 className="mt-3 animate-rise text-title text-balance [animation-delay:500ms]">{t('share:off.title')}</h1>
+          <p className="animate-rise text-body leading-[26px] text-pretty text-ink-soft [animation-delay:600ms]">
+            {t('share:off.body')}
           </p>
-          <div className="mt-3 flex animate-rise flex-wrap items-center justify-center gap-x-[22px] gap-y-3.5 [animation-delay:.7s]">
+          <div className="mt-3 flex animate-rise flex-wrap items-center justify-center gap-x-[22px] gap-y-3.5 [animation-delay:700ms]">
             <Link
               to="/"
-              className={`group/cta cta inline-flex h-12 items-center gap-2 rounded-[14px] border-[1.5px] border-line bg-primary px-5 text-[15px] font-semibold text-primary-foreground ${focusRing}`}
+              className={cn(
+                'cta inline-flex h-12 items-center rounded-[14px] border-[1.5px] border-stroke bg-primary px-5 text-body font-semibold text-on-primary',
+                focusRing,
+              )}
             >
-              Tìm hiểu về Jotly
-              <ArrowRight className="size-[18px] transition-transform duration-200 group-hover/cta:translate-x-0.5" aria-hidden="true" />
+              {t('share:off.learn')}
             </Link>
-            <Link to="/login" className={`link-underline text-[15px] font-medium ${focusRing}`}>
-              Viết nhật ký của bạn
+            <Link to="/login" className={cn('link-underline text-body font-medium', focusRing)}>
+              {t('share:off.write')}
             </Link>
           </div>
         </div>

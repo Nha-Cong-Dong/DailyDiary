@@ -1,5 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { clearDemoWrites, demoEntries } from '@/lib/demo'
 import { PixelsPage } from '@/routes/PixelsPage'
 import { SearchPage } from '@/routes/SearchPage'
@@ -61,6 +61,13 @@ describe('Dòng thời gian', () => {
   })
 
   it('chuyển sang tháng trước và có nút Về tháng này', async () => {
+    // "Tháng này" phải là tháng 10/2026 của dữ liệu mẫu, không phụ thuộc ngày chạy test: cố định đồng hồ ở
+    // 21:00 ngày 18/10/2026 giờ Việt Nam (chỉ giả Date, để findBy/waitFor vẫn dùng bộ hẹn giờ thật).
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-18T14:00:00Z'))
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
     renderWithMe([{ path: '/timeline', Component: TimelinePage }], '/timeline?m=2026-10', makeMe())
     fireEvent.click((await screen.findAllByRole('button', { name: 'Tháng trước, Tháng 9, 2026' }))[0])
     expect((await screen.findAllByText('Tháng 9, 2026', { selector: '[aria-live]' })).length).toBeGreaterThan(0)

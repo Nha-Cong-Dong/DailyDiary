@@ -1,0 +1,122 @@
+import type { Shape } from '../shape'
+import type vi from '../vi/pixels'
+
+// English translation, group "pixels": must have every key of the Vietnamese file.
+const en: Shape<typeof vi> = {
+  title: 'Year in Pixels',
+  loading: 'Loading Year in Pixels…',
+  error: 'Could not load the year. Try reloading the page.',
+  subtitleJoined: 'You started using Jotly on {{monthShort}} {{day}}, {{year}}.',
+  subtitleDefault: 'Each square is a day, each color is a mood score.',
+  phoneHint: 'Each column is a month, each row is a day. Tap a square for a quick look.',
+  scoreOnly: 'Rating only',
+  year: {
+    group: 'Choose year',
+    prev: 'Previous year, {{year}}',
+    noPrev: 'No previous year',
+    next: 'Next year, {{year}}',
+    noNext: 'No next year',
+  },
+  stats: {
+    recorded: {
+      label: 'Days written',
+      subSince_one: 'out of {{count}} day, since {{monthShort}} {{day}}',
+      subSince_other: 'out of {{count}} days, since {{monthShort}} {{day}}',
+      subPast_one: 'out of {{count}} day so far',
+      subPast_other: 'out of {{count}} days so far',
+    },
+    longest: {
+      label: 'Longest streak',
+      value_one: '{{count}} day',
+      value_other: '{{count}} days',
+      subYear: '{{year}}',
+      subCurrent_one: 'Current streak: {{count}} day',
+      subCurrent_other: 'Current streak: {{count}} days',
+    },
+    average: {
+      label: 'Average score',
+      subNear: 'Close to {{label}}',
+      subNone: 'No scores yet',
+    },
+    bestMonth: {
+      label: 'Brightest month',
+      value: '{{monthLong}}',
+      sub: 'Average {{value}}',
+    },
+  },
+  colorBy: {
+    label: 'Color by',
+    score: 'Score',
+    flag: 'Flag',
+  },
+  filter: {
+    status_one: 'Showing {{name}} · {{count}} day',
+    status_other: 'Showing {{name}} · {{count}} days',
+    score: 'score {{score}}',
+    missing: 'unwritten days',
+    future: 'upcoming days',
+    clear: 'Clear filter',
+  },
+  grid: {
+    aria: 'Year score grid',
+    avgHeader: 'Avg',
+    monthHeader: {
+      '1': 'Jan',
+      '2': 'Feb',
+      '3': 'Mar',
+      '4': 'Apr',
+      '5': 'May',
+      '6': 'Jun',
+      '7': 'Jul',
+      '8': 'Aug',
+      '9': 'Sep',
+      '10': 'Oct',
+      '11': 'Nov',
+      '12': 'Dec',
+    },
+    cell: {
+      date: '{{monthShort}} {{day}}',
+      today: ', today',
+      scored: ', score {{score}}',
+      flagged: ', {{flag}} flag',
+      noFlag: ', no flag',
+      missing: ', not written',
+      future: ', upcoming',
+      pre: ', before you joined Jotly',
+    },
+    monthNoScore: '{{monthLong}} · no scores yet',
+    monthAverage: '{{monthLong}} · average {{value}}',
+  },
+  legend: {
+    flagAria: 'Color flag legend',
+    customColor: 'Custom color {{hex}}',
+    noFlag: 'No flag',
+    noPages: 'No pages this year yet',
+    scoreAria: 'Colors by score',
+    scoreTitle: 'Colors by score',
+    beforeJotly: 'Before Jotly',
+  },
+  selected: {
+    heading: 'Selected day',
+    hint: 'Pick a square on the grid to look back at that day.',
+    open: 'Open day page',
+    notYet: 'This day has not come yet.',
+    notWritten: 'This day has no page.',
+    writeToday: "Write today's page",
+    backfill: 'Add this past day',
+  },
+  dayPage: {
+    scoreAria: 'Score {{score}}, {{label}}',
+    meta: '{{date}} · Score {{score}} · {{label}}',
+  },
+  distribution: 'Score distribution · {{year}}',
+  scoreRow: '{{score}} · {{label}}',
+  empty: {
+    subtitle: 'Your year starts today.',
+    heading: 'Fill in the first square of the year',
+    body: 'The blinking square is today. Each day you rate fills in one square, and by year end it becomes a whole picture.',
+    cta: 'Rate today',
+  },
+}
+
+export default en

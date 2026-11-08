@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router'
 import { saveErrorMessage, useSaveEntry } from '@/features/entry/entries'
 import { draftOf, toWrite } from '@/features/entry/entryDraft'
@@ -7,7 +7,7 @@ import { useDay } from '@/features/entry/useDay'
 import { Landing, type LandingAccount, type QuickScore } from '@/features/landing/Landing'
 import { useShareCount } from '@/features/share/useShares'
 import type { Score } from '@/lib/catalog'
-import { todayIn } from '@/lib/date'
+import { addDays, todayIn, type DateString } from '@/lib/date'
 import { toProfile, useMe } from '@/lib/profile'
 import { forgetSignedInUser, isSignedOutState } from '@/lib/session'
 
@@ -42,18 +42,28 @@ export function HomePage() {
   )
 }
 
-/** Chấm điểm nhanh trên trang chủ = lưu điểm cho hôm nay (PUT /entries/{hôm nay}), giữ các trường đã viết. */
+/**
+ * Chấm điểm nhanh trên trang chủ = lưu điểm cho ngày đang chọn trong 7 ngày gần nhất (PUT /entries/{ngày}), giữ các
+ * trường đã viết. Mặc định là hôm nay; ngày quá khứ còn trống thì thành trang ghi bù.
+ */
 function SignedHome({ account }: { account: Omit<LandingAccount, 'quickScore'> }) {
   const today = todayIn(account.timeZone)
-  const { data: entry } = useDay(today)
-  const save = useSaveEntry(today)
+  const [picked, setPicked] = useState<DateString>(today)
+  // Qua nửa đêm khi trang còn mở: ngày đã chọn có thể nằm ngoài 7 ngày mới, quay về hôm nay.
+  const selected = picked <= today && picked >= addDays(today, -6) ? picked : today
+  const { data: entry, isPending } = useDay(selected)
+  const save = useSaveEntry(selected)
+  const mine = save.variables?.date === selected
   const quickScore: QuickScore = {
-    value: (save.variables?.body.score as Score | undefined) ?? entry?.score ?? null,
-    saving: save.isPending,
-    error: save.isError ? saveErrorMessage(save.error) : null,
+    selected,
+    onSelect: setPicked,
+    value: (mine ? (save.variables?.body.score as Score | undefined) : undefined) ?? entry?.score ?? null,
+    loading: isPending,
+    saving: mine && save.isPending,
+    error: mine && save.isError ? saveErrorMessage(save.error) : null,
     onPick: (score) => {
       const base = entry ? draftOf(entry) : { sub_icon: null, flag_color: null, title: '', content: '', keywords: [] }
-      save.mutate({ date: today, body: toWrite({ ...base, score }, entry?.updated_at ?? null) })
+      save.mutate({ date: selected, body: toWrite({ ...base, score }, entry?.updated_at ?? null) })
     },
   }
   return <Landing account={{ ...account, quickScore }} />

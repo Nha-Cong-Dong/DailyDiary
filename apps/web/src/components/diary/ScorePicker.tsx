@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import { SCORES, scoreLabel, type Score } from '@/lib/catalog'
 import { ScoreIcon } from './ScoreIcon'
+import { useT } from '@/lib/i18n'
 
 type ScorePickerProps = {
   iconSetId: string
@@ -15,7 +16,11 @@ type ScorePickerProps = {
   className?: string
 }
 
-/** Năm nút chấm điểm 1–5. Đặt trong <fieldset><legend> để có nhãn nhóm. */
+/**
+ * Năm nút chấm điểm 1–5 (B11-Components · Bộ chấm điểm). Mục đang chọn nền lavender-soft, viền mực, bóng 2px; icon
+ * đóng dấu một nhịp 220ms. Đặt trong <fieldset><legend> (hoặc role="group" + aria-label) để có nhãn nhóm.
+ * Mỗi nút có `data-score`, để lib/flyTo tìm icon vừa chọn: `root.querySelector('[data-score="4"] svg')`.
+ */
 export function ScorePicker({
   iconSetId,
   value,
@@ -25,6 +30,7 @@ export function ScorePicker({
   itemClassName,
   className,
 }: ScorePickerProps) {
+  const t = useT()
   return (
     <div className={cn('grid grid-cols-5 gap-2 sm:gap-3', className)}>
       {SCORES.map((score) => {
@@ -34,15 +40,16 @@ export function ScorePicker({
           <button
             key={score}
             type="button"
-            aria-label={`Điểm ${score}, ${label}`}
+            aria-label={t('components:score.aria', { score, label })}
             aria-pressed={on}
+            data-score={score}
             onClick={() => onChange(score)}
             className={cn(
-              'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-[1.5px] text-foreground transition-[transform,box-shadow,background-color] duration-200 ease-[cubic-bezier(.2,.8,.2,1)] outline-none hover:-translate-y-0.5 active:[transform:translate(2px,2px)] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-ring',
-              caption === 'number' ? 'h-[92px]' : caption === 'label' ? 'min-h-20 py-2.5 sm:pt-3.5' : 'h-[72px]',
+              'pick flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-[1.5px] text-ink outline-none focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus',
+              caption === 'number' ? 'h-[92px]' : caption === 'label' ? 'min-h-20 pt-3.5 pb-2.5' : 'h-[72px]',
               on
-                ? 'border-line bg-secondary shadow-ink-sm'
-                : 'border-border bg-transparent hover:border-line hover:bg-card',
+                ? 'border-stroke bg-lavender-soft shadow-sm'
+                : 'border-line-soft bg-transparent pointer-fine:hover:border-stroke pointer-fine:hover:bg-card',
               itemClassName,
             )}
           >
@@ -54,9 +61,9 @@ export function ScorePicker({
               size={40}
               className={cn(on && 'animate-stamp', iconClassName)}
             />
-            {caption === 'number' ? <span className="text-[13px] leading-[18px] font-semibold">{score}</span> : null}
+            {caption === 'number' ? <span className="text-label nums">{score}</span> : null}
             {caption === 'label' ? (
-              <span aria-hidden="true" className="px-0.5 text-center text-[11px] leading-[14px] font-medium sm:text-[13px] sm:leading-[18px]">
+              <span aria-hidden="true" className="px-0.5 text-center text-[11px] leading-[14px] font-medium min-[400px]:text-label min-[400px]:font-medium">
                 {label}
               </span>
             ) : null}

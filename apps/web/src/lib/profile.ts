@@ -5,6 +5,7 @@ import { defaultIconSetId, presetFlag } from './catalog'
 import { prepareAvatar } from './image'
 import { tierLimits } from './limits'
 import { browserTimeZone } from './date'
+import { intlLocale, t } from './i18n'
 
 /**
  * Hồ sơ người dùng đang đăng nhập (GET /me, key ['me']). Dùng chung cho mọi màn trong app,
@@ -29,7 +30,9 @@ export const ME_KEY = ['me'] as const
 
 /** Giá trị tạm khi chưa có /me (đang tải, trang dev không cần đăng nhập, test). */
 const FALLBACK: Profile = {
-  displayName: 'Bạn',
+  get displayName() {
+    return t('lib:profile.fallbackName')
+  },
   email: '',
   avatarUrl: null,
   iconSetId: defaultIconSetId,
@@ -113,7 +116,7 @@ export function useUploadAvatar() {
       if (up.error || !up.data) throw toApiError(up.response, up.error)
       // Không kèm cookie, chỉ đúng header đã ký.
       const put = await fetch(up.data.upload_url, { method: 'PUT', headers: up.data.headers, body: blob })
-      if (!put.ok) throw new Error(`Kho ảnh trả ${put.status}`)
+      if (!put.ok) throw new Error(t('lib:profile.storageError', { status: put.status }))
       const body = { avatar_upload: { upload_id: up.data.upload_id, content_type: type } }
       const { data, error, response } = await api.PATCH('/me', { body: body as never })
       if (error || !data) throw toApiError(response, error)
@@ -154,5 +157,5 @@ export function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean)
   if (!words.length) return '?'
   const picked = words.length === 1 ? [words[0]] : [words[0], words[words.length - 1]]
-  return picked.map((w) => w[0]!.toLocaleUpperCase('vi')).join('')
+  return picked.map((w) => w[0]!.toLocaleUpperCase(intlLocale())).join('')
 }

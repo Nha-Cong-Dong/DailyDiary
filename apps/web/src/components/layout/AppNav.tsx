@@ -6,15 +6,16 @@ import { cn } from '@/lib/utils'
 import { Avatar } from './Avatar'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
+import { useT } from '@/lib/i18n'
 
 // Khung app theo thiết kế B6.
 const ITEMS = [
-  { to: '/today', label: 'Hôm nay', short: 'Hôm nay', icon: Pencil },
-  { to: '/timeline', label: 'Dòng thời gian', short: 'Dòng thời gian', icon: List },
-  { to: '/pixels', label: 'Year in Pixels', short: 'Cả năm', icon: LayoutGrid },
+  { to: '/today', label: 'components:nav.today', short: 'components:nav.today', icon: Pencil },
+  { to: '/timeline', label: 'components:nav.timeline', short: 'components:nav.timeline', icon: List },
+  { to: '/pixels', label: 'components:nav.pixels', short: 'components:nav.pixelsShort', icon: LayoutGrid },
 ] as const
 
-const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
 
 /** Thanh trên: máy tính có đủ mục và nút; điện thoại chỉ giữ logo và tìm kiếm, các mục chuyển xuống thanh dưới. */
 // Trang một ngày (/day/...) thuộc nhánh Dòng thời gian.
@@ -39,6 +40,7 @@ function usePhoneChrome(): PhoneChrome | null {
 }
 
 export function AppHeader() {
+  const t = useT()
   const { displayName, avatarUrl } = useProfile()
   const forced = useActiveSection()
   // Điện thoại: màn Tìm có hàng riêng (quay lại + ô tìm) nên ẩn thanh trên chung (thiết kế B10 · Tìm kiếm).
@@ -47,19 +49,19 @@ export function AppHeader() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 border-b-[1.5px] border-line bg-background',
+        'sticky top-0 z-30 border-b-[1.5px] border-stroke bg-paper',
         ownHeader && 'max-md:hidden',
         phoneChrome && 'max-md:invisible',
       )}
     >
       <nav
-        aria-label="Điều hướng chính"
+        aria-label={t('components:nav.main')}
         className="mx-auto flex h-[60px] max-w-[1120px] items-center gap-1 pr-2 pl-4 md:h-auto md:gap-4 md:px-[clamp(16px,4vw,40px)] md:py-3"
       >
         <Link
           to="/today"
-          aria-label="Jotly, Hôm nay"
-          className={cn('rounded-sm transition-transform duration-150 hover:[&_svg]:animate-wiggle active:scale-[.97] [&_svg]:origin-[50%_60%]', focusRing)}
+          aria-label={t('components:nav.logoAria')}
+          className={cn('flex min-h-11 items-center rounded-sm transition-transform duration-150 ease-out active:scale-[.97] motion-reduce:transform-none', focusRing)}
         >
           <Logo size="sm" />
         </Link>
@@ -70,32 +72,32 @@ export function AppHeader() {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    'relative inline-flex h-10 items-center rounded-[12px] border-[1.5px] px-3.5 text-sm transition-[background-color,scale] duration-200 active:scale-[.97]',
+                    'relative inline-flex h-10 items-center rounded-[12px] border-[1.5px] px-3.5 text-sm transition-[background-color,scale] duration-200 ease-out active:scale-[.97] motion-reduce:active:scale-100',
                     isActive || forced === item.to
-                      ? 'border-line bg-secondary font-semibold shadow-[2px_2px_0_var(--ink-shadow)]'
-                      : 'border-transparent font-medium after:absolute after:inset-x-3.5 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-250 hover:bg-secondary hover:after:scale-x-100',
+                      ? 'border-stroke bg-secondary font-semibold shadow-[2px_2px_0_var(--ink-shadow)]'
+                      : 'border-transparent font-medium after:absolute after:inset-x-3.5 after:bottom-[7px] after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-250 after:ease-out pointer-fine:hover:bg-secondary pointer-fine:hover:after:scale-x-100',
                     focusRing,
                   )
                 }
               >
-                {item.label}
+                {t(item.label)}
               </NavLink>
             </li>
           ))}
         </ul>
         <div className="flex-1" />
-        <Button asChild variant="outline" size="icon" className="press border-transparent md:size-10 md:rounded-[12px] md:border-line">
-          <NavLink to="/search" aria-label="Tìm theo từ khóa">
+        <Button asChild variant="outline" size="icon" className="row-press border-transparent md:size-10 md:rounded-[12px] md:border-stroke">
+          <NavLink to="/search" aria-label={t('components:nav.search')}>
             <Search aria-hidden="true" />
           </NavLink>
         </Button>
-        <ThemeToggle className="press hidden size-10 rounded-[12px] md:inline-flex" />
+        <ThemeToggle className="hidden size-10 rounded-[12px] md:inline-flex" />
         <NavLink
           to="/profile"
-          aria-label={`Hồ sơ của ${displayName}`}
+          aria-label={t('components:nav.profileAria', { name: displayName })}
           className={cn('press hidden rounded-full md:inline-flex', focusRing)}
         >
-          <Avatar name={displayName} src={avatarUrl} size={40} className="text-[15px]" />
+          <Avatar name={displayName} src={avatarUrl} size={40} className="text-sm" />
         </NavLink>
       </nav>
     </header>
@@ -104,14 +106,15 @@ export function AppHeader() {
 
 /** Thanh tab dưới cho điện thoại (dưới 768 px): bốn màn chính. */
 export function BottomTabs() {
+  const t = useT()
   const forced = useActiveSection()
-  const tabs = [...ITEMS, { to: '/profile', label: 'Hồ sơ', short: 'Hồ sơ', icon: UserRound }]
+  const tabs = [...ITEMS, { to: '/profile', label: 'components:nav.profile', short: 'components:nav.profile', icon: UserRound } as const]
   const phoneChrome = usePhoneChrome()
   return (
     <nav
-      aria-label="Các màn hình chính"
+      aria-label={t('components:nav.tabs')}
       className={cn(
-        'fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-line bg-card px-2 pt-1.5 pb-[max(14px,env(safe-area-inset-bottom))] md:hidden',
+        'fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-stroke bg-card px-2 pt-1.5 pb-[max(14px,env(safe-area-inset-bottom))] md:hidden',
         phoneChrome === 'none' && 'invisible',
       )}
     >
@@ -122,8 +125,8 @@ export function BottomTabs() {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center gap-[3px] rounded-md pt-1 text-[11px] leading-[14px] transition-transform duration-150 active:scale-[.97]',
-                  isActive || forced === item.to ? 'font-semibold text-foreground' : 'font-medium text-muted-foreground',
+                  'flex min-h-12 flex-col items-center gap-[3px] rounded-md pt-1 text-[11px] leading-[14px] transition-transform duration-150 ease-out active:scale-[.97] motion-reduce:active:scale-100',
+                  isActive || forced === item.to ? 'font-semibold text-ink' : 'font-medium text-ink-soft',
                   focusRing,
                 )
               }
@@ -133,12 +136,12 @@ export function BottomTabs() {
                   <span
                     className={cn(
                       'inline-flex h-8 w-[52px] items-center justify-center rounded-full border-[1.5px]',
-                      isActive || forced === item.to ? 'border-line bg-secondary shadow-[2px_2px_0_var(--ink-shadow)]' : 'border-transparent',
+                      isActive || forced === item.to ? 'border-stroke bg-secondary shadow-[2px_2px_0_var(--ink-shadow)]' : 'border-transparent',
                     )}
                   >
                     <item.icon className="size-5" aria-hidden="true" />
                   </span>
-                  {item.short}
+                  {t(item.short)}
                 </>
               )}
             </NavLink>

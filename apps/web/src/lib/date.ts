@@ -1,5 +1,6 @@
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz'
 import { useEffect, useState } from 'react'
+import { t } from '@/lib/i18n'
 
 /**
  * Ngày theo múi giờ của người dùng (skill date-timezone-rules).
@@ -7,8 +8,12 @@ import { useEffect, useState } from 'react'
  */
 export type DateString = string
 
-const WEEKDAY_SHORT = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
-const WEEKDAY_LONG = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+type Day = 0 | 1 | 2 | 3 | 4 | 5 | 6
+type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
+
+// Tên thứ và tháng lấy từ bản dịch (locales/*/common.ts), nên đổi theo ngôn ngữ giao diện.
+const weekdayLong = (d: Date) => t(`common:date.weekdayLong.${d.getUTCDay() as Day}`)
+const monthOf = (d: Date) => (d.getUTCMonth() + 1) as Month
 
 /** Múi giờ IANA của trình duyệt (gợi ý khi đăng ký lần đầu). */
 export function browserTimeZone(): string {
@@ -56,24 +61,34 @@ export function daysEndingAt(end: DateString, count: number): DateString[] {
 }
 
 export function weekdayShort(date: DateString): string {
-  return WEEKDAY_SHORT[parts(date).getUTCDay()]
+  return t(`common:date.weekdayShort.${parts(date).getUTCDay() as Day}`)
 }
 
 export function dayOfMonth(date: DateString): number {
   return parts(date).getUTCDate()
 }
 
-/** "Chủ nhật · 18 tháng 10, 2026"; bỏ năm khi `withYear` là false. */
+/** "Chủ nhật · 18 tháng 10, 2026" / "Sunday · October 18, 2026"; bỏ năm khi `withYear` là false. */
 export function longDateLabel(date: DateString, withYear = true): string {
   const d = parts(date)
-  const base = `${WEEKDAY_LONG[d.getUTCDay()]} · ${d.getUTCDate()} tháng ${d.getUTCMonth() + 1}`
-  return withYear ? `${base}, ${d.getUTCFullYear()}` : base
+  const vars = {
+    weekday: weekdayLong(d),
+    day: d.getUTCDate(),
+    monthLong: t(`common:date.monthLong.${monthOf(d)}`),
+    year: d.getUTCFullYear(),
+  }
+  return withYear ? t('common:date.longDate', vars) : t('common:date.longDateNoYear', vars)
 }
 
-/** "Chủ nhật 18/10". */
+/** "Chủ nhật 18/10" / "Sunday, Oct 18". */
 export function shortDateLabel(date: DateString): string {
   const d = parts(date)
-  return `${WEEKDAY_LONG[d.getUTCDay()]} ${d.getUTCDate()}/${d.getUTCMonth() + 1}`
+  return t('common:date.shortDate', {
+    weekday: weekdayLong(d),
+    day: d.getUTCDate(),
+    month: monthOf(d),
+    monthShort: t(`common:date.monthShort.${monthOf(d)}`),
+  })
 }
 
 /** Số phút còn lại tới nửa đêm theo múi giờ người dùng (lúc ngày hôm nay được chốt). */
@@ -83,12 +98,12 @@ export function minutesLeftToday(timeZone: string, now: Date = new Date()): numb
   return Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 60000))
 }
 
-/** "2 giờ 56 phút". */
+/** "2 giờ 56 phút" / "2 h 56 min". */
 export function durationLabel(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  if (!h) return `${m} phút`
-  return m ? `${h} giờ ${m} phút` : `${h} giờ`
+  if (!h) return t('common:date.durationMinutes', { m })
+  return m ? t('common:date.durationHoursMinutes', { h, m }) : t('common:date.durationHours', { h })
 }
 
 /** Thời điểm hiện tại, cập nhật mỗi `intervalMs` (mặc định 30 giây) để "hôm nay" tự sang ngày mới lúc nửa đêm. */

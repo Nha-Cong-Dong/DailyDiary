@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Jotly · Ứng dụng ấm áp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&subset=vietnamese&display=swap">
+<style>
+:root{--bg:#FFF4EC;--card:#FFFFFF;--ink:#2B2522;--mute:#6F635B;--act:#FF5A36;--soft:#FFF4EC;--line:#F2E6DC;--dash:#E3D3C6;--off:#8F8680;--sage:#A3C392}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font:600 16px/1.5 Nunito,sans-serif;display:grid;grid-template-columns:260px 1fr 336px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+/* rail */
+nav{padding:28px 16px;display:flex;flex-direction:column;gap:6px}
+.logo{font-size:32px;font-weight:900;letter-spacing:-.02em;padding:0 16px;margin-bottom:28px}
+nav a{display:flex;align-items:center;gap:12px;height:48px;padding:0 14px;border-radius:16px;font-weight:700;white-space:nowrap;color:var(--ink);text-decoration:none}
+nav a.on{background:var(--act);color:var(--ink);font-weight:800}
+nav a.lock{margin-top:auto;color:var(--off);font-size:15px}
+.badge{margin-left:auto;font-size:12px;font-weight:800;padding:2px 8px;border-radius:99px;background:#F0E7E0;color:var(--off)}
+/* main column */
+main{padding:28px 24px 0;display:flex;flex-direction:column;gap:20px;min-width:0}
+.head{display:flex;align-items:center;justify-content:space-between;height:52px}
+.head h1{font-size:40px;font-weight:900;line-height:1.1;letter-spacing:-.01em}
+.head h1 span{color:var(--mute);font-weight:700}
+.nav2{display:flex;gap:8px}
+.round{width:44px;height:44px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center}
+.round[disabled]{background:none;color:#C9BFB8;cursor:default}
+.card{background:var(--card);border-radius:24px;padding:24px 28px;box-shadow:0 1px 2px rgba(43,37,34,.04),0 10px 28px -16px rgba(43,37,34,.18)}
+.ch{display:flex;align-items:baseline;justify-content:space-between}
+h2{font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-.01em}
+.ch small{font-size:14px;color:var(--mute);font-weight:700}
+.picker{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}
+.picker button{height:100px;border-radius:18px;background:var(--soft);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:800}
+.picker button svg{width:36px;height:36px}
+.picker button em{font-style:normal;font-size:13px;font-weight:700;opacity:.7;margin-right:4px}
+.picker button.sel{background:var(--act);color:var(--ink);box-shadow:0 8px 18px -10px rgba(255,90,54,.8)}
+.picker button.sel em{opacity:1}
+.write{display:grid;grid-template-columns:1fr 232px;gap:28px}
+.title{font-size:28px;font-weight:800;line-height:1.25;letter-spacing:-.01em}
+.body{margin-top:10px;font-weight:500;font-size:17px;line-height:1.65;color:#3E352F}
+.tags{display:flex;gap:8px;margin-top:16px}
+.tags span{height:34px;padding:0 14px;border-radius:99px;background:var(--soft);display:flex;align-items:center;font-weight:700;font-size:14px}
+.tags span.add{background:none;border:1.5px dashed var(--dash);color:var(--mute)}
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start}
+.ph{height:108px;border-radius:16px;position:relative;overflow:hidden}
+.ph i{position:absolute;display:block}
+.p1{background:#8FB0BE}.p1 .sky{left:0;right:0;top:0;height:50%;background:#F7DCC2}
+.p1 .sun{width:24px;height:24px;border-radius:50%;background:#F4A66A;left:62px;top:28px}
+.p1 .shore{left:0;right:0;top:47%;height:8px;background:#5E7364}
+.p2{background:#D9C8AE}.p2 .page{left:14px;top:14px;width:80px;height:90px;border-radius:6px;transform:rotate(-5deg);background:repeating-linear-gradient(#FFFBF4 0 13px,#E8DCCB 13px 14px)}
+.p2 .pen{left:86px;top:22px;width:6px;height:66px;border-radius:3px;background:#3D4A66;transform:rotate(16deg)}
+.addph{grid-column:span 2;height:44px;border-radius:14px;border:1.5px dashed var(--dash);color:var(--mute);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:14px}
+.foot{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.saved{display:flex;align-items:center;gap:8px;color:var(--mute);font-weight:700;font-size:14px}
+.saved svg{width:18px;height:18px}
+.primary{height:46px;padding:0 24px;border-radius:16px;background:var(--act);color:var(--ink);font-weight:800}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:16px}
+.day{height:118px;padding:12px 8px;border-radius:18px;background:var(--soft);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.day b{font-size:13px;color:var(--mute);font-weight:800}
+.day strong{font-size:24px;font-weight:900;line-height:1.2}
+.day svg.i{width:30px;height:30px;margin-top:4px}
+.day.miss{background:none;border:1.5px dashed var(--dash)}
+.day.miss strong{color:var(--off)}
+.day.miss small{font-size:13px;font-weight:700;color:var(--mute);margin-top:8px}
+.day.now{background:var(--card);box-shadow:inset 0 0 0 2px var(--ink)}
+.link{font-size:14px;font-weight:800;color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--dash)}
+/* right column */
+aside{padding:100px 28px 0 0;display:flex;flex-direction:column;gap:20px}
+.lbl{font-size:15px;font-weight:700;color:var(--mute)}
+.big{display:flex;align-items:baseline;gap:10px;margin-top:2px}
+.big b{font-size:80px;font-weight:900;line-height:1;letter-spacing:-.03em}
+.big span{font-size:28px;font-weight:800}
+.pills{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin:18px 0 14px}
+.pills i{height:10px;border-radius:99px;background:#F0E5DC}
+.pills i.f{background:var(--ink)}
+.row{display:flex;align-items:center;justify-content:space-between;font-weight:700}
+.row+.row{margin-top:14px}
+.note{margin-top:14px;font-size:15px;color:var(--mute);font-weight:600}
+.pick{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px 0 8px;border-radius:16px;background:var(--soft);font-weight:700;font-size:15px}
+.pick .em{width:34px;height:34px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:19px}
+.pick .sw{width:34px;height:34px;border-radius:12px;background:var(--sage)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="s1" viewBox="0 0 24 24"><path d="M3 20.5h18"/><ellipse cx="12" cy="16.6" rx="4.2" ry="2.8"/><path d="M10.6 15.6c.8-.7 1.8-1 2.8-.8"/></symbol>
+<symbol id="s2" viewBox="0 0 24 24"><path d="M3 20.5h18M12 20.5v-7"/><path d="M12 14c-3.2 0-5-1.8-5-4.6 3.2 0 5 1.8 5 4.6zM12 13.5c0-3 1.8-4.8 4.8-4.8 0 3-1.8 4.8-4.8 4.8z"/></symbol>
+<symbol id="s3" viewBox="0 0 24 24"><path d="M3 20.5h18M12 20.5V10"/><path d="M12 3c2.6 2.2 2.8 4.8 0 7-2.8-2.2-2.6-4.8 0-7z"/><path d="M12 16.5c-2.8 0-4.4-1.4-4.4-3.8 2.8 0 4.4 1.4 4.4 3.8z"/></symbol>
+<symbol id="s4" viewBox="0 0 24 24"><path d="M3 20.5h18M12 20.5V11"/><path d="M7.5 3.5c0 4.5 1.8 7.5 4.5 7.5s4.5-3 4.5-7.5c-1.6 1.2-3 1.8-4.5 1.8S9.1 4.7 7.5 3.5z"/><path d="M12 16.5c2.8 0 4.4-1.4 4.4-3.8-2.8 0-4.4 1.4-4.4 3.8z"/></symbol>
+<symbol id="s5" viewBox="0 0 24 24"><path d="M3 20.5h18M12 20.5v-8"/><circle cx="12" cy="7.6" r="1.6"/><circle cx="12" cy="4.2" r="1.9"/><circle cx="15.3" cy="6.6" r="1.9"/><circle cx="14" cy="10.4" r="1.9"/><circle cx="10" cy="10.4" r="1.9"/><circle cx="8.7" cy="6.6" r="1.9"/></symbol>
+<symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+<symbol id="tl" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></symbol>
+<symbol id="yr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M3.5 9.2h17M3.5 14.8h17M9.2 3.5v17M14.8 3.5v17"/></symbol>
+<symbol id="sr" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+<symbol id="me" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></symbol>
+<symbol id="lk" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.8 2.8L16.2 9.7"/></symbol>
+<symbol id="lt" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
+<symbol id="rt" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+</defs></svg>
+
+<nav>
+  <div class="logo">Jotly</div>
+  <a class="on" href="#"><svg class="i"><use href="#sun"/></svg>Hôm nay</a>
+  <a href="#"><svg class="i"><use href="#tl"/></svg>Dòng thời gian</a>
+  <a href="#"><svg class="i"><use href="#yr"/></svg>Năm</a>
+  <a href="#"><svg class="i"><use href="#sr"/></svg>Tìm kiếm</a>
+  <a href="#"><svg class="i"><use href="#me"/></svg>Hồ sơ</a>
+  <a class="lock" href="#" aria-disabled="true"><svg class="i"><use href="#lk"/></svg>Nhật ký chung<span class="badge">Sắp có</span></a>
+</nav>
+
+<main>
+  <header class="head">
+    <h1>Thứ Bảy, 31 tháng 10 <span>2026</span></h1>
+    <div class="nav2"><button class="round" aria-label="Hôm qua"><svg class="i"><use href="#lt"/></svg></button><button class="round" disabled aria-label="Ngày mai"><svg class="i"><use href="#rt"/></svg></button></div>
+  </header>
+
+  <section class="card">
+    <div class="ch"><h2>Hôm nay thế nào?</h2><small>Mầm → hoa nở</small></div>
+    <div class="picker" role="radiogroup">
+      <button><svg class="i"><use href="#s1"/></svg><span><em>1</em>Hạt</span></button>
+      <button><svg class="i"><use href="#s2"/></svg><span><em>2</em>Mầm</span></button>
+      <button><svg class="i"><use href="#s3"/></svg><span><em>3</em>Nụ</span></button>
+      <button class="sel" aria-checked="true"><svg class="i"><use href="#s4"/></svg><span><em>4</em>Hé nở</span></button>
+      <button><svg class="i"><use href="#s5"/></svg><span><em>5</em>Nở rộ</span></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="write">
+      <div>
+        <div class="title">Chạy 5 km đầu tiên</div>
+        <p class="body">Sáng nay dậy lúc 5h30, trời Hà Nội se lạnh. Chạy quanh hồ Tây hết 34 phút, chậm nhưng không dừng lần nào. Tối về ôn thêm 20 từ tiếng Nhật rồi đi ngủ sớm.</p>
+        <div class="tags"><span>chạy bộ</span><span>tiếng Nhật</span><span>hồ Tây</span><span class="add">+ Thêm từ khóa</span></div>
+      </div>
+      <div class="photos">
+        <div class="ph p1"><i class="sky"></i><i class="sun"></i><i class="shore"></i></div>
+        <div class="ph p2"><i class="page"></i><i class="pen"></i></div>
+        <div class="addph">+ Thêm ảnh</div>
+      </div>
+    </div>
+    <div class="foot">
+      <span class="saved"><svg class="i"><use href="#ok"/></svg>Đã lưu</span>
+      <button class="primary">Xong rồi</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="ch"><h2>7 ngày qua</h2><a class="link" href="#">Xem cả tháng</a></div>
+    <div class="week">
+      <div class="day"><b>CN</b><strong>25</strong><svg class="i"><use href="#s3"/></svg></div>
+      <div class="day"><b>T2</b><strong>26</strong><svg class="i"><use href="#s4"/></svg></div>
+      <div class="day"><b>T3</b><strong>27</strong><svg class="i"><use href="#s2"/></svg></div>
+      <div class="day miss"><b>T4</b><strong>28</strong><small>chưa ghi</small></div>
+      <div class="day"><b>T5</b><strong>29</strong><svg class="i"><use href="#s5"/></svg></div>
+      <div class="day"><b>T6</b><strong>30</strong><svg class="i"><use href="#s3"/></svg></div>
+      <div class="day now"><b>Hôm nay</b><strong>31</strong><svg class="i"><use href="#s4"/></svg></div>
+    </div>
+  </section>
+</main>
+
+<aside>
+  <section class="card">
+    <div class="lbl">Chuỗi hiện tại</div>
+    <div class="big"><b>3</b><span>ngày</span></div>
+    <div class="pills"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="row"><span class="lbl">Dài nhất</span><span>12 ngày</span></div>
+    <p class="note">Viết thêm 9 ngày nữa là bằng kỷ lục của bạn.</p>
+  </section>
+  <section class="card">
+    <h2>Chi tiết</h2>
+    <div class="row" style="margin-top:16px"><span class="lbl">Biểu tượng phụ</span><button class="pick"><span class="em">🏃</span>Chạy bộ</button></div>
+    <div class="row"><span class="lbl">Màu cờ</span><button class="pick"><span class="sw"></span>Sage</button></div>
+  </section>
+</aside>
+</body>
+</html>

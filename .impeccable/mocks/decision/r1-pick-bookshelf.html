@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Brygada+1918:wght@400;500;700&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--wall:#E6E8EA;--shelf:#C9CED4;--paper:#FCFCFA;--ink:#1F2228;--soft:#5F6670;--rule:#DCE2E9}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:var(--wall);font:15px/1.5 "Lexend",sans-serif;color:var(--ink);display:grid;grid-template-columns:420px 1fr}
+.side{padding:30px 36px;display:flex;flex-direction:column}
+.logo{display:flex;align-items:center;gap:10px;font:700 22px "Brygada 1918";margin-bottom:22px}
+.logo i{width:26px;height:30px;background:#fff;box-shadow:inset 0 6px 0 #C9474F,0 0 0 1px #c3c9d1;display:grid;place-items:center;padding-top:5px;font:700 16px "Brygada 1918";font-style:normal;color:#2B3A67}
+nav{display:flex;gap:18px;font-size:14px;color:var(--soft);margin-bottom:56px}nav b{color:var(--ink)}
+h2{font:500 18px "Brygada 1918";margin-bottom:6px}
+.sub{font-size:13px;color:var(--soft);margin-bottom:26px}
+.shelf{display:flex;align-items:flex-end;gap:3px;height:300px;border-bottom:10px solid var(--shelf);padding:0 6px}
+.v{height:270px;color:#fff;font:500 12px "Lexend";writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-radius:2px 2px 0 0}
+.v.thin{opacity:.35}
+.v.on{height:290px;outline:2px solid var(--ink);outline-offset:2px}
+.legend{margin-top:20px;font-size:13px;color:var(--soft)}
+.soon{margin-top:auto;font-size:13px;color:var(--soft)}
+.book{margin:40px 60px 0 20px;background:var(--paper);height:820px;padding:54px 80px;position:relative;box-shadow:-6px 0 0 #2B3A67,0 2px 0 #cfd4db}
+.run{display:flex;justify-content:space-between;font:italic 14px "Brygada 1918";color:var(--soft)}
+.dn{font:400 80px/1 "Brygada 1918";margin-top:40px}
+.dt{font:500 20px "Brygada 1918";margin-top:6px}
+h3{font:500 17px "Brygada 1918";margin:38px 0 12px}
+.score{display:flex;gap:10px}
+.score span{flex:1;border-bottom:3px solid;padding:8px 0;text-align:center;font-size:13px;color:var(--soft)}
+.score .on{color:var(--ink);font-weight:600;background:#F4F1EA}
+.t{font:700 26px "Brygada 1918";margin:34px 0 8px}
+.lines{font:18px/32px "Brygada 1918";background:repeating-linear-gradient(transparent 0 31px,var(--rule) 31px 32px);height:192px;max-width:34em}
+.foot{position:absolute;left:80px;right:80px;bottom:30px;display:flex;justify-content:space-between;font:italic 14px "Brygada 1918";color:var(--soft)}
+</style></head><body>
+<aside class="side">
+<div class="logo"><i>J</i>Jotly</div>
+<nav><b>Hôm nay</b><span>Dòng thời gian</span><span>Năm</span><span>Tìm kiếm</span><span>Hồ sơ</span></nav>
+<h2>Kệ sách năm 2026</h2>
+<div class="sub">Mỗi tháng một cuốn; gáy dày theo số trang đã ghi.</div>
+<div class="shelf">
+<div class="v" style="width:26px;background:#4E6E9E">Tháng 1</div>
+<div class="v" style="width:22px;background:#7A5C8E">Tháng 2</div>
+<div class="v" style="width:28px;background:#3F7F6E">Tháng 3</div>
+<div class="v" style="width:24px;background:#B9774A">Tháng 4</div>
+<div class="v" style="width:30px;background:#5D7FB5">Tháng 5</div>
+<div class="v" style="width:25px;background:#9C4F5C">Tháng 6</div>
+<div class="v" style="width:27px;background:#4F8A8B">Tháng 7</div>
+<div class="v" style="width:23px;background:#8C7A3E">Tháng 8</div>
+<div class="v" style="width:26px;background:#5B5F9A">Tháng 9</div>
+<div class="v on" style="width:19px;background:#2B3A67">Tháng 10</div>
+<div class="v thin" style="width:8px;background:#9AA3AE"></div>
+<div class="v thin" style="width:8px;background:#9AA3AE"></div>
+</div>
+<div class="legend">Tháng 10: 16 trang, điểm trung bình 3,6</div>
+<div class="soon">Nhật ký chung, sắp có</div>
+</aside>
+<section class="book">
+<div class="run"><span>Tháng Mười</span><span>Trang 304</span></div>
+<div class="dn">31</div>
+<div class="dt">Thứ Bảy, hôm nay</div>
+<h3>Hôm nay thế nào?</h3>
+<div class="score"><span style="border-color:#2F4B7C">Hạt</span><span style="border-color:#8FB2DA">Mầm</span><span style="border-color:#CFCABD">Nụ</span><span class="on" style="border-color:#E2A74A">Hé nở</span><span style="border-color:#D9636B">Nở rộ</span></div>
+<div class="t">Chiều mưa ở quán cũ</div>
+<div class="lines">Ngồi đọc nốt cuốn sách còn dang dở tới khi mưa tạnh. Quán vẫn bật bài hát cũ như hồi sinh viên. Về nhà nấu canh chua, gọi cho mẹ.</div>
+<div class="foot"><span>Âm lịch 22 tháng Chín, năm Bính Ngọ</span><span>Đã lưu lúc 21:04</span></div>
+</section>
+</body></html>

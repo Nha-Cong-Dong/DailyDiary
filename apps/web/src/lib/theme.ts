@@ -1,29 +1,110 @@
 import { useSyncExternalStore } from 'react'
+import { t } from './i18n'
 
 /**
- * Chế độ màu: lớp `dark` trên <html>. Người dùng chọn Sáng / Tối / Theo hệ thống (Hồ sơ); lựa chọn nhớ trong
- * localStorage. "Theo hệ thống" (mặc định) đi theo prefers-color-scheme và đổi ngay khi hệ điều hành đổi.
+ * Chế độ màu (canvas B11-Theme): lớp `dark` trên <html>. Bốn lựa chọn trong Hồ sơ: Sáng / Tối / Hệ thống / Theo giờ;
+ * mặc định Hệ thống. Lựa chọn nhớ trong localStorage.
+ * - Hệ thống: theo prefers-color-scheme, đổi ngay khi hệ điều hành đổi.
+ * - Theo giờ: tối từ 20:00 đến trước 05:00 theo đồng hồ của máy, sáng thời gian còn lại; tự đổi khi qua mốc.
  */
-export type ThemePreference = 'light' | 'dark' | 'system'
+export type ThemePreference = 'light' | 'dark' | 'system' | 'hour'
+
+// `label` là getter: dịch lúc đọc (không chốt chữ ở cấp module), nên đổi ngôn ngữ thì lần render sau ra chữ mới.
+export const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  {
+    value: 'light',
+    get label() {
+      return t('lib:theme.light')
+    },
+  },
+  {
+    value: 'dark',
+    get label() {
+      return t('lib:theme.dark')
+    },
+  },
+  {
+    value: 'system',
+    get label() {
+      return t('lib:theme.system')
+    },
+  },
+  {
+    value: 'hour',
+    get label() {
+      return t('lib:theme.hour')
+    },
+  },
+]
+
+/** Chú thích dưới bộ chọn (canvas B11-Theme); Sáng/Tối không có chú thích. */
+export const THEME_CAPTIONS: Partial<Record<ThemePreference, string>> = {
+  get hour() {
+    return t('lib:theme.hourCaption')
+  },
+  get system() {
+    return t('lib:theme.systemCaption')
+  },
+}
+
+/** Giờ bắt đầu và kết thúc chế độ tối của "Theo giờ". */
+export const NIGHT_FROM_HOUR = 20
+export const NIGHT_UNTIL_HOUR = 5
 
 const STORAGE_KEY = 'jotly-theme'
 const listeners = new Set<() => void>()
 let preference: ThemePreference = 'system'
+let hourTimer: ReturnType<typeof setTimeout> | undefined
 
 function systemDark(): boolean {
   return Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)
 }
 
+/** Giờ trên máy có thuộc khoảng tối của "Theo giờ" không. */
+export function isNightHour(date: Date = new Date()): boolean {
+  const h = date.getHours()
+  return h >= NIGHT_FROM_HOUR || h < NIGHT_UNTIL_HOUR
+}
+
+/** Số mili giây tới mốc đổi chế độ kế tiếp (05:00 hoặc 20:00). */
+export function msUntilNextSwitch(date: Date = new Date()): number {
+  const next = new Date(date)
+  next.setSeconds(0, 0)
+  next.setMinutes(0)
+  const h = date.getHours()
+  if (h < NIGHT_UNTIL_HOUR) next.setHours(NIGHT_UNTIL_HOUR)
+  else if (h < NIGHT_FROM_HOUR) next.setHours(NIGHT_FROM_HOUR)
+  else {
+    next.setDate(next.getDate() + 1)
+    next.setHours(NIGHT_UNTIL_HOUR)
+  }
+  return Math.max(1000, next.getTime() - date.getTime())
+}
+
+/** Chế độ đang hiển thị ứng với một lựa chọn. */
+export function resolveDark(pref: ThemePreference, now: Date = new Date()): boolean {
+  if (pref === 'system') return systemDark()
+  if (pref === 'hour') return isNightHour(now)
+  return pref === 'dark'
+}
+
+function scheduleHour() {
+  clearTimeout(hourTimer)
+  hourTimer = undefined
+  if (preference !== 'hour') return
+  hourTimer = setTimeout(apply, msUntilNextSwitch())
+}
+
 function apply() {
-  const dark = preference === 'system' ? systemDark() : preference === 'dark'
-  document.documentElement.classList.toggle('dark', dark)
+  document.documentElement.classList.toggle('dark', resolveDark(preference))
+  scheduleHour()
   listeners.forEach((l) => l())
 }
 
 function readStored(): ThemePreference {
   try {
     const v = localStorage.getItem(STORAGE_KEY)
-    return v === 'light' || v === 'dark' ? v : 'system'
+    return v === 'light' || v === 'dark' || v === 'hour' ? v : 'system'
   } catch {
     return 'system'
   }
@@ -33,6 +114,10 @@ export function initTheme() {
   preference = readStored()
   window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
     if (preference === 'system') apply()
+  })
+  // Máy ngủ qua mốc giờ thì setTimeout trễ: kiểm lại khi quay lại tab.
+  document.addEventListener('visibilitychange', () => {
+    if (preference === 'hour' && document.visibilityState === 'visible') apply()
   })
   apply()
 }

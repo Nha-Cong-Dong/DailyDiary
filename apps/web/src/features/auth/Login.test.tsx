@@ -1,5 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { resetServerWake } from '@/lib/serverWake'
 import { renderWithMe } from '@/test/withMe'
 import { Login } from './Login'
 import { LOGIN_ERRORS, UNKNOWN_LOGIN_ERROR } from './loginState'
@@ -7,6 +8,8 @@ import { LOGIN_ERRORS, UNKNOWN_LOGIN_ERROR } from './loginState'
 const routes = [{ path: '/login', Component: Login }]
 
 beforeEach(() => {
+  // Mặc định coi máy chủ đang thức (bấm Google chuyển ngay); ca "đang ngủ" tự đặt lại.
+  resetServerWake(true)
   // Chưa đăng nhập: GET /me trả 401.
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(
     new Response(JSON.stringify({ error: { code: 'AUTH_REQUIRED', message: 'Bạn cần đăng nhập' } }), {
@@ -56,6 +59,22 @@ describe('Trang đăng nhập', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Đang chờ Google')
     fireEvent.click(screen.getByRole('button', { name: 'Hủy' }))
     expect(stop).toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'Đăng nhập vào Jotly' })).toBeInTheDocument()
+  })
+
+  it('máy chủ chưa thức: bấm Google thì báo "Đang đánh thức máy chủ…", không chuyển trang; Hủy quay lại', async () => {
+    resetServerWake(false)
+    // Máy chủ đang ngủ: /health không trả lời, các request khác nhận 503 (chưa tính là đã thức).
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) =>
+      String(input instanceof Request ? input.url : input).includes('/health')
+        ? new Promise<Response>(() => {})
+        : Promise.resolve(new Response('{}', { status: 503, headers: { 'Content-Type': 'application/json' } })),
+    )
+    renderWithMe(routes, '/login', null)
+    fireEvent.click(await screen.findByRole('link', { name: /Tiếp tục với Google/ }))
+    expect(screen.getByRole('heading', { name: 'Đang đánh thức máy chủ…' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Đang chờ máy chủ…')
+    fireEvent.click(screen.getByRole('button', { name: 'Hủy' }))
     expect(screen.getByRole('heading', { name: 'Đăng nhập vào Jotly' })).toBeInTheDocument()
   })
 })
