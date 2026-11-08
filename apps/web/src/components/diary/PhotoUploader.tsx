@@ -7,6 +7,7 @@ import { DATA_SUMMARY_KEY, storageUsage, useDataSummary, usagePercent } from '@/
 import { cn } from '@/lib/utils'
 import { PHOTO_TINTS } from './photoTints'
 import { countsTowardLimit, type PhotoUploads, type RejectReason, type UploadTile } from './usePhotoUploads'
+import { useT } from '@/lib/i18n'
 
 // Điện thoại: ô vuông theo lưới 4 cột (B10). Máy tính: ô 96px xếp hàng (B9).
 const tileBase =
@@ -33,15 +34,21 @@ function ProgressRing({ progress }: { progress: number }) {
   )
 }
 
-const REJECTED: Record<RejectReason, () => [string, string]> = {
-  size: () => ['Ảnh quá lớn', `Quá ${megabytesLabel(tierLimits().photos.source_max_bytes)}`],
-  type: () => ['Sai định dạng', 'Không hỗ trợ'],
-  quota: () => ['Hết dung lượng', 'Chưa lưu ảnh'],
-  photo_limit: () => ['Đủ ảnh', `Tối đa ${tierLimits().photos.per_day_max} ảnh`],
-}
-
 function RejectedText({ reason }: { reason: RejectReason }) {
-  const [title, detail] = REJECTED[reason]()
+  const t = useT()
+  const REJECTED: Record<RejectReason, [string, string]> = {
+    size: [
+      t('components:photo.tooLarge'),
+      t('components:photo.tooLargeDetail', { max: megabytesLabel(tierLimits().photos.source_max_bytes) }),
+    ],
+    type: [t('components:photo.wrongType'), t('components:photo.wrongTypeDetail')],
+    quota: [t('components:photo.quota'), t('components:photo.quotaDetail')],
+    photo_limit: [
+      t('components:photo.limit'),
+      t('components:photo.limitDetail', { count: tierLimits().photos.per_day_max }),
+    ],
+  }
+  const [title, detail] = REJECTED[reason]
   return (
     <>
       <ImageOff className="size-5 text-danger" aria-hidden="true" />
@@ -52,6 +59,7 @@ function RejectedText({ reason }: { reason: RejectReason }) {
 }
 
 function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: number; onRemove: () => void; onRetry: () => void }) {
+  const t = useT()
   const tint = PHOTO_TINTS[index % PHOTO_TINTS.length]
   const preview = tile.status === 'rejected' ? undefined : (tile.previewUrl ?? (tile.status === 'done' ? (tile.photo.thumbUrl ?? undefined) : undefined))
   const name = tile.status === 'done' ? tile.photo.label : tile.status === 'rejected' ? tile.name : tile.file.name
@@ -78,21 +86,21 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
         <span className="relative flex flex-col items-center gap-1 rounded-[10px] bg-paper/75 px-1.5 py-1 text-ink-soft">
           <ProgressRing progress={tile.progress} />
           <span role="status" className={caption}>
-            Đang tải…
+            {t('components:photo.uploading')}
           </span>
         </span>
       ) : null}
       {tile.status === 'failed' ? (
         <>
-          <span className={cn(caption, 'font-semibold')}>Lỗi mạng</span>
+          <span className={cn(caption, 'font-semibold')}>{t('components:photo.networkError')}</span>
           <button
             type="button"
             onClick={onRetry}
-            aria-label={`Thử tải lại ảnh ${name}`}
+            aria-label={t('components:photo.retryAria', { name })}
             className="press inline-flex h-7 cursor-pointer items-center gap-1 rounded-sm border-[1.5px] border-stroke bg-card px-2.5 text-xs font-semibold focus-visible:outline-3 focus-visible:outline-focus"
           >
             <RotateCw className="size-3" aria-hidden="true" />
-            Thử lại
+            {t('components:photo.retry')}
           </button>
         </>
       ) : null}
@@ -100,7 +108,7 @@ function Tile({ tile, index, onRemove, onRetry }: { tile: UploadTile; index: num
       <button
         type="button"
         onClick={onRemove}
-        aria-label={`Bỏ ảnh ${name}`}
+        aria-label={t('components:photo.removeAria', { name })}
         className={cn(
           // Nút bỏ nằm chờm ra ngoài góc ô (B9, B10).
           'absolute -top-2 -right-2 z-10 flex size-7 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-stroke bg-card text-ink transition-opacity duration-(--dur-fast) focus-visible:opacity-100 focus-visible:outline-3 focus-visible:outline-focus md:-top-[9px] md:-right-[9px] md:size-[26px]',
@@ -129,13 +137,14 @@ type PhotoUploaderProps = {
  * chuyển xám. Dung lượng ảnh đạt ngưỡng cảnh báo (`warn_ratio`, mục 4.5 của đặc tả) thì hiện thêm một dòng cảnh báo.
  */
 export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderProps) {
+  const t = useT()
   const { per_day_max, source_max_bytes } = tierLimits().photos
   const inputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
   const [dragging, setDragging] = useState(false)
   const count = uploads.tiles.filter(countsTowardLimit).length
   const full = count >= per_day_max
-  const rejected = new Set(uploads.tiles.flatMap((t) => (t.status === 'rejected' ? [t.reason] : [])))
+  const rejected = new Set(uploads.tiles.flatMap((tile) => (tile.status === 'rejected' ? [tile.reason] : [])))
   const { data: summary } = useDataSummary()
   const usage = summary ? storageUsage(summary) : null
   useRefreshUsage(uploads.tiles)
@@ -150,14 +159,14 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
   const note = uploads.note
     ? uploads.note
     : full
-      ? `Đã đủ ${per_day_max} ảnh. Bỏ bớt ảnh để thêm ảnh mới.`
+      ? t('components:photo.noteFull', { count: per_day_max })
       : rejected.has('quota')
-        ? 'Ảnh chưa được lưu vì đã hết dung lượng. Bấm × để bỏ ô báo lỗi.'
+        ? t('components:photo.noteQuota')
         : rejected.has('photo_limit')
-          ? `Trang này đã đủ ${per_day_max} ảnh. Bấm × để bỏ ô báo lỗi.`
+          ? t('components:photo.notePageFull', { count: per_day_max })
           : rejected.size
-            ? `Chỉ nhận ${photoFormatsLabel()}, mỗi ảnh tối đa ${megabytesLabel(source_max_bytes)}. Bấm × để bỏ ô báo lỗi.`
-            : 'Jotly lưu bản đã nén; ảnh gốc vẫn nằm trên máy của bạn.'
+            ? t('components:photo.noteFormats', { formats: photoFormatsLabel(), max: megabytesLabel(source_max_bytes) })
+            : t('components:photo.noteDefault')
 
   return (
     <div className={cn('flex flex-col gap-2.5', className)}>
@@ -190,7 +199,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
               <span className={cn(tileBase, 'border-dashed border-disabled-line bg-secondary p-1.5 text-ink-faint')}>
                 <ImagePlus className="size-5" aria-hidden="true" />
                 <span className={cn(caption, 'font-semibold')}>
-                  Đủ {per_day_max}/{per_day_max}
+                  {t('components:photo.fullTile', { max: per_day_max })}
                 </span>
               </span>
             ) : (
@@ -219,7 +228,7 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
                   )}
                 >
                   <ImagePlus className="size-5 md:size-6" aria-hidden="true" />
-                  <span className="text-[11px] leading-4 font-medium md:text-label md:font-medium">{dragging ? 'Thả ảnh vào đây' : 'Thêm ảnh'}</span>
+                  <span className="text-[11px] leading-4 font-medium md:text-label md:font-medium">{dragging ? t('components:photo.dropHere') : t('components:photo.add')}</span>
                 </button>
               </>
             )}
@@ -231,8 +240,8 @@ export function PhotoUploader({ uploads, labelledBy, className }: PhotoUploaderP
           <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>
             {usage.full
-              ? `Đã hết dung lượng ảnh (${usage.label}). Bỏ bớt ảnh trong các trang cũ để thêm ảnh mới.`
-              : `Dung lượng ảnh: ${usage.label} (${usagePercent(usage)}%). Sắp hết chỗ cho ảnh mới.`}
+              ? t('components:photo.usageFull', { label: usage.label })
+              : t('components:photo.usageWarn', { label: usage.label, percent: usagePercent(usage) })}
           </span>
         </p>
       ) : null}

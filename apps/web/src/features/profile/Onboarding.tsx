@@ -8,6 +8,7 @@ import { IconSetPicker } from './components/IconSetPicker'
 import { OnboardingFrame, StepHeading } from './components/OnboardingFrame'
 import { StepName } from './components/StepName'
 import { TimeZoneField } from './components/TimeZoneField'
+import { useT } from '@/lib/i18n'
 
 /**
  * Ba bước sau lần đăng nhập Google đầu tiên (thiết kế B6-Onboard-1..3): tên → bộ icon → múi giờ.
@@ -15,6 +16,7 @@ import { TimeZoneField } from './components/TimeZoneField'
  */
 export function Onboarding() {
   const navigate = useNavigate()
+  const t = useT()
   const start = useProfile()
   const save = useUpdateProfile()
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -29,8 +31,8 @@ export function Onboarding() {
     if (step === 1) {
       const trimmed = name.trim()
       const max = tierLimits().profile.display_name_max
-      if (!trimmed) return setNameError('Tên không được để trống')
-      if (trimmed.length > max) return setNameError(`Tên tối đa ${max} ký tự`)
+      if (!trimmed) return setNameError(t('profile:name.empty'))
+      if (trimmed.length > max) return setNameError(t('profile:name.tooLong', { max }))
       setName(trimmed)
       setVisited(true)
       setStep(2)
@@ -47,7 +49,7 @@ export function Onboarding() {
   const back =
     step > 1 ? (
       <Button variant="ghost" className="h-11 px-2" onClick={() => setStep((s) => (s - 1) as 1 | 2)}>
-        Quay lại
+        {t('profile:onboarding.back')}
       </Button>
     ) : (
       <span />
@@ -62,19 +64,19 @@ export function Onboarding() {
           {back}
           {save.isError ? (
             <span role="alert" className="text-label leading-5 font-medium text-danger">
-              Chưa lưu được. Thử lại nhé.
+              {t('profile:name.saveError')}
             </span>
           ) : null}
           <Button size="lg" onClick={next} disabled={save.isPending}>
             {save.isPending ? (
-              'Đang lưu…'
+              t('profile:onboarding.saving')
             ) : step === 3 ? (
               <>
-                Bắt đầu viết <Pencil aria-hidden="true" />
+                {t('profile:onboarding.start')} <Pencil aria-hidden="true" />
               </>
             ) : (
               <>
-                Tiếp tục <ArrowRight aria-hidden="true" />
+                {t('profile:onboarding.next')} <ArrowRight aria-hidden="true" />
               </>
             )}
           </Button>
@@ -93,9 +95,7 @@ export function Onboarding() {
         />
       ) : step === 2 ? (
         <>
-          <StepHeading title="Chọn bộ icon chấm điểm">
-            Năm mức, từ ngày tệ nhất đến ngày tuyệt nhất. Đổi lại được trong Hồ sơ.
-          </StepHeading>
+          <StepHeading title={t('profile:onboarding.iconStep.title')}>{t('profile:onboarding.iconStep.desc')}</StepHeading>
           <IconSetPicker
             value={iconSetId}
             onChange={setIconSetId}
@@ -104,7 +104,7 @@ export function Onboarding() {
         </>
       ) : (
         <>
-          <StepHeading title="Ngày của bạn kết thúc lúc nào?">Jotly chốt mỗi ngày vào nửa đêm theo múi giờ của bạn.</StepHeading>
+          <StepHeading title={t('profile:onboarding.timeZoneStep.title')}>{t('profile:onboarding.timeZoneStep.desc')}</StepHeading>
           <TimeZoneField value={timeZone} onChange={setTimeZone} />
         </>
       )}

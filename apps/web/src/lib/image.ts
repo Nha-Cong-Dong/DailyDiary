@@ -1,4 +1,5 @@
 import { tierLimits } from './limits'
+import { intlLocale, t } from './i18n'
 
 /**
  * Kiểm tra tệp ảnh trước khi tải lên (Project_Specs F-01, phần ảnh): chỉ nhận định dạng trong
@@ -59,7 +60,9 @@ export function photoFormatsLabel(): string {
 /** 10485760 → "10 MB". */
 export function megabytesLabel(bytes: number): string {
   const mb = bytes / (1024 * 1024)
-  return `${Number.isInteger(mb) ? mb : mb.toFixed(1).replace('.', ',')} MB`
+  const digits = Number.isInteger(mb) ? 0 : 1
+  const n = new Intl.NumberFormat(intlLocale(), { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: false })
+  return `${n.format(mb)} MB`
 }
 
 /** Ảnh đã nén sẵn để tải lên: ảnh chính + ảnh thu nhỏ cùng định dạng (backend kiểm tra cả hai). */
@@ -142,6 +145,6 @@ export async function prepareAvatar(file: File): Promise<{ blob: Blob; type: 'im
     type = 'image/jpeg'
     blob = await encode(type)
   }
-  if (!blob || blob.size > avatar_max_bytes) throw new Error('Không nén được ảnh đại diện')
+  if (!blob || blob.size > avatar_max_bytes) throw new Error(t('lib:image.avatarCompressFailed'))
   return { blob, type }
 }

@@ -35,7 +35,18 @@ describe('Trang chủ', () => {
     expect(await screen.findAllByRole('link', { name: 'Tiếp tục với Google' })).toHaveLength(2)
     expect(screen.getByRole('link', { name: 'Bắt đầu viết' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Tài khoản của/ })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'English, sắp có' })).toBeDisabled()
+    // Hai bộ chọn: ở đầu trang (từ màn sm) và ở chân trang (điện thoại).
+    for (const button of screen.getAllByRole('button', { name: 'Tiếng Việt' })) expect(button).toHaveAttribute('aria-pressed', 'true')
+    for (const button of screen.getAllByRole('button', { name: 'English' })) expect(button).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('bấm EN: trang chủ đổi sang tiếng Anh và nhớ lựa chọn', async () => {
+    renderWithMe([{ path: '/', Component: HomePage }], '/', null)
+    fireEvent.click((await screen.findAllByRole('button', { name: 'English' }))[0])
+    expect(await screen.findByRole('link', { name: 'Start writing' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Bắt đầu viết' })).not.toBeInTheDocument()
+    for (const button of screen.getAllByRole('button', { name: 'English' })) expect(button).toHaveAttribute('aria-pressed', 'true')
+    expect(localStorage.getItem('jotly.lang')).toBe('en')
   })
 
   it('đã đăng nhập: lời chào, "Mở nhật ký", menu tài khoản có Đăng xuất', async () => {

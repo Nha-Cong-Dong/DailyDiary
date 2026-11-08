@@ -3,17 +3,16 @@ import type { DateString } from '@/lib/date'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { ColorBy } from './useColorBy'
+import { useT } from '@/lib/i18n'
 
-const OPTIONS: { id: ColorBy; label: string }[] = [
-  { id: 'score', label: 'Điểm' },
-  { id: 'flag', label: 'Cờ hiệu' },
-]
+const OPTIONS: ColorBy[] = ['score', 'flag']
 
 export function ColorByToggle({ value, onChange, className }: { value: ColorBy; onChange: (v: ColorBy) => void; className?: string }) {
+  const t = useT()
   return (
     <div className={cn('inline-flex items-center gap-2.5', className)}>
       <span id="color-by-label" className="text-label font-medium text-ink-soft">
-        Tô ô theo
+        {t('pixels:colorBy.label')}
       </span>
       <div
         role="radiogroup"
@@ -21,20 +20,20 @@ export function ColorByToggle({ value, onChange, className }: { value: ColorBy; 
         className="inline-flex gap-0.5 rounded-md border-[1.5px] border-stroke bg-paper p-[3px]"
       >
         {OPTIONS.map((o) => {
-          const on = value === o.id
+          const on = value === o
           return (
             <button
-              key={o.id}
+              key={o}
               type="button"
               role="radio"
               aria-checked={on}
-              onClick={() => onChange(o.id)}
+              onClick={() => onChange(o)}
               className={cn(
                 'h-[34px] cursor-pointer touch-manipulation rounded-[11px] px-3.5 text-sm select-none transition-colors duration-(--dur-fast) ease-out focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus',
                 on ? 'bg-ink font-semibold text-paper' : 'font-medium pointer-fine:hover:bg-secondary',
               )}
             >
-              {o.label}
+              {t(`pixels:colorBy.${o}`)}
             </button>
           )
         })}
@@ -48,6 +47,7 @@ export function ColorByToggle({ value, onChange, className }: { value: ColorBy; 
  * Màu theo đúng ô trên bảng (giao diện tối dùng bản tối của cờ).
  */
 export function FlagLegend({ flags, written, className }: { flags: Record<DateString, string>; written: number; className?: string }) {
+  const t = useT()
   const dark = useDarkMode()
   const counts = new Map<string, number>()
   for (const hex of Object.values(flags)) counts.set(hex.toUpperCase(), (counts.get(hex.toUpperCase()) ?? 0) + 1)
@@ -55,21 +55,21 @@ export function FlagLegend({ flags, written, className }: { flags: Record<DateSt
   const noFlag = written - Object.keys(flags).length
   const item = 'inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 whitespace-nowrap'
   return (
-    <ul aria-label="Chú thích màu cờ" className={cn('flex flex-wrap items-center gap-1 text-label', className)}>
+    <ul aria-label={t('pixels:legend.flagAria')} className={cn('flex flex-wrap items-center gap-1 text-label', className)}>
       {used.map(([hex, n]) => (
         <li key={hex} className={item}>
           <span aria-hidden="true" className="size-3.5 shrink-0 rounded-[4px] border border-stroke" style={{ backgroundColor: flagHex(hex, dark) }} />
           {/* Màu riêng kèm mã màu để phân biệt khi dùng nhiều màu riêng. */}
-          {presetFlag(hex) ? flagName(hex) : `Màu riêng ${hex}`} · {n}
+          {presetFlag(hex) ? flagName(hex) : t('pixels:legend.customColor', { hex })} · {n}
         </li>
       ))}
       {noFlag > 0 ? (
         <li className={item}>
           <span aria-hidden="true" className="size-3.5 shrink-0 rounded-[4px] border-[1.5px] border-stroke bg-card" />
-          Không cờ · {noFlag}
+          {t('pixels:legend.noFlag')} · {noFlag}
         </li>
       ) : null}
-      {used.length === 0 && noFlag === 0 ? <li className={cn(item, 'text-ink-soft')}>Chưa có trang nào trong năm</li> : null}
+      {used.length === 0 && noFlag === 0 ? <li className={cn(item, 'text-ink-soft')}>{t('pixels:legend.noPages')}</li> : null}
     </ul>
   )
 }

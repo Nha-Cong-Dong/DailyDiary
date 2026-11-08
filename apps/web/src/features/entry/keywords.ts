@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n'
 import { tierLimits } from '@/lib/limits'
 import { keywordNorm } from '@/lib/text'
 
@@ -15,10 +16,10 @@ export function duplicateOf(keywords: string[], raw: string): string | null {
 export function addKeyword(keywords: string[], raw: string): AddKeywordResult {
   const { keywords_max, keyword_len_min, keyword_len_max } = tierLimits().entry
   const keyword = raw.normalize('NFC').replace(/\s+/g, ' ').trim()
-  if (keyword.length < keyword_len_min) return { ok: false, error: 'Từ khóa đang trống' }
-  if (keyword.length > keyword_len_max) return { ok: false, error: `Từ khóa tối đa ${keyword_len_max} ký tự` }
-  if (keywords.length >= keywords_max) return { ok: false, error: `Mỗi ngày tối đa ${keywords_max} từ khóa` }
+  if (keyword.length < keyword_len_min) return { ok: false, error: t('entry:keywordError.empty') }
+  if (keyword.length > keyword_len_max) return { ok: false, error: t('entry:keywordError.tooLong', { max: keyword_len_max }) }
+  if (keywords.length >= keywords_max) return { ok: false, error: t('entry:keywordError.tooMany', { max: keywords_max }) }
   const norm = keywordNorm(keyword)
-  if (keywords.some((k) => keywordNorm(k) === norm)) return { ok: false, error: 'Từ khóa này đã có trong ngày' }
+  if (keywords.some((k) => keywordNorm(k) === norm)) return { ok: false, error: t('entry:keywordError.duplicate') }
   return { ok: true, keywords: [...keywords, keyword] }
 }

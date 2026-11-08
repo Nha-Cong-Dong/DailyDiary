@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import { SCORES, scoreLabel, type Score } from '@/lib/catalog'
 import { ScoreIcon } from './ScoreIcon'
+import { useT } from '@/lib/i18n'
 
 type ScorePickerProps = {
   iconSetId: string
@@ -29,6 +30,7 @@ export function ScorePicker({
   itemClassName,
   className,
 }: ScorePickerProps) {
+  const t = useT()
   return (
     <div className={cn('grid grid-cols-5 gap-2 sm:gap-3', className)}>
       {SCORES.map((score) => {
@@ -38,7 +40,7 @@ export function ScorePicker({
           <button
             key={score}
             type="button"
-            aria-label={`Điểm ${score}, ${label}`}
+            aria-label={t('components:score.aria', { score, label })}
             aria-pressed={on}
             data-score={score}
             onClick={() => onChange(score)}

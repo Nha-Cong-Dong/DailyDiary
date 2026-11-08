@@ -6,14 +6,16 @@ import { EntryCard } from '@/components/diary/EntryCard'
 import { flagColors } from '@/lib/catalog'
 import { prefersReducedMotion } from '@/lib/motion'
 import { cn } from '@/lib/utils'
-import { DEMO_ICON_SET, DEMO_MONTH, DEMO_TODAY, DEMO_YEAR, OCTOBER, WEEKDAYS } from './demoData'
+import { DEMO_ICON_SET, DEMO_MONTH, DEMO_TODAY, DEMO_YEAR, OCTOBER, weekdaysMonFirst } from './demoData'
 import { YearPreview } from './YearPreview'
+import { useT } from '@/lib/i18n'
 
-const TABS = ['Ngày', 'Tháng', 'Năm'] as const
+const TABS = ['day', 'month', 'year'] as const
 const LAVENDER = flagColors.find((f) => f.id === 'lavender')?.hex ?? null
 
 /** Lịch tháng 10/2026 mẫu: ô hôm nay nền đào, ngày chưa ghi là vòng nét đứt. */
 function MonthSample() {
+  const t = useT()
   const length = new Date(Date.UTC(DEMO_YEAR, DEMO_MONTH, 0)).getUTCDate()
   // Số ô trống đầu tuần (tuần bắt đầu từ thứ Hai).
   const leadingBlanks = (new Date(Date.UTC(DEMO_YEAR, DEMO_MONTH - 1, 1)).getUTCDay() + 6) % 7
@@ -21,14 +23,14 @@ function MonthSample() {
     <div className="tilt w-full rounded-lg border-2 border-stroke bg-card p-4 shadow-lg">
       <div className="mb-2.5 flex items-baseline justify-between">
         <span className="font-heading text-body font-semibold">
-          Tháng {DEMO_MONTH}, {DEMO_YEAR}
+          {t('landing:lookBack.monthTitle', { month: DEMO_MONTH, year: DEMO_YEAR })}
         </span>
         <span className="text-label font-normal text-ink-soft">
-          {Object.keys(OCTOBER).length}/{DEMO_TODAY} ngày
+          {t('landing:lookBack.monthCount', { count: Object.keys(OCTOBER).length, today: DEMO_TODAY })}
         </span>
       </div>
       <div className="grid grid-cols-7 gap-1">
-        {WEEKDAYS.map((w) => (
+        {weekdaysMonFirst().map((w) => (
           <span key={w} className="text-center text-label text-ink-soft">
             {w}
           </span>
@@ -49,7 +51,7 @@ function MonthSample() {
               score={entry?.score ?? null}
               subIcon={entry?.sub}
               state={state}
-              label={`${day}/${DEMO_MONTH}${entry ? `, điểm ${entry.score}` : state === 'past' ? ', chưa ghi' : ''}`}
+              label={`${t('landing:date.dm', { day, month: DEMO_MONTH })}${entry ? t('landing:lookBack.cellScore', { score: entry.score }) : state === 'past' ? t('landing:lookBack.cellEmpty') : ''}`}
               className={cn(state === 'today' && 'shadow-none')}
             />
           )
@@ -102,6 +104,7 @@ function Slide({
  * nút Phần trước/Phần sau; mũi tên trái/phải, Home, End trên hàng tab. Cả hai bản trang chủ dùng dữ liệu mẫu.
  */
 export function LookBack({ signed = false }: { signed?: boolean }) {
+  const t = useT()
   const [index, setIndex] = useState(0)
   const track = useRef<HTMLDivElement>(null)
   const tabs = useRef<(HTMLButtonElement | null)[]>([])
@@ -133,18 +136,18 @@ export function LookBack({ signed = false }: { signed?: boolean }) {
       <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-[clamp(16px,4vw,40px)]">
         <div className="reveal-on-scroll flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
           <h2 id="story-title" className="text-title">
-            Ghi từng ngày, nhìn lại cả năm
+            {t('landing:lookBack.title')}
           </h2>
           <div className="flex items-center gap-2.5">
             <div
               role="tablist"
-              aria-label="Ngày, tháng, năm"
+              aria-label={t('landing:lookBack.tabsLabel')}
               onKeyDown={onKey}
               className="inline-flex gap-0.5 rounded-full border-2 border-stroke bg-card p-1 shadow-sm"
             >
-              {TABS.map((label, i) => (
+              {TABS.map((tab, i) => (
                 <button
-                  key={label}
+                  key={tab}
                   ref={(el) => {
                     tabs.current[i] = el
                   }}
@@ -160,16 +163,16 @@ export function LookBack({ signed = false }: { signed?: boolean }) {
                     index === i ? 'border-stroke bg-lavender text-on-accent' : 'border-transparent text-ink pointer-fine:hover:bg-sunk',
                   )}
                 >
-                  {label}
+                  {t(`landing:lookBack.tabs.${tab}`)}
                 </button>
               ))}
             </div>
-            <button type="button" aria-label="Phần trước" disabled={index === 0} onClick={() => go(index - 1)} className={nav(index === 0)}>
+            <button type="button" aria-label={t('landing:lookBack.prev')} disabled={index === 0} onClick={() => go(index - 1)} className={nav(index === 0)}>
               <ChevronLeft className="size-5" strokeWidth={2.4} aria-hidden="true" />
             </button>
             <button
               type="button"
-              aria-label="Phần sau"
+              aria-label={t('landing:lookBack.next')}
               disabled={index === TABS.length - 1}
               onClick={() => go(index + 1)}
               className={nav(index === TABS.length - 1)}
@@ -190,17 +193,17 @@ export function LookBack({ signed = false }: { signed?: boolean }) {
           <Slide
             index={0}
             active={index === 0}
-            title="Từ một ngày…"
-            text="Chấm điểm, thêm vài dòng nếu muốn. Vậy là xong một trang."
+            title={t('landing:lookBack.slide1Title')}
+            text={t('landing:lookBack.slide1Text')}
             visual={
               <EntryCard
                 iconSetId={DEMO_ICON_SET}
                 score={4}
                 subIcon="😌"
                 flagColor={LAVENDER}
-                dateLabel="Chủ nhật, 18/10 · Hôm nay"
-                title="Chiều mưa đọc sách"
-                excerpt="Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở."
+                dateLabel={t('landing:lookBack.slide1Date')}
+                title={t('landing:sample.title')}
+                excerpt={t('landing:sample.excerptBrief')}
                 className="tilt w-full max-w-[440px]"
               />
             }
@@ -208,8 +211,8 @@ export function LookBack({ signed = false }: { signed?: boolean }) {
           <Slide
             index={1}
             active={index === 1}
-            title="Thành một tháng"
-            text="Mỗi trang là một ô trong lịch tháng, mang icon của ngày đó."
+            title={t('landing:lookBack.slide2Title')}
+            text={t('landing:lookBack.slide2Text')}
             visual={
               <div className="w-full max-w-[440px]">
                 <MonthSample />
@@ -219,12 +222,12 @@ export function LookBack({ signed = false }: { signed?: boolean }) {
           <Slide
             index={2}
             active={index === 2}
-            title="Và một năm"
-            text="Mười hai tháng gom lại thành một bức tranh: mỗi ô một ngày, mỗi màu một mức điểm."
+            title={t('landing:lookBack.slide3Title')}
+            text={t('landing:lookBack.slide3Text')}
             extra={
               signed ? (
                 <Link to="/pixels" className="link-underline mt-1 self-start text-body font-semibold">
-                  Mở Year in Pixels của bạn
+                  {t('landing:lookBack.openPixels')}
                 </Link>
               ) : null
             }
@@ -235,7 +238,7 @@ export function LookBack({ signed = false }: { signed?: boolean }) {
             }
           />
         </div>
-        <p className="text-label font-normal text-ink-soft">Dữ liệu mẫu · lướt ngang hoặc chọn Ngày, Tháng, Năm</p>
+        <p className="text-label font-normal text-ink-soft">{t('landing:lookBack.sampleNote')}</p>
       </div>
     </section>
   )

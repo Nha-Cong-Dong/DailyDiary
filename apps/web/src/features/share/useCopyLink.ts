@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { t } from '@/lib/i18n'
 
 const SHOW_MS = 2200
 
@@ -27,9 +28,9 @@ export function useCopyLink() {
     async (url: string, key: string) => {
       try {
         await navigator.clipboard.writeText(url)
-        flash('Đã sao chép link', key)
+        flash(t('share:copied'), key)
       } catch {
-        flash('Chưa sao chép được. Hãy chọn link rồi chép tay.')
+        flash(t('share:copyFailed'))
       }
     },
     [flash],

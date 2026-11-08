@@ -3,15 +3,17 @@ import { Button } from '@/components/ui/button'
 import { Segmented } from '@/components/ui/segmented'
 import { setDark, setThemePreference, THEME_CAPTIONS, THEME_OPTIONS, useDarkMode, useThemePreference } from '@/lib/theme'
 import { cn } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
 /** Nút đổi nhanh sáng/tối ở thanh trên (vùng chạm 40–44 px); chọn hẳn Sáng hoặc Tối. Mặt trăng nghiêng khi di chuột. */
 export function ThemeToggle({ className }: { className?: string }) {
+  const t = useT()
   const dark = useDarkMode()
   return (
     <Button
       variant="outline"
       size="icon"
-      aria-label="Chế độ tối"
+      aria-label={t('components:theme.darkMode')}
       aria-pressed={dark}
       onClick={() => setDark(!dark)}
       className={cn('moon-tilt', className)}
@@ -26,6 +28,7 @@ export function ThemeToggle({ className }: { className?: string }) {
  * dưới cho Hệ thống và Theo giờ. `labelledBy` là id của nhãn "Chế độ màu".
  */
 export function ThemePicker({ labelledBy, className }: { labelledBy?: string; className?: string }) {
+  const t = useT()
   const pref = useThemePreference()
   const caption = THEME_CAPTIONS[pref]
   return (
@@ -35,7 +38,7 @@ export function ThemePicker({ labelledBy, className }: { labelledBy?: string; cl
         value={pref}
         onChange={setThemePreference}
         ariaLabelledby={labelledBy}
-        ariaLabel={labelledBy ? undefined : 'Chế độ màu'}
+        ariaLabel={labelledBy ? undefined : t('components:theme.colorMode')}
         className="w-full sm:w-[352px]"
       />
       {caption ? <p className="text-label font-normal text-balance text-ink-soft sm:max-w-[352px] sm:text-right">{caption}</p> : null}

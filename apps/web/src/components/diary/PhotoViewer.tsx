@@ -3,6 +3,7 @@ import { Dialog as DialogPrimitive } from 'radix-ui'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PHOTO_TINTS } from './photoTints'
+import { useT } from '@/lib/i18n'
 
 /**
  * Ảnh trong một trang. `url`/`thumbUrl` là link ký có hạn ~1 giờ (Bước 7); không có (dữ liệu mẫu, kho ảnh chưa
@@ -24,10 +25,11 @@ export function PhotoTile({
   onOpen: () => void
   className?: string
 }) {
+  const t = useT()
   return (
     <button
       type="button"
-      aria-label={`Mở ảnh ${index + 1} trên ${total}`}
+      aria-label={t('components:photoViewer.openAria', { index: index + 1, total })}
       onClick={onOpen}
       className={cn(
         'relative flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-1.5 overflow-hidden rounded-md border-[1.5px] border-stroke text-ink-soft pick focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus',
@@ -56,6 +58,7 @@ type PhotoViewerProps = {
 
 /** Trình xem ảnh toàn màn hình: phím ←/→ chuyển ảnh, Esc đóng, giữ focus trong hộp thoại (Radix Dialog). */
 export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) {
+  const t = useT()
   const total = photos.length
   const open = index !== null && total > 0
   const go = (step: number) => onIndexChange(((index ?? 0) + step + total) % total)
@@ -71,13 +74,13 @@ export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) 
           }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 p-6 text-viewer-ink outline-none"
         >
-          <DialogPrimitive.Title className="sr-only">Xem ảnh</DialogPrimitive.Title>
+          <DialogPrimitive.Title className="sr-only">{t('components:photoViewer.title')}</DialogPrimitive.Title>
           <div className="flex w-full max-w-[880px] items-center justify-between gap-3">
             <span className="text-sm tabular-nums" aria-live="polite">
               {open ? `${index + 1} / ${total}` : ''}
             </span>
             <DialogPrimitive.Close asChild>
-              <Button variant="outline" size="icon" aria-label="Đóng" className="border-viewer-stroke text-viewer-ink hover:bg-white/10">
+              <Button variant="outline" size="icon" aria-label={t('components:photoViewer.close')} className="border-viewer-stroke text-viewer-ink hover:bg-white/10">
                 <X aria-hidden="true" />
               </Button>
             </DialogPrimitive.Close>
@@ -87,7 +90,7 @@ export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) 
             <Button
               variant="outline"
               size="icon-lg"
-              aria-label="Ảnh trước"
+              aria-label={t('components:photoViewer.prev')}
               onClick={() => go(-1)}
               className="row-start-2 justify-self-start rounded-full border-viewer-stroke text-viewer-ink hover:bg-white/10 sm:col-start-1 sm:row-start-1"
             >
@@ -97,7 +100,7 @@ export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) 
               <img
                 key={index}
                 src={photos[index].url!}
-                alt={`Ảnh ${index + 1} trên ${total}`}
+                alt={t('components:photoViewer.alt', { index: index + 1, total })}
                 width={photos[index].width}
                 height={photos[index].height}
                 className="col-span-2 row-start-1 max-h-[78vh] w-full min-w-0 animate-rise rounded-[18px] border-[1.5px] border-viewer-ink object-contain sm:col-span-1 sm:col-start-2"
@@ -117,7 +120,7 @@ export function PhotoViewer({ photos, index, onIndexChange }: PhotoViewerProps) 
             <Button
               variant="outline"
               size="icon-lg"
-              aria-label="Ảnh sau"
+              aria-label={t('components:photoViewer.next')}
               onClick={() => go(1)}
               className="row-start-2 justify-self-end rounded-full border-viewer-stroke text-viewer-ink hover:bg-white/10 sm:col-start-3 sm:row-start-1"
             >

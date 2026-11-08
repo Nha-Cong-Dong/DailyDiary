@@ -1,11 +1,13 @@
 import { AlertCircle, FlaskConical, LoaderCircle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import type { TFunction } from 'i18next'
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { API_URL, googleLoginUrl } from '@/api/client'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { Avatar } from '@/components/layout/Avatar'
 import { GoogleMark } from '@/components/layout/GoogleMark'
 import { Logo, LogoMark } from '@/components/layout/Logo'
+import { LanguageSwitch } from '@/components/layout/LanguageSwitch'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import type { Score } from '@/lib/catalog'
@@ -15,6 +17,7 @@ import { isServerAwake, wakeServer } from '@/lib/serverWake'
 import { useDevLogin } from '@/lib/session'
 import { cn } from '@/lib/utils'
 import { loginErrorMessage, type LoginState } from './loginState'
+import { useT } from '@/lib/i18n'
 
 /** Icon mầm cây đứng yên quanh thẻ (thiết kế B9 · Đăng nhập): vị trí, cỡ, góc nghiêng. Ẩn trên điện thoại. */
 const SPROUTS: { score: Score; size: number; className: string; rotate: number }[] = [
@@ -28,26 +31,21 @@ const SPROUTS: { score: Score; size: number; className: string; rotate: number }
 
 type Mode = 'idle' | 'waking' | 'redirecting' | 'error' | 'expired'
 
-const COPY: Record<Mode, { title: string; text: string; button: string }> = {
-  idle: {
-    title: 'Đăng nhập vào Jotly',
-    text: 'Dùng tài khoản Gmail, không cần nhớ thêm mật khẩu nào.',
-    button: 'Tiếp tục với Google',
-  },
-  // Máy chủ miễn phí ngủ khi vắng người: chờ nó dậy rồi mới sang Google, để không treo ở trang trắng.
-  waking: {
-    title: 'Đang đánh thức máy chủ…',
-    text: 'Máy chủ nghỉ khi vắng người nên lần đầu có thể mất tới một phút. Bạn không cần bấm lại.',
-    button: '',
-  },
-  redirecting: { title: 'Đang đăng nhập', text: 'Đang chuyển sang trang đăng nhập của Google.', button: '' },
-  // Lỗi không có câu phụ: khung lỗi bên dưới đã nói chuyện gì xảy ra và cần làm gì.
-  error: { title: 'Chưa đăng nhập được', text: '', button: 'Thử lại với Google' },
-  expired: {
-    title: 'Phiên đăng nhập đã hết hạn',
-    text: 'Đăng nhập lại để tiếp tục. Những gì bạn đang viết vẫn được giữ trên trình duyệt này.',
-    button: 'Đăng nhập lại với Google',
-  },
+/** Chữ của từng trạng thái (dịch lúc render để đổi ngôn ngữ là đổi theo). Lỗi không có câu phụ: khung lỗi bên dưới đã nói rõ. */
+function copyFor(mode: Mode, t: TFunction): { title: string; text: string; button: string } {
+  switch (mode) {
+    case 'idle':
+      return { title: t('auth:login.idle.title'), text: t('auth:login.idle.text'), button: t('auth:login.idle.button') }
+    // Máy chủ miễn phí ngủ khi vắng người: chờ nó dậy rồi mới sang Google, để không treo ở trang trắng.
+    case 'waking':
+      return { title: t('auth:login.waking.title'), text: t('auth:login.waking.text'), button: '' }
+    case 'redirecting':
+      return { title: t('auth:login.redirecting.title'), text: t('auth:login.redirecting.text'), button: '' }
+    case 'error':
+      return { title: t('auth:login.error.title'), text: '', button: t('auth:login.error.button') }
+    case 'expired':
+      return { title: t('auth:login.expired.title'), text: t('auth:login.expired.text'), button: t('auth:login.expired.button') }
+  }
 }
 
 /**
@@ -56,6 +54,7 @@ const COPY: Record<Mode, { title: string; text: string; button: string }> = {
  * Vì là chuyển trang, "Đang chờ Google" chỉ hiện trong lúc trình duyệt rời trang; Hủy dừng việc chuyển trang.
  */
 export function Login() {
+  const t = useT()
   const [params] = useSearchParams()
   const { state } = useLocation() as { state: LoginState | null }
   const navigate = useNavigate()
@@ -83,7 +82,7 @@ export function Login() {
   if (me && !meError) return <Navigate to={me.onboarded ? '/today' : '/onboarding'} replace />
 
   const mode: Mode = waking ? 'waking' : redirecting ? 'redirecting' : errorCode ? 'error' : expired ? 'expired' : 'idle'
-  const copy = COPY[mode]
+  const copy = copyFor(mode, t)
 
   /** Chờ máy chủ thức rồi mới chuyển sang Google (máy chủ đang thức thì chuyển ngay, không đi qua đây). */
   function wakeThenGo(href: string) {
@@ -101,10 +100,11 @@ export function Login() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="relative z-[2] mx-auto flex w-full max-w-[1120px] items-center gap-3 px-[clamp(16px,4vw,40px)] py-4">
-        <a href="/" aria-label="Jotly, trang chủ" className="flex min-h-11 items-center rounded-sm">
+        <a href="/" aria-label={t('auth:login.homeAria')} className="flex min-h-11 items-center rounded-sm">
           <Logo size="sm" />
         </a>
         <div className="flex-1" />
+        <LanguageSwitch />
         <ThemeToggle className="press size-10 rounded-[12px]" />
       </header>
 
@@ -160,7 +160,7 @@ export function Login() {
                   className="inline-flex h-[52px] items-center justify-center gap-3 rounded-md border-[1.5px] border-line-soft bg-sunk text-body font-semibold text-ink-soft"
                 >
                   <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
-                  {mode === 'waking' ? 'Đang chờ máy chủ…' : 'Đang chờ Google…'}
+                  {mode === 'waking' ? t('auth:login.waitingServer') : t('auth:login.waitingGoogle')}
                 </span>
                 <button
                   type="button"
@@ -173,7 +173,7 @@ export function Login() {
                     setRedirecting(false)
                   }}
                 >
-                  Hủy
+                  {t('auth:login.cancel')}
                 </button>
               </>
             ) : (
@@ -193,14 +193,14 @@ export function Login() {
           </div>
 
           <p className="mt-1.5 text-label font-normal text-ink-soft">
-            Khi tiếp tục, bạn đồng ý với{' '}
+            {t('auth:login.termsPrefix')}{' '}
             {/* Chờ nội dung điều khoản thật trước khi ra mắt (MVP Bước 14). */}
             <a href="#" className="link-underline">
-              [Điều khoản sử dụng]
+              {t('auth:login.terms')}
             </a>{' '}
-            và{' '}
+            {t('auth:login.and')}{' '}
             <Link to="/privacy" className="link-underline">
-              Chính sách quyền riêng tư
+              {t('auth:login.privacy')}
             </Link>
             .
           </p>
@@ -214,11 +214,11 @@ export function Login() {
                   dev.mutate('dev@example.com', { onSuccess: ({ next }) => navigate(next, { replace: true }) })
                 }
               >
-                <FlaskConical aria-hidden="true" /> Đăng nhập thử (chỉ khi chạy dev)
+                <FlaskConical aria-hidden="true" /> {t('auth:login.devLogin')}
               </Button>
               {dev.isError ? (
                 <p role="alert" className="text-label font-normal text-danger">
-                  Chưa đăng nhập thử được. Bật DEV_LOGIN=true trong apps/api/.env rồi chạy lại API.
+                  {t('auth:login.devLoginFailed')}
                 </p>
               ) : null}
             </div>

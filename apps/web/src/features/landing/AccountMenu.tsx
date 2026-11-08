@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SIGNED_OUT, useLogout } from '@/lib/session'
+import { useT } from '@/lib/i18n'
 
 type Props = {
   name: string
@@ -20,20 +21,21 @@ type Props = {
 
 /** Menu tài khoản trên trang chủ khi đã đăng nhập (thiết kế B5 · Landing đã đăng nhập). */
 export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }: Props) {
+  const t = useT()
   const logout = useLogout()
   const navigate = useNavigate()
   const items = [
-    { to: '/today', label: 'Trang hôm nay', icon: Pencil, tag: todayWritten ? 'Đã ghi' : null },
-    { to: '/timeline', label: 'Dòng thời gian', icon: List },
-    { to: '/pixels', label: 'Year in Pixels', icon: LayoutGrid },
-    { to: '/profile/shares', label: 'Trang đang chia sẻ', icon: Link2, count: shareCount },
-    { to: '/profile', label: 'Hồ sơ & cài đặt', icon: Settings },
-    { to: '/profile', label: 'Góp ý cho Jotly', icon: MessageSquare, state: { feedback: true } },
+    { to: '/today', label: t('landing:account.today'), icon: Pencil, tag: todayWritten ? t('landing:account.written') : null },
+    { to: '/timeline', label: t('landing:account.timeline'), icon: List },
+    { to: '/pixels', label: t('landing:account.pixels'), icon: LayoutGrid },
+    { to: '/profile/shares', label: t('landing:account.shares'), icon: Link2, count: shareCount },
+    { to: '/profile', label: t('landing:account.profile'), icon: Settings },
+    { to: '/profile', label: t('landing:account.feedback'), icon: MessageSquare, state: { feedback: true } },
   ]
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
-        aria-label={`Tài khoản của ${name}`}
+        aria-label={t('landing:account.label', { name })}
         className="cursor-pointer rounded-full transition-[scale,box-shadow] duration-(--dur-fast) ease-out pointer-fine:hover:scale-[1.04] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[.97] motion-reduce:scale-100! data-[state=open]:shadow-[0_0_0_2px_var(--color-card),0_0_0_3.5px_var(--color-stroke)]"
       >
         <Avatar name={name} src={avatarUrl} size={40} className="text-sm" />
@@ -69,7 +71,7 @@ export function AccountMenu({ name, email, avatarUrl, todayWritten, shareCount }
           onSelect={() => logout.mutate(undefined, { onSettled: () => navigate('/', { replace: true, state: SIGNED_OUT }) })}
         >
           <LogOut aria-hidden="true" />
-          Đăng xuất
+          {t('landing:account.signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import type { Score } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 import { decimal, type MonthTimeline } from './monthTimeline'
+import { useT } from '@/lib/i18n'
 
 const SCORE_BG: Record<Score, string> = {
   1: 'bg-score-1',
@@ -20,6 +21,7 @@ type MonthRhythmProps = {
 
 /** "Nhịp tháng": mỗi cột là một ngày, cao theo điểm; nét đứt là điểm trung bình. Bấm cột để cuộn tới trang đó. */
 export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProps) {
+  const t = useT()
   const monthNum = Number(data.month.slice(5))
   const futureFrom = data.days.findIndex((d) => d.kind === 'future')
   const cols = {
@@ -33,12 +35,12 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h2 id="rhythm-h" className="text-body font-semibold">
-          Nhịp tháng · điểm từng ngày
+          {t('timeline:rhythm.heading')}
         </h2>
         {data.average !== null ? (
           <span className="inline-flex items-center gap-2 text-[13px] leading-5 text-ink-soft nums">
             <span aria-hidden="true" className="w-[22px] border-t-[1.5px] border-dashed border-ink-soft" />
-            Trung bình {decimal(data.average)}
+            {t('timeline:rhythm.average', { value: decimal(data.average) })}
           </span>
         ) : null}
       </div>
@@ -73,10 +75,14 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
                   )
                 }
                 const tip = d.entry
-                  ? `${label} · Điểm ${d.entry.score} · ${d.entry.title ?? 'Chỉ chấm điểm'}`
+                  ? t('timeline:rhythm.tipScoreTitle', {
+                      label,
+                      score: d.entry.score,
+                      title: d.entry.title ?? t('timeline:rhythm.tipScoreOnly'),
+                    })
                   : d.kind === 'open'
-                    ? `${label} · Hôm nay chưa ghi`
-                    : `${label} · Không ghi`
+                    ? t('timeline:rhythm.tipOpen', { label })
+                    : t('timeline:rhythm.tipNone', { label })
                 return (
                   <button
                     key={d.day}
@@ -141,6 +147,7 @@ export function MonthRhythm({ data, today, selected, onSelect }: MonthRhythmProp
 
 /** Vùng các ngày chưa tới của tháng đang xem: một khối tô nhạt chung, để nửa sau tháng không trông như ngày bỏ trống. */
 function FutureBand({ from, total, compact = false }: { from: number; total: number; compact?: boolean }) {
+  const t = useT()
   return (
     <span
       aria-hidden="true"
@@ -151,24 +158,25 @@ function FutureBand({ from, total, compact = false }: { from: number; total: num
       style={{ gridColumn: `${from + 1} / -1`, gridRow: 1 }}
     >
       {/* Chữ chỉ hiện khi vùng đủ rộng (từ 4 ngày), tránh tràn sang cột bên cạnh. */}
-      {total - from >= 4 ? 'Chưa tới' : null}
+      {total - from >= 4 ? t('timeline:rhythm.notYet') : null}
     </span>
   )
 }
 
 /** Nhịp tháng gọn cho điện thoại (thiết kế B10): chỉ các cột điểm, không trục, không bấm. */
 export function MonthRhythmCompact({ data }: { data: MonthTimeline }) {
+  const t = useT()
   const monthNum = Number(data.month.slice(5))
   const futureFrom = data.days.findIndex((d) => d.kind === 'future')
   return (
     <section
-      aria-label="Nhịp tháng"
+      aria-label={t('timeline:rhythm.headingShort')}
       className="flex flex-col gap-2 rounded-[16px] border-[1.5px] border-stroke bg-card px-3.5 pt-3 pb-2.5"
     >
       <div className="flex justify-between text-[13px] leading-[18px]">
-        <span className="font-semibold">Nhịp tháng</span>
+        <span className="font-semibold">{t('timeline:rhythm.headingShort')}</span>
         {data.average !== null ? (
-          <span className="text-ink-soft nums">Trung bình {decimal(data.average)}</span>
+          <span className="text-ink-soft nums">{t('timeline:rhythm.average', { value: decimal(data.average) })}</span>
         ) : null}
       </div>
       <div
@@ -179,11 +187,13 @@ export function MonthRhythmCompact({ data }: { data: MonthTimeline }) {
           if (d.kind === 'future') return null
           const label = `${d.day}/${monthNum}`
           const tip = d.entry
-            ? `${label} · Điểm ${d.entry.score}${d.entry.title ? ` · ${d.entry.title}` : ''}`
+            ? d.entry.title
+              ? t('timeline:rhythm.tipScoreTitle', { label, score: d.entry.score, title: d.entry.title })
+              : t('timeline:rhythm.tipScoreNoTitle', { label, score: d.entry.score })
             : d.kind === 'missing'
-              ? `${label} · Không ghi`
+              ? t('timeline:rhythm.tipNone', { label })
               : d.kind === 'open'
-                ? `${label} · Hôm nay chưa ghi`
+                ? t('timeline:rhythm.tipOpen', { label })
                 : label
           return (
             <span

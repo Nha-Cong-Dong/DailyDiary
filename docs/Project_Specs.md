@@ -46,7 +46,7 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 ### 2.2. Không có
 
 - Nhiều người dùng (nhật ký chung, bình luận, theo dõi) — chỉ chia sẻ một trang.
-- Đăng nhập khác Google; ngôn ngữ khác tiếng Việt (ô English khóa "Sắp có").
+- Đăng nhập khác Google. Ngôn ngữ: giao diện web có tiếng Việt và tiếng Anh (ADR 0006); chính sách quyền riêng tư và email hệ thống chỉ có tiếng Việt.
 - Theme, sticker, bộ biểu tượng mới; AI; thông báo đẩy; PWA; ứng dụng desktop/di động; thanh toán.
 - **Xuất dữ liệu** (bỏ 21/10/2026; Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu").
 - Bắt lỗi (Sentry) và phân tích sự kiện (Umami): **tạm gỡ**, xem 4.7.

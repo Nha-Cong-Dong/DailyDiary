@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest'
+import { setLanguage } from '@/lib/i18n'
 import { isConfirmWord, isSameEmail } from './confirm'
 
 describe('xác nhận xóa', () => {
   it('"XÓA" có dấu, không dấu, hoa thường đều được', () => {
     for (const t of ['XÓA', 'xóa', 'xoa', ' Xoa ']) expect(isConfirmWord(t)).toBe(true)
     expect(isConfirmWord('xoá đi')).toBe(false)
+  })
+  it('English: phải gõ "DELETE" (không phân biệt hoa thường), "XÓA" không còn đúng', async () => {
+    await setLanguage('en')
+    for (const t of ['DELETE', 'delete', ' Delete ']) expect(isConfirmWord(t)).toBe(true)
+    expect(isConfirmWord('xoa')).toBe(false)
+    expect(isConfirmWord('deleted')).toBe(false)
   })
   it('email phải khớp, không phân biệt hoa thường', () => {
     expect(isSameEmail(' An@Gmail.com ', 'an@gmail.com')).toBe(true)

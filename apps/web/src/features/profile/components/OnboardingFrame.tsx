@@ -1,8 +1,9 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Logo } from '@/components/layout/Logo'
 import { cn } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
-const STEPS = ['Tên & ảnh', 'Bộ icon', 'Múi giờ']
+const STEPS = ['name', 'icons', 'timeZone'] as const
 
 type OnboardingFrameProps = {
   step: 1 | 2 | 3
@@ -17,24 +18,27 @@ type OnboardingFrameProps = {
  * dưới. Canvas chỉ vẽ máy tính 1280 px; điện thoại co đệm và khoảng cách, giữ cùng thứ tự.
  */
 export function OnboardingFrame({ step, wide, footer, children }: OnboardingFrameProps) {
+  const t = useT()
   const width = wide ? 'max-w-[640px]' : 'max-w-[560px]'
   return (
     <div className="flex min-h-dvh flex-col items-center gap-8 bg-paper px-4 pt-5 pb-10 text-ink sm:gap-10 sm:px-10 sm:pt-7">
       <header className="flex items-center justify-between self-stretch">
         <Logo size="sm" />
-        <span className="text-label leading-5 font-normal text-ink-soft nums">Bước {step}/3</span>
+        <span className="text-label leading-5 font-normal text-ink-soft nums">{t('profile:onboarding.stepOf', { step })}</span>
       </header>
 
-      <ol aria-label="Các bước" className={cn('m-0 grid w-full list-none grid-cols-3 gap-2 p-0', width)}>
-        {STEPS.map((name, i) => {
+      <ol aria-label={t('profile:onboarding.stepsLabel')} className={cn('m-0 grid w-full list-none grid-cols-3 gap-2 p-0', width)}>
+        {STEPS.map((key, i) => {
           const n = i + 1
           return (
-            <li key={name} aria-current={n === step ? 'step' : undefined} className="flex flex-col gap-1.5">
+            <li key={key} aria-current={n === step ? 'step' : undefined} className="flex flex-col gap-1.5">
               <span
                 aria-hidden="true"
                 className={cn('h-1.5 rounded-full transition-colors duration-(--dur-base) ease-out', n <= step ? 'bg-ink' : 'bg-line-soft')}
               />
-              <span className={cn('text-label leading-4', n === step ? 'text-ink' : 'font-normal text-ink-soft')}>{name}</span>
+              <span className={cn('text-label leading-4', n === step ? 'text-ink' : 'font-normal text-ink-soft')}>
+                {t(`profile:onboarding.steps.${key}`)}
+              </span>
             </li>
           )
         })}

@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { Logo } from '@/components/layout/Logo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { cn } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus'
 
@@ -13,6 +14,7 @@ const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-
  * tìm kiếm lập chỉ mục.
  */
 export function PublicFrame({ title, cta = true, children }: { title: string; cta?: boolean; children: ReactNode }) {
+  const t = useT()
   return (
     <div className="flex min-h-dvh flex-col bg-paper text-ink">
       <title>{title}</title>
@@ -20,7 +22,7 @@ export function PublicFrame({ title, cta = true, children }: { title: string; ct
       <meta name="referrer" content="no-referrer" />
       <header className="border-b-[1.5px] border-stroke bg-paper">
         <div className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-x-4 gap-y-2.5 px-[clamp(16px,4vw,40px)] py-3 max-sm:h-[60px] max-sm:flex-nowrap max-sm:gap-2 max-sm:py-0 max-sm:pr-3 max-sm:pl-4">
-          <Link to="/" aria-label="Jotly, trang chủ" className={cn('inline-flex min-h-11 items-center rounded-sm', focusRing)}>
+          <Link to="/" aria-label={t('share:public.frameHome')} className={cn('inline-flex min-h-11 items-center rounded-sm', focusRing)}>
             <Logo size="sm" />
           </Link>
           <div className="flex-1" />
@@ -36,8 +38,8 @@ export function PublicFrame({ title, cta = true, children }: { title: string; ct
               )}
             >
               <PenLine className="size-[18px] max-sm:size-4" aria-hidden="true" />
-              <span className="max-sm:hidden">Viết nhật ký của bạn</span>
-              <span className="sm:hidden">Viết nhật ký</span>
+              <span className="max-sm:hidden">{t('share:public.ctaDesktop')}</span>
+              <span className="sm:hidden">{t('share:public.ctaMobile')}</span>
             </Link>
           ) : null}
         </div>
@@ -50,15 +52,16 @@ export function PublicFrame({ title, cta = true, children }: { title: string; ct
               <Logo size="sm" />
             </span>
             <span className="ml-1.5 text-[13px] leading-[18px] text-ink-soft max-sm:ml-0">
-              <span className="sm:hidden">Jotly · </span>Jot it down, keep it forever.
+              <span className="sm:hidden">Jotly · </span>
+              {t('share:public.tagline')}
             </span>
           </div>
           <div className="flex flex-wrap gap-5 text-[13px] leading-[18px] max-sm:gap-4">
             <a href="#" className={cn('link-underline', focusRing)}>
-              [Điều khoản sử dụng]
+              {t('share:public.terms')}
             </a>
             <Link to="/privacy" className={cn('link-underline', focusRing)}>
-              Chính sách quyền riêng tư
+              {t('share:public.privacy')}
             </Link>
           </div>
         </div>

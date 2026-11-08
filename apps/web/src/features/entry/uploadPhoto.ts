@@ -1,6 +1,7 @@
 import { api, toApiError } from '@/api/client'
 import type { UploadPhoto } from '@/components/diary/usePhotoUploads'
 import type { DateString } from '@/lib/date'
+import { t } from '@/lib/i18n'
 import { preparePhoto } from '@/lib/image'
 import { toDayEntry, type DayEntry, type EntryOut } from './entries'
 
@@ -19,9 +20,9 @@ function putBlob(url: string, blob: Blob, headers: Record<string, string>, onPro
     // Chỉ gửi đúng header đã ký (Content-Type); header lạ làm chữ ký sai → 403.
     Object.entries(headers).forEach(([k, v]) => xhr.setRequestHeader(k, v))
     xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total)
-    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Kho ảnh trả ${xhr.status}`)))
-    xhr.onerror = () => reject(new Error('Lỗi mạng khi tải ảnh'))
-    xhr.onabort = () => reject(new DOMException('Đã hủy', 'AbortError'))
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(t('entry:upload.storage', { status: xhr.status }))))
+    xhr.onerror = () => reject(new Error(t('entry:upload.network')))
+    xhr.onabort = () => reject(new DOMException(t('entry:upload.aborted'), 'AbortError'))
     signal.addEventListener('abort', () => xhr.abort())
     xhr.send(blob)
   })

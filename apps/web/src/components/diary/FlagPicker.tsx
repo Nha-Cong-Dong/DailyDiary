@@ -1,9 +1,10 @@
 import { useEffect, useEffectEvent, useRef } from 'react'
 import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { flagColors, flagHex, presetFlag } from '@/lib/catalog'
+import { flagColors, flagHex, flagName, presetFlag } from '@/lib/catalog'
 import { useCustomFlagColors } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
+import { useT } from '@/lib/i18n'
 
 type FlagPickerProps = {
   /** Mã hex bản sáng đã lưu, hoặc null nếu chưa gắn cờ. */
@@ -29,6 +30,7 @@ type Swatch = { hex: string; label: string }
  * Trang mang màu đã gỡ khỏi danh sách vẫn hiện màu đó (đang chọn) để không mất cờ khi sửa.
  */
 export function FlagPicker({ value, onChange, compact, form, className }: FlagPickerProps) {
+  const t = useT()
   const dark = useDarkMode()
   const custom = useCustomFlagColors()
   const size = form
@@ -40,11 +42,11 @@ export function FlagPicker({ value, onChange, compact, form, className }: FlagPi
   const tile = cn('cursor-pointer outline-offset-3 focus-visible:outline-3 focus-visible:outline-focus', motion, size)
 
   const swatches: Swatch[] = [
-    ...flagColors.map((flag) => ({ hex: flag.hex, label: `Cờ ${flag.name}` })),
-    ...custom.colors.map((hex) => ({ hex, label: `Cờ màu riêng ${hex}` })),
+    ...flagColors.map((flag) => ({ hex: flag.hex, label: t('components:flag.named', { name: flagName(flag.hex) ?? flag.name }) })),
+    ...custom.colors.map((hex) => ({ hex, label: t('components:flag.custom', { hex }) })),
   ]
   const same = (a: string, b: string | null) => a.toLowerCase() === b?.toLowerCase()
-  if (value && !swatches.some((s) => same(s.hex, value))) swatches.push({ hex: value, label: `Cờ màu riêng ${value}` })
+  if (value && !swatches.some((s) => same(s.hex, value))) swatches.push({ hex: value, label: t('components:flag.custom', { hex: value }) })
 
   function pickCustom(hex: string) {
     const known = presetFlag(hex)?.hex ?? custom.colors.find((c) => same(c, hex))
@@ -67,7 +69,7 @@ export function FlagPicker({ value, onChange, compact, form, className }: FlagPi
       {form ? (
         <button
           type="button"
-          aria-label="Không cờ"
+          aria-label={t('components:flag.none')}
           aria-pressed={value === null}
           onClick={() => onChange(null)}
           className={cn(tile, 'border-[1.5px] border-dashed border-stroke bg-transparent', ring(value === null))}
@@ -117,6 +119,7 @@ function AddColor({
   initial: string
   onPick: (hex: string) => void
 }) {
+  const t = useT()
   const input = useRef<HTMLInputElement>(null)
   const commit = useEffectEvent(() => {
     if (input.current) onPick(input.current.value)
@@ -144,8 +147,8 @@ function AddColor({
     <span className={cn('relative flex', sizeClass)}>
       <button
         type="button"
-        aria-label="Thêm màu cờ riêng"
-        title="Thêm màu riêng"
+        aria-label={t('components:flag.addAria')}
+        title={t('components:flag.addTitle')}
         disabled={disabled}
         onClick={open}
         className={cn(

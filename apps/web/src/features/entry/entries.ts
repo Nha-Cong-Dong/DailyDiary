@@ -4,6 +4,7 @@ import type { components } from '@/api/schema'
 import type { PhotoItem } from '@/components/diary/PhotoViewer'
 import type { Score } from '@/lib/catalog'
 import type { DateString } from '@/lib/date'
+import { t } from '@/lib/i18n'
 
 /**
  * Nhật ký một ngày qua API (F-01, Bước 5): GET/PUT/DELETE /entries/{day}, POST /entries/{day}/restore.
@@ -152,11 +153,11 @@ export function useRestoreEntry(date: DateString) {
 /** Câu báo lỗi khi lưu: 409 nói rõ là xung đột, 422 dùng câu của API (vd. "Tiêu đề tối đa 100 ký tự"). */
 export function saveErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
-    if (error.code === 'ENTRY_CONFLICT') return 'Trang này vừa được sửa ở nơi khác.'
+    if (error.code === 'ENTRY_CONFLICT') return t('entry:saveError.conflict')
     if (error.status === 422 || error.status === 404) return error.message
-    if (error.status === 429) return 'Bạn lưu hơi nhanh, thử lại sau ít giây.'
+    if (error.status === 429) return t('entry:saveError.tooFast')
   }
-  return 'Chưa lưu được. Kiểm tra kết nối rồi thử lại.'
+  return t('entry:saveError.generic')
 }
 
 export const isConflict = (error: unknown) => error instanceof ApiError && error.code === 'ENTRY_CONFLICT'

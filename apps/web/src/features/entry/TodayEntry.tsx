@@ -28,6 +28,7 @@ import { deletePhoto, makeUploadPhoto, reorderPhotos } from './uploadPhoto'
 import { useAutosave } from './useAutosave'
 import { useDay } from './useDay'
 import { useRecentDays } from './useRecentDays'
+import { useT } from '@/lib/i18n'
 
 /**
  * Màn "Hôm nay" (thiết kế B6, Jotly 1.1): dải 24 giờ, chấm điểm trước, các trường khác mở ra sau và đều không bắt buộc.
@@ -35,6 +36,7 @@ import { useRecentDays } from './useRecentDays'
  * nút Lưu chỉ để lưu ngay.
  */
 export function TodayEntry() {
+  const t = useT()
   const { timeZone } = useProfile()
   const now = useNow()
   const today = todayIn(timeZone, now)
@@ -42,14 +44,14 @@ export function TodayEntry() {
   if (isPending) {
     return (
       <p role="status" className="mx-auto w-full max-w-[640px] text-ink-soft">
-        Đang mở trang hôm nay…
+        {t('entry:today.opening')}
       </p>
     )
   }
   if (isError) {
     return (
       <Alert variant="destructive" className="mx-auto w-full max-w-[640px]">
-        <AlertDescription>Không mở được trang hôm nay. Thử tải lại.</AlertDescription>
+        <AlertDescription>{t('entry:today.openFailed')}</AlertDescription>
       </Alert>
     )
   }
@@ -58,6 +60,7 @@ export function TodayEntry() {
 }
 
 function TodayForm({ today, now, initial }: { today: string; now: Date; initial: DayEntry | null }) {
+  const t = useT()
   const { timeZone, iconSetId } = useProfile()
   const limits = tierLimits()
   const ids = useId()
@@ -146,10 +149,10 @@ function TodayForm({ today, now, initial }: { today: string; now: Date; initial:
             <span className="hidden md:inline">{longDateLabel(today)}</span>
           </p>
           <h1 id={`${ids}-q`} className="text-[25px] leading-8 font-bold md:text-[clamp(28px,3vw,34px)] md:leading-[1.25]">
-            Hôm nay của bạn thế nào?
+            {t('entry:today.question')}
           </h1>
         </div>
-        <div ref={picker} role="group" aria-label="Điểm của hôm nay">
+        <div ref={picker} role="group" aria-label={t('entry:today.scoreGroup')}>
           <ScorePicker
             iconSetId={iconSetId}
             value={score}
@@ -168,15 +171,15 @@ function TodayForm({ today, now, initial }: { today: string; now: Date; initial:
             record && scoredAt ? (
               <>
                 <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
-                Đã ghi lại hôm nay lúc {timeIn(timeZone, scoredAt)}
+                {t('entry:today.recorded', { time: timeIn(timeZone, scoredAt) })}
               </>
             ) : (
-              <span className="text-ink-soft">Chỉ cần chấm điểm là hôm nay đã được ghi lại.</span>
+              <span className="text-ink-soft">{t('entry:today.ratePrompt')}</span>
             )
           }
         />
         {autosave.restored ? (
-          <p className="text-[13px] leading-5 text-ink-soft">Đã khôi phục phần bạn viết dở lần trước.</p>
+          <p className="text-[13px] leading-5 text-ink-soft">{t('entry:today.restored')}</p>
         ) : null}
       </section>
 
@@ -187,14 +190,14 @@ function TodayForm({ today, now, initial }: { today: string; now: Date; initial:
         >
           <div className="flex items-baseline justify-between gap-3">
             <h2 id={`${ids}-more`} className="text-lg leading-[26px] font-semibold md:text-xl md:leading-7">
-              Thêm chút nữa?
+              {t('entry:addMore')}
             </h2>
-            <span className="text-xs leading-[18px] text-ink-soft md:text-[13px] md:leading-5">Không bắt buộc</span>
+            <span className="text-xs leading-[18px] text-ink-soft md:text-[13px] md:leading-5">{t('entry:optional')}</span>
           </div>
 
           <div className="flex flex-col gap-[18px] md:flex-row md:flex-wrap md:gap-x-10 md:gap-y-6">
             <fieldset className="min-w-0 md:flex-[1_1_300px]">
-              <legend className="mb-2 text-[13px] leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">Biểu tượng</legend>
+              <legend className="mb-2 text-[13px] leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">{t('entry:today.icon')}</legend>
               {/* Điện thoại: một hàng cuộn ngang như thiết kế. Máy tính: lưới gói gọn ba hàng, cuộn dọc khi danh sách dài. */}
               <SubIconPicker
                 value={sub}
@@ -203,32 +206,32 @@ function TodayForm({ today, now, initial }: { today: string; now: Date; initial:
               />
             </fieldset>
             <fieldset className="min-w-0 md:flex-[0_1_220px]">
-              <legend className="mb-2 text-[13px] leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">Cờ hiệu</legend>
+              <legend className="mb-2 text-[13px] leading-5 font-semibold md:mb-2.5 md:text-sm md:leading-[22px]">{t('entry:today.flag')}</legend>
               <FlagPicker value={flag} onChange={setFlag} compact />
             </fieldset>
           </div>
 
           <div className="flex flex-col gap-3">
             <label htmlFor={`${ids}-title`} className="sr-only">
-              Tiêu đề
+              {t('entry:today.titleLabel')}
             </label>
             <Input
               id={`${ids}-title`}
               value={title}
               maxLength={limits.entry.title_max}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Tiêu đề cho hôm nay"
+              placeholder={t('entry:today.titlePlaceholder')}
               className="h-[46px] bg-paper font-heading text-lg font-semibold md:h-12"
             />
             <label htmlFor={`${ids}-body`} className="sr-only">
-              Nội dung
+              {t('entry:today.contentLabel')}
             </label>
             <Textarea
               id={`${ids}-body`}
               value={content}
               maxLength={limits.entry.content_max}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Viết vài dòng…"
+              placeholder={t('entry:today.contentPlaceholder')}
               rows={4}
               className="min-h-[124px] bg-paper text-base leading-7 md:min-h-[162px] md:text-lg md:leading-[30px]"
             />
@@ -240,19 +243,19 @@ function TodayForm({ today, now, initial }: { today: string; now: Date; initial:
             <button
               type="button"
               disabled={!record || photoCount >= limits.photos.per_day_max}
-              title={record ? undefined : 'Đang lưu trang, thêm ảnh sau giây lát'}
+              title={record ? undefined : t('entry:today.photoWait')}
               onClick={() => photoInput.current?.click()}
               className="press inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] border-dashed border-stroke px-3 text-[13px] font-medium focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-70 sm:h-8 sm:text-sm pointer-fine:hover:bg-card"
             >
               <Image className="size-4" aria-hidden="true" />
-              Ảnh · {photoCount}/{limits.photos.per_day_max}
+              {t('entry:today.photoButton', { n: photoCount, max: limits.photos.per_day_max })}
             </button>
             <input
               ref={photoInput}
               type="file"
               multiple
               accept={photoAccept()}
-              aria-label="Chọn ảnh cho hôm nay"
+              aria-label={t('entry:today.photoInput')}
               className="sr-only"
               tabIndex={-1}
               onChange={(e) => {
@@ -270,13 +273,13 @@ function TodayForm({ today, now, initial }: { today: string; now: Date; initial:
               disabled={autosave.status.kind === 'saving'}
               className="h-12 md:h-11 md:px-[22px]"
             >
-              {autosave.status.kind === 'saving' ? 'Đang lưu…' : 'Lưu'}
+              {autosave.status.kind === 'saving' ? t('entry:saving') : t('entry:save')}
             </Button>
             <span className="text-center text-xs leading-[18px] text-ink-soft tabular-nums md:text-[13px] md:leading-5">
-              {scoredAt ? `Tạo ${timeIn(timeZone, scoredAt)}` : null}
+              {scoredAt ? t('entry:today.created', { time: timeIn(timeZone, scoredAt) }) : null}
             </span>
           </div>
-          <p className="text-[13px] leading-5 text-ink-soft">Tự động lưu khi bạn ngừng gõ vài giây.</p>
+          <p className="text-[13px] leading-5 text-ink-soft">{t('entry:today.autosave')}</p>
         </section>
       ) : null}
 

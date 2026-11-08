@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { PlainFrame } from '@/components/layout/PlainFrame'
+import { t } from '@/lib/i18n'
 import { tierLimits } from '@/lib/limits'
 
 /**
@@ -34,16 +36,20 @@ const Mail = () => (
 )
 
 export function PrivacyPolicy() {
+  const { i18n } = useTranslation() // vẽ lại khi đổi ngôn ngữ
   const { restore_days } = tierLimits().entry
   return (
     <PlainFrame>
-      <title>Chính sách quyền riêng tư · Jotly</title>
+      <title>{t('legal:pageTitle')}</title>
       <article className="mx-auto flex w-full max-w-[720px] flex-col gap-10 py-6 text-body md:py-10 md:text-reading">
         <header className="flex flex-col gap-2">
-          <p className="text-label font-normal text-ink-soft">Cập nhật lần cuối: {UPDATED}</p>
-          <h1 className="text-title">
-            Chính sách quyền riêng tư
-          </h1>
+          {i18n.language === 'en' ? (
+            <p role="note" className="rounded-md border-[1.5px] border-line-soft bg-sunk px-3.5 py-2.5 text-label font-medium">
+              {t('legal:englishNotice')}
+            </p>
+          ) : null}
+          <p className="text-label font-normal text-ink-soft">{t('legal:updated', { when: UPDATED })}</p>
+          <h1 className="text-title">{t('legal:heading')}</h1>
           <p className="text-ink-soft">
             Jotly là nhật ký cá nhân. Trang này nói rõ Jotly lưu gì, để làm gì, ai xem được và bạn xóa như thế nào.
             Jotly đang ở giai đoạn thử nghiệm (beta).

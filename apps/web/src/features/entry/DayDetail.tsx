@@ -13,17 +13,19 @@ import { addDays, dayOfMonth, editedOnTheDay, isValidDate, longDateLabel, shortD
 import { useProfile } from '@/lib/profile'
 import { cn } from '@/lib/utils'
 import { PhoneBar, phoneIconButton } from './components/EntryFormParts'
+import { dayMonth } from './entryDraft'
 import { saveErrorMessage, useDeleteEntry, useRestoreEntry, type DayEntry, type EntryDeleted } from './entries'
 import { useDay } from './useDay'
+import { useT } from '@/lib/i18n'
 
 const pill = 'inline-flex h-10 items-center gap-1.5 rounded-[12px] px-3 text-sm font-medium'
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
-const WEEKDAY = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
-/** Thứ của một ngày `YYYY-MM-DD` (lịch thuần, không phụ thuộc múi giờ). */
-const weekdayOf = (date: string) => WEEKDAY[new Date(`${date}T00:00:00Z`).getUTCDay()]
+/** Thứ (0 = Chủ nhật) của một ngày `YYYY-MM-DD` (lịch thuần, không phụ thuộc múi giờ). */
+const weekdayIndex = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 /** "Thứ Bảy 17/10" → nút sang ngày bên cạnh; ngày sau hôm nay thì khóa. */
 function DayStep({ date, dir, disabled }: { date: string; dir: 'prev' | 'next'; disabled: boolean }) {
+  const t = useT()
   const label = shortDateLabel(date)
   const Icon = dir === 'prev' ? ChevronLeft : ChevronRight
   if (disabled) {
@@ -35,14 +37,14 @@ function DayStep({ date, dir, disabled }: { date: string; dir: 'prev' | 'next'; 
         {dir === 'next' ? label : null}
         <Icon className="size-[18px]" aria-hidden="true" />
         {dir === 'prev' ? label : null}
-        <span className="sr-only">, chưa tới</span>
+        <span className="sr-only">{t('entry:day.notYet')}</span>
       </span>
     )
   }
   return (
     <Link
       to={`/day/${date}`}
-      aria-label={`${dir === 'prev' ? 'Ngày trước' : 'Ngày sau'}: ${label}`}
+      aria-label={t(dir === 'prev' ? 'entry:day.prevDay' : 'entry:day.nextDay', { label })}
       className={cn(pill, 'lift-sm border-[1.5px] border-stroke bg-card shadow-sm', focusRing, dir === 'prev' ? 'pl-2.5' : 'pr-2.5')}
     >
       {dir === 'prev' ? <Icon className="size-[18px]" aria-hidden="true" /> : null}
@@ -67,11 +69,12 @@ type DayPageProps = {
  * trang Tìm kiếm.
  */
 function DayPage({ entry, date, editTo, share, onDelete, onOpenPhoto }: DayPageProps) {
+  const t = useT()
   const { timeZone, iconSetId } = useProfile()
   const label = scoreLabel(iconSetId, entry.score)
-  const onTheDay = editedOnTheDay(date, entry.updated_at, timeZone) ? 'ghi đúng ngày' : 'cập nhật muộn'
+  const onTheDay = editedOnTheDay(date, entry.updated_at, timeZone) ? t('entry:day.onTime') : t('entry:day.late')
   const [y, m, d] = date.split('-').map(Number)
-  const weekday = weekdayOf(date)
+  const weekday = t(`common:date.weekdayLong.${weekdayIndex(date)}`)
   const created = timeIn(timeZone, new Date(entry.created_at))
   const updated = timeIn(timeZone, new Date(entry.updated_at))
   const actionClass = cn(
@@ -82,7 +85,7 @@ function DayPage({ entry, date, editTo, share, onDelete, onOpenPhoto }: DayPageP
   return (
     <EntryCard
       variant="page"
-      ariaLabel={`Trang nhật ký ${weekday} ${d}/${m}/${y}`}
+      ariaLabel={t('entry:day.pageAria', { weekday, date: t('entry:fmt.dayMonthYear', { d, m, y }) })}
       iconSetId={iconSetId}
       score={entry.score}
       subIcon={entry.sub_icon}
@@ -93,7 +96,7 @@ function DayPage({ entry, date, editTo, share, onDelete, onOpenPhoto }: DayPageP
       statusLine={
         <>
           <span>
-            Điểm {entry.score} · {label}
+            {t('entry:scoreLine', { score: entry.score, label })}
             <span className="max-md:hidden"> · {onTheDay}</span>
           </span>
           {share?.active ? (
@@ -107,7 +110,7 @@ function DayPage({ entry, date, editTo, share, onDelete, onOpenPhoto }: DayPageP
               )}
             >
               <Link2 className="size-3.5" aria-hidden="true" />
-              Đang chia sẻ
+              {t('entry:day.sharing')}
             </button>
           ) : null}
         </>
@@ -116,17 +119,17 @@ function DayPage({ entry, date, editTo, share, onDelete, onOpenPhoto }: DayPageP
         <div className="flex flex-wrap gap-2 max-md:hidden">
           <Link to={editTo} className={actionClass}>
             <Pencil className="size-4" aria-hidden="true" />
-            Sửa
+            {t('entry:editButton')}
           </Link>
           {share ? (
             <button type="button" aria-haspopup="dialog" onClick={share.open} className={actionClass}>
               <Share2 className="size-4" aria-hidden="true" />
-              Chia sẻ
+              {t('entry:share')}
             </button>
           ) : null}
           <button
             type="button"
-            aria-label="Xóa nhật ký ngày này"
+            aria-label={t('entry:day.deleteAria')}
             onClick={onDelete}
             className={cn(
               'lift-sm inline-flex size-10 cursor-pointer items-center justify-center rounded-[12px] border-[1.5px] border-danger bg-card text-danger pointer-fine:hover:bg-danger-soft',
@@ -140,7 +143,7 @@ function DayPage({ entry, date, editTo, share, onDelete, onOpenPhoto }: DayPageP
       title={entry.title}
       titleAs="h1"
       excerpt={entry.content}
-      emptyText="Chỉ chấm điểm, chưa viết thêm."
+      emptyText={t('entry:day.emptyText')}
       photo={
         first ? <EntryPhotoStack src={first.thumbUrl ?? first.url} total={entry.photos.length} onOpen={onOpenPhoto} /> : null
       }
@@ -153,9 +156,9 @@ function DayPage({ entry, date, editTo, share, onDelete, onOpenPhoto }: DayPageP
       )}
       footer={
         <>
-          <Stamp kind="saved">Đã lưu lúc {updated}</Stamp>
+          <Stamp kind="saved">{t('entry:day.savedAt', { time: updated })}</Stamp>
           <span className="font-normal text-ink-soft nums">
-            Tạo {created} · Sửa lần cuối {updated}
+            {t('entry:day.meta', { created, updated })}
             <span className="md:hidden">, {onTheDay}</span>
           </span>
         </>
@@ -172,6 +175,7 @@ export type DayShareControls = { active: boolean; open: () => void }
  * Xóa không hỏi lại (canvas): trang vào thùng rác ngay (xóa mềm), thông báo có Hoàn tác trong 6 giây.
  */
 export function DayDetail({ date, share }: { date: string; share?: DayShareControls }) {
+  const t = useT()
   const { timeZone } = useProfile()
   const now = useNow()
   const navigate = useNavigate()
@@ -186,8 +190,8 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
   const [toast, setToast] = useState(false)
   useEffect(() => {
     if (!toast) return
-    const t = window.setTimeout(() => setToast(false), 6000)
-    return () => window.clearTimeout(t)
+    const timer = window.setTimeout(() => setToast(false), 6000)
+    return () => window.clearTimeout(timer)
   }, [toast])
 
   function remove() {
@@ -211,7 +215,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
   const back = (
     <Link to="/timeline" className={cn(pill, 'press back-nudge pl-2', focusRing)}>
       <ArrowLeft className="size-[18px]" aria-hidden="true" />
-      Dòng thời gian
+      {t('entry:timeline')}
     </Link>
   )
 
@@ -219,8 +223,8 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
     return (
       <div className="mx-auto flex max-w-[760px] flex-col items-start gap-4">
         {back}
-        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
-        <p className="text-ink-soft">Địa chỉ cần có dạng /day/2026-10-18, và là một ngày có thật.</p>
+        <h1 className="text-title font-bold">{t('entry:invalidDay.title')}</h1>
+        <p className="text-ink-soft">{t('entry:invalidDay.hint', { path: '/day/2026-10-18' })}</p>
       </div>
     )
   }
@@ -230,7 +234,6 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
   const next = addDays(date, 1)
   const hasEntry = !!entry && !deleted && !isPending && !isError && !future
   const editTo = date === today ? '/today' : `/day/${date}/edit`
-  const dayMonth = `${dayOfMonth(date)}/${Number(date.slice(5, 7))}`
   const emptyBox = 'flex flex-col items-start gap-3 rounded-lg border-[1.5px] border-dashed border-line-soft bg-sunk p-6 md:p-8'
 
   return (
@@ -238,20 +241,20 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
       {/* Điện thoại (B10 · Chi tiết ngày): thanh trên riêng — về Dòng thời gian, ngày, Chia sẻ và Sửa. */}
       <PhoneBar
         start={
-          <Link to="/timeline" aria-label="Về Dòng thời gian" className={phoneIconButton}>
+          <Link to="/timeline" aria-label={t('entry:timelineBack')} className={phoneIconButton}>
             <ArrowLeft className="size-[22px]" aria-hidden="true" />
           </Link>
         }
-        title={`${dayMonth}/${date.slice(0, 4)}`}
+        title={t('entry:fmt.dayMonthYear', { d: dayOfMonth(date), m: Number(date.slice(5, 7)), y: date.slice(0, 4) })}
         end={
           hasEntry ? (
             <>
               {share ? (
-                <button type="button" aria-label="Chia sẻ trang này" aria-haspopup="dialog" onClick={share.open} className={phoneIconButton}>
+                <button type="button" aria-label={t('entry:day.shareAria')} aria-haspopup="dialog" onClick={share.open} className={phoneIconButton}>
                   <Share2 className="size-[21px]" aria-hidden="true" />
                 </button>
               ) : null}
-              <Link to={editTo} aria-label="Sửa trang này" className={phoneIconButton}>
+              <Link to={editTo} aria-label={t('entry:day.editAria')} className={phoneIconButton}>
                 <Pencil className="size-[21px]" aria-hidden="true" />
               </Link>
             </>
@@ -260,7 +263,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
       />
       <div className="flex flex-wrap items-center justify-between gap-3 max-md:hidden">
         {back}
-        <nav aria-label="Ngày bên cạnh" className="flex gap-2">
+        <nav aria-label={t('entry:day.neighbors')} className="flex gap-2">
           <DayStep date={prev} dir="prev" disabled={false} />
           <DayStep date={next} dir="next" disabled={next > today} />
         </nav>
@@ -274,38 +277,38 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
 
       {isPending ? (
         <p className="text-ink-soft" role="status">
-          Đang mở trang…
+          {t('entry:opening')}
         </p>
       ) : isError ? (
         <Alert variant="destructive">
-          <AlertDescription>Không mở được trang này. Thử tải lại.</AlertDescription>
+          <AlertDescription>{t('entry:openFailed')}</AlertDescription>
         </Alert>
       ) : future ? (
         <section className={emptyBox}>
           <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
-          <p className="text-ink-soft">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
+          <p className="text-ink-soft">{t('entry:futureDay')}</p>
         </section>
       ) : deleted ? (
         <section className={cn(emptyBox, 'animate-rise')}>
           <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
           <p className="text-ink-soft">
-            Đã xóa trang này. Khôi phục được tới {shortDateLabel(todayIn(timeZone, new Date(deleted.restore_until)))}.
+            {t('entry:day.deleted', { date: shortDateLabel(todayIn(timeZone, new Date(deleted.restore_until))) })}
           </p>
           <Button variant="secondary" onClick={restore} disabled={restoreEntry.isPending}>
-            Khôi phục trang
+            {t('entry:day.restorePage')}
           </Button>
         </section>
       ) : !entry ? (
         <section className={emptyBox}>
           <h1 className="text-heading font-bold">{longDateLabel(date)}</h1>
-          <p className="text-ink-soft">Ngày này chưa ghi.</p>
+          <p className="text-ink-soft">{t('entry:day.unwritten')}</p>
           {date === today ? (
             <Button variant="cta" onClick={() => navigate('/today')}>
-              Viết cho hôm nay
+              {t('entry:writeToday')}
             </Button>
           ) : (
             <Button variant="cta" onClick={() => navigate(`/day/${date}/backfill`)}>
-              Ghi bù ngày này
+              {t('entry:day.backfillThis')}
             </Button>
           )}
         </section>
@@ -323,7 +326,7 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
             )}
           >
             <Trash2 className="size-[18px]" aria-hidden="true" />
-            Xóa trang này
+            {t('entry:day.deleteThis')}
           </button>
         </div>
       )}
@@ -333,9 +336,9 @@ export function DayDetail({ date, share }: { date: string; share?: DayShareContr
       <Toast
         open={toast}
         icon={<Trash2 className="size-3.5" aria-hidden="true" />}
-        action={{ label: 'Hoàn tác', onClick: restore }}
+        action={{ label: t('entry:undo'), onClick: restore }}
       >
-        {`Đã chuyển trang ngày ${dayMonth} vào thùng rác.`}
+        {t('entry:day.toast', { day: dayMonth(date) })}
       </Toast>
     </div>
   )

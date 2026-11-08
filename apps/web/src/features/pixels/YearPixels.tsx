@@ -20,7 +20,8 @@ import { useColorBy } from './useColorBy'
 import { useDayPreview, usePixels } from './usePixels'
 import { YearEmpty } from './YearEmpty'
 import { YearGrid } from './YearGrid'
-import { decimal, yearStats } from './yearStats'
+import { decimal, yearStats, type Month } from './yearStats'
+import { useT } from '@/lib/i18n'
 
 const panel = 'rounded-lg border-[1.5px] border-stroke bg-card p-6 shadow-md'
 /** Tiêu đề nhỏ của thẻ ("Ngày đã chọn", "Phân bố điểm"): chữ giao diện, không loe chân như tiêu đề trang. */
@@ -32,16 +33,16 @@ const SCORE_BG: Record<Score, string> = {
   4: 'bg-score-4',
   5: 'bg-score-5',
 }
-const FILTER_NAME = (k: PixelFilter) => (typeof k === 'number' ? `điểm ${k}` : k === 'missing' ? 'chưa ghi' : 'chưa tới')
 const delay = (s: number) => ({ animationDelay: `${s.toFixed(2)}s` }) as CSSProperties
 /** Điện thoại (dưới 768 px, thiết kế B10): chạm một ô mở bảng xem nhanh thay vì khung "Ngày đã chọn". */
 const isPhone = () => !(window.matchMedia?.('(min-width: 768px)').matches ?? true)
 
 /** Khung xương khi đang tải: khối sunk phẳng theo bố cục màn (hệ 1.1, không dải sáng chạy ngang). */
 function YearSkeleton() {
+  const t = useT()
   return (
     <div role="status" className="flex flex-col gap-6">
-      <span className="sr-only">Đang tải Year in Pixels…</span>
+      <span className="sr-only">{t('pixels:loading')}</span>
       <div aria-hidden="true" className="flex items-end justify-between gap-4">
         <div className="flex flex-col gap-2">
           <span className="skeleton h-8 w-48" />
@@ -102,6 +103,7 @@ function DayPage({
   title: string | null
   excerpt: string | null
 }) {
+  const t = useT()
   const dark = useDarkMode()
   const label = scoreLabel(iconSetId, score)
   return (
@@ -114,7 +116,7 @@ function DayPage({
       <DayMorph date={date} disabled={!morph}>
         <span
           role="img"
-          aria-label={`Điểm ${score}, ${label}`}
+          aria-label={t('pixels:dayPage.scoreAria', { score, label })}
           className="flex size-[72px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-stroke bg-paper"
         >
           <MoodMark iconSetId={iconSetId} score={score} subIcon={subIcon} size={52} />
@@ -122,9 +124,9 @@ function DayPage({
       </DayMorph>
       <div className="flex min-w-0 flex-col gap-1">
         <p className="text-label font-normal text-ink-soft">
-          {longDateLabel(date)} · Điểm {score} · {label}
+          {t('pixels:dayPage.meta', { date: longDateLabel(date), score, label })}
         </p>
-        <h3 className={cn('text-xl leading-7 font-bold', !title && 'text-ink-soft')}>{title || 'Chỉ chấm điểm'}</h3>
+        <h3 className={cn('text-xl leading-7 font-bold', !title && 'text-ink-soft')}>{title || t('pixels:scoreOnly')}</h3>
         {excerpt ? <p className="ruled line-clamp-3 bg-[position:0_-3px] text-body leading-7">{excerpt}</p> : null}
       </div>
     </NotebookPage>
@@ -142,16 +144,17 @@ function SelectedDay({
   today: DateString
   morph?: boolean
 }) {
+  const t = useT()
   const { data: entry, isPending } = useDayPreview(date)
   return (
     <section aria-labelledby="sel-h" className={cn(panel, 'flex animate-rise flex-col gap-4')} style={delay(0.2)}>
       <h2 id="sel-h" className={panelHeading}>
-        Ngày đã chọn
+        {t('pixels:selected.heading')}
       </h2>
       <div aria-live="polite" className="flex flex-col gap-4">
         {!date ? (
           <p className="rounded-md border-[1.5px] border-dashed border-line-soft p-5 text-body text-ink-soft">
-            Chọn một ô trên bảng để xem lại ngày đó.
+            {t('pixels:selected.hint')}
           </p>
         ) : isPending ? (
           <span aria-hidden="true" className="skeleton h-[132px] rounded-[18px]" />
@@ -169,19 +172,19 @@ function SelectedDay({
             />
             <Button asChild variant="secondary" size="sm" className="h-10 self-start pr-3 pl-4">
               <Link to={`/day/${date}`}>
-                Mở trang ngày <ArrowRight className="size-4" aria-hidden="true" />
+                {t('pixels:selected.open')} <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </Button>
           </>
         ) : (
           <div className="flex flex-col gap-1 rounded-md border-[1.5px] border-dashed border-line-soft bg-sunk p-5">
             <p className="text-label font-normal text-ink-soft">{longDateLabel(date)}</p>
-            <p className="text-body font-medium">{date > today ? 'Ngày này chưa tới.' : 'Ngày này chưa được ghi.'}</p>
+            <p className="text-body font-medium">{date > today ? t('pixels:selected.notYet') : t('pixels:selected.notWritten')}</p>
             {date <= today ? (
               <Button asChild variant="outline" size="sm" className="mt-2 self-start text-label">
                 <Link to={date === today ? '/today' : `/day/${date}/backfill`}>
                   {date === today ? null : <RotateCcw className="size-3.5" strokeWidth={2.4} aria-hidden="true" />}
-                  {date === today ? 'Viết trang hôm nay' : 'Ghi bù ngày này'}
+                  {date === today ? t('pixels:selected.writeToday') : t('pixels:selected.backfill')}
                 </Link>
               </Button>
             ) : null}
@@ -194,6 +197,7 @@ function SelectedDay({
 
 /** Trang Year in Pixels cả năm (thiết kế B7 máy tính, B10 điện thoại; hệ 1.1). */
 export function YearPixels() {
+  const t = useT()
   const { timeZone, iconSetId } = useProfile()
   const now = useNow()
   const today = todayIn(timeZone, now)
@@ -210,7 +214,7 @@ export function YearPixels() {
   if (isError)
     return (
       <Alert variant="destructive">
-        <AlertDescription>Không tải được dữ liệu cả năm. Thử tải lại trang.</AlertDescription>
+        <AlertDescription>{t('pixels:error')}</AlertDescription>
       </Alert>
     )
 
@@ -253,45 +257,63 @@ export function YearPixels() {
     if (isPhone()) setSheet(date)
   }
 
+  const joinedDay = Number(data.joined.slice(8))
+  const joinedMonth = Number(data.joined.slice(5, 7)) as Month
+  const joinedMonthShort = t(`common:date.monthShort.${joinedMonth}`)
+  const bestMonthNo = best === null ? null : ((best + 1) as Month)
   const stats: { label: string; value: string; sub: string; swatch?: Score }[] = [
     {
-      label: 'Ngày đã ghi',
+      label: t('pixels:stats.recorded.label'),
       value: String(s.recorded),
-      sub: joinedThisYear ? `trên ${s.pastDays} ngày, từ ${Number(data.joined.slice(8))}/${Number(data.joined.slice(5, 7))}` : `trên ${s.pastDays} ngày đã qua`,
+      sub: joinedThisYear
+        ? t('pixels:stats.recorded.subSince', { count: s.pastDays, day: joinedDay, month: joinedMonth, monthShort: joinedMonthShort })
+        : t('pixels:stats.recorded.subPast', { count: s.pastDays }),
     },
-    { label: 'Chuỗi dài nhất', value: `${s.longestStreak} ngày`, sub: pastYear ? `Năm ${year}` : `Chuỗi hiện tại: ${s.currentStreak} ngày` },
     {
-      label: 'Điểm trung bình',
+      label: t('pixels:stats.longest.label'),
+      value: t('pixels:stats.longest.value', { count: s.longestStreak }),
+      sub: pastYear ? t('pixels:stats.longest.subYear', { year }) : t('pixels:stats.longest.subCurrent', { count: s.currentStreak }),
+    },
+    {
+      label: t('pixels:stats.average.label'),
       value: s.average === null ? '–' : decimal(s.average),
-      sub: avgLevel ? `Gần mức ${scoreLabel(iconSetId, avgLevel)}` : 'Chưa có điểm',
+      sub: avgLevel ? t('pixels:stats.average.subNear', { label: scoreLabel(iconSetId, avgLevel) }) : t('pixels:stats.average.subNone'),
       swatch: avgLevel ?? undefined,
     },
     {
-      label: 'Tháng tươi nhất',
-      value: best === null ? '–' : `Tháng ${best + 1}`,
-      sub: best === null ? '' : `Trung bình ${decimal(s.monthAverages[best]!)}`,
+      label: t('pixels:stats.bestMonth.label'),
+      value: bestMonthNo === null ? '–' : t('pixels:stats.bestMonth.value', { month: bestMonthNo, monthLong: t(`common:date.monthLong.${bestMonthNo}`) }),
+      sub: best === null ? '' : t('pixels:stats.bestMonth.sub', { value: decimal(s.monthAverages[best]!) }),
       swatch: best === null ? undefined : (Math.round(s.monthAverages[best]!) as Score),
     },
   ]
-  const filterText = filter === null ? '' : `Đang xem ${FILTER_NAME(filter)} · ${filterCount} ngày`
+  const filterName =
+    filter === null
+      ? ''
+      : typeof filter === 'number'
+        ? t('pixels:filter.score', { score: filter })
+        : filter === 'missing'
+          ? t('pixels:filter.missing')
+          : t('pixels:filter.future')
+  const filterText = filter === null ? '' : t('pixels:filter.status', { name: filterName, count: filterCount })
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex animate-rise flex-wrap items-center justify-between gap-2 md:items-end md:gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-title">Year in Pixels</h1>
+          <h1 className="text-title">{t('pixels:title')}</h1>
           <p className="text-body text-ink-soft max-md:hidden">
             {joinedThisYear
-              ? `Bạn bắt đầu dùng Jotly từ ${Number(data.joined.slice(8))}/${Number(data.joined.slice(5, 7))}/${year}.`
-              : 'Mỗi ô là một ngày, mỗi màu là một mức điểm.'}
+              ? t('pixels:subtitleJoined', { day: joinedDay, month: joinedMonth, monthShort: joinedMonthShort, year })
+              : t('pixels:subtitleDefault')}
           </p>
         </div>
-        <div role="group" aria-label="Chọn năm" className="inline-flex items-center gap-1.5">
+        <div role="group" aria-label={t('pixels:year.group')} className="inline-flex items-center gap-1.5">
           <Button
             variant="outline"
             size="icon"
             className="rounded-[12px]"
-            aria-label={prevYear ? `Năm trước, ${prevYear}` : 'Không có năm trước'}
+            aria-label={prevYear ? t('pixels:year.prev', { year: prevYear }) : t('pixels:year.noPrev')}
             disabled={prevYear === null}
             onClick={() => prevYear && changeYear(prevYear)}
           >
@@ -304,7 +326,7 @@ export function YearPixels() {
             variant="outline"
             size="icon"
             className="rounded-[12px]"
-            aria-label={nextYear ? `Năm sau, ${nextYear}` : 'Không có năm sau'}
+            aria-label={nextYear ? t('pixels:year.next', { year: nextYear }) : t('pixels:year.noNext')}
             disabled={nextYear === null}
             onClick={() => nextYear && changeYear(nextYear)}
           >
@@ -344,14 +366,14 @@ export function YearPixels() {
           <p role="status" className="flex animate-fade items-center justify-between gap-2 text-label font-normal text-ink-soft">
             {filterText}
             <button type="button" onClick={() => setFilter(null)} className="link-underline min-h-11 cursor-pointer px-1 font-semibold text-ink">
-              Bỏ lọc
+              {t('pixels:filter.clear')}
             </button>
           </p>
         ) : null}
       </div>
 
       <section
-        aria-label="Bảng điểm cả năm"
+        aria-label={t('pixels:grid.aria')}
         className={cn(panel, 'flex animate-rise flex-col gap-[18px] rounded-[18px] p-3 shadow-sm md:rounded-lg md:p-6 md:shadow-md')}
         style={delay(0.1)}
       >
@@ -377,7 +399,7 @@ export function YearPixels() {
             <div className="inline-flex items-center gap-2.5 text-label font-normal text-ink-soft">
               <span aria-live="polite">{filterText}</span>
               <Button variant="outline" size="sm" onClick={() => setFilter(null)}>
-                Bỏ lọc
+                {t('pixels:filter.clear')}
               </Button>
             </div>
           ) : null}
@@ -385,20 +407,20 @@ export function YearPixels() {
       </section>
 
       <p className="-mt-2 text-label font-normal text-ink-soft md:hidden">
-        Mỗi cột là một tháng, mỗi hàng là một ngày. Chạm một ô để xem nhanh.
+        {t('pixels:phoneHint')}
       </p>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(360px,100%),1fr))] items-start gap-6 max-md:hidden">
         <SelectedDay date={selected} iconSetId={iconSetId} today={today} morph={sheet !== selected} />
         <section aria-labelledby="dist-h" className={cn(panel, 'flex animate-rise flex-col gap-4')} style={delay(0.26)}>
           <h2 id="dist-h" className={panelHeading}>
-            Phân bố điểm · {year}
+            {t('pixels:distribution', { year })}
           </h2>
           <ul className="flex flex-col gap-3">
             {([5, 4, 3, 2, 1] as Score[]).map((k) => (
               <li key={k} className="grid grid-cols-[96px_minmax(0,1fr)_36px] items-center gap-3">
                 <span className="text-label font-medium">
-                  {k} · {scoreLabel(iconSetId, k)}
+                  {t('pixels:scoreRow', { score: k, label: scoreLabel(iconSetId, k) })}
                 </span>
                 <span aria-hidden="true" className="h-3.5 overflow-hidden rounded-full border-[1.5px] border-stroke bg-sunk">
                   <span

@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Segmented } from '@/components/ui/segmented'
 import { flagHex, scoreLabel, SCORES, type Score } from '@/lib/catalog'
-import { longDateLabel, shortDateLabel, todayIn, useNow } from '@/lib/date'
+import { longDateLabel, todayIn, useNow } from '@/lib/date'
+import { t, useT } from '@/lib/i18n'
 import { useProfile } from '@/lib/profile'
 import { highlight, matches, snippet } from '@/lib/text'
 import { useDarkMode } from '@/lib/theme'
@@ -25,7 +26,6 @@ const SCORE_SWATCH: Record<Score, string> = {
   4: 'bg-score-4',
   5: 'bg-score-5',
 }
-const PERIOD_OPTIONS = PERIODS.map((p) => ({ value: p.id, label: p.label }))
 
 /** Chip bộ lọc trên máy tính (B7): chọn thì nền secondary, viền mực, bóng 2px. */
 const chip = (on: boolean) =>
@@ -47,6 +47,19 @@ const sheetRow = (first: boolean) =>
     'row-press flex min-h-[52px] cursor-pointer touch-manipulation items-center gap-3 px-4 text-left text-body select-none focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-focus',
     !first && 'border-t-[1.5px] border-dashed border-line-soft',
   )
+
+/** Ngày kèm năm cho thẻ kết quả trên điện thoại: "Chủ nhật, 18/10/2026" / "Sunday, Oct 18, 2026". */
+function phoneDate(date: string): string {
+  const [year, month, day] = date.split('-').map(Number)
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6
+  return t('search:card.phoneDate', {
+    weekday: t(`common:date.weekdayLong.${weekday}`),
+    day,
+    month,
+    monthShort: t(`common:date.monthShort.${month as 1}`),
+    year,
+  })
+}
 
 /** Tô sáng chỗ khớp: nền đào (sáng) / highlight (tối), bo 4px, chữ mực. */
 function Marked({ text, q, strong }: { text: string; q: string; strong?: boolean }) {
@@ -77,16 +90,17 @@ function IdleSuggestions({
   iconSetId: string
   onPick: (k: string) => void
 }) {
+  const t = useT()
   return (
     <div className="flex flex-col gap-6 rounded-[18px] border-[1.5px] border-dashed border-line-soft p-5 md:p-7">
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl leading-7 font-bold">Bạn muốn tìm lại điều gì?</h2>
-        <p className="text-sm leading-[22px] text-ink-soft">Gõ một từ khóa, gõ không dấu cũng được. Hoặc bấm thử:</p>
+        <h2 className="text-xl leading-7 font-bold">{t('search:idle.heading')}</h2>
+        <p className="text-sm leading-[22px] text-ink-soft">{t('search:idle.hint')}</p>
       </div>
       {top.length ? (
         <section aria-labelledby="idle-top" className="flex flex-col gap-2.5 max-md:hidden">
           <h3 id="idle-top" className="text-label text-ink-soft [font-variation-settings:normal]">
-            Từ khóa hay dùng
+            {t('search:topKeywords')}
           </h3>
           <div className="flex flex-wrap gap-2">
             {top.map((k) => (
@@ -100,7 +114,7 @@ function IdleSuggestions({
       {recent.length ? (
         <section aria-labelledby="idle-recent" className="flex flex-col gap-2.5">
           <h3 id="idle-recent" className="text-label text-ink-soft [font-variation-settings:normal]">
-            Trang gần đây
+            {t('search:idle.recent')}
           </h3>
           <ul className="flex flex-col gap-2">
             {recent.map((e) => (
@@ -111,9 +125,9 @@ function IdleSuggestions({
                 >
                   <MoodMark iconSetId={iconSetId} score={e.score} subIcon={e.sub_icon} size={28} />
                   <span className="flex min-w-0 flex-col">
-                    <span className="truncate text-body leading-[22px] font-semibold">{e.title || 'Chỉ chấm điểm'}</span>
+                    <span className="truncate text-body leading-[22px] font-semibold">{e.title || t('search:scoreOnly')}</span>
                     <span className="text-label font-normal text-ink-soft">
-                      {longDateLabel(e.entry_date)} · Điểm {e.score}
+                      {t('search:idle.recentMeta', { date: longDateLabel(e.entry_date), score: e.score })}
                     </span>
                   </span>
                 </Link>
@@ -131,6 +145,7 @@ function IdleSuggestions({
  * tiêu đề và đoạn trích tô sáng chỗ khớp; khung trang sổ dùng chung NotebookPage.
  */
 function ResultCard({ e, q, iconSetId, index }: { e: SearchHit; q: string; iconSetId: string; index: number }) {
+  const t = useT()
   const dark = useDarkMode()
   const body = e.content ? snippet(e.content, q) : null
   const label = scoreLabel(iconSetId, e.score)
@@ -143,7 +158,7 @@ function ResultCard({ e, q, iconSetId, index }: { e: SearchHit; q: string; iconS
         >
         <span
           role="img"
-          aria-label={`Điểm ${e.score}, ${label}`}
+          aria-label={t('search:card.scoreAria', { score: e.score, label })}
           className="flex size-10 items-center justify-center self-start rounded-full border-[1.5px] border-stroke bg-paper md:size-14"
         >
           <MoodMark iconSetId={iconSetId} score={e.score} subIcon={e.sub_icon} size={28} className="md:hidden" />
@@ -151,20 +166,20 @@ function ResultCard({ e, q, iconSetId, index }: { e: SearchHit; q: string; iconS
         </span>
         <span className="flex min-w-0 flex-col gap-0.5 md:gap-1">
           <span className="text-label font-normal text-ink-soft md:hidden">
-            {shortDateLabel(e.entry_date).replace(/ (\d+)\/(\d+)$/, `, $1/$2/${e.entry_date.slice(0, 4)}`)} · Điểm {e.score}
+            {t('search:card.phoneMeta', { date: phoneDate(e.entry_date), score: e.score })}
           </span>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label font-normal text-ink-soft max-md:hidden">
             <span>
-              {longDateLabel(e.entry_date)} · Điểm {e.score} · {label}
+              {t('search:card.meta', { date: longDateLabel(e.entry_date), score: e.score, label })}
             </span>
             {e.photo_count ? (
               <span className="inline-flex items-center gap-1">
-                <Image className="size-3.5" aria-hidden="true" /> {e.photo_count} ảnh
+                <Image className="size-3.5" aria-hidden="true" /> {t('search:card.photos', { count: e.photo_count })}
               </span>
             ) : null}
           </span>
           <span className="text-body font-bold [font-variation-settings:'FLAR'_60] md:text-[19px] md:leading-7">
-            {e.title ? <Marked text={e.title} q={q} /> : 'Chỉ chấm điểm'}
+            {e.title ? <Marked text={e.title} q={q} /> : t('search:scoreOnly')}
           </span>
           {body ? (
             <span className="ruled bg-[position:0_-3px] text-sm leading-6 max-md:line-clamp-2 md:text-body md:leading-7">
@@ -200,9 +215,10 @@ function ResultCard({ e, q, iconSetId, index }: { e: SearchHit; q: string; iconS
 
 /** Khung xương khi đang tìm: ba thẻ sunk phẳng cùng cỡ thẻ kết quả. */
 function ResultsSkeleton() {
+  const t = useT()
   return (
     <div role="status" className="flex flex-col gap-2.5 md:gap-3.5">
-      <span className="sr-only">Đang tìm…</span>
+      <span className="sr-only">{t('search:loading')}</span>
       <span aria-hidden="true" className="skeleton h-5 w-44" />
       {[0, 1, 2].map((i) => (
         <span key={i} aria-hidden="true" className="skeleton h-[104px] rounded-[16px] md:h-[150px] md:rounded-[18px]" />
@@ -213,6 +229,7 @@ function ResultsSkeleton() {
 
 /** Trang tìm theo từ khóa (thiết kế B7 máy tính, B10 điện thoại; hệ 1.1): tìm trong tiêu đề, nội dung, từ khóa, kèm bộ lọc. */
 export function Search({ initialQuery = '' }: { initialQuery?: string }) {
+  const t = useT()
   const { timeZone, iconSetId } = useProfile()
   const today = todayIn(timeZone, useNow())
   const id = useId()
@@ -232,7 +249,8 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
   const hidden = (data?.matched ?? 0) - (data?.total ?? 0)
 
   const [sheet, setSheet] = useState<'score' | 'period' | null>(null)
-  const periodLabel = PERIODS.find((p) => p.id === filters.period)?.label ?? ''
+  const periodLabel = t(`search:periods.${filters.period}`)
+  const periodOptions = PERIODS.map((p) => ({ value: p, label: t(`search:periods.${p}`) }))
 
   const toggleScore = (k: Score) =>
     setFilters((f) => ({ ...f, scores: f.scores.includes(k) ? f.scores.filter((x) => x !== k) : [...f.scores, k].sort() }))
@@ -241,15 +259,15 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
   return (
     <div className="mx-auto flex w-full max-w-[720px] flex-col gap-4 md:gap-6">
       <div className="flex animate-rise flex-col gap-1.5 max-md:sr-only">
-        <h1 className="text-title">Tìm theo từ khóa</h1>
-        <p className="text-body text-ink-soft">Tìm trong tiêu đề, nội dung và từ khóa của mọi trang.</p>
+        <h1 className="text-title">{t('search:title')}</h1>
+        <p className="text-body text-ink-soft">{t('search:subtitle')}</p>
       </div>
 
       <div role="search" className="flex animate-rise flex-col gap-4 md:gap-2.5" style={{ animationDelay: '.05s' }}>
         <div className="flex items-center gap-1">
           <Link
             to="/timeline"
-            aria-label="Quay lại Dòng thời gian"
+            aria-label={t('search:input.back')}
             className="back-nudge row-press -ml-3 inline-flex size-11 shrink-0 touch-manipulation items-center justify-center rounded-[12px] md:hidden focus-visible:outline-3 focus-visible:outline-focus"
           >
             <ArrowLeft className="size-[22px]" aria-hidden="true" />
@@ -260,7 +278,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
               aria-hidden="true"
             />
             <label htmlFor={id} className="sr-only">
-              Từ khóa
+              {t('search:input.label')}
             </label>
             <input
               id={id}
@@ -268,7 +286,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
               autoComplete="off"
               enterKeyHint="search"
               autoFocus={!initialQuery}
-              placeholder="Tìm trong nhật ký"
+              placeholder={t('search:input.placeholder')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="h-11 w-full rounded-[14px] border-[1.5px] border-stroke bg-card pr-10 pl-[38px] text-base text-ink outline-none placeholder:text-ink-faint focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus md:h-14 md:rounded-[16px] md:pr-14 md:pl-[50px] md:text-lg md:shadow-md [&::-webkit-search-cancel-button]:hidden"
@@ -277,7 +295,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Xóa từ khóa"
+                aria-label={t('search:input.clear')}
                 onClick={() => setQ('')}
                 className="absolute top-1/2 right-0.5 size-10 -translate-y-1/2 no-underline md:right-2.5"
               >
@@ -287,14 +305,14 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
           </div>
         </div>
         {hasEntries ? (
-          <div role="group" aria-label="Bộ lọc" className="-mx-4 scroll-quiet flex gap-2 overflow-x-auto px-4 md:hidden">
+          <div role="group" aria-label={t('search:filters.group')} className="-mx-4 scroll-quiet flex gap-2 overflow-x-auto px-4 md:hidden">
             <button
               type="button"
               aria-haspopup="dialog"
               onClick={() => setSheet('score')}
               className={cn(phoneChip(filters.scores.length > 0), 'pr-2.5')}
             >
-              {filters.scores.length ? `Điểm ${filters.scores.join(', ')}` : 'Điểm'}
+              {filters.scores.length ? t('search:filters.scoreSome', { list: filters.scores.join(', ') }) : t('search:filters.score')}
               <ChevronDown className="size-4" aria-hidden="true" />
             </button>
             <button
@@ -313,7 +331,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
               className={phoneChip(filters.withPhotos)}
             >
               <Image className="size-[15px]" aria-hidden="true" />
-              Có ảnh
+              {t('search:filters.photos')}
             </button>
           </div>
         ) : null}
@@ -321,7 +339,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
         {top.length ? (
           // Máy tính, khi chưa gõ: từ khóa hay dùng hiện to trong khối gợi ý bên dưới, nên ẩn hàng nhỏ này.
           <div className={cn('flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center', !query && 'md:hidden')}>
-            <span className="text-label text-ink-soft md:font-normal">Từ khóa hay dùng</span>
+            <span className="text-label text-ink-soft md:font-normal">{t('search:topKeywords')}</span>
             <div className="-mx-4 scroll-quiet flex gap-1.5 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:gap-2 md:overflow-visible md:px-0">
               {top.map((k) => {
                 const on = q.trim().toLowerCase() === k.toLowerCase()
@@ -350,13 +368,13 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
           <span className="inline-flex size-16 items-center justify-center rounded-[18px] border-[1.5px] border-stroke bg-card shadow-sm">
             <SearchIcon className="size-7" aria-hidden="true" />
           </span>
-          <h2 className="mt-1 text-heading font-bold">{query ? `Chưa có trang nào chứa “${query}”` : 'Chưa có trang nào để tìm'}</h2>
+          <h2 className="mt-1 text-heading font-bold">{query ? t('search:newUser.noMatch', { query }) : t('search:newUser.title')}</h2>
           <p className="max-w-[440px] text-body text-ink-soft">
-            Khi bạn viết và gắn từ khóa, mọi trang sẽ tìm được ở đây. Ví dụ: tìm “cà phê” để mở lại những ngày có ly cà phê.
+            {t('search:newUser.body')}
           </p>
           <Button asChild variant="cta" size="lg" className="group mt-2">
             <Link to="/today">
-              Viết trang đầu tiên
+              {t('search:newUser.cta')}
               <ArrowRight
                 className="size-[18px] transition-transform duration-(--dur-fast) ease-out pointer-fine:group-hover:translate-x-[3px]"
                 aria-hidden="true"
@@ -368,17 +386,17 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
         <>
           <div
             role="group"
-            aria-label="Bộ lọc"
+            aria-label={t('search:filters.group')}
             className="flex animate-rise flex-wrap items-center gap-x-7 gap-y-3.5 rounded-[18px] border-[1.5px] border-dashed border-line-soft bg-sunk px-[18px] py-4 max-md:hidden"
             style={{ animationDelay: '.1s' }}
           >
-            <div role="group" aria-label="Lọc theo điểm" className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-label">Điểm</span>
+            <div role="group" aria-label={t('search:filters.byScore')} className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-label">{t('search:filters.score')}</span>
               {SCORES.map((k) => (
                 <button
                   key={k}
                   type="button"
-                  aria-label={`Điểm ${k}, ${scoreLabel(iconSetId, k)}`}
+                  aria-label={t('search:filters.scoreAria', { score: k, label: scoreLabel(iconSetId, k) })}
                   aria-pressed={filters.scores.includes(k)}
                   onClick={() => toggleScore(k)}
                   className={cn(chip(filters.scores.includes(k)), 'min-w-11 justify-center px-2.5')}
@@ -390,9 +408,9 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               <span id={`${id}-period`} className="mr-1 text-label">
-                Thời gian
+                {t('search:filters.time')}
               </span>
-              <Segmented options={PERIOD_OPTIONS} value={filters.period} onChange={setPeriod} ariaLabelledby={`${id}-period`} />
+              <Segmented options={periodOptions} value={filters.period} onChange={setPeriod} ariaLabelledby={`${id}-period`} />
             </div>
             <button
               type="button"
@@ -401,14 +419,14 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
               className={cn(chip(filters.withPhotos), 'pl-2.5')}
             >
               <Image className="size-4" aria-hidden="true" />
-              Có ảnh
+              {t('search:filters.photos')}
             </button>
           </div>
 
           <div aria-live="polite" className="flex flex-col gap-4">
             {isError ? (
               <Alert variant="destructive">
-                <AlertDescription>Không tìm được lúc này. Thử lại sau ít phút.</AlertDescription>
+                <AlertDescription>{t('search:error')}</AlertDescription>
               </Alert>
             ) : !query ? (
               <IdleSuggestions top={top} recent={recent} iconSetId={iconSetId} onPick={setQ} />
@@ -418,9 +436,9 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
               <>
                 <p className="text-label font-normal text-ink-soft md:text-sm md:leading-[22px]">
                   <strong className="font-semibold text-ink">
-                    {data.total} kết quả cho “{query}”
+                    {t('search:results.count', { count: data.total, query })}
                   </strong>
-                  {hidden > 0 && filtersOn ? ` · ${hidden} trang khác bị ẩn bởi bộ lọc` : ''}
+                  {hidden > 0 && filtersOn ? t('search:results.hidden', { count: hidden }) : ''}
                 </p>
                 <ul className="flex flex-col gap-2.5 md:gap-3.5">
                   {results.map((e, i) => (
@@ -434,38 +452,38 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
                     disabled={search.isFetchingNextPage}
                     onClick={() => void search.fetchNextPage()}
                   >
-                    {search.isFetchingNextPage ? 'Đang tải…' : `Xem thêm ${data.total - results.length} kết quả cũ hơn`}
+                    {search.isFetchingNextPage ? t('search:results.loadingMore') : t('search:results.more', { count: data.total - results.length })}
                   </Button>
                 ) : null}
               </>
             ) : data.matched > 0 ? (
               <div className="flex flex-col items-center gap-2.5 rounded-[16px] border-[1.5px] border-dashed border-line-soft px-4 py-6 text-center md:gap-3 md:rounded-[18px] md:p-8">
-                <p className="text-body font-semibold">Không có trang nào khớp với bộ lọc</p>
+                <p className="text-body font-semibold">{t('search:filtered.title')}</p>
                 <p className="text-label font-normal text-ink-soft md:text-sm md:leading-[22px]">
-                  Có {data.matched} trang chứa “{query}”, nhưng không trang nào hợp với điểm, thời gian hoặc ảnh bạn chọn.
+                  {t('search:filtered.body', { count: data.matched, query })}
                 </p>
                 <Button variant="secondary" size="sm" className="h-10" onClick={() => setFilters(NO_FILTERS)}>
-                  Bỏ lọc
+                  {t('search:filters.clear')}
                 </Button>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-1 rounded-[16px] border-[1.5px] border-dashed border-line-soft px-4 py-6 text-center md:gap-1.5 md:rounded-[18px] md:p-8">
-                <p className="text-body font-semibold">Không tìm thấy “{query}”</p>
-                <p className="text-label font-normal text-ink-soft md:text-sm md:leading-[22px]">Thử một từ ngắn hơn, hoặc gõ không dấu.</p>
+                <p className="text-body font-semibold">{t('search:notFound.title', { query })}</p>
+                <p className="text-label font-normal text-ink-soft md:text-sm md:leading-[22px]">{t('search:notFound.hint')}</p>
               </div>
             )}
           </div>
         </>
       )}
-      <BottomSheet open={sheet === 'score'} onOpenChange={(o) => !o && setSheet(null)} title="Lọc theo điểm">
-        <div role="group" aria-label="Chọn điểm" className="flex flex-col overflow-hidden rounded-[16px] border-[1.5px] border-stroke">
+      <BottomSheet open={sheet === 'score'} onOpenChange={(o) => !o && setSheet(null)} title={t('search:sheet.scoreTitle')}>
+        <div role="group" aria-label={t('search:sheet.pickScore')} className="flex flex-col overflow-hidden rounded-[16px] border-[1.5px] border-stroke">
           {SCORES.map((k, i) => {
             const on = filters.scores.includes(k)
             return (
               <button key={k} type="button" role="checkbox" aria-checked={on} onClick={() => toggleScore(k)} className={sheetRow(i === 0)}>
                 <span aria-hidden="true" className={cn('size-4 rounded-[4px] border border-stroke', SCORE_SWATCH[k])} />
                 <span className="flex-1">
-                  Điểm {k}, {scoreLabel(iconSetId, k)}
+                  {t('search:sheet.scoreRow', { score: k, label: scoreLabel(iconSetId, k) })}
                 </span>
                 <span
                   aria-hidden="true"
@@ -482,27 +500,27 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
         </div>
         <div className="grid grid-cols-2 gap-2.5">
           <Button variant="outline" size="lg" className="rounded-[14px]" onClick={() => setFilters((f) => ({ ...f, scores: [] }))}>
-            Bỏ chọn
+            {t('search:sheet.deselect')}
           </Button>
           <Button size="lg" className="rounded-[14px]" onClick={() => setSheet(null)}>
-            Xong
+            {t('search:sheet.done')}
           </Button>
         </div>
       </BottomSheet>
-      <BottomSheet open={sheet === 'period'} onOpenChange={(o) => !o && setSheet(null)} title="Khoảng thời gian">
-        <div role="radiogroup" aria-label="Khoảng thời gian" className="flex flex-col overflow-hidden rounded-[16px] border-[1.5px] border-stroke">
+      <BottomSheet open={sheet === 'period'} onOpenChange={(o) => !o && setSheet(null)} title={t('search:sheet.periodTitle')}>
+        <div role="radiogroup" aria-label={t('search:sheet.periodTitle')} className="flex flex-col overflow-hidden rounded-[16px] border-[1.5px] border-stroke">
           {PERIODS.map((p, i) => {
-            const on = filters.period === p.id
+            const on = filters.period === p
             return (
               <button
-                key={p.id}
+                key={p}
                 type="button"
                 role="radio"
                 aria-checked={on}
-                onClick={() => setPeriod(p.id)}
+                onClick={() => setPeriod(p)}
                 className={cn(sheetRow(i === 0), 'justify-between', on ? 'font-semibold' : 'font-normal')}
               >
-                {p.label}
+                {t(`search:periods.${p}`)}
                 <span aria-hidden="true" className="inline-flex size-[22px] items-center justify-center rounded-full border-[1.5px] border-stroke">
                   <span className={cn('size-2.5 rounded-full', on && 'bg-ink')} />
                 </span>
@@ -511,7 +529,7 @@ export function Search({ initialQuery = '' }: { initialQuery?: string }) {
           })}
         </div>
         <Button size="lg" className="rounded-[14px]" onClick={() => setSheet(null)}>
-          Xong
+          {t('search:sheet.done')}
         </Button>
       </BottomSheet>
     </div>

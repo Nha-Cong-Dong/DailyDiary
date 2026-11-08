@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { t } from './i18n'
 
 /**
  * Chế độ màu (canvas B11-Theme): lớp `dark` trên <html>. Bốn lựa chọn trong Hồ sơ: Sáng / Tối / Hệ thống / Theo giờ;
@@ -8,17 +9,42 @@ import { useSyncExternalStore } from 'react'
  */
 export type ThemePreference = 'light' | 'dark' | 'system' | 'hour'
 
+// `label` là getter: dịch lúc đọc (không chốt chữ ở cấp module), nên đổi ngôn ngữ thì lần render sau ra chữ mới.
 export const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
-  { value: 'light', label: 'Sáng' },
-  { value: 'dark', label: 'Tối' },
-  { value: 'system', label: 'Hệ thống' },
-  { value: 'hour', label: 'Theo giờ' },
+  {
+    value: 'light',
+    get label() {
+      return t('lib:theme.light')
+    },
+  },
+  {
+    value: 'dark',
+    get label() {
+      return t('lib:theme.dark')
+    },
+  },
+  {
+    value: 'system',
+    get label() {
+      return t('lib:theme.system')
+    },
+  },
+  {
+    value: 'hour',
+    get label() {
+      return t('lib:theme.hour')
+    },
+  },
 ]
 
 /** Chú thích dưới bộ chọn (canvas B11-Theme); Sáng/Tối không có chú thích. */
 export const THEME_CAPTIONS: Partial<Record<ThemePreference, string>> = {
-  hour: 'Tối từ 20:00 đến 05:00 theo giờ của máy, sáng thời gian còn lại.',
-  system: 'Theo cài đặt sáng/tối của điện thoại hoặc máy tính.',
+  get hour() {
+    return t('lib:theme.hourCaption')
+  },
+  get system() {
+    return t('lib:theme.systemCaption')
+  },
 }
 
 /** Giờ bắt đầu và kết thúc chế độ tối của "Theo giờ". */

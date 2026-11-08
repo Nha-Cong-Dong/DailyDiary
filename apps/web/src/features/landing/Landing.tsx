@@ -7,10 +7,12 @@ import { ScoreIcon } from '@/components/diary/ScoreIcon'
 import { Stamp } from '@/components/diary/Stamp'
 import { Avatar } from '@/components/layout/Avatar'
 import { GoogleMark } from '@/components/layout/GoogleMark'
+import { LanguageSwitch } from '@/components/layout/LanguageSwitch'
 import { Logo } from '@/components/layout/Logo'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { flagColors, SCORES, scoreLabel, type Score } from '@/lib/catalog'
 import { browserTimeZone, daysEndingAt, todayIn, type DateString } from '@/lib/date'
+import { t, useT } from '@/lib/i18n'
 import { tierLimits } from '@/lib/limits'
 import { cn } from '@/lib/utils'
 import { AccountMenu } from './AccountMenu'
@@ -52,6 +54,7 @@ const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-
 const LAVENDER = flagColors.find((f) => f.id === 'lavender')?.hex ?? null
 
 function GoogleButton({ inverted }: { inverted?: boolean }) {
+  const t = useT()
   return (
     // Điều hướng thẳng tới API (không fetch) để cookie dd_oauth của luồng OAuth đi trọn vòng.
     <a
@@ -63,39 +66,25 @@ function GoogleButton({ inverted }: { inverted?: boolean }) {
       )}
     >
       <GoogleMark />
-      Tiếp tục với Google
+      {t('landing:google.continue')}
     </a>
   )
 }
 
-/** Chọn ngôn ngữ: MVP mới có tiếng Việt, EN hiện nhưng chưa bật (Project_Specs F-04). */
-function LanguageSwitch() {
-  const item = 'inline-flex h-full min-w-[34px] items-center justify-center rounded-[7px] px-1.5 text-label'
-  return (
-    <div role="group" aria-label="Ngôn ngữ" className="inline-flex h-9 gap-0.5 rounded-[10px] border-2 border-stroke p-[3px]">
-      <span aria-current="true" className={cn(item, 'bg-primary text-on-primary')}>
-        VI
-      </span>
-      <button type="button" disabled title="English sắp có" aria-label="English, sắp có" className={cn(item, 'cursor-not-allowed text-ink-soft')}>
-        EN
-      </button>
-    </div>
-  )
-}
-
 function SiteHeader({ account, todayWritten }: { account?: LandingAccount; todayWritten: boolean }) {
+  const t = useT()
   const links = [
-    { href: '#mot-cham', label: 'Một chạm' },
-    { href: '#nhin-lai', label: 'Nhìn lại' },
-    { href: '#rieng-tu', label: 'Riêng tư' },
+    { href: '#mot-cham', label: t('landing:header.links.oneTap') },
+    { href: '#nhin-lai', label: t('landing:header.links.lookBack') },
+    { href: '#rieng-tu', label: t('landing:header.links.privacy') },
   ]
   return (
     <header className={cn(wide, 'relative z-10 pt-5 pb-2')}>
       <nav
-        aria-label="Điều hướng chính"
+        aria-label={t('landing:header.nav')}
         className="flex items-center gap-2 rounded-full border-2 border-stroke bg-card py-2 pr-2.5 pl-[22px] shadow-sm"
       >
-        <a href="#" aria-label="Jotly, trang chủ" className={cn('rounded-sm transition-[scale] duration-150 active:scale-[.97] motion-reduce:scale-100!', focusRing)}>
+        <a href="#" aria-label={t('landing:header.home')} className={cn('rounded-sm transition-[scale] duration-150 active:scale-[.97] motion-reduce:scale-100!', focusRing)}>
           <Logo />
         </a>
         <ul className="ml-2 hidden gap-0.5 md:flex">
@@ -125,7 +114,7 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
               focusRing,
             )}
           >
-            {account ? 'Mở nhật ký' : 'Bắt đầu viết'}
+            {account ? t('landing:header.openJournal') : t('landing:header.start')}
           </Link>
           {account ? (
             <AccountMenu
@@ -143,8 +132,12 @@ function SiteHeader({ account, todayWritten }: { account?: LandingAccount; today
 }
 
 function heroStatus(summary: HomeSummary | null | undefined): string {
-  if (!summary) return 'Trang hôm nay đang chờ bạn.'
-  return `Tháng này bạn đã ghi ${summary.recorded}/${summary.daysSoFar} ngày · chuỗi hiện tại ${summary.streak} ngày.`
+  if (!summary) return t('landing:hero.statusWaiting')
+  return t('landing:hero.statusSummary', {
+    recorded: summary.recorded,
+    daysSoFar: summary.daysSoFar,
+    streak: t('landing:hero.days', { count: summary.streak }),
+  })
 }
 
 // Nền hero: lưới ô kiểu Year in Pixels (1200 ô đủ phủ màn 1920 px), giả ngẫu nhiên cố định, chỉ để trang trí.
@@ -202,6 +195,7 @@ function Holes({ className, rings }: { className?: string; rings?: boolean }) {
 
 /** Hai trang sổ MẪU bên phải hero: trang hôm qua phía sau, trang hôm nay phía trước, chạm thử đổi điểm tại chỗ. */
 function HeroNotebook() {
+  const t = useT()
   const [score, setScore] = useState<Score>(4)
   const name = scoreLabel(DEMO_ICON_SET, score)
   return (
@@ -211,23 +205,23 @@ function HeroNotebook() {
         className="ruled absolute top-0 left-0 flex h-[84%] w-[74%] -rotate-4 animate-stamp flex-col gap-0.5 rounded-lg border-2 border-stroke bg-card pt-4 pl-[50px] shadow-md [animation-delay:100ms]"
       >
         <Holes rings />
-        <span className="text-label text-ink-soft">Thứ Bảy · 17/10</span>
-        <span className="text-body font-semibold">Dọn lại góc học tập</span>
+        <span className="text-label text-ink-soft">{t('landing:hero.notebook.yesterdayDate')}</span>
+        <span className="text-body font-semibold">{t('landing:hero.notebook.yesterdayTitle')}</span>
       </div>
 
       <article
-        aria-label="Trang nhật ký mẫu, Chủ nhật 18/10/2026"
+        aria-label={t('landing:hero.notebook.ariaLabel')}
         className="tilt relative mt-11 ml-[clamp(36px,10vw,56px)] flex rotate-[1.5deg] animate-stamp flex-col gap-3.5 rounded-lg border-2 border-stroke bg-card pt-[22px] pr-[22px] pb-5 pl-[54px] shadow-lg [animation-delay:220ms]"
       >
         <Holes />
         <span aria-hidden="true" className="absolute inset-y-0 left-[42px] w-0.5 bg-notebook-margin" />
         <div className="flex items-center justify-between gap-3">
           <span className="flex flex-col">
-            <span className="text-label text-ink-soft">Chủ nhật · 18/10/2026</span>
-            <span className="text-label">Hôm nay · {name}</span>
+            <span className="text-label text-ink-soft">{t('landing:hero.notebook.todayDate')}</span>
+            <span className="text-label">{t('landing:hero.notebook.todayName', { name })}</span>
           </span>
           <span className="relative flex size-14 shrink-0 items-center justify-center rounded-full border-2 border-stroke bg-card shadow-sm">
-            <span role="img" aria-label={`Điểm ${score}, ${name}`} className="flex">
+            <span role="img" aria-label={t('landing:hero.notebook.scoreLabel', { score, name })} className="flex">
               <ScoreIcon key={score} iconSetId={DEMO_ICON_SET} score={score} size={38} className="animate-pop" />
             </span>
             <span
@@ -238,10 +232,10 @@ function HeroNotebook() {
             </span>
           </span>
         </div>
-        <h3 className="text-heading">Chiều mưa đọc sách</h3>
-        <p className="ruled pb-[30px] text-reading">Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở. Tối gọi điện cho mẹ.</p>
+        <h3 className="text-heading">{t('landing:sample.title')}</h3>
+        <p className="ruled pb-[30px] text-reading">{t('landing:sample.excerptShort')}</p>
         <fieldset className="flex min-w-0 flex-col gap-2">
-          <legend className="mb-2 text-label">Chạm để đổi điểm</legend>
+          <legend className="mb-2 text-label">{t('landing:hero.notebook.tapToChange')}</legend>
           <div className="flex gap-1">
             {SCORES.map((n) => {
               const on = n === score
@@ -249,7 +243,7 @@ function HeroNotebook() {
                 <button
                   key={n}
                   type="button"
-                  aria-label={`Điểm ${n}, ${scoreLabel(DEMO_ICON_SET, n)}`}
+                  aria-label={t('landing:hero.notebook.scoreLabel', { score: n, name: scoreLabel(DEMO_ICON_SET, n) })}
                   aria-pressed={on}
                   onClick={() => setScore(n)}
                   className={cn(
@@ -266,7 +260,7 @@ function HeroNotebook() {
         </fieldset>
         <p className="flex items-center gap-1.5 text-label text-sage-ink">
           <CircleCheck className="size-4" strokeWidth={2.5} aria-hidden="true" />
-          Đã lưu lúc 21:04
+          {t('landing:hero.notebook.savedAt')}
         </p>
       </article>
     </div>
@@ -274,6 +268,7 @@ function HeroNotebook() {
 }
 
 function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSummary | null }) {
+  const t = useT()
   const rise = (delay: number) => ({ animationDelay: `${delay}ms` })
   return (
     <section aria-labelledby="hero-title" className="relative">
@@ -300,9 +295,9 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
             </Link>
           ) : null}
           <h1 id="hero-title" className="max-w-[520px] animate-rise text-display">
-            Chạm để ghi chú, mở để{' '}
+            {t('landing:hero.titleLead')}
             <span className="relative inline-block whitespace-nowrap">
-              nhìn lại.
+              {t('landing:hero.titleAccent')}
               <svg
                 aria-hidden="true"
                 viewBox="0 0 200 16"
@@ -322,7 +317,7 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
             </span>
           </h1>
           <p className="max-w-[380px] animate-rise text-reading text-ink-soft" style={rise(70)}>
-            Nhật ký mỗi ngày một trang. Chấm điểm, chọn biểu tượng, viết vài dòng nếu muốn.
+            {t('landing:hero.subtitle')}
           </p>
           <div className="mt-3 flex animate-rise flex-wrap items-center gap-x-[22px] gap-y-3.5" style={rise(140)}>
             {account ? (
@@ -335,23 +330,23 @@ function Hero({ account, summary }: { account?: LandingAccount; summary?: HomeSu
                   )}
                 >
                   <Pencil className="size-[18px]" aria-hidden="true" />
-                  Mở trang hôm nay
+                  {t('landing:hero.openToday')}
                 </Link>
                 <Link to="/timeline" className="link-underline text-body font-medium">
-                  Xem Dòng thời gian
+                  {t('landing:hero.viewTimeline')}
                 </Link>
               </>
             ) : (
               <>
                 <GoogleButton />
                 <a href="#mot-cham" className="link-underline text-body font-medium">
-                  Xem cách hoạt động
+                  {t('landing:hero.howItWorks')}
                 </a>
               </>
             )}
           </div>
           <p className="animate-rise text-label font-normal text-ink-soft" style={rise(210)}>
-            {account ? heroStatus(summary) : 'Đăng nhập bằng Gmail, không cần mật khẩu.'}
+            {account ? heroStatus(summary) : t('landing:hero.signInNote')}
           </p>
         </div>
         <div className="flex min-w-0 justify-end md:col-start-2 md:row-start-1 md:self-end min-[1180px]:col-start-3">
@@ -379,18 +374,19 @@ function Divider({ score }: { score: Score }) {
 }
 
 function OneTapSection({ account, todayIso, week }: { account?: LandingAccount; todayIso: DateString; week: ReturnType<typeof weekOf> }) {
+  const t = useT()
   const q = account?.quickScore
   return (
     <section id="mot-cham" aria-labelledby="mot-cham-title">
       <div className={cn(wrap, sectionPad, 'flex flex-wrap items-center gap-16')}>
         <div className="reveal-on-scroll flex min-w-0 flex-[1_1_340px] flex-col gap-3.5">
           <h2 id="mot-cham-title" className="text-title">
-            {account ? 'Một chạm cho hôm nay' : 'Bận quá? Một chạm là đủ.'}
+            {account ? t('landing:oneTap.titleSigned') : t('landing:oneTap.titleGuest')}
           </h2>
           <p className="max-w-[380px] text-reading text-ink-soft">
             {account
-              ? 'Chấm điểm ngay tại đây, trang hôm nay của bạn sẽ được cập nhật. Muốn viết thêm thì mở trang hôm nay.'
-              : 'Thử chấm một mức: ngày hôm đó vào ngay lịch của bạn. Viết thêm lúc nào cũng được.'}
+              ? t('landing:oneTap.textSigned')
+              : t('landing:oneTap.textGuest')}
           </p>
         </div>
         <div className="reveal-on-scroll flex min-w-0 flex-[1_1_420px]">
@@ -409,7 +405,7 @@ function OneTapSection({ account, todayIso, week }: { account?: LandingAccount; 
               error={q.error}
               footer={
                 <Link to="/today" className="link-underline self-start text-body font-semibold">
-                  Viết thêm cho hôm nay
+                  {t('landing:oneTap.writeMore')}
                 </Link>
               }
             />
@@ -432,6 +428,7 @@ function weekOf(today: DateString, recent: ReturnType<typeof useRecentDays>['dat
 
 /** Chồng ba ảnh minh họa cạnh nội dung trang mẫu. */
 function PhotoStack() {
+  const t = useT()
   return (
     <div aria-hidden="true" className="relative my-1.5 mr-1.5 w-[132px] shrink-0">
       <span className="absolute inset-0 -rotate-5 rounded-md border-2 border-stroke bg-card" />
@@ -450,7 +447,8 @@ function PhotoStack() {
           <rect x="24" y="64" width="32" height="9" rx="2" className="fill-lavender" />
         </svg>
         <span className="flex items-center justify-center gap-1.5 text-label text-ink-soft">
-          <ImageIcon className="size-4" aria-hidden="true" />3 ảnh
+          <ImageIcon className="size-4" aria-hidden="true" />
+          {t('landing:anatomy.photos', { count: 3 })}
         </span>
       </span>
     </div>
@@ -458,19 +456,20 @@ function PhotoStack() {
 }
 
 function DayAnatomy() {
+  const t = useT()
   const maxPhotos = tierLimits().photos.per_day_max
   const items: [string, ReactNode][] = [
-    ['Điểm và biểu tượng', 'Chấm 1 đến 5 bằng một trong sáu bộ icon vẽ tay, thêm một sub icon cho chuyện chính của ngày.'],
-    ['Cờ hiệu', 'Gắn một màu cho ngày đáng nhớ. Year in Pixels tô được cả năm theo màu cờ.'],
-    ['Chữ và ảnh', `Một tiêu đề, vài dòng hay cả trang, và tối đa ${maxPhotos} ảnh mỗi ngày.`],
-    ['Từ khóa', 'Gắn từ khóa để tìm lại mọi ngày có cùng một chuyện.'],
+    [t('landing:anatomy.scoreTerm'), t('landing:anatomy.scoreText')],
+    [t('landing:anatomy.flagTerm'), t('landing:anatomy.flagText')],
+    [t('landing:anatomy.wordsTerm'), t('landing:anatomy.wordsText', { count: maxPhotos })],
+    [t('landing:anatomy.keywordsTerm'), t('landing:anatomy.keywordsText')],
     [
-      'Ghi bù',
+      t('landing:anatomy.backfillTerm'),
       <>
-        Quên{' '}
+        {t('landing:anatomy.backfillPre')}
         <span className="relative inline-block whitespace-nowrap">
           <del className="relative text-ink-soft no-underline">
-            hôm qua
+            {t('landing:anatomy.backfillWord')}
             <svg
               aria-hidden="true"
               viewBox="0 0 100 12"
@@ -481,10 +480,10 @@ function DayAnatomy() {
             </svg>
           </del>
           <ins className="absolute bottom-[72%] left-1/2 -translate-x-1/2 -rotate-5 text-[15px] leading-[18px] font-bold whitespace-nowrap text-peach-ink no-underline">
-            14/10
+            {t('landing:anatomy.backfillDate')}
           </ins>
-        </span>{' '}
-        thì ghi bù ngày đó; trang cho biết ghi đúng ngày hay cập nhật muộn.
+        </span>
+        {t('landing:anatomy.backfillPost')}
       </>,
     ],
   ]
@@ -493,7 +492,7 @@ function DayAnatomy() {
       <div className="grid items-center gap-x-16 gap-y-12 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div className="flex flex-col gap-8">
           <h2 id="mot-trang-title" className="reveal-on-scroll text-title">
-            Một trang ngày có gì
+            {t('landing:anatomy.title')}
           </h2>
           <div className="ruled reveal-on-scroll relative bg-[position:0_-4px] pl-[46px] leading-[30px]">
             <span aria-hidden="true" className="absolute -top-3 -bottom-3 left-7 w-0.5 bg-notebook-margin" />
@@ -524,22 +523,22 @@ function DayAnatomy() {
           </svg>
           <EntryCard
             variant="page"
-            ariaLabel="Trang ngày mẫu"
+            ariaLabel={t('landing:sample.pageLabel')}
             iconSetId={DEMO_ICON_SET}
             score={4}
             subIcon="😌"
             flagColor={LAVENDER}
-            dateLabel="Chủ nhật, 18/10/2026"
-            dateParts={{ weekday: 'Chủ nhật', day: 18, month: 10, year: 2026 }}
-            statusLine="Hé nở · ghi đúng ngày"
-            title="Chiều mưa đọc sách"
-            excerpt="Mưa từ trưa nên ở nhà đọc nốt cuốn sách còn dang dở. Tối nấu bát phở, gọi điện cho mẹ, kể chuyện tuần này."
+            dateLabel={t('landing:sample.pageDate')}
+            dateParts={{ weekday: t('common:date.weekdayLong.0'), day: 18, month: 10, year: 2026 }}
+            statusLine={`${scoreLabel(DEMO_ICON_SET, 4)} · ${t('landing:sample.onTime')}`}
+            title={t('landing:sample.title')}
+            excerpt={t('landing:sample.excerptLong')}
             photo={<PhotoStack />}
-            keywords={['đọc sách', 'mưa', 'mẹ']}
+            keywords={[t('landing:sample.keyword1'), t('landing:sample.keyword2'), t('landing:sample.keyword3')]}
             footer={
               <>
-                <Stamp kind="saved">Đã lưu lúc 21:32</Stamp>
-                <span>Sửa lần cuối 21:32</span>
+                <Stamp kind="saved">{t('landing:sample.savedAt')}</Stamp>
+                <span>{t('landing:sample.editedAt')}</span>
               </>
             }
           />
@@ -570,23 +569,24 @@ function HandCheck({ d, tilt }: { d: string; tilt: string }) {
 }
 
 function Privacy() {
+  const t = useT()
   const items = [
     {
-      title: 'Riêng tư mặc định.',
-      text: 'Chỉ mình bạn xem được nhật ký của mình.',
+      title: t('landing:privacy.defaultTitle'),
+      text: t('landing:privacy.defaultText'),
       d: 'M4 13c3 2.6 5.2 5.3 6.6 8.4C14 12.5 19.5 5.5 27 1.5',
       tilt: '-rotate-2',
     },
     {
       // Chia sẻ một trang qua link (F-10, ADR 0005): người viết tự quyết.
-      title: 'Bạn chọn người xem.',
-      text: 'Chia sẻ từng trang qua link chỉ xem, tắt link lúc nào cũng được.',
+      title: t('landing:privacy.chooseTitle'),
+      text: t('landing:privacy.chooseText'),
       d: 'M3.5 14.5c3.4 2 5.6 4.6 7 7.6C14.6 13 20 6.8 26.5 2.6',
       tilt: 'rotate-[1.5deg]',
     },
     {
-      title: 'Xóa bất cứ lúc nào.',
-      text: 'Xóa từng trang hoặc toàn bộ dữ liệu.',
+      title: t('landing:privacy.deleteTitle'),
+      text: t('landing:privacy.deleteText'),
       d: 'M4.5 12.8c2.8 2.8 4.8 5.4 6.2 8.6C14.4 12 19 6 27.5 2',
       tilt: '-rotate-1',
     },
@@ -600,17 +600,17 @@ function Privacy() {
             className="inline-flex -rotate-7 items-center gap-2 rounded-[12px] border-[2.5px] border-stroke bg-sage py-2 pr-4 pl-3 text-body font-bold text-on-accent shadow-sm outline-[1.5px] -outline-offset-[7px] outline-on-accent outline-dashed"
           >
             <Lock className="size-[18px]" strokeWidth={2.4} aria-hidden="true" />
-            Chỉ mình bạn
+            {t('landing:privacy.badge')}
           </span>
           <h2
             id="rieng-tu-title"
             className="text-[clamp(36px,5vw,56px)] leading-[1.05] font-extrabold tracking-[-0.025em] [font-variation-settings:'FLAR'_100]"
           >
-            Nhật ký của bạn là{' '}
+            {t('landing:privacy.titleLead')}
             <span className="rounded-[6px] bg-[linear-gradient(transparent_56%,color-mix(in_oklab,var(--color-sage)_55%,transparent)_56%,color-mix(in_oklab,var(--color-sage)_55%,transparent)_94%,transparent_94%)] px-[0.06em] [box-decoration-break:clone]">
-              của bạn
+              {t('landing:privacy.titleAccent')}
             </span>
-            .
+            {t('landing:privacy.titleEnd')}
           </h2>
         </div>
         <div className="reveal-on-scroll flex flex-col gap-4 text-reading leading-7">
@@ -625,7 +625,7 @@ function Privacy() {
             ))}
           </ul>
           <Link to="/privacy" className="link-underline self-start text-body font-semibold">
-            Đọc chính sách quyền riêng tư
+            {t('landing:privacy.readPolicy')}
           </Link>
         </div>
       </div>
@@ -635,6 +635,7 @@ function Privacy() {
 
 /** Khối kêu gọi cuối trang: tờ giấy mực có góc gấp, bóng đào (vùng peach duy nhất của trang). */
 function CallToAction({ account, todayWritten }: { account?: LandingAccount; todayWritten: boolean }) {
+  const t = useT()
   return (
     <section aria-labelledby="cta-title" className={cn(wrap, 'reveal-on-scroll pt-[clamp(40px,5vw,64px)] pb-[clamp(80px,10vw,128px)]')}>
       <div className="relative flex flex-wrap items-center justify-between gap-6 rounded-[36px] rounded-tr-none border-2 border-stroke bg-primary p-[clamp(32px,5vw,56px)] text-on-primary shadow-accent-lg transition-[transform,box-shadow] duration-(--dur-fast) ease-out pointer-fine:hover:-translate-x-0.5 pointer-fine:hover:-translate-y-0.5 pointer-fine:hover:shadow-[8px_8px_0_var(--color-peach)] motion-reduce:transform-none!">
@@ -665,7 +666,7 @@ function CallToAction({ account, todayWritten }: { account?: LandingAccount; tod
           <path d="M124 8V3.5H148" />
         </svg>
         <h2 id="cta-title" className="font-heading text-[clamp(24px,2.4vw,30px)] leading-[1.3] font-bold">
-          {account && todayWritten ? 'Hôm nay đã có một trang. Viết thêm vài dòng?' : 'Hôm nay của bạn thế nào?'}
+          {account && todayWritten ? t('landing:cta.titleWritten') : t('landing:cta.title')}
         </h2>
         {account ? (
           <Link
@@ -673,7 +674,7 @@ function CallToAction({ account, todayWritten }: { account?: LandingAccount; tod
             className={cn('press inline-flex h-12 items-center gap-2.5 rounded-[16px] border-2 border-on-primary bg-on-primary pr-5 pl-4 text-body font-semibold text-primary', focusRing)}
           >
             <Pencil className="size-[18px]" aria-hidden="true" />
-            Mở trang hôm nay
+            {t('landing:cta.openToday')}
           </Link>
         ) : (
           <GoogleButton inverted />
@@ -684,6 +685,7 @@ function CallToAction({ account, todayWritten }: { account?: LandingAccount; tod
 }
 
 function SiteFooter() {
+  const t = useT()
   return (
     <footer className="overflow-hidden">
       {/* Dải lỗ gáy sổ. */}
@@ -699,14 +701,15 @@ function SiteFooter() {
           Jotly
         </p>
         <div className="reveal-on-scroll flex flex-wrap items-center justify-between gap-4 pt-5">
-          <span className="text-label font-normal text-ink-soft">Chạm để ghi chú, mở để nhìn lại.</span>
+          <span className="text-label font-normal text-ink-soft">{t('landing:footer.tagline')}</span>
+          <LanguageSwitch className="sm:hidden" />
           <div className="flex flex-wrap gap-5 text-label font-normal">
             {/* Chờ nội dung điều khoản thật trước khi ra mắt. */}
             <a href="#" className="link-underline">
-              [Điều khoản sử dụng]
+              {t('landing:footer.terms')}
             </a>
             <Link to="/privacy" className="link-underline">
-              Chính sách quyền riêng tư
+              {t('landing:footer.privacy')}
             </Link>
             <span className="text-ink-soft">© 2026 Jotly</span>
           </div>

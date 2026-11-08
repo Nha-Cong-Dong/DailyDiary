@@ -1,7 +1,8 @@
 import { Check } from 'lucide-react'
 import { ScoreIcon } from '@/components/diary/ScoreIcon'
-import { iconSets, SCORES } from '@/lib/catalog'
+import { iconSetName, iconSets, SCORES } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
 type IconSetPickerProps = {
   value: string
@@ -17,10 +18,11 @@ type IconSetPickerProps = {
  * Ấn: dịch 2 px như ấn tờ giấy xuống trang.
  */
 export function IconSetPicker({ value, onChange, labelledBy, className }: IconSetPickerProps) {
+  const t = useT()
   return (
     <div
       role="group"
-      aria-label={labelledBy ? undefined : 'Bộ icon'}
+      aria-label={labelledBy ? undefined : t('profile:iconSet.groupLabel')}
       aria-labelledby={labelledBy}
       className={cn('grid grid-cols-[repeat(auto-fill,minmax(min(190px,100%),1fr))] gap-3.5', className)}
     >
@@ -42,7 +44,7 @@ export function IconSetPicker({ value, onChange, labelledBy, className }: IconSe
                 <ScoreIcon key={s} iconSetId={set.id} score={s} size={26} />
               ))}
             </span>
-            <span className="text-sm leading-5 font-semibold">{set.name}</span>
+            <span className="text-sm leading-5 font-semibold">{iconSetName(set)}</span>
             {on ? (
               <span
                 aria-hidden="true"

@@ -1,5 +1,6 @@
 import type { components } from '@/api/schema'
 import type { DemoEntry } from '@/lib/demo'
+import { intlLocale, t } from '@/lib/i18n'
 
 /**
  * Chia sẻ một trang (thiết kế B8). Mỗi ngày có tối đa một link đang bật; người viết chọn từng phần người nhận được xem.
@@ -22,25 +23,14 @@ export type PublicShare = Schemas['PublicShareOut']
 
 export type PartKey = 'name' | 'score' | 'sub_icon' | 'flag' | 'title' | 'content' | 'keywords'
 
-export const PART_LABELS: Record<PartKey, string> = {
-  name: 'Tên của bạn',
-  score: 'Điểm & icon chính',
-  sub_icon: 'Sub icon',
-  flag: 'Màu cờ',
-  title: 'Tiêu đề',
-  content: 'Nội dung',
-  keywords: 'Từ khóa',
+/** Nhãn đầy đủ của một phần (dịch lúc gọi, để đổi ngôn ngữ có hiệu lực ngay). */
+export function partLabel(key: PartKey): string {
+  return t(`share:parts.${key}`)
 }
 
 /** Nhãn ngắn trong danh sách "Người nhận thấy" / "Đang ẩn". */
-export const PART_SHORT: Record<PartKey, string> = {
-  name: 'Tên',
-  score: 'Điểm & icon',
-  sub_icon: 'Sub icon',
-  flag: 'Màu cờ',
-  title: 'Tiêu đề',
-  content: 'Nội dung',
-  keywords: 'Từ khóa',
+export function partShort(key: PartKey): string {
+  return t(`share:partsShort.${key}`)
 }
 
 export const PART_KEYS: PartKey[] = ['name', 'score', 'sub_icon', 'flag', 'title', 'content', 'keywords']
@@ -115,12 +105,12 @@ export function hasContent(settings: ShareSettings, shape: EntryShape): boolean 
 /** Nhãn "Người nhận thấy" và "Đang ẩn" cho một link. */
 export function partSummary(settings: ShareSettings, shape: EntryShape): { shown: string[]; hidden: string[] } {
   const avail = availableParts(shape)
-  const shown = avail.filter((k) => settings[partField(k)]).map((k) => PART_SHORT[k])
-  const hidden = avail.filter((k) => !settings[partField(k)]).map((k) => PART_SHORT[k])
+  const shown = avail.filter((k) => settings[partField(k)]).map(partShort)
+  const hidden = avail.filter((k) => !settings[partField(k)]).map(partShort)
   if (shape.photos > 0) {
     const n = Math.min(settings.photo_ids.length, shape.photos)
-    if (n > 0) shown.push(`${n}/${shape.photos} ảnh`)
-    else hidden.push('Ảnh')
+    if (n > 0) shown.push(t('share:photosSelected', { n, total: shape.photos }))
+    else hidden.push(t('share:partsShort.photos'))
   }
   return { shown, hidden }
 }
@@ -164,7 +154,9 @@ export const SHOW_ALL_BELOW = 20
 /** "18/10/2026". */
 export function numericDate(date: string): string {
   const [y, m, d] = date.split('-').map(Number)
-  return `${d}/${m}/${y}`
+  return new Intl.DateTimeFormat(intlLocale(), { timeZone: 'UTC', day: 'numeric', month: 'numeric', year: 'numeric' }).format(
+    new Date(Date.UTC(y, m - 1, d)),
+  )
 }
 
 /** Dãy số trang: 1 … 4 5 6 … 12 (0 = dấu ba chấm). */

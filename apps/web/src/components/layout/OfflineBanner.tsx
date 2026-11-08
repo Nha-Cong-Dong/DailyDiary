@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { onReconnectSynced, resetReconnectSynced } from '@/lib/autosave'
 import { useOnline } from '@/lib/online'
 import { cn } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
 /** Thời gian giữ dải "Đã có mạng lại" trước khi tự ẩn. */
 export const BACK_ONLINE_MS = 4000
@@ -14,6 +15,7 @@ export const BACK_ONLINE_MS = 4000
  * Có mạng lại thì đổi sang "Đã có mạng lại" vài giây rồi ẩn.
  */
 export function OfflineBanner() {
+  const t = useT()
   const online = useOnline()
   const client = useQueryClient()
   const [backOnline, setBackOnline] = useState(false)
@@ -73,20 +75,19 @@ export function OfflineBanner() {
               <Check className="size-3.5" strokeWidth={3} />
             </span>
             <p className="text-sm leading-[22px]">
-              <strong className="font-semibold">Đã có mạng lại.</strong>{' '}
-              {synced > 0 ? `Đã lưu ${synced} trang bạn viết lúc ngoại tuyến.` : 'Dữ liệu trên màn đã được tải lại.'}
+              <strong className="font-semibold">{t('components:offline.backOnline')}</strong>{' '}
+              {synced > 0 ? t('components:offline.synced', { count: synced }) : t('components:offline.refreshed')}
             </p>
           </>
         ) : (
           <>
             <WifiOff className="size-5 shrink-0" aria-hidden="true" />
             <p className="flex-[1_1_360px] text-sm leading-[22px]">
-              <strong className="font-semibold">Bạn đang ngoại tuyến.</strong> Những gì bạn viết vẫn được giữ trên trình
-              duyệt này và sẽ tự lưu khi có mạng.
+              <strong className="font-semibold">{t('components:offline.offline')}</strong> {t('components:offline.offlineBody')}
             </p>
             <Button variant="secondary" size="sm" className="h-9 shadow-none" disabled={retrying} onClick={retry}>
               {retrying ? <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" /> : null}
-              {retrying ? 'Đang thử…' : 'Thử kết nối lại'}
+              {retrying ? t('components:offline.trying') : t('components:offline.reconnect')}
             </Button>
           </>
         )}

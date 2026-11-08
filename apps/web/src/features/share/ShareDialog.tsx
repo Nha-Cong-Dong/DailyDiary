@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { flagName, scoreLabel } from '@/lib/catalog'
 import { longDateLabel } from '@/lib/date'
 import type { DemoEntry } from '@/lib/demo'
+import { t as tr, useT } from '@/lib/i18n'
 import { useProfile } from '@/lib/profile'
 import { cn } from '@/lib/utils'
 import { SharePreview } from './components/SharePreview'
@@ -17,8 +18,8 @@ import {
   displayUrl,
   hasContent,
   numericDate,
-  PART_LABELS,
   partField,
+  partLabel,
   shapeOf,
   type PartKey,
   type ShareLink,
@@ -50,6 +51,7 @@ function settingsOf(link: ShareLink | null): ShareSettings {
  * link mới.
  */
 export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProps) {
+  const t = useT()
   const { displayName, avatarUrl, iconSetId } = useProfile()
   const ids = useId()
   const save = useSaveShare(entry.entry_date)
@@ -100,10 +102,10 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
   }
 
   const linkDesc = linkOn
-    ? 'Đang bật · ai có link đều xem được phần bạn chọn.'
+    ? t('share:dialog.linkOn')
     : justOff
-      ? 'Đã tắt · link cũ không mở được nữa. Bật lại sẽ tạo link mới.'
-      : 'Đang tắt · chỉ mình bạn xem được trang này.'
+      ? t('share:dialog.linkJustOff')
+      : t('share:dialog.linkOff')
 
   return (
     <>
@@ -113,22 +115,22 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
         onOpenChange={onOpenChange}
         layout="responsive"
         bare
-        description="Chọn từng phần người nhận được xem."
+        description={t('share:dialog.sheetDescription')}
         className="gap-0 px-0 pt-0 pb-0 md:max-w-[min(980px,calc(100%-2rem))] md:gap-0 md:overflow-hidden md:rounded-[24px] md:p-0"
       >
         <div className="flex items-start justify-between gap-4 border-b-[1.5px] border-dashed border-line-soft py-5 pr-5 pl-7 max-md:border-b-0 max-md:px-4 max-md:pt-4 max-md:pb-0">
           <div className="flex flex-col gap-0.5">
-            <SheetTitle className="text-heading font-bold">Chia sẻ trang {numericDate(entry.entry_date)}</SheetTitle>
+            <SheetTitle className="text-heading font-bold">{t('share:dialog.title', { date: numericDate(entry.entry_date) })}</SheetTitle>
             <SheetDescription className="text-sm leading-[22px] text-ink-soft max-md:text-[13px] max-md:leading-5">
-              <span className="max-md:hidden">Chọn từng phần người nhận được xem. Họ chỉ xem, không sửa được.</span>
-              <span className="md:hidden">Người nhận chỉ xem, không sửa được.</span>
+              <span className="max-md:hidden">{t('share:dialog.descriptionDesktop')}</span>
+              <span className="md:hidden">{t('share:dialog.descriptionMobile')}</span>
             </SheetDescription>
           </div>
           <SheetClose asChild>
             <Button
               variant="outline"
               size="icon"
-              aria-label="Đóng"
+              aria-label={t('share:dialog.close')}
               className="shrink-0 rounded-[12px] max-md:hidden [&_svg]:transition-transform [&_svg]:duration-(--dur-base) [&_svg]:ease-out pointer-fine:hover:[&_svg]:rotate-90"
             >
               <X aria-hidden="true" />
@@ -146,7 +148,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span id={`${ids}-link`} className="text-body font-semibold">
-                    Link chia sẻ
+                    {t('share:dialog.linkLabel')}
                   </span>
                   <span role="status" className="text-[13px] leading-5 text-ink-soft max-md:leading-[18px]">
                     {linkDesc}
@@ -161,7 +163,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
               </div>
               <div className="flex flex-wrap gap-2 max-md:flex-nowrap">
                 <div
-                  aria-label="Link chia sẻ"
+                  aria-label={t('share:dialog.linkLabel')}
                   className="flex h-11 min-w-0 flex-[1_1_220px] items-center gap-2 rounded-[12px] border-[1.5px] border-stroke bg-card px-3.5 text-sm max-md:flex-1 max-md:px-3"
                 >
                   <Link2 className="size-4 shrink-0 text-ink-soft max-md:hidden" aria-hidden="true" />
@@ -171,8 +173,8 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                     </span>
                   ) : (
                     <span className="truncate text-ink-soft">
-                      <span className="max-md:hidden">Bật link chia sẻ để tạo link</span>
-                      <span className="md:hidden">Bật để tạo link</span>
+                      <span className="max-md:hidden">{t('share:dialog.linkPlaceholderDesktop')}</span>
+                      <span className="md:hidden">{t('share:dialog.linkPlaceholderMobile')}</span>
                     </span>
                   )}
                 </div>
@@ -186,7 +188,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                   ) : (
                     <Copy className="size-[18px] max-md:hidden" aria-hidden="true" />
                   )}
-                  {copied === 'dialog' ? 'Đã chép' : 'Sao chép'}
+                  {copied === 'dialog' ? t('share:copiedShort') : t('share:copy')}
                 </Button>
               </div>
             </section>
@@ -194,40 +196,40 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
             <section aria-labelledby={`${ids}-parts`} className="flex flex-col gap-2.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <h3 id={`${ids}-parts`} className="text-body leading-[22px] font-semibold">
-                  Người nhận được xem
+                  {t('share:dialog.recipientsCanSee')}
                 </h3>
                 <div className="flex shrink-0 gap-3.5 whitespace-nowrap">
                   <button
                     type="button"
-                    aria-label="Chọn tất cả"
+                    aria-label={t('share:dialog.selectAllAria')}
                     className={cn('link-underline cursor-pointer py-1 text-[13px] leading-[18px] font-medium max-md:min-h-11', focusRing)}
                     onClick={() => setAll(true)}
                   >
-                    <span className="max-md:hidden">Chọn tất cả</span>
-                    <span className="md:hidden">Tất cả</span>
+                    <span className="max-md:hidden">{t('share:dialog.selectAll')}</span>
+                    <span className="md:hidden">{t('share:dialog.selectAllShort')}</span>
                   </button>
                   <button
                     type="button"
                     className={cn('link-underline cursor-pointer py-1 text-[13px] leading-[18px] font-medium max-md:min-h-11', focusRing)}
                     onClick={() => setAll(false)}
                   >
-                    Bỏ hết
+                    {t('share:dialog.clearAll')}
                   </button>
                 </div>
               </div>
-              <ul aria-label="Các phần được chia sẻ" className="flex flex-col rounded-[16px] border-[1.5px] border-stroke">
+              <ul aria-label={t('share:dialog.partsList')} className="flex flex-col rounded-[16px] border-[1.5px] border-stroke">
                 <li className="flex min-h-[52px] items-center gap-3 border-b-[1.5px] border-dashed border-line-soft px-4 py-2 max-md:px-3.5 max-md:py-1.5">
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-sm leading-[22px] font-medium">Ngày viết</span>
+                    <span className="text-sm leading-[22px] font-medium">{t('share:dialog.dateWritten')}</span>
                     <span className="text-[13px] leading-[18px] text-ink-soft">{longDateLabel(entry.entry_date)}</span>
                   </span>
-                  <span className="text-label text-ink-soft">Luôn hiện</span>
+                  <span className="text-label text-ink-soft">{t('share:dialog.alwaysShown')}</span>
                 </li>
                 {parts.map((k) => (
                   <PartRow
                     key={k}
                     id={`${ids}-${k}`}
-                    label={PART_LABELS[k]}
+                    label={partLabel(k)}
                     desc={partDesc(k, entry, displayName, iconSetId)}
                     checked={draft[partField(k)]}
                     onChange={(on) => togglePart(k, on)}
@@ -238,23 +240,25 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                     <div className="flex min-h-9 items-center gap-3 max-md:min-h-10">
                       <span className="flex min-w-0 flex-1 flex-col">
                         <span id={`${ids}-photos`} className="text-sm leading-[22px] font-medium">
-                          Ảnh
+                          {t('share:dialog.photos')}
                         </span>
                         <span className="truncate text-[13px] leading-[18px] text-ink-soft">
-                          {photosOn ? `${picked.length}/${shape.photos} ảnh được chọn` : `${shape.photos} ảnh`}
+                          {photosOn
+                            ? t('share:dialog.photosPicked', { picked: picked.length, count: shape.photos })
+                            : t('share:dialog.photosCount', { count: shape.photos })}
                         </span>
                       </span>
                       <Switch aria-labelledby={`${ids}-photos`} checked={photosOn} onCheckedChange={(on) => apply(draft, on)} />
                     </div>
                     {photosOn ? (
-                      <div role="group" aria-label="Chọn ảnh" className="flex animate-pop flex-wrap gap-2 pb-1.5 max-md:gap-2.5 max-md:py-1.5">
+                      <div role="group" aria-label={t('share:dialog.choosePhotos')} className="flex animate-pop flex-wrap gap-2 pb-1.5 max-md:gap-2.5 max-md:py-1.5">
                         {entry.photos.map((p, i) => {
                           const on = picked.includes(p.id)
                           return (
                             <button
                               key={p.id}
                               type="button"
-                              aria-label={`Chia sẻ ảnh ${i + 1}`}
+                              aria-label={t('share:dialog.sharePhoto', { n: i + 1 })}
                               aria-pressed={on}
                               onClick={() => apply(draft, true, on ? picked.filter((x) => x !== p.id) : [...picked, p.id])}
                               className={cn(
@@ -288,7 +292,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                   className="flex animate-pop items-center gap-2 rounded-[12px] border-[1.5px] border-danger bg-danger-soft px-3.5 py-2.5 text-[13px] leading-5 max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:text-danger"
                 >
                   <TriangleAlert className="size-4 shrink-0 text-danger" aria-hidden="true" />
-                  Bật ít nhất một phần để có thể chia sẻ.
+                  {t('share:dialog.needOnePart')}
                 </p>
               ) : null}
             </section>
@@ -304,7 +308,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
                 focusRing,
               )}
             >
-              {previewOpen ? 'Ẩn xem trước' : 'Xem trước'}
+              {previewOpen ? t('share:dialog.hidePreview') : t('share:dialog.showPreview')}
               <ChevronDown
                 className={cn('size-4 transition-transform duration-200 ease-out', previewOpen && 'rotate-180')}
                 aria-hidden="true"
@@ -323,11 +327,11 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
           >
             <div className="flex items-baseline justify-between gap-3 max-md:sr-only">
               <h3 id={`${ids}-preview`} className="text-body leading-[22px] font-semibold">
-                Xem trước
+                {t('share:dialog.preview')}
               </h3>
               {link ? (
                 <a href={`/s/${link.token}`} target="_blank" rel="noreferrer" className={cn('link-underline text-[13px] leading-5 font-medium', focusRing)}>
-                  Mở như người nhận
+                  {t('share:dialog.openAsRecipient')}
                 </a>
               ) : null}
             </div>
@@ -338,7 +342,7 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
         {/* Điện thoại: nút Xong rộng hết bảng và lối mở như người nhận ngay dưới. */}
         <div className="flex flex-col gap-4 px-4 pt-4 pb-[max(24px,env(safe-area-inset-bottom))] md:hidden">
           <SheetClose asChild>
-            <Button className="h-[50px] rounded-md">Xong</Button>
+            <Button className="h-[50px] rounded-md">{t('share:dialog.done')}</Button>
           </SheetClose>
           {link ? (
             <a
@@ -347,17 +351,17 @@ export function ShareDialog({ entry, link, open, onOpenChange }: ShareDialogProp
               rel="noreferrer"
               className={cn('link-underline inline-flex min-h-11 items-center self-center text-[13px] font-medium', focusRing)}
             >
-              Mở như người nhận
+              {t('share:dialog.openAsRecipient')}
             </a>
           ) : null}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-dashed border-line-soft py-3.5 pr-5 pl-7 max-md:hidden">
           <span className="inline-flex items-center gap-2 text-[13px] leading-5 text-ink-soft">
             <Info className="size-4 shrink-0" aria-hidden="true" />
-            {linkOn ? 'Thay đổi được lưu ngay. Người nhận thấy bản mới khi mở lại link.' : 'Chọn xong thì bật link để chia sẻ.'}
+            {linkOn ? t('share:dialog.savedOn') : t('share:dialog.savedOff')}
           </span>
           <SheetClose asChild>
-            <Button className="rounded-[12px] px-[22px]">Xong</Button>
+            <Button className="rounded-[12px] px-[22px]">{t('share:dialog.done')}</Button>
           </SheetClose>
         </div>
       </BottomSheet>
@@ -371,7 +375,7 @@ function partDesc(key: PartKey, entry: DemoEntry, name: string, iconSetId: strin
     case 'name':
       return name
     case 'score':
-      return `Điểm ${entry.score} · ${scoreLabel(iconSetId, entry.score)}`
+      return tr('share:scoreLine', { score: entry.score, label: scoreLabel(iconSetId, entry.score) })
     case 'sub_icon':
       return entry.sub_icon ?? ''
     case 'flag':
@@ -380,7 +384,7 @@ function partDesc(key: PartKey, entry: DemoEntry, name: string, iconSetId: strin
       return entry.title ?? ''
     case 'content': {
       const n = entry.content?.split(/\n{2,}/).length ?? 0
-      return `${n} đoạn`
+      return tr('share:dialog.paragraphs', { count: n })
     }
     case 'keywords':
       return entry.keywords.join(', ')

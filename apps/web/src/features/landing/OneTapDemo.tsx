@@ -6,6 +6,7 @@ import { scoreLabel, type Score } from '@/lib/catalog'
 import { dayOfMonth, shortDateLabel, weekdayShort, type DateString } from '@/lib/date'
 import { cn } from '@/lib/utils'
 import { DEMO_ICON_SET, DEMO_TODAY_DATE, demoWeek, type WeekDay } from './demoData'
+import { useT } from '@/lib/i18n'
 
 type Props = {
   iconSetId: string
@@ -49,21 +50,23 @@ export function OneTapDemo({
   error = null,
   footer,
 }: Props) {
+  const t = useT()
   // Ngày đã đổi điểm ngay tại đây (để nói "Đã đổi điểm" thay vì chỉ đọc lại điểm cũ).
   const [changed, setChanged] = useState<ReadonlySet<DateString>>(new Set())
   const isToday = selected === today
   const info = week.find((d) => d.date === selected)
   const backfill = !isToday && (!info?.score || info.backfilled)
-  const dm = selected.slice(8, 10).replace(/^0/, '') + '/' + selected.slice(5, 7).replace(/^0/, '')
+  const dm = t('landing:date.dm', { day: selected.slice(8, 10).replace(/^0/, ''), month: selected.slice(5, 7).replace(/^0/, '') })
   const label = value ? scoreLabel(iconSetId, value) : ''
 
   let status = ''
   if (error) status = error
   else if (value) {
-    if (isToday) status = signed ? (saving ? 'Đang lưu…' : `Đã lưu cho hôm nay: điểm ${value} · ${label}.`) : `Điểm ${value} · ${label}. Đã ghi lại hôm nay.`
-    else if (saving) status = 'Đang lưu…'
-    else if (backfill) status = `Đã ghi bù ${dm}: điểm ${value} · ${label}.`
-    else status = `${changed.has(selected) ? 'Đã đổi điểm ' : 'Ngày '}${dm}: điểm ${value} · ${label}.`
+    const vars = { dm, value, label }
+    if (isToday) status = signed ? (saving ? t('landing:oneTap.saving') : t('landing:oneTap.savedToday', vars)) : t('landing:oneTap.recordedToday', vars)
+    else if (saving) status = t('landing:oneTap.saving')
+    else if (backfill) status = t('landing:oneTap.backfilled', vars)
+    else status = changed.has(selected) ? t('landing:oneTap.changed', vars) : t('landing:oneTap.day', vars)
   }
 
   const pick = (score: Score) => {
@@ -75,7 +78,7 @@ export function OneTapDemo({
     <div className="lift flex w-full max-w-[520px] flex-col gap-5 rounded-lg border-2 border-stroke bg-card p-5 shadow-md sm:p-6">
       <fieldset disabled={loading} className="flex min-w-0 flex-col gap-4">
         <legend className="mb-4 font-heading text-[18px] leading-[26px] font-semibold">
-          {isToday ? 'Hôm nay của bạn thế nào?' : `${dayLabel(selected)} của bạn thế nào?`}
+          {isToday ? t('landing:oneTap.legendToday') : t('landing:oneTap.legendDay', { day: dayLabel(selected) })}
         </legend>
         <ScorePicker iconSetId={iconSetId} value={value} onChange={pick} caption="none" />
       </fieldset>
@@ -84,7 +87,7 @@ export function OneTapDemo({
           {backfill && value && !error ? (
             <span className="inline-flex items-center gap-1 rounded-full border-2 border-stroke bg-peach px-2 py-px text-label font-bold text-on-accent">
               <RotateCcw className="size-[11px]" strokeWidth={2.6} aria-hidden="true" />
-              Ghi bù
+              {t('landing:oneTap.badge')}
             </span>
           ) : null}
           <CircleCheck className="size-[18px] shrink-0 text-ink" aria-hidden="true" />
@@ -92,12 +95,12 @@ export function OneTapDemo({
         </p>
       ) : (
         <p className="text-body text-ink-soft">
-          {isToday ? 'Chạm một mức là hôm nay đã được ghi.' : 'Ngày này còn trống. Chạm một mức để ghi bù.'}
+          {isToday ? t('landing:oneTap.hintToday') : t('landing:oneTap.hintEmpty')}
         </p>
       )}
       <div
         role="group"
-        aria-label="Chọn một ngày trong tuần"
+        aria-label={t('landing:oneTap.pickDay')}
         className="grid grid-cols-7 gap-1.5 bg-[radial-gradient(circle,var(--color-line-soft)_0,var(--color-line-soft)_2.2px,transparent_2.6px)] bg-[length:12px_6px] bg-repeat-x pt-[18px]"
       >
         {week.map((d) => {
@@ -111,7 +114,7 @@ export function OneTapDemo({
               type="button"
               aria-pressed={on}
               data-date={d.date}
-              aria-label={`${day ? 'Hôm nay, ' : ''}${shortDateLabel(d.date)}${score ? `, điểm ${score}` : ', chưa ghi'}${bu ? ', ghi bù' : ''}`}
+              aria-label={`${day ? t('landing:oneTap.cellToday') : ''}${shortDateLabel(d.date)}${score ? t('landing:oneTap.cellScore', { score }) : t('landing:oneTap.cellEmpty')}${bu ? t('landing:oneTap.cellBackfilled') : ''}`}
               onClick={() => onSelect(d.date)}
               className={cn(
                 'pick flex min-h-[76px] w-full cursor-pointer flex-col items-center justify-between gap-1.5 rounded-[10px] border-[1.5px] py-2.5 text-ink',
@@ -150,7 +153,7 @@ export function OneTapDemo({
           onClick={() => onSelect(today)}
           className="link-underline animate-rise cursor-pointer self-start py-0.5 text-body font-semibold text-ink"
         >
-          Quay về hôm nay
+          {t('landing:oneTap.backToToday')}
         </button>
       ) : null}
       {footer}

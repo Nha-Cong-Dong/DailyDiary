@@ -6,12 +6,13 @@ import { cn } from '@/lib/utils'
 import { Avatar } from './Avatar'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
+import { useT } from '@/lib/i18n'
 
 // Khung app theo thiết kế B6.
 const ITEMS = [
-  { to: '/today', label: 'Hôm nay', short: 'Hôm nay', icon: Pencil },
-  { to: '/timeline', label: 'Dòng thời gian', short: 'Dòng thời gian', icon: List },
-  { to: '/pixels', label: 'Year in Pixels', short: 'Cả năm', icon: LayoutGrid },
+  { to: '/today', label: 'components:nav.today', short: 'components:nav.today', icon: Pencil },
+  { to: '/timeline', label: 'components:nav.timeline', short: 'components:nav.timeline', icon: List },
+  { to: '/pixels', label: 'components:nav.pixels', short: 'components:nav.pixelsShort', icon: LayoutGrid },
 ] as const
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
@@ -39,6 +40,7 @@ function usePhoneChrome(): PhoneChrome | null {
 }
 
 export function AppHeader() {
+  const t = useT()
   const { displayName, avatarUrl } = useProfile()
   const forced = useActiveSection()
   // Điện thoại: màn Tìm có hàng riêng (quay lại + ô tìm) nên ẩn thanh trên chung (thiết kế B10 · Tìm kiếm).
@@ -53,12 +55,12 @@ export function AppHeader() {
       )}
     >
       <nav
-        aria-label="Điều hướng chính"
+        aria-label={t('components:nav.main')}
         className="mx-auto flex h-[60px] max-w-[1120px] items-center gap-1 pr-2 pl-4 md:h-auto md:gap-4 md:px-[clamp(16px,4vw,40px)] md:py-3"
       >
         <Link
           to="/today"
-          aria-label="Jotly, Hôm nay"
+          aria-label={t('components:nav.logoAria')}
           className={cn('flex min-h-11 items-center rounded-sm transition-transform duration-150 ease-out active:scale-[.97] motion-reduce:transform-none', focusRing)}
         >
           <Logo size="sm" />
@@ -78,21 +80,21 @@ export function AppHeader() {
                   )
                 }
               >
-                {item.label}
+                {t(item.label)}
               </NavLink>
             </li>
           ))}
         </ul>
         <div className="flex-1" />
         <Button asChild variant="outline" size="icon" className="row-press border-transparent md:size-10 md:rounded-[12px] md:border-stroke">
-          <NavLink to="/search" aria-label="Tìm theo từ khóa">
+          <NavLink to="/search" aria-label={t('components:nav.search')}>
             <Search aria-hidden="true" />
           </NavLink>
         </Button>
         <ThemeToggle className="hidden size-10 rounded-[12px] md:inline-flex" />
         <NavLink
           to="/profile"
-          aria-label={`Hồ sơ của ${displayName}`}
+          aria-label={t('components:nav.profileAria', { name: displayName })}
           className={cn('press hidden rounded-full md:inline-flex', focusRing)}
         >
           <Avatar name={displayName} src={avatarUrl} size={40} className="text-sm" />
@@ -104,12 +106,13 @@ export function AppHeader() {
 
 /** Thanh tab dưới cho điện thoại (dưới 768 px): bốn màn chính. */
 export function BottomTabs() {
+  const t = useT()
   const forced = useActiveSection()
-  const tabs = [...ITEMS, { to: '/profile', label: 'Hồ sơ', short: 'Hồ sơ', icon: UserRound }]
+  const tabs = [...ITEMS, { to: '/profile', label: 'components:nav.profile', short: 'components:nav.profile', icon: UserRound } as const]
   const phoneChrome = usePhoneChrome()
   return (
     <nav
-      aria-label="Các màn hình chính"
+      aria-label={t('components:nav.tabs')}
       className={cn(
         'fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-stroke bg-card px-2 pt-1.5 pb-[max(14px,env(safe-area-inset-bottom))] md:hidden',
         phoneChrome === 'none' && 'invisible',
@@ -138,7 +141,7 @@ export function BottomTabs() {
                   >
                     <item.icon className="size-5" aria-hidden="true" />
                   </span>
-                  {item.short}
+                  {t(item.short)}
                 </>
               )}
             </NavLink>

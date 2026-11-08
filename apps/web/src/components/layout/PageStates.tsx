@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { LogoMark } from './Logo'
+import { useT } from '@/lib/i18n'
 
 // Các màn trạng thái phụ dùng chung (thiết kế B9 · Lỗi, mất mạng, đang tải): đang tải, 404, lỗi máy chủ.
 
@@ -24,11 +25,12 @@ function Centered({ children, className }: { children: ReactNode; className?: st
 }
 
 /** Logo cuốn sổ (đứng yên, B9-States) + chữ, dùng khi chờ dữ liệu. */
-export function WritingLogo({ label = 'Đang mở cuốn sổ…' }: { label?: string }) {
+export function WritingLogo({ label }: { label?: string }) {
+  const t = useT()
   return (
     <span className="inline-flex items-center gap-2.5 text-sm leading-[22px] text-ink-soft">
       <LogoMark size={30} />
-      {label}
+      {label ?? t('components:states.opening')}
     </span>
   )
 }
@@ -38,8 +40,9 @@ export function WritingLogo({ label = 'Đang mở cuốn sổ…' }: { label?: s
  * để dùng được cho mọi màn, không mô phỏng riêng màn nào.
  */
 export function PageLoading({ className }: { className?: string }) {
+  const t = useT()
   return (
-    <div role="status" aria-label="Đang mở cuốn sổ" className={cn('flex animate-rise flex-col gap-6', className)}>
+    <div role="status" aria-label={t('components:states.openingAria')} className={cn('flex animate-rise flex-col gap-6', className)}>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div aria-hidden="true" className="flex flex-col gap-2.5">
           <span className="skeleton block h-[30px] w-[220px] max-w-full" />
@@ -74,6 +77,7 @@ export function PageLoading({ className }: { className?: string }) {
 
 /** Trang không tồn tại (404). */
 export function NotFoundState() {
+  const t = useT()
   return (
     <Centered>
       <svg
@@ -86,7 +90,7 @@ export function NotFoundState() {
         strokeLinecap="round"
         strokeLinejoin="round"
         role="img"
-        aria-label="Một trang giấy bị xé"
+        aria-label={t('components:states.tornPage')}
       >
         <g>
           <path d="M24 10h52l12 12v40l-6 4l-5-3l-6 5l-6-4l-5 4l-6-3l-6 4l-6-4l-6 3l-6-4z" fill="var(--card)" />
@@ -98,17 +102,17 @@ export function NotFoundState() {
         <path d="M30 76l-6 4l-5-3 M58 82l6 4l5-3" stroke="var(--ink-soft)" strokeDasharray="3 4" />
         <path d="M40 90l8-5l8 4l7-4" stroke="var(--ink-soft)" />
       </svg>
-      <p className="text-label text-ink-soft">Lỗi 404</p>
-      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Không tìm thấy trang này</h1>
+      <p className="text-label text-ink-soft">{t('components:states.error404')}</p>
+      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">{t('components:states.notFound')}</h1>
       <p className="max-w-[420px] text-body leading-[26px] text-ink-soft">
-        Đường dẫn có thể bị gõ sai, hoặc trang này đã bị xóa.
+        {t('components:states.notFoundBody')}
       </p>
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-[22px] gap-y-3.5">
         <Link to="/today" className={cta}>
-          Về Hôm nay
+          {t('components:states.goToday')}
         </Link>
         <Link to="/timeline" className="link-underline text-body font-medium">
-          Mở Dòng thời gian
+          {t('components:states.openTimeline')}
         </Link>
       </div>
     </Centered>
@@ -120,6 +124,7 @@ export function NotFoundState() {
  * "Đang thử…" tới khi xong; thử lại vẫn hỏng thì đếm số lần thử.
  */
 export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; status?: number }) {
+  const t = useT()
   const [retrying, setRetrying] = useState(false)
   const [tries, setTries] = useState(0)
 
@@ -133,7 +138,7 @@ export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; 
     }
   }
 
-  const code = status ? `Mã lỗi: ${status}` : ''
+  const code = status ? t('components:states.errorCode', { status }) : ''
   return (
     <Centered>
       <svg
@@ -146,7 +151,7 @@ export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; 
         strokeLinecap="round"
         strokeLinejoin="round"
         role="img"
-        aria-label="Một tách trà đang bốc hơi"
+        aria-label={t('components:states.teacup')}
       >
         <path d="M40 10c-3 4 3 6 0 10 M52 6c-3 4 3 6 0 10 M64 10c-3 4 3 6 0 10" />
         {/* Thân tách dùng màu bìa oải hương của logo, cố định ở cả hai chế độ như logo. */}
@@ -158,16 +163,16 @@ export function ServerErrorState({ onRetry, status }: { onRetry: () => unknown; 
           fill="var(--peach)"
         />
       </svg>
-      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">Jotly đang gặp trục trặc</h1>
+      <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold">{t('components:states.serverTitle')}</h1>
       <p className="max-w-[440px] text-body leading-[26px] text-ink-soft">
-        Nhật ký của bạn vẫn an toàn. Pha một tách trà rồi thử lại sau ít phút nhé.
+        {t('components:states.serverBody')}
       </p>
       <button type="button" className={cn(cta, 'mt-2 cursor-pointer')} disabled={retrying} onClick={retry}>
         {retrying ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-        {retrying ? 'Đang thử…' : 'Thử lại'}
+        {retrying ? t('components:states.trying') : t('components:states.retry')}
       </button>
       <p role="status" className="text-label font-medium text-ink-soft">
-        {tries ? `Vẫn chưa được, lần thử ${tries}.${code ? ` ${code}` : ''}` : code}
+        {tries ? `${t('components:states.stillFailing', { tries })}${code ? ` ${code}` : ''}` : code}
       </p>
     </Centered>
   )
