@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { flagHex } from '@/lib/catalog'
 import { useCustomFlagColors } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
+import { useT } from '@/lib/i18n'
 
 /**
  * Hồ sơ › Nhật ký: màu cờ riêng đã thêm (chốt Q6). Thêm màu ở ô "+" khi chọn cờ; ở đây chỉ xem và gỡ.
@@ -10,16 +11,17 @@ import { useDarkMode } from '@/lib/theme'
  */
 export function CustomFlagColors() {
   const ids = useId()
+  const t = useT()
   const dark = useDarkMode()
   const custom = useCustomFlagColors()
   return (
     <div className="flex flex-col gap-3 max-sm:gap-2.5 max-sm:px-4 max-sm:pt-3.5">
       <div className="flex flex-col gap-0.5">
         <span id={`${ids}-title`} className="text-sm leading-[22px] font-semibold max-sm:text-body max-sm:leading-[22px]">
-          Màu cờ riêng · {custom.colors.length}/{custom.max}
+          {t('profile:flags.title', { used: custom.colors.length, max: custom.max })}
         </span>
         <span className="text-label leading-5 font-normal text-ink-soft max-sm:leading-[18px]">
-          Thêm bằng ô + khi chọn cờ hiệu. Gỡ màu không đổi những trang đã gắn màu đó.
+          {t('profile:flags.hint')}
         </span>
       </div>
       {custom.colors.length ? (
@@ -31,7 +33,7 @@ export function CustomFlagColors() {
               <span className="text-label leading-[18px] font-normal text-ink-soft nums">{hex}</span>
               <button
                 type="button"
-                aria-label={`Gỡ màu ${hex}`}
+                aria-label={t('profile:flags.removeLabel', { hex })}
                 disabled={custom.pending}
                 onClick={() => custom.remove(hex)}
                 // Nút 32 px như canvas; vùng chạm mở rộng ra 44 px.
@@ -43,7 +45,7 @@ export function CustomFlagColors() {
           ))}
         </ul>
       ) : (
-        <p className="m-0 text-label leading-5 font-normal text-ink-soft">Chưa có màu riêng nào.</p>
+        <p className="m-0 text-label leading-5 font-normal text-ink-soft">{t('profile:flags.none')}</p>
       )}
     </div>
   )

@@ -1,5 +1,6 @@
 import flagColorsJson from '@shared/flag_colors.json'
 import iconsJson from '@shared/icons.json'
+import { t } from './i18n'
 
 /** Danh mục dùng chung với backend: bộ main icon, sub icon, màu cờ hiệu. Chỉ đọc từ đây. */
 export type Score = 1 | 2 | 3 | 4 | 5
@@ -18,7 +19,19 @@ export function findIconSet(id: string): IconSet {
 }
 
 export function scoreLabel(iconSetId: string, score: Score): string {
-  return findIconSet(iconSetId).levels.find((l) => l.score === score)?.label ?? String(score)
+  const set = findIconSet(iconSetId)
+  const label = set.levels.find((l) => l.score === score)?.label
+  return label === undefined ? String(score) : t(`catalog:iconSets.${set.id}.levels.${score}`, { defaultValue: label })
+}
+
+/** Tên bộ icon theo ngôn ngữ hiện tại (chữ trong shared/icons.json là dự phòng). */
+export function iconSetName(set: Pick<IconSet, 'id' | 'name'>): string {
+  return t(`catalog:iconSets.${set.id}.name`, { defaultValue: set.name })
+}
+
+/** Tên màu có sẵn theo ngôn ngữ hiện tại (chữ trong shared/flag_colors.json là dự phòng). */
+export function flagColorName(color: Pick<FlagColor, 'id' | 'name'>): string {
+  return t(`catalog:flags.${color.id}`, { defaultValue: color.name })
 }
 
 export function presetFlag(hex: string | null | undefined): FlagColor | undefined {
@@ -29,7 +42,8 @@ export function presetFlag(hex: string | null | undefined): FlagColor | undefine
 /** Tên hiển thị của cờ: tên trong bảng màu, "Màu riêng" cho màu tùy chỉnh, null khi không cờ. */
 export function flagName(hex: string | null | undefined): string | null {
   if (!hex) return null
-  return presetFlag(hex)?.name ?? 'Màu riêng'
+  const preset = presetFlag(hex)
+  return preset ? flagColorName(preset) : t('catalog:customFlag')
 }
 
 // Tám màu có sẵn: hex_dark thấp hơn hex khoảng 25 ở mỗi kênh; màu tùy chỉnh pha tối theo cùng cách.

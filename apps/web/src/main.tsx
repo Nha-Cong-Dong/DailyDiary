@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import { i18nReady } from './lib/i18n'
 import { prefetchMe } from './lib/profile'
 import { createQueryClient } from './lib/query'
 import { initTheme } from './lib/theme'
@@ -15,8 +16,11 @@ const queryClient = createQueryClient()
 prefetchMe(queryClient)
 const router = createRouter(queryClient)
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App queryClient={queryClient} router={router} />
-  </StrictMode>,
-)
+// Chờ ngôn ngữ sẵn sàng (tiếng Việt xong ngay; English phải tải bản dịch) rồi mới vẽ, để không nháy sai ngôn ngữ.
+void i18nReady.then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App queryClient={queryClient} router={router} />
+    </StrictMode>,
+  )
+})

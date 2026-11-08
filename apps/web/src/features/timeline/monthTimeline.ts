@@ -1,5 +1,6 @@
 import type { Score } from '@/lib/catalog'
 import { daysInMonth, shortDateLabel, type DateString } from '@/lib/date'
+import { currentLang, t } from '@/lib/i18n'
 import type { DemoEntry } from '@/lib/demo'
 
 /** "YYYY-MM". */
@@ -75,10 +76,24 @@ export function addMonths(month: MonthString, delta: number): MonthString {
   return `${Math.floor(i / 12)}-${pad((i % 12) + 1)}`
 }
 
-/** "Tháng 10, 2026". */
+type MonthKey = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12'
+
+/** Biến tháng cho chuỗi dịch: số tháng, tên tháng đầy đủ ("October") và viết tắt ("Oct"). Mỗi ngôn ngữ dùng biến nó cần. */
+export function monthVars(m: number): { month: number; monthName: string; monthShort: string } {
+  const key = String(m) as MonthKey
+  return { month: m, monthName: t(`common:date.monthLong.${key}`), monthShort: t(`common:date.monthShort.${key}`) }
+}
+
+/** "Tháng 10, 2026" / "October 2026". */
 export function monthLabel(month: MonthString): string {
   const [y, m] = month.split('-').map(Number)
-  return `Tháng ${m}, ${y}`
+  return t('timeline:monthLabel', { ...monthVars(m), year: y })
+}
+
+/** "đầu tháng 10, 2026" (vi, chữ thường giữa câu) / "October 2026" (en, giữ nguyên hoa). */
+export function monthLabelMidSentence(month: MonthString): string {
+  const label = monthLabel(month)
+  return currentLang() === 'vi' ? label.toLowerCase() : label
 }
 
 /** Tháng có thể xem: từ tháng bắt đầu dùng tới tháng hiện tại. */
@@ -201,7 +216,8 @@ export function nearestScore(avg: number): Score {
   return Math.min(5, Math.max(1, Math.round(avg))) as Score
 }
 
-/** "3,6": số thập phân kiểu Việt Nam, một chữ số. */
+/** "3,6" (vi) / "3.6" (en): một chữ số thập phân. */
 export function decimal(x: number): string {
-  return x.toFixed(1).replace('.', ',')
+  const fixed = x.toFixed(1)
+  return currentLang() === 'vi' ? fixed.replace('.', ',') : fixed
 }

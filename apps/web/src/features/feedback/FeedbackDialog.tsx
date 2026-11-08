@@ -1,6 +1,8 @@
 import { CircleCheck, Send } from 'lucide-react'
 import { useId, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ApiError } from '@/api/client'
+import { t } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,9 +11,9 @@ import { useProfile } from '@/lib/profile'
 import { useSendFeedback } from './useSendFeedback'
 
 function errorText(error: unknown): string {
-  if (error instanceof ApiError && error.status === 429) return 'Bạn vừa gửi khá nhiều góp ý. Thử lại sau ít phút nhé.'
+  if (error instanceof ApiError && error.status === 429) return t('feedback:rateLimited')
   if (error instanceof ApiError && error.status === 422) return error.message
-  return 'Chưa gửi được. Kiểm tra kết nối rồi thử lại.'
+  return t('feedback:failed')
 }
 
 type FeedbackDialogProps = { open: boolean; onOpenChange: (open: boolean) => void }
@@ -21,6 +23,7 @@ type FeedbackDialogProps = { open: boolean; onOpenChange: (open: boolean) => voi
  * khoản để Jotly trả lời được. Gửi xong hiện lời cảm ơn; đóng lại thì form trống cho lần sau.
  */
 export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
+  useTranslation() // chỉ để vẽ lại khi đổi ngôn ngữ; gọi `t` của @/lib/i18n (kiểu chặt hơn khi có biến)
   const { email } = useProfile()
   const send = useSendFeedback()
   const [message, setMessage] = useState('')
@@ -43,12 +46,12 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
         {send.isSuccess ? (
           <div role="status" className="flex flex-col items-center gap-3 py-4 text-center">
             <CircleCheck className="size-10 animate-pop text-sage-ink" aria-hidden="true" />
-            <DialogTitle className="text-heading font-bold">Cảm ơn bạn!</DialogTitle>
+            <DialogTitle className="text-heading font-bold">{t('feedback:thanks')}</DialogTitle>
             <DialogDescription className="text-body text-ink-soft">
-              Góp ý đã tới Jotly. Nếu cần hỏi thêm, Jotly sẽ trả lời qua {email || 'email tài khoản của bạn'}.
+              {t('feedback:sent', { email: email || t('feedback:yourAccountEmail') })}
             </DialogDescription>
             <Button className="mt-2" onClick={() => change(false)}>
-              Đóng
+              {t('feedback:close')}
             </Button>
           </div>
         ) : (
@@ -60,14 +63,13 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             }}
           >
             <DialogHeader>
-              <DialogTitle className="text-heading font-bold">Góp ý cho Jotly</DialogTitle>
+              <DialogTitle className="text-heading font-bold">{t('feedback:title')}</DialogTitle>
               <DialogDescription className="text-body text-ink-soft">
-                Điều gì làm bạn khó chịu, hay bạn muốn Jotly có thêm gì? Góp ý gửi kèm email tài khoản ({email}) để
-                Jotly trả lời được.
+                {t('feedback:description', { email })}
               </DialogDescription>
             </DialogHeader>
             <label htmlFor={`${ids}-msg`} className="sr-only">
-              Nội dung góp ý
+              {t('feedback:messageLabel')}
             </label>
             <Textarea
               id={`${ids}-msg`}
@@ -76,7 +78,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               maxLength={max}
               rows={6}
               autoFocus
-              placeholder="Ví dụ: mình muốn có nhắc viết lúc 21 giờ…"
+              placeholder={t('feedback:placeholder')}
               aria-describedby={`${ids}-count`}
               className="min-h-36"
             />
@@ -85,7 +87,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
                 {message.length}/{max}
               </span>
               <Button type="submit" disabled={!text || send.isPending}>
-                <Send aria-hidden="true" /> {send.isPending ? 'Đang gửi…' : 'Gửi góp ý'}
+                <Send aria-hidden="true" /> {send.isPending ? t('feedback:sending') : t('feedback:send')}
               </Button>
             </div>
             {send.isError ? (

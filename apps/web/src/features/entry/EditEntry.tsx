@@ -11,6 +11,7 @@ import { scoreLabel } from '@/lib/catalog'
 import { isValidDate, longDateLabel, todayIn, useNow, type DateString } from '@/lib/date'
 import { tierLimits } from '@/lib/limits'
 import { useProfile } from '@/lib/profile'
+import { rich } from '@/lib/rich'
 import type { DraftFields } from '@/lib/storage'
 import { cn } from '@/lib/utils'
 import { fetchEntry, type DayEntry } from './entries'
@@ -32,18 +33,23 @@ import { deletePhoto, makeUploadPhoto, reorderPhotos } from './uploadPhoto'
 import { useAutosave } from './useAutosave'
 import { useDay } from './useDay'
 import { useFrequentSubIcons } from './useFrequentSubIcons'
+import { useT } from '@/lib/i18n'
+
+type TFn = typeof import('@/lib/i18n').t
 
 /** "Viết lúc 21:20, 16/10/2026 · Sửa lần cuối 21:15, 18/10, 2 ngày sau". */
-function metaLine(entry: DayEntry, timeZone: string): string {
-  const written = `Viết lúc ${dateTimeLabel(timeZone, entry.created_at)}`
+function metaLine(t: TFn, entry: DayEntry, timeZone: string): string {
+  const written = t('entry:edit.metaWritten', { when: dateTimeLabel(timeZone, entry.created_at) })
   if (entry.updated_at === entry.created_at) return written
   const editedDay = todayIn(timeZone, new Date(entry.updated_at))
   const late = daysBetween(entry.entry_date, editedDay)
-  const when = late > 0 ? `${dateTimeLabel(timeZone, entry.updated_at, false)}, ${late} ngày sau` : `${dateTimeLabel(timeZone, entry.updated_at, false)}, cùng ngày`
-  return `${written} · Sửa lần cuối ${when}`
+  const time = dateTimeLabel(timeZone, entry.updated_at, false)
+  const when = late > 0 ? t('entry:edit.metaLate', { time, count: late }) : t('entry:edit.metaSameDay', { time })
+  return t('entry:edit.metaLine', { written, when })
 }
 
 function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
+  const t = useT()
   const { timeZone, iconSetId } = useProfile()
   const ids = useId()
   const date = entry.entry_date
@@ -131,7 +137,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         for (const p of base.photos) if (!kept.has(p.id)) await deletePhoto(p.id)
         if (uploads.photos.length) await reorderPhotos(date, uploads.photos.map((p) => p.id))
       } catch {
-        setPhotoError('Chưa lưu được ảnh. Kiểm tra kết nối rồi bấm Lưu thay đổi lần nữa.')
+        setPhotoError(t('entry:edit.photoSaveFailed'))
         return
       } finally {
         setPhotoSaving(false)
@@ -166,20 +172,20 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
   }
 
   const ago = daysBetween(date, today)
-  const agoText = ago === 1 ? 'hôm qua' : `${ago} ngày trước`
+  const agoText = ago === 1 ? t('entry:ago.yesterday') : t('entry:ago.days', { count: ago })
   const status = saving
-    ? 'Đang lưu…'
+    ? t('entry:saving')
     : autosave.status.kind === 'error'
       ? autosave.status.message
       : autosave.status.kind === 'unsynced'
-        ? 'Chưa lưu được — kiểm tra kết nối rồi bấm Lưu lại'
+        ? t('entry:edit.status.unsynced')
     : uploads.uploading
-    ? 'Đang tải ảnh lên…'
+    ? t('entry:edit.status.uploading')
     : changes.length
-      ? `${changes.length} thay đổi chưa lưu`
+      ? t('entry:edit.status.changes', { count: changes.length })
       : savedNow
-        ? `Đã lưu · Sửa lần cuối ${dateTimeLabel(timeZone, record.updated_at, false)}`
-        : 'Chưa có thay đổi'
+        ? t('entry:edit.status.savedAt', { time: dateTimeLabel(timeZone, record.updated_at, false) })
+        : t('entry:edit.status.none')
   const leaving = blocker.state === 'blocked'
   const lost = fieldsLabel(changes.length ? changes : ['photos'])
 
@@ -200,14 +206,14 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
         start={
           // Còn thay đổi chưa lưu thì useBlocker chặn và hỏi "Bỏ và rời trang".
           <Link to={`/day/${date}`} className={cn(phoneIconButton, 'w-auto px-2.5 text-[15px] font-medium')}>
-            Hủy
+            {t('entry:cancel')}
           </Link>
         }
-        title={`Sửa trang ${dayMonth(date)}`}
+        title={t('entry:edit.phoneTitle', { day: dayMonth(date) })}
         heading
         end={
           <Button onClick={save} disabled={!canSave} className="mr-1.5 h-[38px] rounded-[12px] px-4">
-            Lưu
+            {t('entry:save')}
           </Button>
         }
       />
@@ -215,37 +221,38 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
       {/* scroll-mb: ô đang nhập không bị thanh lưu dính đáy (máy tính) che khi được cuộn tới. */}
       <div className="mx-auto flex w-full max-w-[680px] flex-col gap-[22px] max-md:px-4 max-md:pt-[76px] max-md:pb-10 md:[&_:is(input,textarea,button)]:scroll-mb-24">
         <BackLink to={`/day/${date}`} className="max-md:hidden">
-          Trang {dayMonth(date)}
+          {t('entry:edit.backLink', { day: dayMonth(date) })}
         </BackLink>
 
         <div className="flex animate-rise flex-col gap-1 md:gap-1.5">
           <p className="text-[13px] leading-5 text-ink-soft md:text-sm md:leading-[22px]">{longDateLabel(date)}</p>
-          <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold max-md:hidden">Sửa trang</h1>
+          <h1 className="text-[clamp(26px,3vw,32px)] leading-[1.25] font-bold max-md:hidden">{t('entry:edit.heading')}</h1>
           <p className="inline-flex items-center gap-1.5 text-xs leading-[18px] text-ink-soft tabular-nums md:text-[13px] md:leading-5">
             <Clock className="size-3.5 shrink-0" aria-hidden="true" />
-            {metaLine(record, timeZone)}
+            {metaLine(t, record, timeZone)}
           </p>
         </div>
 
         {ago > 0 ? (
           <Notice className="animate-rise [animation-delay:.05s] max-md:rounded-[12px] max-md:px-3 max-md:py-2.5 max-md:text-[13px] max-md:leading-5">
             <span className="max-md:hidden">
-              Bạn đang sửa trang của {agoText}. Trang vẫn thuộc ngày {dayMonth(date)}, chỉ dòng{' '}
-              <strong className="font-semibold">Sửa lần cuối</strong> ghi thêm ngày sửa.
+              {rich(t('entry:edit.noticeLong', { ago: agoText, day: dayMonth(date) }), {
+                b: (c) => <strong className="font-semibold">{c}</strong>,
+              })}
             </span>
             <span className="md:hidden">
-              Đang sửa trang của {agoText}. Trang vẫn thuộc ngày {dayMonth(date)}.
+              {t('entry:edit.noticeShort', { ago: agoText, day: dayMonth(date) })}
             </span>
           </Notice>
         ) : null}
 
         {/* Máy tính: các trường nằm trong một thẻ. Điện thoại: nằm thẳng trên nền trang. */}
         <section
-          aria-label="Nội dung trang"
+          aria-label={t('entry:edit.sectionAria')}
           className="flex animate-rise flex-col gap-[22px] [animation-delay:.1s] md:gap-7 md:rounded-lg md:border-[1.5px] md:border-stroke md:bg-card md:p-[clamp(20px,4vw,32px)] md:shadow-md"
         >
           <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0 md:gap-3">
-            <Legend>Điểm của ngày</Legend>
+            <Legend>{t('entry:edit.scoreLegend')}</Legend>
             <ScorePicker
               iconSetId={iconSetId}
               value={draft.score}
@@ -256,13 +263,18 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
             />
             {draft.score !== base.score ? (
               <p className="flex animate-pop flex-wrap items-center gap-1.5 text-xs leading-[18px] text-ink-soft md:gap-2 md:text-[13px] md:leading-5">
-                Đã đổi từ {base.score} · {scoreLabel(iconSetId, base.score)} sang {draft.score} · {scoreLabel(iconSetId, draft.score)}.
+                {t('entry:edit.scoreChanged', {
+                  from: base.score,
+                  fromLabel: scoreLabel(iconSetId, base.score),
+                  to: draft.score,
+                  toLabel: scoreLabel(iconSetId, draft.score),
+                })}
                 <button
                   type="button"
                   onClick={() => set('score')(base.score)}
                   className="link-underline cursor-pointer py-0.5 font-semibold text-ink focus-visible:outline-3 focus-visible:outline-focus"
                 >
-                  Hoàn tác
+                  {t('entry:undo')}
                 </button>
               </p>
             ) : null}
@@ -277,8 +289,8 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
             onTitle={set('title')}
             content={draft.content}
             onContent={set('content')}
-            titlePlaceholder="Ngày này thế nào?"
-            contentPlaceholder="Viết vài dòng nếu muốn…"
+            titlePlaceholder={t('entry:edit.titlePlaceholder')}
+            contentPlaceholder={t('entry:edit.contentPlaceholder')}
             contentRows={5}
             flatOnPhone
             frequentIcons={frequentIcons}
@@ -286,16 +298,16 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
 
           <div className="flex flex-col gap-2 md:gap-2.5">
             <label htmlFor={`${ids}-kw`} className={fieldLabelClass}>
-              Từ khóa
+              {t('entry:edit.keywords')}
             </label>
             <InlineKeywordEditor keywords={draft.keywords} onChange={set('keywords')} inputId={`${ids}-kw`} />
           </div>
 
           <div className="flex flex-col gap-2 md:gap-2.5">
             <span id={`${ids}-photos`} className={fieldLabelClass}>
-              Ảnh ·{' '}
+              {t('entry:edit.photos')}{' '}
               <span className="tabular-nums">
-                {uploads.tiles.filter((t) => t.status !== 'rejected').length}/{tierLimits().photos.per_day_max}
+                {uploads.tiles.filter((tile) => tile.status !== 'rejected').length}/{tierLimits().photos.per_day_max}
               </span>
             </span>
             <PhotoUploader uploads={uploads} labelledBy={`${ids}-photos`} />
@@ -309,7 +321,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
 
         {autosave.restored ? (
           <Alert role="status">
-            <AlertDescription>Đã khôi phục phần bạn sửa dở lần trước (chưa lưu). Bấm Lưu thay đổi để lưu, hoặc Hủy thay đổi để bỏ.</AlertDescription>
+            <AlertDescription>{t('entry:edit.restoredDraft')}</AlertDescription>
           </Alert>
         ) : null}
         <ConflictDialog conflict={autosave.conflict} onKeepMine={autosave.keepMine} onTakeTheirs={takeTheirs} />
@@ -331,15 +343,15 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
           <div className="flex flex-wrap gap-2 max-md:hidden">
             {dirty ? (
               <Button variant="outline" onClick={() => setConfirmDiscard(true)}>
-                Hủy thay đổi
+                {t('entry:edit.discard')}
               </Button>
             ) : (
               <Button asChild variant="outline">
-                <Link to={`/day/${date}`}>Xem trang</Link>
+                <Link to={`/day/${date}`}>{t('entry:backfill.viewPage')}</Link>
               </Button>
             )}
             <Button onClick={save} disabled={!canSave}>
-              Lưu thay đổi
+              {t('entry:edit.saveChanges')}
             </Button>
           </div>
         </div>
@@ -352,11 +364,11 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
           setConfirmDiscard(false)
           if (blocker.state === 'blocked') blocker.reset()
         }}
-        title="Bỏ các thay đổi?"
-        description={`Thay đổi ở ${lost} chưa được lưu và sẽ mất.`}
-        cancelLabel="Tiếp tục sửa"
+        title={t('entry:edit.confirmTitle')}
+        description={t('entry:edit.confirmDescription', { fields: lost })}
+        cancelLabel={t('entry:edit.keepEditing')}
         cancelIsPrimary
-        actionLabel={leaving ? 'Bỏ và rời trang' : 'Bỏ thay đổi'}
+        actionLabel={leaving ? t('entry:edit.discardLeave') : t('entry:edit.discardAction')}
         onAction={() => {
           if (!leaving) return discard()
           void dropNewPhotos()
@@ -366,7 +378,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
 
       {toast ? (
         <SavedToast onDone={hideToast} className="max-md:bottom-6">
-          Đã lưu thay đổi cho trang {dayMonth(date)}
+          {t('entry:edit.savedToast', { day: dayMonth(date) })}
         </SavedToast>
       ) : null}
     </div>
@@ -375,6 +387,7 @@ function EditForm({ entry, today }: { entry: DayEntry; today: DateString }) {
 
 /** Màn sửa một trang cũ (thiết kế B9 · Sửa một trang cũ), lưu bằng PUT /entries/{day}. */
 export function EditEntry({ date }: { date: string }) {
+  const t = useT()
   const { timeZone } = useProfile()
   const now = useNow()
   const today = todayIn(timeZone, now)
@@ -383,7 +396,7 @@ export function EditEntry({ date }: { date: string }) {
 
   const frame = (children: ReactNode) => (
     <div className="mx-auto flex w-full max-w-[680px] flex-col items-start gap-4">
-      <BackLink to="/timeline">Dòng thời gian</BackLink>
+      <BackLink to="/timeline">{t('entry:timeline')}</BackLink>
       {children}
     </div>
   )
@@ -391,8 +404,8 @@ export function EditEntry({ date }: { date: string }) {
   if (!valid) {
     return frame(
       <>
-        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
-        <p className="text-ink-soft">Địa chỉ cần có dạng /day/2026-10-18/edit, và là một ngày có thật.</p>
+        <h1 className="text-title font-bold">{t('entry:invalidDay.title')}</h1>
+        <p className="text-ink-soft">{t('entry:invalidDay.hint', { path: '/day/2026-10-18/edit' })}</p>
       </>,
     )
   }
@@ -400,31 +413,31 @@ export function EditEntry({ date }: { date: string }) {
     return frame(
       <>
         <h1 className="text-title font-bold">{longDateLabel(date)}</h1>
-        <p className="text-ink-soft">Ngày này chưa tới nên chưa sửa được.</p>
+        <p className="text-ink-soft">{t('entry:edit.futureDay')}</p>
       </>,
     )
   }
   if (isPending) {
     return frame(
       <p role="status" className="text-ink-soft">
-        Đang mở trang…
+        {t('entry:opening')}
       </p>,
     )
   }
   if (isError) {
     return frame(
       <Alert variant="destructive">
-        <AlertDescription>Không mở được trang này. Thử tải lại.</AlertDescription>
+        <AlertDescription>{t('entry:openFailed')}</AlertDescription>
       </Alert>,
     )
   }
   if (!entry) {
     return frame(
       <>
-        <h1 className="text-title font-bold">Ngày này chưa ghi</h1>
-        <p className="text-ink-soft">Chưa có trang để sửa.</p>
+        <h1 className="text-title font-bold">{t('entry:edit.emptyTitle')}</h1>
+        <p className="text-ink-soft">{t('entry:edit.emptyHint')}</p>
         <Button asChild>
-          <Link to={date === today ? '/today' : `/day/${date}/backfill`}>{date === today ? 'Viết cho hôm nay' : 'Ghi bù ngày này'}</Link>
+          <Link to={date === today ? '/today' : `/day/${date}/backfill`}>{date === today ? t('entry:writeToday') : t('entry:edit.backfillThis')}</Link>
         </Button>
       </>,
     )

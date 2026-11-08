@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 38 (07/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 39 (08/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -166,16 +166,20 @@ dailydiary/
             │   │                     # DayMorph (chuyển cảnh nối icon ngày → trang ngày, React <ViewTransition>); NotebookPage + FlagRibbon (khung trang sổ:
             │   │                     # lỗ đục, lề hồng, ruy băng cờ); EntryCard + EntryPhoto + EntryPhotoStack (thẻ / trang ngày B11-DayCard, B7)
             │   └── layout/           # logo, ảnh đại diện, thanh điều hướng (máy tính + tab dưới điện thoại), khung trang,
-            │                         # thanh ngoại tuyến (OfflineBanner), thẻ nổi "Đang đánh thức máy chủ…" (WakingBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark),
+            │                         # thanh ngoại tuyến (OfflineBanner), thẻ nổi "Đang đánh thức máy chủ…" (WakingBanner), trạng thái trang (PageStates: đang tải, 404, lỗi), logo Google (GoogleMark), nút chọn ngôn ngữ VI/EN (LanguageSwitch),
             │                         # khung công khai (PlainFrame: 404/lỗi khi chưa đăng nhập)
             ├── lib/                  # query.ts, limits.ts, utils.ts, catalog.ts (icons/cờ từ shared/),
             │                         # theme.ts (Sáng / Tối / Hệ thống / Theo giờ), date.ts (ngày theo múi giờ hồ sơ),
             │                         # motion.ts (đường cong, thời lượng, giảm chuyển động, withViewTransition), flyTo.ts (icon bay vào ô hôm nay),
             │                         # profile.ts (GET/PATCH /me), session.ts (đăng xuất, đăng nhập thử), text.ts (bỏ dấu, tô sáng),
             │                         # demo.ts (dữ liệu mẫu chỉ cho dev, bỏ khi có API; ?demo=empty xem màn trống; demoWrite lưu tạm trong tab),
-            │                         # image.ts (kiểm tra loại/kích thước, nén WebP + ảnh thu nhỏ: preparePhoto/prepareAvatar), online.ts (trạng thái mạng), serverWake.ts (nhận ra request chậm khi máy chủ ngủ dậy, chờ máy chủ thức trước khi sang Google);
+            │                         # i18n.ts (i18next: ngôn ngữ vi/en lưu ở localStorage, t cho code ngoài component, useT/useLanguage cho component; tiếng Anh tải riêng), rich.tsx (chữ dịch có thẻ <b> giữa câu), image.ts (kiểm tra loại/kích thước, nén WebP + ảnh thu nhỏ: preparePhoto/prepareAvatar), online.ts (trạng thái mạng), serverWake.ts (nhận ra request chậm khi máy chủ ngủ dậy, chờ máy chủ thức trước khi sang Google);
             │                         # autosave.ts (bộ máy tự lưu, F-06), storage.ts (nháp IndexedDB qua `idb`);
             │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh)
+            ├── locales/              # bản dịch giao diện (ADR 0006): vi/ (nguồn chuẩn) và en/, mỗi tính năng một file <nhóm>.ts
+            │                         # (common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search,
+            │                         # share, feedback, legal), index.ts gom lại, shape.ts (kiểu Shape: bản dịch phải đủ khóa tiếng Việt),
+            │                         # i18next.d.ts (kiểu khóa lấy từ vi/)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes jot-*, cử chỉ lift/cta/press/pick,
             │                         # chuyển cảnh nối View Transitions, giảm chuyển động), fonts.css (@font-face cho font tự host trong assets/fonts/)
             └── test/                 # setup.ts (cấu hình Vitest), withMe.tsx (giả /me và API nhật ký khi render test),
@@ -350,3 +354,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 36 | 06/11/2026 | Dựng lại nền giao diện theo canvas hệ thiết kế 1.1 (nhánh `feat/ui-redesign2`): font Commissioner biến thiên thay Be Vietnam Pro + Lora (`assets/fonts/commissioner-vi.woff2`, `OFL-Commissioner.txt`; bỏ `be-vietnam-pro-*.woff2`, `OFL-BeVietnamPro.txt`, thư viện `@fontsource/lora`); thêm `components/ui/card.tsx`, `segmented.tsx`, `components/diary/Stamp.tsx`, `DayMorph.tsx`, `lib/motion.ts`, `lib/flyTo.ts`; `lib/theme.ts` thêm chế độ Theo giờ; lượt 2: `components/diary/NotebookPage.tsx` (thay `features/share/components/NotebookPage.tsx` và khung chép cục bộ ở search, pixels, entry), `features/entry/components/DayClock.tsx`, `MonthStrip.tsx` (thay `RecentDays.tsx`) |
 | 37 | 06/11/2026 | Thêm `project-map/` (có trong `.gitignore`): trang Vite + React minh họa mối liên hệ giữa các thành phần và công cụ ngoài, giải thích kiểu cho bé 5 tuổi; không thuộc bản build, không nằm trong CI |
 | 38 | 07/11/2026 | Thêm `lib/serverWake.ts` (+ test) và `components/layout/WakingBanner.tsx`: báo "Đang đánh thức máy chủ…" khi API ở gói miễn phí ngủ dậy; `api/client.ts` bọc fetch bằng `trackedFetch`; `Login.tsx` chờ máy chủ thức trước khi sang Google. `Deploy.md` mục 6 thêm cách giữ API không ngủ bằng Cloudflare Worker cron (cấu hình trên dashboard, không có file trong repo) |
+| 39 | 08/11/2026 | Thêm tiếng Anh cho giao diện web (ADR 0006): `src/locales/` (`vi/`, `en/`, `shape.ts`, `i18next.d.ts`), `lib/i18n.ts` (+ test), `lib/rich.tsx`, thư viện `i18next`, `react-i18next`; `lib/date.ts` lấy tên thứ, tháng từ bản dịch; ô chọn ngôn ngữ ở Landing và Hồ sơ hoạt động |

@@ -5,6 +5,7 @@ import { durationLabel, minutesLeftToday, useNow, type DateString } from '@/lib/
 import { cn } from '@/lib/utils'
 import { weekdayDate } from './monthTimeline'
 import { WritingNotebook } from './WritingNotebook'
+import { useT } from '@/lib/i18n'
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
 
@@ -18,6 +19,7 @@ type TodayPromptProps = {
 
 /** Hôm nay chưa ghi: chấm điểm ngay tại đây là xong trang, hoặc mở trang hôm nay để viết. */
 export function TodayPrompt({ date, timeZone, iconSetId, flash, onPick }: TodayPromptProps) {
+  const t = useT()
   const left = minutesLeftToday(timeZone, useNow())
   const day = weekdayDate(date)
   return (
@@ -31,19 +33,19 @@ export function TodayPrompt({ date, timeZone, iconSetId, flash, onPick }: TodayP
       <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-3 md:flex-[1_1_300px]">
         <div className="flex flex-col gap-0.5">
           <span className="text-[13px] leading-5 text-ink-soft nums">
-            {day} · còn {durationLabel(left)} để ghi
+            {t('timeline:prompt.timeLeft', { day, left: durationLabel(left) })}
           </span>
-          <span className="font-heading text-xl leading-7 font-bold">Hôm nay bạn chưa viết</span>
+          <span className="font-heading text-xl leading-7 font-bold">{t('timeline:prompt.title')}</span>
           <span className="text-sm leading-[22px] text-ink-soft">
-            Chấm điểm là xong trang hôm nay. Viết thêm lúc nào cũng được.
+            {t('timeline:prompt.hint')}
           </span>
         </div>
-        <div role="group" aria-label="Chấm điểm cho hôm nay" className="flex flex-wrap gap-2">
+        <div role="group" aria-label={t('timeline:prompt.group')} className="flex flex-wrap gap-2">
           {SCORES.map((k) => (
             <button
               key={k}
               type="button"
-              aria-label={`Chấm điểm ${k}, ${scoreLabel(iconSetId, k)} cho hôm nay`}
+              aria-label={t('timeline:prompt.rate', { score: k, label: scoreLabel(iconSetId, k) })}
               onClick={() => onPick(k)}
               className={cn(
                 // Canvas .j-qp: di chuột nhấc 2px, viền mực, nền pressed; ấn lún 1px.
@@ -56,7 +58,7 @@ export function TodayPrompt({ date, timeZone, iconSetId, flash, onPick }: TodayP
           ))}
         </div>
         <Link to="/today" className={cn('link-underline self-start text-sm font-semibold', focusRing)}>
-          Mở trang hôm nay để viết
+          {t('timeline:prompt.open')}
         </Link>
       </div>
     </div>
@@ -72,27 +74,28 @@ type JustScoredProps = {
 
 /** Vừa chấm điểm nhanh cho hôm nay: báo đã ghi, cho viết thêm hoặc hoàn tác. */
 export function JustScored({ score, meta, iconSetId, onUndo }: JustScoredProps) {
+  const t = useT()
   return (
     <div className="flex animate-fade flex-wrap items-center gap-x-3.5 gap-y-3 rounded-[16px] border-[1.5px] border-stroke bg-card px-4 py-3 shadow-sm">
       <span
         role="img"
-        aria-label={`Điểm ${score}, ${scoreLabel(iconSetId, score)}`}
+        aria-label={t('timeline:meta.scoreAria', { score, label: scoreLabel(iconSetId, score) })}
         className="flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-stroke bg-paper"
       >
         <MoodMark iconSetId={iconSetId} score={score} size={32} />
       </span>
       <span role="status" className="flex flex-[1_1_180px] flex-col">
-        <span className="text-body font-semibold">Đã ghi cho hôm nay</span>
+        <span className="text-body font-semibold">{t('timeline:prompt.saved')}</span>
         <span className="text-[13px] leading-5 text-ink-soft nums">{meta}</span>
       </span>
       <Link
         to="/today"
         className={cn('press inline-flex h-9 items-center rounded-[10px] border-[1.5px] border-stroke px-3 text-[13px] font-semibold', focusRing)}
       >
-        Viết thêm
+        {t('timeline:prompt.writeMore')}
       </Link>
       <button type="button" onClick={onUndo} className={cn('link-underline cursor-pointer py-1 text-[13px] font-semibold', focusRing)}>
-        Hoàn tác
+        {t('timeline:prompt.undo')}
       </button>
     </div>
   )

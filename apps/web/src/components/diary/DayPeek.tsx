@@ -4,6 +4,7 @@ import { scoreLabel, type Score } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
 import { DayMorph } from './DayMorph'
 import { MoodMark } from './MoodMark'
+import { useT } from '@/lib/i18n'
 
 export type PeekEntry = {
   score: Score
@@ -33,12 +34,13 @@ const action =
 
 /** Nội dung "xem nhanh một ngày" trong bảng trượt trên điện thoại (thiết kế B10 · Dòng thời gian, Year in Pixels). */
 export function DayPeek({ date, entry, iconSetId, meta, state, onNavigate, morphDate }: DayPeekProps) {
+  const t = useT()
   if (entry) {
     const label = scoreLabel(iconSetId, entry.score)
     const ring = (
       <span
         role="img"
-        aria-label={`Điểm ${entry.score}, ${label}`}
+        aria-label={t('components:score.aria', { score: entry.score, label })}
         className="flex size-14 shrink-0 items-center justify-center rounded-full border-[1.5px] border-stroke bg-paper"
       >
         <MoodMark iconSetId={iconSetId} score={entry.score} subIcon={entry.sub_icon} size={40} />
@@ -50,11 +52,11 @@ export function DayPeek({ date, entry, iconSetId, meta, state, onNavigate, morph
           {morphDate ? <DayMorph date={morphDate}>{ring}</DayMorph> : ring}
           <span className="flex min-w-0 flex-col gap-0.5">
             <span className="text-label text-ink-soft">
-              Điểm {entry.score} · {label}
+              {t('components:score.line', { score: entry.score, label })}
               {meta ? ` · ${meta}` : ''}
             </span>
             <span className={cn('text-[18px] leading-[26px] font-semibold [font-variation-settings:"FLAR"_60]', !entry.title && 'text-ink-soft')}>
-              {entry.title ?? 'Chỉ chấm điểm'}
+              {entry.title ?? t('components:dayPeek.scoreOnly')}
             </span>
             {entry.content ? (
               <span className="line-clamp-2 text-body text-ink-soft">{entry.content}</span>
@@ -62,7 +64,7 @@ export function DayPeek({ date, entry, iconSetId, meta, state, onNavigate, morph
           </span>
         </div>
         <Link to={`/day/${date}`} onClick={onNavigate} className={action}>
-          Mở trang ngày
+          {t('components:dayPeek.openDay')}
         </Link>
       </>
     )
@@ -70,16 +72,20 @@ export function DayPeek({ date, entry, iconSetId, meta, state, onNavigate, morph
   return (
     <>
       <p className="text-body text-ink-soft">
-        {state === 'future' ? 'Ngày này chưa tới.' : state === 'today' ? 'Hôm nay chưa có trang.' : 'Ngày này chưa được ghi.'}
+        {state === 'future'
+          ? t('components:dayPeek.future')
+          : state === 'today'
+            ? t('components:dayPeek.todayEmpty')
+            : t('components:dayPeek.pastEmpty')}
       </p>
       {state === 'past' ? (
         <Link to={`/day/${date}/backfill`} onClick={onNavigate} className={action}>
           <RotateCcw className="size-4" strokeWidth={2.4} aria-hidden="true" />
-          Ghi bù ngày này
+          {t('components:dayPeek.backfill')}
         </Link>
       ) : state === 'today' ? (
         <Link to="/today" onClick={onNavigate} className={action}>
-          Viết trang hôm nay
+          {t('components:dayPeek.writeToday')}
         </Link>
       ) : null}
     </>

@@ -5,7 +5,8 @@ import type { DateString } from '@/lib/date'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import type { ColorBy } from './useColorBy'
-import { decimal, type YearCell } from './yearStats'
+import { t, useT } from '@/lib/i18n'
+import { decimal, type Month, type YearCell } from './yearStats'
 
 const SCORE_BG: Record<Score, string> = {
   1: 'bg-score-1 border-score-1',
@@ -23,12 +24,16 @@ const SCORE_SWATCH: Record<Score, string> = {
 }
 
 function describe(c: YearCell, today: DateString, flag?: string): string {
-  const label = `${c.day} tháng ${c.month}${c.date === today ? ', hôm nay' : ''}`
-  if (c.kind === 'score' && flag !== undefined) return `${label}, điểm ${c.score}, ${flag ? `cờ ${flagName(flag)}` : 'không cờ'}`
-  if (c.kind === 'score') return `${label}, điểm ${c.score}`
-  if (c.kind === 'missing') return `${label}, chưa ghi`
-  if (c.kind === 'future') return `${label}, chưa tới`
-  return `${label}, trước khi dùng Jotly`
+  const month = c.month as Month
+  const label =
+    t('pixels:grid.cell.date', { day: c.day, month, monthShort: t(`common:date.monthShort.${month}`) }) +
+    (c.date === today ? t('pixels:grid.cell.today') : '')
+  if (c.kind === 'score' && flag !== undefined)
+    return `${label}${t('pixels:grid.cell.scored', { score: c.score })}${flag ? t('pixels:grid.cell.flagged', { flag: flagName(flag) }) : t('pixels:grid.cell.noFlag')}`
+  if (c.kind === 'score') return `${label}${t('pixels:grid.cell.scored', { score: c.score })}`
+  if (c.kind === 'missing') return label + t('pixels:grid.cell.missing')
+  if (c.kind === 'future') return label + t('pixels:grid.cell.future')
+  return label + t('pixels:grid.cell.pre')
 }
 
 const focusable = (c: YearCell | undefined) => !!c && (c.kind === 'score' || c.kind === 'missing')
@@ -60,6 +65,7 @@ type YearGridProps = {
  * Bàn phím: chỉ một ô nhận Tab (roving tabindex); phím mũi tên đi theo đúng hướng đang nhìn thấy.
  */
 export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus, colorBy = 'score', flags = {} }: YearGridProps) {
+  const t = useT()
   const ref = useRef<HTMLDivElement>(null)
   const dark = useDarkMode()
   const byFlag = colorBy === 'flag'
@@ -95,7 +101,7 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
     <div
       ref={ref}
       role="group"
-      aria-label="Bảng điểm cả năm"
+      aria-label={t('pixels:grid.aria')}
       className="grid grid-flow-col grid-cols-[18px_repeat(12,minmax(0,1fr))] grid-rows-[auto_repeat(31,auto)_auto] gap-[3px] md:grid-flow-row md:grid-cols-[36px_repeat(31,minmax(0,1fr))_52px] md:grid-rows-none md:gap-1"
     >
       {/* Nhóm đầu: số ngày (máy tính là hàng trên cùng, điện thoại là cột bên trái). */}
@@ -116,7 +122,7 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
         aria-hidden="true"
         className="text-[11px] leading-3 font-semibold text-ink-soft max-md:mt-2 max-md:border-t-[1.5px] max-md:border-dashed max-md:border-line-soft max-md:pt-2 md:text-center md:leading-[14px]"
       >
-        TB
+        {t('pixels:grid.avgHeader')}
       </span>
 
       {grid.map((row, m) => {
@@ -124,8 +130,8 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
         return (
           <Fragment key={m}>
             <span className="mb-0.5 text-center text-[11px] leading-[14px] font-semibold text-ink-soft md:mb-0 md:text-left md:text-label">
-              <span className="max-md:hidden">T</span>
-              {m + 1}
+              <span className="max-md:hidden">{t(`pixels:grid.monthHeader.${(m + 1) as Month}`)}</span>
+              <span className="md:hidden">{m + 1}</span>
             </span>
             {row.map((c, d) => {
               if (c.kind === 'none') return <span key={d} aria-hidden="true" />
@@ -170,7 +176,9 @@ export function YearGrid({ grid, monthAverages, today, selected, onSelect, focus
               )
             })}
             <span
-              title={avg === null ? `Tháng ${m + 1} · chưa có điểm` : `Tháng ${m + 1} · trung bình ${decimal(avg)}`}
+              title={avg === null
+                  ? t('pixels:grid.monthNoScore', { month: m + 1, monthLong: t(`common:date.monthLong.${(m + 1) as Month}`) })
+                  : t('pixels:grid.monthAverage', { month: m + 1, monthLong: t(`common:date.monthLong.${(m + 1) as Month}`), value: decimal(avg) })}
               className="nums flex flex-col items-center justify-center gap-0.5 text-[11px] leading-3 font-semibold max-md:mt-2 max-md:border-t-[1.5px] max-md:border-dashed max-md:border-line-soft max-md:pt-2 md:h-6 md:flex-row md:gap-[5px] md:text-label"
             >
               <span

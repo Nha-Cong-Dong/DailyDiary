@@ -1,4 +1,6 @@
+import i18next from 'i18next'
 import createClient from 'openapi-fetch'
+import { currentLang, t } from '@/lib/i18n'
 import { trackedFetch } from '@/lib/serverWake'
 import type { paths } from './schema'
 
@@ -39,16 +41,33 @@ export class ApiError extends Error {
   readonly status: number
   readonly code: string
 
-  constructor(status: number, code: string, message: string) {
-    super(message)
+  /** `message` null: máy chủ không gửi thông báo, dùng câu chung theo ngôn ngữ đang dùng. */
+  constructor(status: number, code: string, message: string | null) {
+    super(message ?? '')
     this.status = status
     this.code = code
+    // `message` tính lúc đọc để đổi ngôn ngữ giao diện thì mọi chỗ hiện `err.message` đổi theo.
+    Object.defineProperty(this, 'message', { get: () => localizedMessage(code, message), configurable: true })
   }
+}
+
+/**
+ * Thông báo lỗi theo ngôn ngữ đang dùng. Tiếng Việt: giữ nguyên thông báo của máy chủ (vốn đã tiếng Việt, có mã dùng
+ * chung cho nhiều câu). Ngôn ngữ khác: dịch theo mã (`errors:api.<mã>`); mã chưa có bản dịch thì dùng thông báo gốc.
+ * Số trong thông báo gốc (giới hạn) được lấy lại để điền vào bản dịch.
+ */
+function localizedMessage(code: string, original: string | null): string {
+  if (original === null) return t('errors:generic')
+  if (currentLang() === 'vi') return original
+  const key = `errors:api.${code}`
+  if (!i18next.exists(key)) return original
+  const [first, second] = original.match(/\d+/g) ?? []
+  return t(key as 'errors:generic', { n: first, min: first, max: second })
 }
 
 export function toApiError(response: Response, body: unknown): ApiError {
   const err = (body as Partial<ApiErrorBody> | undefined)?.error
-  return new ApiError(response.status, err?.code ?? 'HTTP_ERROR', err?.message ?? 'Có lỗi xảy ra, vui lòng thử lại')
+  return new ApiError(response.status, err?.code ?? 'HTTP_ERROR', err?.message ?? null)
 }
 
 /**

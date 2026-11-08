@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils'
 import { hasContent, shapeOf, type ShareSettings } from '../shares'
 import { Fold } from './Fold'
 import { NotebookPage } from '@/components/diary/NotebookPage'
+import { useT } from '@/lib/i18n'
+import { rich } from '@/lib/rich'
 
 type SharePreviewProps = {
   entry: DemoEntry
@@ -21,6 +23,7 @@ type SharePreviewProps = {
 
 /** Thẻ xem trước trong hộp thoại Chia sẻ (B8-Share): trang sổ nhỏ, phần nào tắt thì gập lại ngay khi gạt công tắc. */
 export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId }: SharePreviewProps) {
+  const t = useT()
   const dark = useDarkMode()
   const shape = shapeOf(entry)
   const s = settings
@@ -35,7 +38,7 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
         <p className="flex items-center gap-2 pb-3 text-[13px] leading-5">
           <Avatar name={authorName} src={avatarUrl} size={28} />
           <span>
-            <strong className="font-semibold">{authorName}</strong> chia sẻ một trang nhật ký
+            {rich(t('share:preview.sharedBy', { name: authorName }), { b: (c) => <strong className="font-semibold">{c}</strong> })}
           </span>
         </p>
       </Fold>
@@ -68,7 +71,7 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
         </Fold>
         <p className="mt-3 text-[13px] leading-[18px] text-ink-soft">
           {longDateLabel(entry.entry_date)}
-          {showScore ? ` · Điểm ${entry.score} · ${scoreLabel(iconSetId, entry.score)}` : ''}
+          {showScore ? ` · ${t('share:scoreLine', { score: entry.score, label: scoreLabel(iconSetId, entry.score) })}` : ''}
         </p>
         <Fold open={s.show_title && !!entry.title}>
           <p className="pt-1 text-lg leading-[26px] font-bold [font-variation-settings:'FLAR'_60]">{entry.title}</p>
@@ -102,7 +105,7 @@ export function SharePreview({ entry, settings, authorName, avatarUrl, iconSetId
         </Fold>
         {empty ? (
           <p className="mt-3 animate-pop rounded-[12px] border-[1.5px] border-dashed border-line-soft px-3.5 py-3 text-[13px] leading-5 text-ink-soft">
-            Người nhận chỉ thấy ngày viết. Bật thêm phần muốn chia sẻ.
+            {t('share:preview.onlyDate')}
           </p>
         ) : null}
       </NotebookPage>

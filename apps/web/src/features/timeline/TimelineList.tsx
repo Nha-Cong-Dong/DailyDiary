@@ -6,8 +6,9 @@ import { EntryCard } from '@/components/diary/EntryCard'
 import { MoodMark } from '@/components/diary/MoodMark'
 import { scoreLabel, type Score } from '@/lib/catalog'
 import { timeIn, todayIn, weekdayShort } from '@/lib/date'
+import { t, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { writePath, type MonthEntry, type TimelineItem } from './monthTimeline'
+import { monthVars, writePath, type MonthEntry, type TimelineItem } from './monthTimeline'
 import { JustScored, TodayPrompt } from './TodayPrompt'
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus'
@@ -18,19 +19,24 @@ const flashRing = 'outline-3 outline-offset-4 outline-peach'
 function metaLine(e: MonthEntry, iconSetId: string, timeZone: string): string {
   const created = new Date(e.created_at)
   const updated = new Date(e.updated_at)
-  let text = `Điểm ${e.score} · ${scoreLabel(iconSetId, e.score)} · Viết lúc ${timeIn(timeZone, created)}`
+  let text = t('timeline:meta.line', { score: e.score, label: scoreLabel(iconSetId, e.score), time: timeIn(timeZone, created) })
   if (updated.getTime() - created.getTime() >= 60_000) {
     const day = todayIn(timeZone, updated)
-    const when = day === e.entry_date ? '' : ` ngày ${Number(day.slice(8))}/${Number(day.slice(5, 7))}`
-    text += `, sửa ${timeIn(timeZone, updated)}${when}`
+    const time = timeIn(timeZone, updated)
+    text +=
+      day === e.entry_date
+        ? t('timeline:meta.edited', { time })
+        : t('timeline:meta.editedOn', { time, ...monthVars(Number(day.slice(5, 7))), day: Number(day.slice(8)) })
   }
   return text
 }
 
 /** Bản điện thoại (thiết kế B10): "Điểm 4 · 21:04 · 3 ảnh". */
 function shortMeta(e: MonthEntry, timeZone: string): string {
-  const photos = e.photo_count ? ` · ${e.photo_count} ảnh` : ''
-  return `Điểm ${e.score} · ${timeIn(timeZone, new Date(e.created_at))}${photos}`
+  const time = timeIn(timeZone, new Date(e.created_at))
+  return e.photo_count
+    ? t('timeline:meta.shortPhotos', { score: e.score, time, count: e.photo_count })
+    : t('timeline:meta.short', { score: e.score, time })
 }
 
 function EntryRow({
@@ -47,7 +53,8 @@ function EntryRow({
   noMorph?: boolean
 }) {
   const meta = metaLine(entry, iconSetId, timeZone)
-  const iconLabel = `Điểm ${entry.score}, ${scoreLabel(iconSetId, entry.score)}`
+  const tr = useT()
+  const iconLabel = tr('timeline:meta.scoreAria', { score: entry.score, label: scoreLabel(iconSetId, entry.score) })
 
   if (!entry.title && !entry.content) {
     // Chỉ chấm điểm: thẻ nhỏ (canvas B8 .lite); vòng icon vẫn nối sang trang ngày.
@@ -71,7 +78,7 @@ function EntryRow({
           </span>
         </DayMorph>
         <span className="flex flex-col">
-          <span className="text-sm leading-5 font-semibold md:text-body md:font-semibold">Chỉ chấm điểm</span>
+          <span className="text-sm leading-5 font-semibold md:text-body md:font-semibold">{tr('timeline:list.scoreOnly')}</span>
           <span className="text-[13px] leading-[18px] text-ink-soft nums md:leading-5">
             <span className="md:hidden">{shortMeta(entry, timeZone)}</span>
             <span className="max-md:hidden">{meta}</span>
@@ -156,6 +163,7 @@ export function TimelineList({
   onQuickScore,
   onUndoQuick,
 }: TimelineListProps) {
+  const tr = useT()
   const visible = expanded ? items : items.slice(0, cut)
   const canFold = expanded && hidden > 0
   const lessButton = (
@@ -168,7 +176,7 @@ export function TimelineList({
       )}
     >
       <ChevronUp className="size-4" aria-hidden="true" />
-      Hiển thị ít hơn
+      {tr('timeline:list.less')}
     </button>
   )
 
@@ -211,11 +219,11 @@ export function TimelineList({
                     <>
                       <span
                         role="img"
-                        aria-label="Hôm nay"
+                        aria-label={tr('timeline:list.today')}
                         className="mt-1 size-1.5 rounded-full border border-stroke bg-peach md:hidden"
                       />
                       <span className="mt-1 rounded-full bg-primary px-1.5 text-[11px] leading-4 font-semibold whitespace-nowrap text-on-primary max-md:hidden">
-                        Hôm nay
+                        {tr('timeline:list.today')}
                       </span>
                     </>
                   ) : null}
@@ -225,7 +233,11 @@ export function TimelineList({
                 ) : quick && it.kind === 'entry' && !it.entry.title && !it.entry.content ? (
                   <JustScored
                     score={it.entry.score}
-                    meta={`Điểm ${it.entry.score} · ${scoreLabel(iconSetId, it.entry.score)} · Viết lúc ${timeIn(timeZone, new Date(it.entry.created_at))}`}
+                    meta={tr('timeline:meta.line', {
+                      score: it.entry.score,
+                      label: scoreLabel(iconSetId, it.entry.score),
+                      time: timeIn(timeZone, new Date(it.entry.created_at)),
+                    })}
                     iconSetId={iconSetId}
                     onUndo={onUndoQuick}
                   />
@@ -250,26 +262,26 @@ export function TimelineList({
                     />
                     <span className="flex-1">
                       {it.from === it.to ? (
-                        'Không ghi ngày này'
+                        tr('timeline:list.gapOne')
                       ) : (
                         <>
-                          Không ghi {it.to - it.from + 1} ngày
+                          {tr('timeline:list.gapMany', { count: it.to - it.from + 1 })}
                           <span className="max-md:hidden">
-                            , từ {it.from} đến {it.to}/{monthNum}
+                            {tr('timeline:list.gapRange', { from: it.from, to: it.to, ...monthVars(monthNum) })}
                           </span>
                         </>
                       )}
                     </span>
                     <Link
                       to={writePath(it.date)}
-                      aria-label={`Ghi bù ngày ${it.to}/${monthNum}`}
+                      aria-label={tr('timeline:list.backfillAria', { day: it.to, ...monthVars(monthNum) })}
                       className={cn(
                         'press inline-flex h-9 shrink-0 items-center gap-1 rounded-[10px] border-[1.5px] border-stroke px-2.5 text-[13px] font-semibold text-ink select-none md:gap-1.5 md:px-3',
                         focusRing,
                       )}
                     >
                       <RotateCcw className="size-3.5" aria-hidden="true" />
-                      Ghi bù
+                      {tr('timeline:list.backfill')}
                     </Link>
                   </div>
                 )}
@@ -288,7 +300,7 @@ export function TimelineList({
           )}
         >
           <ChevronDown className="size-4" aria-hidden="true" />
-          Xem thêm {hidden} trang cũ hơn
+          {tr('timeline:list.more', { count: hidden })}
         </button>
       ) : (
         <p className="flex items-center gap-3 text-[13px] leading-5 text-ink-soft">

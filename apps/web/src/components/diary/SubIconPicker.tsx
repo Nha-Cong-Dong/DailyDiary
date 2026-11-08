@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { subIcons } from '@/lib/catalog'
+import { useT } from '@/lib/i18n'
 
 type SubIconPickerProps = {
   value: string | null
@@ -11,6 +12,7 @@ type SubIconPickerProps = {
 
 /** Chọn sub icon (emoji) từ shared/icons.json. Mỗi ô 44×44 px; bố cục hàng do `className` quyết định. */
 export function SubIconPicker({ value, onChange, icons = subIcons, className }: SubIconPickerProps) {
+  const t = useT()
   return (
     <div className={cn('flex flex-wrap gap-1.5', className)}>
       {icons.map((icon) => {
@@ -19,7 +21,7 @@ export function SubIconPicker({ value, onChange, icons = subIcons, className }: 
           <button
             key={icon}
             type="button"
-            aria-label={`Biểu tượng ${icon}`}
+            aria-label={t('components:subIcon.aria', { icon })}
             aria-pressed={on}
             onClick={() => onChange(on ? null : icon)}
             className={cn(

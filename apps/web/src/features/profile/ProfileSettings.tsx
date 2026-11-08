@@ -7,6 +7,7 @@ import { Avatar } from '@/components/layout/Avatar'
 import { ThemePicker } from '@/components/layout/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { LANGS, type Lang, useLanguage, useT } from '@/lib/i18n'
 import { tierLimits } from '@/lib/limits'
 import { useProfile, useUpdateProfile, useUploadAvatar } from '@/lib/profile'
 import { SIGNED_OUT, useLogout } from '@/lib/session'
@@ -97,6 +98,8 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
   const navigate = useNavigate()
   const avatar = useUploadAvatar()
   const ids = useId()
+  const t = useT()
+  const [lang, setLang] = useLanguage()
   const [name, setName] = useState(profile.displayName)
   const [saved, setSaved] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
@@ -120,8 +123,8 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
 
   function saveName(onDone?: () => void) {
     const trimmed = name.trim()
-    if (!trimmed) return setNameError('Tên không được để trống')
-    if (trimmed.length > maxName) return setNameError(`Tên tối đa ${maxName} ký tự`)
+    if (!trimmed) return setNameError(t('profile:name.empty'))
+    if (trimmed.length > maxName) return setNameError(t('profile:name.tooLong', { max: maxName }))
     if (trimmed === profile.displayName) {
       setName(trimmed)
       return onDone?.()
@@ -135,7 +138,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           setSaved(true)
           onDone?.()
         },
-        onError: () => setNameError('Chưa lưu được. Thử lại nhé.'),
+        onError: () => setNameError(t('profile:name.saveError')),
       },
     )
   }
@@ -148,7 +151,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
     name: name || profile.displayName,
     src: avatarSrc,
     busy: avatar.isPending,
-    uploadError: avatar.isError ? 'Chưa đổi được ảnh. Kiểm tra kết nối rồi thử lại.' : null,
+    uploadError: avatar.isError ? t('profile:avatar.uploadError') : null,
     onPick: (file: File) => avatar.mutate(file),
     onRemove: () => {
       avatar.reset()
@@ -166,7 +169,7 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
   const nameField = (inputId: string) => (
     <div className="flex flex-col gap-2 max-sm:gap-1.5">
       <label htmlFor={inputId} className={cn(fieldLabel, 'max-sm:leading-5')}>
-        Tên hiển thị
+        {t('profile:name.label')}
       </label>
       <Input
         id={inputId}
@@ -183,14 +186,14 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         className="bg-paper"
       />
       <span id={`${inputId}-hint`} className={nameError ? 'text-label leading-5 font-medium text-danger' : fieldHint}>
-        {nameError ?? 'Tên và ảnh hiện trên hồ sơ của bạn.'}
+        {nameError ?? t('profile:name.hint')}
       </span>
     </div>
   )
 
   return (
     <div className="mx-auto flex w-full max-w-[680px] flex-col gap-6 max-sm:gap-5">
-      <h1 className="animate-rise text-title font-bold max-sm:text-[22px] max-sm:leading-[30px]">Hồ sơ &amp; cài đặt</h1>
+      <h1 className="animate-rise text-title font-bold max-sm:text-[22px] max-sm:leading-[30px]">{t('profile:settings.title')}</h1>
 
       {/* Điện thoại: thẻ hồ sơ gọn, bấm Sửa để mở bảng trượt. */}
       <div className="-mb-2 flex flex-col gap-3 sm:hidden">
@@ -201,22 +204,22 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
             <span className="truncate text-label leading-5 font-normal text-ink-soft">{profile.email}</span>
           </span>
           <Button variant="outline" className="h-10 rounded-[12px] px-3.5" aria-haspopup="dialog" onClick={() => openEdit(true)}>
-            Sửa
+            {t('profile:settings.edit')}
           </Button>
         </div>
         {saved && !editOpen ? (
           <p role="status" className="mx-1 animate-fade text-label leading-5 font-normal text-ink-soft">
-            Đã lưu tên hiển thị.
+            {t('profile:settings.nameSaved')}
           </p>
         ) : null}
       </div>
 
-      <Section id={`${ids}-profile`} title="Hồ sơ" delay={0.04} className="max-sm:hidden">
+      <Section id={`${ids}-profile`} title={t('profile:settings.profileSection')} delay={0.04} className="max-sm:hidden">
         <AvatarField {...avatarProps} />
         {nameField(`${ids}-name`)}
         <div className="flex flex-col gap-2">
           <span id={`${ids}-mail`} className={fieldLabel}>
-            Email
+            {t('profile:settings.email')}
           </span>
           <div
             aria-labelledby={`${ids}-mail`}
@@ -226,31 +229,31 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
             <span className="min-w-0 flex-1 truncate">{profile.email}</span>
             <Lock className="size-4 shrink-0" aria-hidden="true" />
           </div>
-          <span className={fieldHint}>Đăng nhập bằng Google. Chỉ mình bạn thấy.</span>
+          <span className={fieldHint}>{t('profile:settings.emailHint')}</span>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3 border-t-[1.5px] border-dashed border-line-soft pt-[18px]">
           <span role="status" className="inline-flex items-center gap-1.5 text-label leading-5 font-normal text-ink-soft">
             {dirty ? (
-              'Có thay đổi chưa lưu'
+              t('profile:settings.unsaved')
             ) : saved ? (
               <span className="inline-flex animate-fade items-center gap-1.5">
-                <CircleCheck className="size-4 text-sage-ink" aria-hidden="true" /> Đã lưu
+                <CircleCheck className="size-4 text-sage-ink" aria-hidden="true" /> {t('profile:settings.saved')}
               </span>
             ) : null}
           </span>
           <Button disabled={!dirty || save.isPending} onClick={() => saveName()}>
-            {save.isPending && dirty ? 'Đang lưu…' : 'Lưu thay đổi'}
+            {save.isPending && dirty ? t('profile:settings.saving') : t('profile:settings.saveChanges')}
           </Button>
         </div>
       </Section>
 
-      <Section id={`${ids}-journal`} title="Nhật ký" delay={0.08}>
+      <Section id={`${ids}-journal`} title={t('profile:settings.journalSection')} delay={0.08}>
         <div className="flex flex-col gap-3 max-sm:gap-1 max-sm:pt-3.5 max-sm:pb-1">
           <div className="flex flex-col gap-0.5 max-sm:px-4">
             <span id={`${ids}-set`} className={cn(fieldLabel, 'max-sm:text-body max-sm:leading-[22px]')}>
-              Bộ icon chấm điểm
+              {t('profile:settings.iconSetTitle')}
             </span>
-            <span className={cn(fieldHint, 'max-sm:leading-[18px]')}>Đổi bộ icon chỉ thay hình. Điểm đã ghi giữ nguyên.</span>
+            <span className={cn(fieldHint, 'max-sm:leading-[18px]')}>{t('profile:settings.iconSetHint')}</span>
           </div>
           {/* Điện thoại: các bộ xếp một hàng, vuốt ngang (B10 .j-hs .j-sets). */}
           <IconSetPicker
@@ -274,39 +277,37 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         <StorageUsage />
       </Section>
 
-      <Section id={`${ids}-look`} title="Giao diện" delay={0.12}>
+      <Section id={`${ids}-look`} title={t('profile:settings.lookSection')} delay={0.12}>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2.5 max-sm:px-4 max-sm:py-3.5">
           <span id={`${ids}-theme`} className={cn(fieldLabel, 'max-sm:text-body max-sm:leading-[22px]')}>
-            Chế độ màu
+            {t('profile:settings.colorMode')}
           </span>
           {/* Sáng / Tối / Hệ thống / Theo giờ (B11-Theme), kèm chú thích cho Hệ thống và Theo giờ. */}
           <ThemePicker labelledBy={`${ids}-theme`} />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 max-sm:min-h-14 max-sm:px-4 max-sm:py-2">
           <label htmlFor={`${ids}-lang`} className={cn(fieldLabel, 'max-sm:text-body max-sm:leading-[22px]')}>
-            Ngôn ngữ
+            {t('common:language.label')}
           </label>
-          <div className="flex items-center gap-2.5">
-            {/* MVP chỉ có tiếng Việt: hiện ô chọn như thiết kế nhưng khóa. */}
-            <select
-              id={`${ids}-lang`}
-              disabled
-              aria-describedby={`${ids}-lang-soon`}
-              className="h-11 cursor-not-allowed rounded-md border-[1.5px] border-dashed border-line-soft bg-sunk px-3 text-body text-ink-soft max-sm:h-10 max-sm:rounded-[10px] max-sm:px-2"
-            >
-              <option>Tiếng Việt</option>
-            </select>
-            <span id={`${ids}-lang-soon`} className="text-label leading-[18px] font-normal text-ink-soft">
-              English · Sắp có
-            </span>
-          </div>
+          <select
+            id={`${ids}-lang`}
+            value={lang}
+            onChange={(e) => void setLang(e.target.value as Lang)}
+            className="h-11 rounded-md border-[1.5px] border-line-soft bg-card px-3 text-body text-ink max-sm:h-10 max-sm:rounded-[10px] max-sm:px-2"
+          >
+            {LANGS.map((code) => (
+              <option key={code} value={code} lang={code}>
+                {t(`common:language.${code}`)}
+              </option>
+            ))}
+          </select>
         </div>
       </Section>
 
-      <Section id={`${ids}-share`} title="Chia sẻ" delay={0.16}>
+      <Section id={`${ids}-share`} title={t('profile:settings.shareSection')} delay={0.16}>
         <Link to="/profile/shares" className={cn(phoneRow, 'sm:hidden')}>
           <Link2 className="size-5 shrink-0" aria-hidden="true" />
-          <span className="flex-1 font-semibold">Trang đang chia sẻ</span>
+          <span className="flex-1 font-semibold">{t('profile:settings.sharedPages')}</span>
           {shareCount ? (
             <span className="min-w-6 rounded-full bg-ink px-[7px] text-center text-label leading-5 font-bold text-paper nums">
               {shareCount}
@@ -318,80 +319,80 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           {sharing ?? (
             <p className="flex items-start gap-3.5 text-body">
               <Lock className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-              Mọi trang đều riêng tư, chỉ mình bạn xem được.
+              {t('profile:settings.allPrivate')}
             </p>
           )}
         </div>
       </Section>
 
       {onFeedback ? (
-        <Section id={`${ids}-feedback`} title="Góp ý" delay={0.18}>
+        <Section id={`${ids}-feedback`} title={t('profile:settings.feedbackSection')} delay={0.18}>
           <button type="button" className={cn(phoneRow, 'sm:hidden')} onClick={onFeedback}>
             <MessageSquare className="size-5 shrink-0" aria-hidden="true" />
-            <span className="flex-1 font-semibold">Góp ý cho Jotly</span>
+            <span className="flex-1 font-semibold">{t('profile:settings.feedbackTitle')}</span>
             <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
           </button>
           <div className="max-sm:hidden">
-            <Row title="Góp ý cho Jotly" hint="Báo lỗi hoặc đề xuất tính năng. Jotly trả lời qua email tài khoản của bạn.">
+            <Row title={t('profile:settings.feedbackTitle')} hint={t('profile:settings.feedbackHint')}>
               <Button variant="secondary" size="sm" className="h-10" onClick={onFeedback}>
-                <MessageSquare aria-hidden="true" /> Gửi góp ý
+                <MessageSquare aria-hidden="true" /> {t('profile:settings.feedbackSend')}
               </Button>
             </Row>
           </div>
         </Section>
       ) : null}
 
-      <Section id={`${ids}-account`} title="Tài khoản" delay={0.2}>
+      <Section id={`${ids}-account`} title={t('profile:settings.accountSection')} delay={0.2}>
         {/* Điện thoại: danh sách dòng bấm được (thiết kế B10). */}
         <div className={cn('flex flex-col sm:hidden', dashedBetween)}>
           <button type="button" className={phoneRow} disabled={logout.isPending} onClick={signOut}>
             <LogOut className="size-5 shrink-0" aria-hidden="true" />
-            <span className="flex-1 font-semibold">Đăng xuất</span>
+            <span className="flex-1 font-semibold">{t('profile:settings.signOut')}</span>
             <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
           </button>
           <Link to="/profile/trash" className={phoneRow}>
             <ArchiveRestore className="size-5 shrink-0" aria-hidden="true" />
-            <span className="flex-1 font-semibold">Thùng rác</span>
-            {summary?.trash ? <span className="text-sm leading-5 text-ink-soft nums">{summary.trash} trang</span> : null}
+            <span className="flex-1 font-semibold">{t('profile:settings.trash')}</span>
+            {summary?.trash ? <span className="text-sm leading-5 text-ink-soft nums">{t('profile:settings.trashPages', { count: summary.trash })}</span> : null}
             <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
           </Link>
           <button type="button" className={cn(phoneRow, 'text-danger')} onClick={() => setDataOpen(true)}>
             <Eraser className="size-5 shrink-0" aria-hidden="true" />
-            <span className="flex-1 font-semibold">Xóa toàn bộ dữ liệu</span>
+            <span className="flex-1 font-semibold">{t('profile:settings.wipeTitle')}</span>
           </button>
           <button type="button" className={cn(phoneRow, 'text-danger')} onClick={() => setAccountOpen(true)}>
             <Trash2 className="size-5 shrink-0" aria-hidden="true" />
-            <span className="flex-1 font-semibold">Xóa tài khoản</span>
+            <span className="flex-1 font-semibold">{t('profile:settings.deleteAccountTitle')}</span>
           </button>
         </div>
         <div className="flex flex-col gap-[22px] max-sm:hidden">
-          <Row title="Đăng xuất" hint="Nhật ký vẫn còn, đăng nhập lại bằng Google để xem.">
+          <Row title={t('profile:settings.signOut')} hint={t('profile:settings.signOutHint')}>
             <Button variant="secondary" size="sm" className="h-10" disabled={logout.isPending} onClick={signOut}>
-              <LogOut aria-hidden="true" /> Đăng xuất
+              <LogOut aria-hidden="true" /> {t('profile:settings.signOut')}
             </Button>
           </Row>
           <Row
-            title="Thùng rác"
-            hint={`Trang đã xóa nằm ở đây ${tierLimits().entry.restore_days} ngày, khôi phục được.${summary?.trash ? ` Đang có ${summary.trash} trang.` : ''}`}
+            title={t('profile:settings.trash')}
+            hint={`${t('profile:settings.trashHint', { days: tierLimits().entry.restore_days })}${summary?.trash ? t('profile:settings.trashHintCount', { count: summary.trash }) : ''}`}
           >
             <Button asChild variant="secondary" size="sm" className="h-10">
               <Link to="/profile/trash">
-                <ArchiveRestore aria-hidden="true" /> Mở thùng rác
+                <ArchiveRestore aria-hidden="true" /> {t('profile:settings.openTrash')}
               </Link>
             </Button>
           </Row>
           <div className="flex flex-col gap-[22px] border-t-[1.5px] border-dashed border-line-soft pt-[22px]">
             <p className="text-sm leading-[22px] text-ink-soft">
-              Jotly không có tính năng xuất dữ liệu. Hai thao tác dưới đây không thể hoàn tác.
+              {t('profile:settings.noExport')}
             </p>
-            <Row title="Xóa toàn bộ dữ liệu" hint="Xóa mọi trang, điểm và ảnh. Tài khoản vẫn giữ để bạn viết tiếp." danger>
+            <Row title={t('profile:settings.wipeTitle')} hint={t('profile:settings.wipeHint')} danger>
               <Button variant="destructive-solid" size="sm" className="h-10" onClick={() => setDataOpen(true)}>
-                <Eraser aria-hidden="true" /> Xóa dữ liệu
+                <Eraser aria-hidden="true" /> {t('profile:settings.wipeButton')}
               </Button>
             </Row>
-            <Row title="Xóa tài khoản" hint="Xóa mọi trang, link chia sẻ và hồ sơ của bạn. Jotly không còn lưu gì gắn với bạn." danger>
+            <Row title={t('profile:settings.deleteAccountTitle')} hint={t('profile:settings.deleteAccountHint')} danger>
               <Button variant="destructive-solid" size="sm" className="h-10" onClick={() => setAccountOpen(true)}>
-                <Trash2 aria-hidden="true" /> Xóa tài khoản
+                <Trash2 aria-hidden="true" /> {t('profile:settings.deleteAccountTitle')}
               </Button>
             </Row>
           </div>
@@ -402,47 +403,47 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
           role="status"
           className="-mt-3 inline-flex animate-fade items-center gap-2 px-1 text-sm leading-[22px] text-ink-soft max-sm:-mt-2 max-sm:text-label max-sm:leading-5 max-sm:font-normal"
         >
-          <CircleCheck className="size-4 shrink-0 text-sage-ink" aria-hidden="true" /> Đã xóa toàn bộ dữ liệu. Trang Hôm nay đang chờ bạn.
+          <CircleCheck className="size-4 shrink-0 text-sage-ink" aria-hidden="true" /> {t('profile:settings.wiped')}
         </p>
       ) : null}
       {needsReauth ? (
         <div role="alert" className="-mt-3 flex flex-wrap items-center gap-3 rounded-md edge bg-card px-4 py-3 shadow-sm max-sm:-mt-2">
           <p className="min-w-0 flex-1 text-sm leading-[22px]">
-            Để bảo vệ tài khoản, hãy đăng nhập lại bằng Google rồi xóa trong vòng 10 phút. Chưa có gì bị xóa.
+            {t('profile:settings.reauth')}
           </p>
           <Button asChild variant="secondary" size="sm" className="h-10">
-            <a href={googleLoginUrl(profile.timeZone, '/profile')}>Đăng nhập lại</a>
+            <a href={googleLoginUrl(profile.timeZone, '/profile')}>{t('profile:settings.reauthButton')}</a>
           </Button>
         </div>
       ) : wipe.isError || deleteAccount.isError ? (
         <p role="alert" className="-mt-3 px-1 text-sm leading-[22px] font-medium text-danger max-sm:-mt-2 max-sm:text-label max-sm:leading-5">
-          {wipe.isError ? 'Chưa xóa được dữ liệu.' : 'Chưa xóa được tài khoản.'} Kiểm tra kết nối rồi thử lại; chưa có gì bị xóa.
+          {wipe.isError ? t('profile:settings.wipeFailed') : t('profile:settings.deleteFailed')} {t('profile:settings.retryNote')}
         </p>
       ) : null}
       <p className="mx-1 -mt-1.5 text-label leading-[18px] font-normal text-ink-soft sm:hidden">
-        Jotly không có tính năng xuất dữ liệu. Các thao tác xóa không thể hoàn tác.
+        {t('profile:settings.noExportMobile')}
       </p>
 
       <footer className="flex flex-wrap gap-x-5 gap-y-2 px-1 text-sm leading-[22px] text-ink-soft max-sm:mt-2 max-sm:justify-center max-sm:gap-x-4 max-sm:gap-y-1.5 max-sm:text-label max-sm:leading-[18px] max-sm:font-normal">
         <a href="#" className="link-underline">
-          [Điều khoản sử dụng]
+          {t('profile:settings.terms')}
         </a>
         <Link to="/privacy" className="link-underline">
-          Chính sách quyền riêng tư
+          {t('profile:settings.privacy')}
         </Link>
-        <span>Jotly · bản dev</span>
+        <span>{t('profile:settings.devBuild')}</span>
       </footer>
 
       {/* Chỉ mở từ thẻ hồ sơ trên điện thoại (thiết kế B10). */}
-      <BottomSheet open={editOpen} onOpenChange={openEdit} title="Sửa hồ sơ">
+      <BottomSheet open={editOpen} onOpenChange={openEdit} title={t('profile:settings.editSheet')}>
         <AvatarField {...avatarProps} />
         {nameField(`${ids}-name-sheet`)}
         <div className="grid grid-cols-2 gap-2.5">
           <Button variant="outline" className="h-[50px]" onClick={() => openEdit(false)}>
-            Hủy
+            {t('profile:settings.cancel')}
           </Button>
           <Button className="h-[50px]" disabled={save.isPending} onClick={() => saveName(() => setEditOpen(false))}>
-            Lưu
+            {t('profile:settings.save')}
           </Button>
         </div>
       </BottomSheet>

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
 import type { Score } from '@/lib/catalog'
 import { addDays, daysEndingAt, todayIn, type DateString } from '@/lib/date'
+import { t } from '@/lib/i18n'
 
 /** Tóm tắt tháng hiện tại cho trang chủ khi đã đăng nhập (thiết kế B5 · Landing đã đăng nhập). */
 export type HomeSummary = {
@@ -57,9 +58,9 @@ export function useHomeSummary(timeZone: string, enabled = true) {
 /** "Chào buổi tối, Minh An" theo giờ ở múi giờ hồ sơ; 0h–5h là "Khuya rồi, Minh An". */
 export function greeting(name: string, timeZone: string, now: Date = new Date()): string {
   const hour = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone }).format(now))
-  if (hour < 5) return `Khuya rồi, ${name}`
-  const part = hour < 11 ? 'sáng' : hour < 13 ? 'trưa' : hour < 18 ? 'chiều' : 'tối'
-  return `Chào buổi ${part}, ${name}`
+  if (hour < 5) return t('landing:greeting.night', { name })
+  const part = hour < 11 ? 'morning' : hour < 13 ? 'noon' : hour < 18 ? 'afternoon' : 'evening'
+  return t(`landing:greeting.${part}`, { name })
 }
 
 /** Một ngày đã ghi trong 7 ngày gần nhất (dải tuần của mục "Một chạm" khi đã đăng nhập). */

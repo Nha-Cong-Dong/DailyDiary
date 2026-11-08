@@ -1,5 +1,6 @@
 import { CircleCheck, CloudOff, LoaderCircle, Trash2, TriangleAlert, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { t } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export type StampKind = 'saved' | 'saving' | 'unsynced' | 'error' | 'trash'
@@ -12,18 +13,25 @@ const STYLES: Record<StampKind, { icon: LucideIcon; className: string }> = {
   trash: { icon: Trash2, className: 'border-dashed border-lavender-ink bg-lavender-soft text-lavender-ink' },
 }
 
-/** Chữ mặc định của từng loại dấu (B11-Components · Stamp). */
-const STAMP_LABELS: Record<StampKind, string> = {
-  saved: 'Đã lưu',
-  saving: 'Đang lưu…',
-  unsynced: 'Chưa đồng bộ',
-  error: 'Chưa lưu được',
-  trash: 'Trong thùng rác',
+/** Chữ mặc định của từng loại dấu (B11-Components · Stamp), dịch lúc vẽ để đổi ngôn ngữ có hiệu lực ngay. */
+function stampLabel(kind: StampKind): string {
+  switch (kind) {
+    case 'saved':
+      return t('components:stamp.saved')
+    case 'saving':
+      return t('components:stamp.saving')
+    case 'unsynced':
+      return t('components:stamp.unsynced')
+    case 'error':
+      return t('components:stamp.error')
+    case 'trash':
+      return t('components:stamp.trash')
+  }
 }
 
 type StampProps = {
   kind: StampKind
-  /** Chữ trên dấu, vd. "Đã lưu lúc 21:32", "Trong thùng rác, còn 23 ngày". Mặc định STAMP_LABELS[kind]. */
+  /** Chữ trên dấu, vd. "Đã lưu lúc 21:32", "Trong thùng rác, còn 23 ngày". Mặc định stampLabel(kind). */
   children?: ReactNode
   /** Đóng dấu một nhịp 220ms khi hiện (vd. vừa lưu xong). Mặc định không chuyển động. */
   animate?: boolean
@@ -52,7 +60,7 @@ export function Stamp({ kind, children, animate = false, className }: StampProps
         strokeWidth={2.25}
         aria-hidden="true"
       />
-      <span>{children ?? STAMP_LABELS[kind]}</span>
+      <span>{children ?? stampLabel(kind)}</span>
     </span>
   )
 }

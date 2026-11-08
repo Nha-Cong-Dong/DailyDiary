@@ -17,6 +17,7 @@ import { fieldsOf, useAutosave } from './useAutosave'
 import { BackLink, ExtraFields, Notice, PhoneBar, phoneIconButton } from './components/EntryFormParts'
 import { useDay } from './useDay'
 import { useFrequentSubIcons } from './useFrequentSubIcons'
+import { useT } from '@/lib/i18n'
 
 type Extras = { sub_icon: string | null; flag_color: string | null; title: string; content: string }
 const NO_EXTRAS: Extras = { sub_icon: null, flag_color: null, title: '', content: '' }
@@ -30,21 +31,23 @@ const sameExtras = (a: Extras, b: Extras) =>
   a.sub_icon === b.sub_icon && a.flag_color === b.flag_color && a.title === b.title && a.content === b.content
 
 function BackfillChip() {
+  const t = useT()
   return (
     <span className="inline-flex animate-stamp items-center gap-1 rounded-full border-[1.5px] border-stroke bg-peach px-2 text-label font-bold text-on-accent">
       <RotateCcw className="size-[13px]" strokeWidth={2.6} aria-hidden="true" />
-      Ghi bù
+      {t('entry:backfill.chip')}
     </span>
   )
 }
 
 /** Thẻ xem trước: trang ghi bù sẽ hiện thế nào trong Dòng thời gian (EntryCard thẻ, có dấu Ghi bù). */
 function TimelinePreview({ record, extras }: { record: DayEntry; extras: Extras }) {
+  const t = useT()
   const { iconSetId, timeZone } = useProfile()
   return (
     <section aria-labelledby="bf-preview" className="flex animate-rise flex-col gap-3 [animation-delay:.12s]">
       <h2 id="bf-preview" className="text-[15px] leading-[22px] font-semibold">
-        Trong Dòng thời gian sẽ hiện như sau
+        {t('entry:backfill.previewHeading')}
       </h2>
       <div className="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3.5">
         <div className="flex flex-col items-center gap-0.5 pt-3.5">
@@ -56,11 +59,15 @@ function TimelinePreview({ record, extras }: { record: DayEntry; extras: Extras 
           score={record.score}
           subIcon={extras.sub_icon}
           flagColor={extras.flag_color}
-          dateLabel={`Điểm ${record.score} · ${scoreLabel(iconSetId, record.score)} · Ghi bù lúc ${dateTimeLabel(timeZone, record.created_at, false)}`}
+          dateLabel={t('entry:backfill.previewDate', {
+            score: record.score,
+            label: scoreLabel(iconSetId, record.score),
+            time: dateTimeLabel(timeZone, record.created_at, false),
+          })}
           backfill
-          title={extras.title.trim() || 'Chỉ chấm điểm'}
+          title={extras.title.trim() || t('entry:scoreOnly')}
           excerpt={extras.content.trim() || null}
-          emptyText="Chưa viết gì cho ngày này."
+          emptyText={t('entry:backfill.previewEmpty')}
         />
       </div>
     </section>
@@ -68,6 +75,7 @@ function TimelinePreview({ record, extras }: { record: DayEntry; extras: Extras 
 }
 
 function BackfillForm({ date, today }: { date: DateString; today: DateString }) {
+  const t = useT()
   const { timeZone, iconSetId } = useProfile()
   const deleteEntry = useDeleteEntry(date)
   const { data: frequentIcons } = useFrequentSubIcons()
@@ -119,27 +127,27 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
   }
 
   const ago = daysBetween(date, today)
-  const heading = record ? `Ghi bù cho ngày ${dayMonth(date)}` : 'Ngày này bạn chưa ghi'
+  const heading = record ? t('entry:backfill.headingDone', { day: dayMonth(date) }) : t('entry:backfill.headingEmpty')
   return (
     <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 md:gap-6">
       {/* Điện thoại (B10 · Ghi bù): thanh trên riêng có nút về Dòng thời gian. */}
       <PhoneBar
         start={
-          <Link to="/timeline" aria-label="Về Dòng thời gian" className={phoneIconButton}>
+          <Link to="/timeline" aria-label={t('entry:timelineBack')} className={phoneIconButton}>
             <ArrowLeft className="size-[22px]" aria-hidden="true" />
           </Link>
         }
-        title={`Ghi bù ${dayMonth(date)}`}
+        title={t('entry:backfill.phoneTitle', { day: dayMonth(date) })}
       />
       <BackLink to="/timeline" className="max-md:hidden">
-        Dòng thời gian
+        {t('entry:timeline')}
       </BackLink>
       <section aria-labelledby="bf-h" className="flex flex-col gap-5 md:gap-[18px]">
         <div className="flex animate-rise flex-col gap-1 md:gap-1.5">
           <p className="flex flex-wrap items-center gap-2 text-[13px] leading-5 text-ink-soft md:text-sm md:leading-[22px]">
             {longDateLabel(date)}
             <span className="rounded-full border-[1.5px] border-dashed border-line-soft px-2 text-[11px] leading-[18px] font-semibold md:text-xs">
-              {ago === 1 ? 'Hôm qua' : `${ago} ngày trước`}
+              {ago === 1 ? t('entry:ago.yesterdayCap') : t('entry:ago.days', { count: ago })}
             </span>
           </p>
           <h1 id="bf-h" className="text-[25px] leading-8 font-bold md:text-[clamp(28px,3vw,34px)] md:leading-[1.25]">
@@ -147,7 +155,7 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
           </h1>
         </div>
         <fieldset className="m-0 min-w-0 animate-rise border-0 p-0 [animation-delay:.06s]">
-          <legend className="sr-only">Điểm của ngày {dayMonth(date)}</legend>
+          <legend className="sr-only">{t('entry:backfill.scoreLegend', { day: dayMonth(date) })}</legend>
           <ScorePicker
             iconSetId={iconSetId}
             value={record?.score ?? null}
@@ -160,19 +168,19 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
         {record ? (
           <p role="status" className="-mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm leading-[22px] md:mt-0 md:gap-x-2.5 md:gap-y-2 md:text-[15px] md:leading-6">
             <CircleCheck className="size-[18px] shrink-0" aria-hidden="true" />
-            Đã ghi bù lúc {dateTimeLabel(timeZone, record.created_at, false)}
+            {t('entry:backfill.recordedAt', { time: dateTimeLabel(timeZone, record.created_at, false) })}
             <BackfillChip />
             <button
               type="button"
               onClick={undo}
               className="link-underline cursor-pointer py-0.5 text-sm font-semibold focus-visible:outline-3 focus-visible:outline-focus"
             >
-              Hoàn tác
+              {t('entry:undo')}
             </button>
           </p>
         ) : (
           <p className="-mt-1.5 text-sm leading-[22px] text-ink-soft md:mt-0 md:text-[15px] md:leading-6">
-            Chấm điểm là ghi bù xong. Viết thêm hay không tùy bạn.
+            {t('entry:backfill.hint')}
           </p>
         )}
         {deleteEntry.isError ? (
@@ -183,8 +191,9 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
           <SyncStatus status={autosave.status} timeZone={timeZone} />
         ) : null}
         <Notice className="animate-rise [animation-delay:.1s] max-md:rounded-[12px] max-md:px-3 max-md:py-2.5 max-md:text-[13px] max-md:leading-5">
-          Ngày ghi bù vẫn được tô màu<span className="max-md:hidden"> trong Year in Pixels và lịch tháng</span>, nhưng không nối lại
-          chuỗi ngày liên tiếp.
+          {t('entry:backfill.noticeStart')}
+          <span className="max-md:hidden">{t('entry:backfill.noticeMid')}</span>
+          {t('entry:backfill.noticeEnd')}
         </Notice>
       </section>
 
@@ -198,9 +207,9 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
           >
             <div className="flex items-baseline justify-between gap-3">
               <h2 id="bf-more" className="text-lg leading-[26px] font-semibold md:text-xl md:leading-7">
-                Thêm chút nữa?
+                {t('entry:addMore')}
               </h2>
-              <span className="text-xs leading-[18px] text-ink-soft md:text-[13px] md:leading-5">Không bắt buộc</span>
+              <span className="text-xs leading-[18px] text-ink-soft md:text-[13px] md:leading-5">{t('entry:optional')}</span>
             </div>
             <ExtraFields
               sub={extras.sub_icon}
@@ -211,8 +220,8 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
               onTitle={set('title')}
               content={extras.content}
               onContent={set('content')}
-              titlePlaceholder={`Ngày ${dayMonth(date)} thế nào?`}
-              contentPlaceholder="Bạn còn nhớ gì về ngày này?"
+              titlePlaceholder={t('entry:backfill.titlePlaceholder', { day: dayMonth(date) })}
+              contentPlaceholder={t('entry:backfill.contentPlaceholder')}
               contentRows={3}
               frequentIcons={frequentIcons}
             />
@@ -226,10 +235,10 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
                 className="text-xs leading-[18px] text-ink-soft md:text-[13px] md:leading-5"
                 fallback={
                   dirty
-                    ? 'Có thay đổi chưa lưu'
+                    ? t('entry:backfill.unsaved')
                     : record.updated_at !== record.created_at
-                      ? `Đã lưu lúc ${dateTimeLabel(timeZone, record.updated_at, false)}`
-                      : 'Điểm đã được lưu. Phần này tự lưu khi bạn ngừng gõ.'
+                      ? t('entry:backfill.savedAt', { time: dateTimeLabel(timeZone, record.updated_at, false) })
+                      : t('entry:backfill.scoreSaved')
                 }
               />
               {dirty ? (
@@ -238,7 +247,7 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
                   onClick={save}
                   disabled={autosave.status.kind === 'saving'}
                 >
-                  Lưu
+                  {t('entry:save')}
                 </Button>
               ) : null}
             </div>
@@ -257,9 +266,9 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
         >
           <div className="flex items-baseline justify-between gap-3">
             <h2 id="bf-more-locked" className="text-xl leading-7 font-semibold text-ink-soft">
-              Thêm chút nữa?
+              {t('entry:addMore')}
             </h2>
-            <span className="text-[13px] leading-5 text-ink-soft">Mở sau khi chấm điểm</span>
+            <span className="text-[13px] leading-5 text-ink-soft">{t('entry:backfill.locked')}</span>
           </div>
           <div inert aria-hidden="true" className="flex flex-col gap-6 opacity-45 select-none">
             <ExtraFields
@@ -271,8 +280,8 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
               onTitle={() => {}}
               content=""
               onContent={() => {}}
-              titlePlaceholder={`Ngày ${dayMonth(date)} thế nào?`}
-              contentPlaceholder="Bạn còn nhớ gì về ngày này?"
+              titlePlaceholder={t('entry:backfill.titlePlaceholder', { day: dayMonth(date) })}
+              contentPlaceholder={t('entry:backfill.contentPlaceholder')}
               contentRows={3}
               frequentIcons={frequentIcons}
             />
@@ -285,6 +294,7 @@ function BackfillForm({ date, today }: { date: DateString; today: DateString }) 
 
 /** Màn ghi bù một ngày đã bỏ trống (thiết kế B9 · Ghi bù), lưu bằng PUT /entries/{day}. */
 export function BackfillEntry({ date }: { date: string }) {
+  const t = useT()
   const { timeZone } = useProfile()
   const now = useNow()
   const today = todayIn(timeZone, now)
@@ -296,7 +306,7 @@ export function BackfillEntry({ date }: { date: string }) {
 
   const frame = (children: ReactNode) => (
     <div className="mx-auto flex w-full max-w-[640px] flex-col items-start gap-4">
-      <BackLink to="/timeline">Dòng thời gian</BackLink>
+      <BackLink to="/timeline">{t('entry:timeline')}</BackLink>
       {children}
     </div>
   )
@@ -304,8 +314,8 @@ export function BackfillEntry({ date }: { date: string }) {
   if (!valid) {
     return frame(
       <>
-        <h1 className="text-title font-bold">Ngày không hợp lệ</h1>
-        <p className="text-ink-soft">Địa chỉ cần có dạng /day/2026-10-14/backfill, và là một ngày có thật.</p>
+        <h1 className="text-title font-bold">{t('entry:invalidDay.title')}</h1>
+        <p className="text-ink-soft">{t('entry:invalidDay.hint', { path: '/day/2026-10-14/backfill' })}</p>
       </>,
     )
   }
@@ -313,17 +323,17 @@ export function BackfillEntry({ date }: { date: string }) {
     return frame(
       <>
         <h1 className="text-title font-bold">{longDateLabel(date)}</h1>
-        <p className="text-ink-soft">Ngày này chưa tới. Hẹn bạn hôm đó nhé.</p>
+        <p className="text-ink-soft">{t('entry:futureDay')}</p>
       </>,
     )
   }
   if (date === today) {
     return frame(
       <>
-        <h1 className="text-title font-bold">Hôm nay vẫn đang diễn ra</h1>
-        <p className="text-ink-soft">Không cần ghi bù, viết luôn cho hôm nay.</p>
+        <h1 className="text-title font-bold">{t('entry:backfill.todayTitle')}</h1>
+        <p className="text-ink-soft">{t('entry:backfill.todayHint')}</p>
         <Button asChild>
-          <Link to="/today">Viết cho hôm nay</Link>
+          <Link to="/today">{t('entry:writeToday')}</Link>
         </Button>
       </>,
     )
@@ -331,28 +341,28 @@ export function BackfillEntry({ date }: { date: string }) {
   if (isPending || (hadEntry === null && !isError)) {
     return frame(
       <p role="status" className="text-ink-soft">
-        Đang mở trang…
+        {t('entry:opening')}
       </p>,
     )
   }
   if (isError) {
     return frame(
       <Alert variant="destructive">
-        <AlertDescription>Không mở được ngày này. Thử tải lại.</AlertDescription>
+        <AlertDescription>{t('entry:backfill.openFailed')}</AlertDescription>
       </Alert>,
     )
   }
   if (hadEntry) {
     return frame(
       <>
-        <h1 className="text-title font-bold">Ngày {dayMonth(date)} đã có trang</h1>
-        <p className="text-ink-soft">Không cần ghi bù. Bạn có thể xem hoặc sửa trang này.</p>
+        <h1 className="text-title font-bold">{t('entry:backfill.hasEntryTitle', { day: dayMonth(date) })}</h1>
+        <p className="text-ink-soft">{t('entry:backfill.hasEntryHint')}</p>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">
-            <Link to={`/day/${date}`}>Xem trang</Link>
+            <Link to={`/day/${date}`}>{t('entry:backfill.viewPage')}</Link>
           </Button>
           <Button asChild>
-            <Link to={`/day/${date}/edit`}>Sửa trang</Link>
+            <Link to={`/day/${date}/edit`}>{t('entry:backfill.editPage')}</Link>
           </Button>
         </div>
       </>,

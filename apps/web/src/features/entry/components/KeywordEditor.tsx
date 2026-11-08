@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { tierLimits } from '@/lib/limits'
 import { cn } from '@/lib/utils'
 import { addKeyword, duplicateOf } from '../keywords'
+import { useT } from '@/lib/i18n'
 
 type KeywordEditorProps = {
   keywords: string[]
@@ -15,6 +16,7 @@ type KeywordEditorProps = {
 
 /** Hàng chip từ khóa + nút "+ Từ khóa" mở ô nhập ngay tại chỗ (Enter để thêm, Esc để đóng). */
 export function KeywordEditor({ keywords, onChange }: KeywordEditorProps) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -43,14 +45,14 @@ export function KeywordEditor({ keywords, onChange }: KeywordEditorProps) {
         {open ? (
           <span className="inline-flex items-center gap-2">
             <label htmlFor={inputId} className="sr-only">
-              Từ khóa mới
+              {t('entry:keywords.newLabel')}
             </label>
             <Input
               id={inputId}
               autoFocus
               value={value}
               maxLength={keyword_len_max}
-              placeholder="vd: đọc sách"
+              placeholder={t('entry:keywords.newPlaceholder')}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? `${inputId}-error` : undefined}
               onChange={(e) => {
@@ -74,7 +76,7 @@ export function KeywordEditor({ keywords, onChange }: KeywordEditorProps) {
           </span>
         ) : (
           <AddKeywordButton className="h-9 px-3 text-[13px] sm:h-8 sm:text-sm" onClick={() => setOpen(true)}>
-            + Từ khóa
+            {t('entry:keywords.addButton')}
           </AddKeywordButton>
         )}
       </div>
@@ -94,6 +96,7 @@ export function KeywordEditor({ keywords, onChange }: KeywordEditorProps) {
  * hoa thường, dấu) được báo ngay khi gõ: viền ô chuyển cam, nút Thêm xám, chip đã có sáng lên một nhịp.
  */
 export function InlineKeywordEditor({ keywords, onChange, inputId }: KeywordEditorProps) {
+  const t = useT()
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [glowing, setGlowing] = useState(false)
@@ -131,13 +134,13 @@ export function InlineKeywordEditor({ keywords, onChange, inputId }: KeywordEdit
     setError(null)
   }
 
-  const message = dup !== null ? `Từ khóa “${dup}” đã có trong trang này.` : error
+  const message = dup !== null ? t('entry:keywords.duplicate', { keyword: dup }) : error
 
   return (
     <div className="flex flex-col gap-2 md:gap-2.5">
       <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
         {keywords.length ? (
-          <ul aria-label="Từ khóa của trang" className="contents max-md:flex max-md:flex-wrap max-md:gap-2">
+          <ul aria-label={t('entry:keywords.listAria')} className="contents max-md:flex max-md:flex-wrap max-md:gap-2">
             {keywords.map((k) => (
               <li key={k} className="contents">
                 <KeywordChip
@@ -159,7 +162,7 @@ export function InlineKeywordEditor({ keywords, onChange, inputId }: KeywordEdit
             id={id}
             value={value}
             maxLength={keyword_len_max}
-            placeholder="Thêm từ khóa"
+            placeholder={t('entry:keywords.addPlaceholder')}
             aria-invalid={message ? true : undefined}
             aria-describedby={msgId}
             onChange={(e) => type(e.target.value)}
@@ -180,14 +183,14 @@ export function InlineKeywordEditor({ keywords, onChange, inputId }: KeywordEdit
               onClick={submit}
               className="press h-11 shrink-0 cursor-pointer rounded-full border-[1.5px] border-primary bg-primary px-4 text-sm font-semibold text-primary-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus md:h-9 md:px-3 md:text-[13px]"
             >
-              Thêm
+              {t('entry:keywords.add')}
             </button>
           ) : dup !== null ? (
             <span
               aria-hidden="true"
               className="inline-flex h-11 shrink-0 items-center rounded-full border-[1.5px] border-disabled-line bg-disabled px-4 text-sm font-semibold text-disabled-foreground md:h-9 md:px-3 md:text-[13px]"
             >
-              Thêm
+              {t('entry:keywords.add')}
             </span>
           ) : null}
         </span>

@@ -1,9 +1,10 @@
 import { CalendarCell } from '@/components/diary/CalendarCell'
 import { scoreLabel } from '@/lib/catalog'
 import { cn } from '@/lib/utils'
-import { monthLabel, type MonthTimeline } from './monthTimeline'
+import { monthLabel, monthVars, type MonthTimeline } from './monthTimeline'
+import { useT } from '@/lib/i18n'
 
-const DOWS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+const DOWS = ['0', '1', '2', '3', '4', '5', '6'] as const
 
 /**
  * Bóng của ô: hôm nay chưa ghi thêm vòng đào 3px tĩnh (không nhấp nháy); ô đang chọn có vòng mực cách 2px;
@@ -26,6 +27,7 @@ type MonthCalendarProps = {
 
 /** Lịch tháng bên cạnh danh sách: main icon + sub icon từng ngày; bấm một ngày để cuộn tới trang đó. */
 export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: MonthCalendarProps) {
+  const t = useT()
   const [y, m] = data.month.split('-').map(Number)
   // Tuần bắt đầu từ thứ Hai.
   const lead = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7
@@ -38,13 +40,13 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
       <div className="flex items-baseline justify-between max-md:hidden">
         <span className="font-heading text-[18px] leading-6 font-semibold">{monthLabel(data.month)}</span>
         <span className="text-[13px] leading-[18px] text-ink-soft nums">
-          {data.recorded}/{data.countable} ngày
+          {t('timeline:calendar.daysRecorded', { recorded: data.recorded, countable: data.countable, count: data.countable })}
         </span>
       </div>
       <div className="grid grid-cols-7 gap-[3px] md:gap-1">
         {DOWS.map((w) => (
           <span key={w} aria-hidden="true" className="text-center text-[11px] leading-[14px] font-semibold text-ink-soft">
-            {w}
+            {t(`timeline:calendar.weekdays.${w}`)}
           </span>
         ))}
         {Array.from({ length: lead }, (_, i) => (
@@ -64,8 +66,12 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
             )
           }
           const isToday = d.day === today
-          const label = `${d.day} tháng ${m}${isToday ? ', hôm nay' : ''}${
-            d.entry ? `, điểm ${d.entry.score}, ${scoreLabel(iconSetId, d.entry.score)}` : isToday ? ', chưa ghi' : ', không ghi'
+          const label = `${t('timeline:calendar.dayAria', { ...monthVars(m), day: d.day })}${isToday ? t('timeline:calendar.dayToday') : ''}${
+            d.entry
+              ? t('timeline:calendar.dayScore', { score: d.entry.score, label: scoreLabel(iconSetId, d.entry.score) })
+              : isToday
+                ? t('timeline:calendar.dayNotYet')
+                : t('timeline:calendar.dayNone')
           }`
           return (
             <CalendarCell
@@ -94,17 +100,17 @@ export function MonthCalendar({ data, iconSetId, today, selected, onSelect }: Mo
           <span key={`t${i}`} aria-hidden="true" />
         ))}
       </div>
-      <p className="text-[13px] leading-[18px] text-ink-soft md:hidden">Chạm một ngày để xem nhanh.</p>
+      <p className="text-[13px] leading-[18px] text-ink-soft md:hidden">{t('timeline:calendar.tapHint')}</p>
       <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-[13px] leading-[18px] text-ink-soft max-md:hidden">
         <span className="inline-flex items-center gap-1.5">
           <span aria-hidden="true" className="size-3 rounded-full border-[1.5px] border-dashed border-ink-soft" />
-          Không ghi
+          {t('timeline:calendar.legendNone')}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span aria-hidden="true" className="size-3 rounded-[4px] border-2 border-stroke" />
-          Hôm nay
+          {t('timeline:calendar.legendToday')}
         </span>
-        <span>Bấm một ngày để đến trang đó</span>
+        <span>{t('timeline:calendar.clickHint')}</span>
       </div>
     </div>
   )

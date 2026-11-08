@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { flagHex, scoreLabel, type Score } from '@/lib/catalog'
 import { longDateLabel, timeIn } from '@/lib/date'
+import { intlLocale, useT } from '@/lib/i18n'
 import { useProfile } from '@/lib/profile'
 import { useDarkMode } from '@/lib/theme'
 import { cn } from '@/lib/utils'
@@ -20,6 +21,7 @@ const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-
 
 /** Trang "Trang đang chia sẻ" trong Hồ sơ (B8-Shared): sao chép, chỉnh phần chia sẻ, tắt link. */
 export function SharedList() {
+  const t = useT()
   const { data, isPending, isError } = useShares()
   const revoke = useRevokeShare()
   const { copied, toast, copy, flash } = useCopyLink()
@@ -51,7 +53,7 @@ export function SharedList() {
       onSuccess: () => {
         setGoneHere((g) => [...g, item])
         setConfirming(null)
-        flash(`Đã tắt link trang ${numericDate(item.entry_date)}`)
+        flash(t('share:list.turnedOff', { date: numericDate(item.entry_date) }))
       },
     })
   }
@@ -63,25 +65,25 @@ export function SharedList() {
         className={cn('press back-nudge inline-flex h-10 items-center gap-1.5 self-start rounded-[12px] pr-3 pl-2 text-sm font-medium', focusRing)}
       >
         <ArrowLeft className="size-[18px]" aria-hidden="true" />
-        Hồ sơ &amp; cài đặt
+        {t('share:list.back')}
       </Link>
       <div id="shares-top" className="flex scroll-mt-6 animate-rise flex-col gap-1.5">
-        <h1 className="text-title">Trang đang chia sẻ</h1>
+        <h1 className="text-title">{t('share:list.title')}</h1>
         <p className="text-body text-ink-soft">
-          Mỗi link chỉ mở đúng một trang, với những phần bạn đã chọn.{' '}
+          {t('share:list.intro')}{' '}
           <span aria-live="polite" className="font-semibold text-ink">
-            {active.length ? `${active.length} trang đang mở link.` : ''}
+            {active.length ? t('share:list.activeCount', { count: active.length }) : ''}
           </span>
         </p>
       </div>
 
       {isPending ? (
         <p role="status" className="text-ink-soft">
-          Đang tải…
+          {t('share:list.loading')}
         </p>
       ) : isError ? (
         <Alert variant="destructive">
-          <AlertDescription>Chưa tải được danh sách. Thử tải lại trang nhé.</AlertDescription>
+          <AlertDescription>{t('share:list.loadError')}</AlertDescription>
         </Alert>
       ) : active.length === 0 && goneHere.length === 0 ? (
         <EmptyShares />
@@ -110,13 +112,18 @@ export function SharedList() {
           </ul>
           {active.length === 0 ? <EmptyShares /> : null}
           {active.length > 0 && live.length > perPage ? (
-            <nav aria-label="Phân trang" className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <nav aria-label={t('share:list.pagination')} className="flex flex-wrap items-center justify-between gap-3 pt-1">
               <span aria-live="polite" className="text-[13px] leading-5 text-ink-soft nums">
-                Hiển thị {(current - 1) * perPage + 1}–{Math.min(current * perPage, live.length)} trong {live.length} trang · Trang{' '}
-                {current}/{pages}
+                {t('share:list.range', {
+                  from: (current - 1) * perPage + 1,
+                  to: Math.min(current * perPage, live.length),
+                  total: live.length,
+                  current,
+                  pages,
+                })}
               </span>
               <div className="flex flex-wrap items-center gap-1.5">
-                <PageButton label="Trang trước" disabled={current <= 1} onClick={() => go(current - 1)}>
+                <PageButton label={t('share:list.prevPage')} disabled={current <= 1} onClick={() => go(current - 1)}>
                   <ChevronLeft className="size-4" aria-hidden="true" />
                 </PageButton>
                 {pageNumbers(current, pages).map((n, i) =>
@@ -128,7 +135,7 @@ export function SharedList() {
                     <button
                       key={n}
                       type="button"
-                      aria-label={`Trang ${n}`}
+                      aria-label={t('share:list.pageN', { n })}
                       aria-current={n === current ? 'page' : undefined}
                       onClick={() => go(n)}
                       className={cn(
@@ -143,7 +150,7 @@ export function SharedList() {
                     </button>
                   ),
                 )}
-                <PageButton label="Trang sau" disabled={current >= pages} onClick={() => go(current + 1)}>
+                <PageButton label={t('share:list.nextPage')} disabled={current >= pages} onClick={() => go(current + 1)}>
                   <ChevronRight className="size-4" aria-hidden="true" />
                 </PageButton>
               </div>
@@ -177,13 +184,14 @@ function PageButton({ label, disabled, onClick, children }: { label: string; dis
 }
 
 function EmptyShares() {
+  const t = useT()
   return (
     <div className="flex animate-pop flex-col items-center gap-3 rounded-[24px] border-[1.5px] border-dashed border-line-soft px-6 py-12 text-center">
       <span className="inline-flex items-center justify-center rounded-full border-[1.5px] border-stroke bg-card p-4">
         <Link2 className="size-8" aria-hidden="true" />
       </span>
-      <p className="mt-2 text-[22px] leading-[30px] font-bold [font-variation-settings:'FLAR'_60]">Chưa chia sẻ trang nào</p>
-      <p className="max-w-[360px] text-body text-ink-soft">Mọi trang đều riêng tư. Mở một trang và bấm Chia sẻ khi bạn muốn.</p>
+      <p className="mt-2 text-[22px] leading-[30px] font-bold [font-variation-settings:'FLAR'_60]">{t('share:list.emptyTitle')}</p>
+      <p className="max-w-[360px] text-body text-ink-soft">{t('share:list.emptyBody')}</p>
       <Link
         to="/timeline"
         className={cn(
@@ -191,7 +199,7 @@ function EmptyShares() {
           focusRing,
         )}
       >
-        Đến Dòng thời gian
+        {t('share:list.toTimeline')}
       </Link>
     </div>
   )
@@ -210,13 +218,14 @@ type ShareCardProps = {
 }
 
 function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, onTurnOff, busy }: ShareCardProps) {
+  const t = useT()
   const { iconSetId, timeZone } = useProfile()
   const dark = useDarkMode()
   const ids = useId()
   const { shown, hidden } = partSummary(item, shapeOfListItem(item))
   const url = item.url
   const since = new Date(item.created_at)
-  const sinceDate = new Intl.DateTimeFormat('vi-VN', { timeZone, day: 'numeric', month: 'numeric', year: 'numeric' }).format(since)
+  const sinceDate = new Intl.DateTimeFormat(intlLocale(), { timeZone, day: 'numeric', month: 'numeric', year: 'numeric' }).format(since)
   const e = { ...item, score: item.score as Score }
 
   return (
@@ -231,7 +240,7 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
     >
       <span
         role="img"
-        aria-label={`Điểm ${e.score}, ${scoreLabel(iconSetId, e.score)}`}
+        aria-label={t('share:scoreAria', { score: e.score, label: scoreLabel(iconSetId, e.score) })}
         className="relative flex size-14 items-center justify-center rounded-full border-[1.5px] border-stroke bg-paper"
       >
         <ScoreIcon iconSetId={iconSetId} score={e.score} size={40} />
@@ -252,11 +261,11 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
             to={`/day/${item.entry_date}`}
             className={cn("link-underline self-start text-[22px] leading-[30px] font-bold [font-variation-settings:'FLAR'_60]", focusRing)}
           >
-            {e.title ?? 'Chỉ chấm điểm'}
+            {e.title ?? t('share:list.scoreOnly')}
           </Link>
         </div>
         <div className="flex flex-col gap-1.5">
-          <span className="text-label text-ink-soft">Người nhận thấy</span>
+          <span className="text-label text-ink-soft">{t('share:list.recipientsSee')}</span>
           <ul className="flex flex-wrap gap-1.5">
             {shown.map((p) => (
               <li
@@ -269,7 +278,7 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
             ))}
           </ul>
           <span className="text-[13px] leading-[18px] text-ink-soft">
-            {hidden.length ? `Đang ẩn: ${hidden.join(', ')}` : 'Người nhận thấy mọi phần'}
+            {hidden.length ? t('share:list.hidden', { parts: hidden.join(', ') }) : t('share:list.seeAll')}
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -279,12 +288,12 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
           </div>
           <Button variant="outline" className="h-10 rounded-[12px] pr-3.5 pl-3 text-sm" onClick={onCopy}>
             {copied ? <Check className="size-4 animate-stamp" aria-hidden="true" /> : <Copy className="size-4" aria-hidden="true" />}
-            {copied ? 'Đã chép' : 'Sao chép'}
+            {copied ? t('share:copiedShort') : t('share:copy')}
           </Button>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-t-[1.5px] border-dashed border-line-soft pt-3">
           <span className="text-[13px] leading-[18px] text-ink-soft">
-            Bật lúc {timeIn(timeZone, since)}, {sinceDate}
+            {t('share:list.since', { time: timeIn(timeZone, since), date: sinceDate })}
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <Link
@@ -293,7 +302,7 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
               className={cn('press inline-flex h-9 items-center gap-1.5 rounded-[10px] border-[1.5px] border-stroke px-3 text-[13px] font-semibold', focusRing)}
             >
               <SlidersHorizontal className="size-4" aria-hidden="true" />
-              Chỉnh phần chia sẻ
+              {t('share:list.editParts')}
             </Link>
             <button
               type="button"
@@ -305,19 +314,19 @@ function ShareCard({ item, delay, copied, onCopy, confirming, onAsk, onCancel, o
               )}
             >
               <Link2Off className="size-4" aria-hidden="true" />
-              Tắt link
+              {t('share:list.turnOff')}
             </button>
           </div>
         </div>
         {confirming ? (
           <div role="alert" className="flex animate-pop flex-wrap items-center justify-between gap-3 rounded-[14px] border-[1.5px] border-danger bg-danger-soft px-4 py-3.5">
-            <span className="flex-[1_1_260px] text-sm leading-[22px]">Tắt link này? Ai đang giữ link sẽ không mở được nữa.</span>
+            <span className="flex-[1_1_260px] text-sm leading-[22px]">{t('share:list.confirmOff')}</span>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="h-[38px] bg-card" onClick={onCancel}>
-                Giữ lại
+                {t('share:list.keep')}
               </Button>
               <Button variant="destructive-solid" size="sm" className="h-[38px]" disabled={busy} onClick={onTurnOff}>
-                Tắt link
+                {t('share:list.turnOff')}
               </Button>
             </div>
           </div>

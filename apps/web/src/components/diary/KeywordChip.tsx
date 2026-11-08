@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '@/lib/utils'
+import { useT } from '@/lib/i18n'
 
 type KeywordChipProps = {
   children: string
@@ -17,6 +18,7 @@ type KeywordChipProps = {
  * Bấm được thì bọc trong <button> hoặc dùng `KeywordChipButton`.
  */
 export function KeywordChip({ children, active, onRemove, size = 'md', className }: KeywordChipProps) {
+  const t = useT()
   return (
     <span
       className={cn(
@@ -35,7 +37,7 @@ export function KeywordChip({ children, active, onRemove, size = 'md', className
       {onRemove ? (
         <button
           type="button"
-          aria-label={`Bỏ từ khóa ${children}`}
+          aria-label={t('components:keyword.remove', { keyword: children })}
           onClick={onRemove}
           className="row-press ml-1 inline-flex size-7 cursor-pointer items-center justify-center rounded-full focus-visible:outline-3 focus-visible:outline-focus"
         >
@@ -69,7 +71,8 @@ export function KeywordChipButton({
 }
 
 /** Nút "+ Thêm từ khóa" viền nét đứt, đi kèm hàng chip. */
-export function AddKeywordButton({ className, children = '+ Thêm từ khóa', ...props }: ComponentProps<'button'>) {
+export function AddKeywordButton({ className, children, ...props }: ComponentProps<'button'>) {
+  const t = useT()
   return (
     <button
       type="button"
@@ -79,7 +82,7 @@ export function AddKeywordButton({ className, children = '+ Thêm từ khóa', .
       )}
       {...props}
     >
-      {children}
+      {children ?? t('components:keyword.add')}
     </button>
   )
 }

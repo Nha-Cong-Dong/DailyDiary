@@ -1,5 +1,6 @@
 import type { Score } from '@/lib/catalog'
 import { daysInMonth } from '@/lib/date'
+import { t } from '@/lib/i18n'
 
 // Dữ liệu minh họa cố định cho landing (không phải dữ liệu người dùng): tháng 10/2026, "hôm nay" là ngày 18.
 export const DEMO_YEAR = 2026
@@ -27,7 +28,10 @@ export const OCTOBER: Record<number, DemoDay> = {
   18: { score: 4, sub: '😌' },
 }
 
-export const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+/** Nhãn thứ viết tắt, bắt đầu từ thứ Hai (dịch lúc gọi). */
+export function weekdaysMonFirst(): string[] {
+  return (['1', '2', '3', '4', '5', '6', '0'] as const).map((d) => t(`common:date.weekdayShort.${d}`))
+}
 
 const MONTH_LENGTHS = Array.from({ length: 12 }, (_, m) => daysInMonth(DEMO_YEAR, m + 1))
 

@@ -7,6 +7,7 @@ import { DayMorph } from './DayMorph'
 import { KeywordChip } from './KeywordChip'
 import { NotebookPage } from './NotebookPage'
 import { ScoreIcon } from './ScoreIcon'
+import { useT } from '@/lib/i18n'
 
 type EntryCardProps = {
   /** `card`: thẻ nhỏ trong danh sách (Dòng thời gian, tìm kiếm). `page`: trang ngày đầy đủ (B7/B10-Day). */
@@ -72,7 +73,7 @@ export function EntryCard({
   title,
   titleAs,
   excerpt,
-  emptyText = 'Chưa viết gì cho ngày này.',
+  emptyText,
   keywords = [],
   renderKeyword,
   photoCount = 0,
@@ -85,13 +86,14 @@ export function EntryCard({
   ariaLabel,
   className,
 }: EntryCardProps) {
+  const t = useT()
   const dark = useDarkMode()
   const page = variant === 'page'
   const label = score ? scoreLabel(iconSetId, score) : null
   const ring = (
     <span
       role={score ? 'img' : undefined}
-      aria-label={score ? `Điểm ${score}, ${label}` : undefined}
+      aria-label={score ? t('components:score.aria', { score, label }) : undefined}
       className={cn(
         'relative flex shrink-0 items-center justify-center rounded-full border-[1.5px] border-stroke bg-card shadow-[3px_3px_0_var(--ink-shadow)]',
         page ? 'size-[68px] md:size-[92px]' : 'size-11',
@@ -165,12 +167,12 @@ export function EntryCard({
                     <span className="max-md:hidden">
                       <Blank>{dateParts.weekday}</Blank>
                     </span>
-                    <span className="max-md:hidden">, ngày</span>
-                    <span className="md:hidden">ngày</span>
+                    <span className="max-md:hidden">{t('components:entryCard.dateParts.commaDay')}</span>
+                    <span className="md:hidden">{t('components:entryCard.dateParts.day')}</span>
                     <Blank wide>{dateParts.day}</Blank>
-                    <span>tháng</span>
+                    <span>{t('components:entryCard.dateParts.month')}</span>
                     <Blank wide>{dateParts.month}</Blank>
-                    <span>năm</span>
+                    <span>{t('components:entryCard.dateParts.year')}</span>
                     <Blank>{dateParts.year}</Blank>
                   </p>
                 </>
@@ -195,13 +197,13 @@ export function EntryCard({
             )}
           >
             {!bigTitle && title ? <TitleTag className="text-heading text-ink">{title}</TitleTag> : null}
-            {excerpt ? paragraphs : <p>{emptyText}</p>}
+            {excerpt ? paragraphs : <p>{emptyText ?? t('components:entryCard.empty')}</p>}
           </div>
           {photo}
         </div>
 
         {keywords.length ? (
-          <ul aria-label="Từ khóa" className="flex flex-wrap gap-2">
+          <ul aria-label={t('components:entryCard.keywords')} className="flex flex-wrap gap-2">
             {chips}
           </ul>
         ) : null}
@@ -231,12 +233,12 @@ export function EntryCard({
             {backfill ? (
               <span className="inline-flex items-center gap-1 rounded-full border-[1.5px] border-stroke bg-peach px-2 py-px text-label font-bold text-on-accent">
                 <RotateCcw className="size-[13px]" strokeWidth={2.6} aria-hidden="true" />
-                Ghi bù
+                {t('components:entryCard.backfill')}
               </span>
             ) : null}
           </span>
           <TitleTag className="text-[18px] leading-[26px] font-semibold text-ink [font-variation-settings:'FLAR'_60]">
-            {title || label || 'Chưa chấm điểm'}
+            {title || label || t('components:entryCard.unrated')}
           </TitleTag>
         </div>
       </div>
@@ -247,7 +249,7 @@ export function EntryCard({
           excerpt ? 'text-ink' : 'text-ink-faint',
         )}
       >
-        {excerpt || emptyText}
+        {excerpt || (emptyText ?? t('components:entryCard.empty'))}
       </p>
 
       {keywords.length || photoCount || footer ? (
@@ -256,7 +258,7 @@ export function EntryCard({
           {photoCount ? (
             <span className="inline-flex items-center gap-1.5 text-label text-ink-soft">
               <ImageIcon className="size-4" aria-hidden="true" />
-              {photoCount} ảnh
+              {t('components:entryCard.photos', { count: photoCount })}
             </span>
           ) : null}
           {footer ? <span className="text-label text-ink-soft">{footer}</span> : null}
@@ -346,7 +348,7 @@ export function EntryPhotoStack({
   src,
   total,
   onOpen,
-  alt = `Xem ảnh, ${total} ảnh`,
+  alt,
   className,
 }: {
   src?: string | null
@@ -355,6 +357,7 @@ export function EntryPhotoStack({
   alt?: string
   className?: string
 }) {
+  const t = useT()
   return (
     <div className={cn('relative mt-2 mr-2 mb-2 w-[150px] flex-none self-start', className)}>
       {total > 1
@@ -362,7 +365,10 @@ export function EntryPhotoStack({
             <span key={r} aria-hidden="true" className={cn('absolute inset-0 rounded-[12px] border-[1.5px] border-stroke bg-card', r)} />
           ))
         : null}
-      <EntryPhoto src={src} alt={alt} caption={`1 / ${total} ảnh`} onClick={onOpen} className="m-0 rotate-2" />
+      <EntryPhoto
+        src={src}
+        alt={alt ?? t('components:entryCard.photoView', { count: total })}
+        caption={t('components:entryCard.photoCaption', { count: total })} onClick={onOpen} className="m-0 rotate-2" />
     </div>
   )
 }

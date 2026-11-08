@@ -4,7 +4,10 @@ import { CalendarCell } from '@/components/diary/CalendarCell'
 import { DayMorph } from '@/components/diary/DayMorph'
 import type { Score } from '@/lib/catalog'
 import { daysInMonth, weekdayShort, type DateString } from '@/lib/date'
+import { intlLocale, useT } from '@/lib/i18n'
 import type { RecentDaysData } from '../useRecentDays'
+
+type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
 type MonthStripProps = {
   today: DateString
@@ -24,6 +27,7 @@ type MonthStripProps = {
  * nằm ở mép phải. Tiêu đề kèm tóm tắt "Đã ghi 15/18 ngày · trung bình 3,6".
  */
 export function MonthStrip({ today, iconSetId, todayScore, todaySub, recent, todayCellRef }: MonthStripProps) {
+  const t = useT()
   const navigate = useNavigate()
   const strip = useRef<HTMLDivElement>(null)
   const year = Number(today.slice(0, 4))
@@ -33,7 +37,9 @@ export function MonthStrip({ today, iconSetId, todayScore, todaySub, recent, tod
   const days = Array.from({ length: daysInMonth(year, month) }, (_, i) => `${prefix}${String(i + 1).padStart(2, '0')}`)
   const recorded = (recent?.monthRecorded ?? 0) + (todayScore ? 1 : 0)
   const sum = (recent?.monthScoreSum ?? 0) + (todayScore ?? 0)
-  const average = recorded ? (sum / recorded).toFixed(1).replace('.', ',') : null
+  const decimal = new Intl.NumberFormat(intlLocale()).formatToParts(1.1).find((p) => p.type === 'decimal')?.value ?? '.'
+  const average = recorded ? (sum / recorded).toFixed(1).replace('.', decimal) : null
+  const monthName = t(`common:date.monthLong.${month as Month}`)
 
   // Cuộn một lần lúc mở (không animation: đây là vị trí ban đầu, không phải chuyển động).
   useLayoutEffect(() => {
@@ -47,18 +53,19 @@ export function MonthStrip({ today, iconSetId, todayScore, todaySub, recent, tod
     <section aria-labelledby="month-strip" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="month-strip" className="text-sm leading-[22px] font-semibold">
-          Tháng {month}
+          {t('entry:monthStrip.title', { month, monthName })}
         </h2>
         {recent ? (
           <p className="text-[13px] leading-[18px] font-medium text-ink-soft nums">
-            Đã ghi {recorded}/{todayNum} ngày{average ? ` · trung bình ${average}` : ''}
+            {t('entry:monthStrip.summary', { recorded, total: todayNum })}
+            {average ? t('entry:monthStrip.average', { average }) : ''}
           </p>
         ) : null}
       </div>
       <div
         ref={strip}
         role="list"
-        aria-label={`Các ngày trong tháng ${month}`}
+        aria-label={t('entry:monthStrip.daysAria', { month, monthName })}
         className="scroll-strip relative -mx-1 flex snap-x snap-proximity gap-2 overflow-x-auto overscroll-x-contain px-1 pt-1 pb-3"
       >
         {days.map((date) => {
@@ -68,10 +75,19 @@ export function MonthStrip({ today, iconSetId, todayScore, todaySub, recent, tod
           const past = recent?.days[date]
           const score = isToday ? todayScore : (past?.score ?? null)
           const sub = isToday ? todaySub : (past?.sub_icon ?? null)
-          const label =
-            `${day}/${month}` +
-            (isToday ? ' · hôm nay' : '') +
-            (future ? '' : score ? ` · điểm ${score}` : isToday ? ' · chưa chấm' : ' · chưa ghi, chạm để ghi bù')
+          const label = [
+            t('entry:fmt.dayMonth', { d: day, m: month }),
+            isToday ? t('entry:monthStrip.cellToday') : null,
+            future
+              ? null
+              : score
+                ? t('entry:monthStrip.cellScore', { score })
+                : isToday
+                  ? t('entry:monthStrip.cellNotRated')
+                  : t('entry:monthStrip.cellMissing'),
+          ]
+            .filter(Boolean)
+            .join(' · ')
           const cell = (
             <CalendarCell
               day={day}
@@ -104,7 +120,7 @@ export function MonthStrip({ today, iconSetId, todayScore, todaySub, recent, tod
         to="/timeline"
         className="link-underline inline-flex min-h-11 items-center self-start text-sm leading-[22px] font-medium"
       >
-        Xem dòng thời gian
+        {t('entry:monthStrip.viewTimeline')}
       </Link>
     </section>
   )

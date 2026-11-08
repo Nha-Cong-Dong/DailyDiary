@@ -2,8 +2,10 @@ import { Fragment, useState } from 'react'
 import { PixelCell, PixelLegend } from '@/components/diary/PixelCell'
 import { pixelFilterOf, type PixelFilter } from '@/components/diary/pixelFilter'
 import { demoYear } from './demoData'
+import { useT } from '@/lib/i18n'
 
 const YEAR = demoYear()
+type Month = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 
 /**
  * Lưới Year in Pixels minh họa, không bao giờ cuộn ngang:
@@ -14,6 +16,7 @@ const YEAR = demoYear()
  * hình minh họa nằm trong vùng aria-hidden, vd. mục Nhìn lại).
  */
 export function YearPreview({ filterable = true }: { filterable?: boolean }) {
+  const t = useT()
   const [filter, setFilter] = useState<PixelFilter | null>(null)
   const [highlight, setHighlight] = useState<PixelFilter | null>(null)
   const focus = highlight ?? filter
@@ -23,7 +26,7 @@ export function YearPreview({ filterable = true }: { filterable?: boolean }) {
       <div className="grid grid-flow-col auto-cols-fr grid-rows-[auto_repeat(31,auto)] gap-[3px] md:grid-flow-row md:grid-cols-[32px_repeat(31,minmax(0,1fr))] md:grid-rows-none md:gap-1">
         {YEAR.map((days, m) => (
           <Fragment key={m}>
-            <span className="pb-1 text-center text-label text-ink-soft md:pb-0 md:text-left">T{m + 1}</span>
+            <span className="pb-1 text-center text-label text-ink-soft md:pb-0 md:text-left">{t(`landing:yearPreview.months.${(m + 1) as Month}`)}</span>
             {days.map((px, d) => {
               if (!px) return <span key={d} />
               const state = px.future ? 'future' : 'past'
@@ -35,7 +38,7 @@ export function YearPreview({ filterable = true }: { filterable?: boolean }) {
                   key={d}
                   score={px.score}
                   state={state}
-                  label={`${px.day}/${px.month}${px.future ? '' : px.score ? ` · điểm ${px.score}` : ' · chưa ghi'}`}
+                  label={`${t('landing:date.dm', { day: px.day, month: px.month })}${px.future ? '' : px.score ? t('landing:yearPreview.score', { score: px.score }) : t('landing:yearPreview.empty')}`}
                   className="paint-on-scroll transition-[transform,filter,box-shadow] duration-150 hover:relative hover:z-[2] hover:shadow-[0_0_0_1.5px_var(--icon-ink)] hover:[transform:scale(1.35)] active:[transform:scale(1.2)]"
                   style={{
                     animationRange: `cover ${start.toFixed(1)}% cover ${(start + 10).toFixed(1)}%`,

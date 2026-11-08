@@ -3,6 +3,7 @@ import type { SaveStatus } from '@/lib/autosave'
 import { timeIn } from '@/lib/date'
 import { cn } from '@/lib/utils'
 import { Stamp } from './Stamp'
+import { useT } from '@/lib/i18n'
 
 /**
  * Trạng thái lưu của một trang (F-06) bằng dấu Stamp: Đang lưu / Đã lưu / Chưa đồng bộ, cộng lỗi và xung đột.
@@ -21,6 +22,7 @@ export function SyncStatus({
   fallback?: ReactNode
   className?: string
 }) {
+  const t = useT()
   let body: ReactNode
   switch (status.kind) {
     case 'idle':
@@ -32,7 +34,7 @@ export function SyncStatus({
     case 'saved':
       body = (
         <Stamp kind="saved" animate>
-          Đã lưu lúc {timeIn(timeZone, status.at)}
+          {t('components:sync.savedAt', { time: timeIn(timeZone, status.at) })}
         </Stamp>
       )
       break
@@ -40,10 +42,10 @@ export function SyncStatus({
       body = (
         <>
           <Stamp kind="unsynced" />
-          <span className="text-ink-soft">Sẽ tự lưu khi có mạng.</span>
+          <span className="text-ink-soft">{t('components:sync.willSave')}</span>
           {onRetry ? (
             <button type="button" onClick={onRetry} className="link-underline cursor-pointer font-semibold">
-              Thử lại
+              {t('components:sync.retry')}
             </button>
           ) : null}
         </>
@@ -58,7 +60,7 @@ export function SyncStatus({
       )
       break
     case 'conflict':
-      body = <Stamp kind="error">Trang này vừa được sửa ở nơi khác.</Stamp>
+      body = <Stamp kind="error">{t('components:sync.conflict')}</Stamp>
       break
   }
   return (
