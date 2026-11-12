@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 39 (08/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 40 (12/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -53,7 +53,7 @@ dailydiary/
 │   ├── Deploy.md                     # hướng dẫn triển khai production từng bước, việc định kỳ, sự cố thường gặp
 │   ├── Roadmap.md                    # định hướng: bối cảnh, lộ trình, kiếm tiền, rủi ro, ý tưởng, nhật ký quyết định
 │   ├── Backlog.md                    # việc tồn đọng sau bản 1.0 (danh sách duy nhất)
-│   ├── Social_Plan.md                # kế hoạch tính năng xã hội: bạn bè, sổ chung, chuỗi (DRAFT)
+│   ├── Social_Plan.md                # kế hoạch tính năng xã hội: bạn bè, sổ chung, chuỗi (ADR 0007)
 │   └── adr/                          # quyết định kiến trúc: NNNN-<ten>.md
 │
 ├── shared/                           # dùng chung cho api và web; chỉ sửa ở đây
@@ -356,4 +356,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 37 | 06/11/2026 | Thêm `project-map/` (có trong `.gitignore`): trang Vite + React minh họa mối liên hệ giữa các thành phần và công cụ ngoài, giải thích kiểu cho bé 5 tuổi; không thuộc bản build, không nằm trong CI |
 | 38 | 07/11/2026 | Thêm `lib/serverWake.ts` (+ test) và `components/layout/WakingBanner.tsx`: báo "Đang đánh thức máy chủ…" khi API ở gói miễn phí ngủ dậy; `api/client.ts` bọc fetch bằng `trackedFetch`; `Login.tsx` chờ máy chủ thức trước khi sang Google. `Deploy.md` mục 6 thêm cách giữ API không ngủ bằng Cloudflare Worker cron (cấu hình trên dashboard, không có file trong repo) |
 | 39 | 08/11/2026 | Thêm tiếng Anh cho giao diện web (ADR 0006): `src/locales/` (`vi/`, `en/`, `shape.ts`, `i18next.d.ts`), `lib/i18n.ts` (+ test), `lib/rich.tsx`, thư viện `i18next`, `react-i18next`; `lib/date.ts` lấy tên thứ, tháng từ bản dịch; ô chọn ngôn ngữ ở Landing và Hồ sơ hoạt động |
-| 40 | 12/11/2026 | Thêm `docs/Social_Plan.md` (DRAFT): kế hoạch tính năng xã hội — bạn bè, mã bạn, sổ chung (mục 1/người/ngày), chuỗi ấm + badge đồng bộ, 3 collection mới (`shared_journals`, `shared_entries`, `friendships`), nhóm `shared/limits.json` mới (`friends_max` 20 bạn / `journals_max` 10 sổ ở `beta`/`free`, `premium` nhiều hơn), ma trận riêng tư, ADR 0007 dự kiến, lộ trình 3 giai đoạn |
+| 40 | 12/11/2026 | Giai đoạn 0 của tính năng xã hội (ADR 0007): thêm `docs/Social_Plan.md` (kế hoạch: bạn bè, mã bạn, sổ chung 1–1, chuỗi ấm + badge đồng bộ, 3 collection mới `shared_journals`/`shared_entries`/`friendships`, trần 20 bạn/10 sổ ở `beta`/`free`), `docs/adr/0007-shared-journal.md` (thay thế một phần [ADR 0005](adr/0005-share-in-mvp.md)); cập nhật `adr/README.md`, `Project_Specs.md` (F-11, §2, §4.1, §5.4, §5.5), `Roadmap.md` (§1.2, §2, §3.2, §6), `MVP_Plan.md`, `Backlog.md` |

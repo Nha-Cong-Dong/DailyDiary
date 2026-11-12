@@ -22,7 +22,8 @@
 
 **Jotly** (tên mã DailyDiary) — nhật ký cá nhân trên web, tiếng Việt: mỗi ngày một trang, chấm điểm tâm trạng 1–5 bằng
 biểu tượng, thêm chữ, từ khóa, ảnh; nhìn lại qua dòng thời gian, lịch tháng, Year in Pixels; chia sẻ từng trang qua
-link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
+link chỉ xem; và (đang xây) **sổ chung 1–1 với bạn bè** để hai người cùng ghi chép mỗi ngày. Đăng nhập Google. Người
+dùng từ 16 tuổi.
 
 |         |                                                                        |
 | ------- | ---------------------------------------------------------------------- |
@@ -42,10 +43,14 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 - Đăng nhập Google; chia sẻ một trang qua link chỉ xem (ADR 0005).
 - Thùng rác, xóa toàn bộ dữ liệu, xóa tài khoản, góp ý, chính sách quyền riêng tư.
 - Vận hành: hạn mức dung lượng, rate limit, tác vụ dọn dẹp, sao lưu/khôi phục.
+- **Bạn bè và sổ chung 1–1** (ADR 0007, đang xây): kết bạn bằng mã bạn, một sổ chung cho mỗi cặp, mỗi người
+  tối đa một mục mỗi ngày, chuỗi ấm và badge đồng bộ. **Nhật ký cá nhân không đổi**: không ai đọc được `entries`
+  của người khác. Kế hoạch đầy đủ: [`Social_Plan.md`](Social_Plan.md).
 
 ### 2.2. Không có
 
-- Nhiều người dùng (nhật ký chung, bình luận, theo dõi) — chỉ chia sẻ một trang.
+- Nhật ký chung **nhiều hơn hai người** (nhóm, tổ chức), sổ chung luân phiên, bình luận, theo dõi người khác,
+  feed công khai, khám phá người lạ — để giai đoạn sau (ADR 0007, M2/M3).
 - Đăng nhập khác Google. Ngôn ngữ: giao diện web có tiếng Việt và tiếng Anh (ADR 0006); chính sách quyền riêng tư và email hệ thống chỉ có tiếng Việt.
 - Theme, sticker, bộ biểu tượng mới; AI; thông báo đẩy; PWA; ứng dụng desktop/di động; thanh toán.
 - **Xuất dữ liệu** (bỏ 21/10/2026; Hồ sơ ghi rõ "Jotly không có tính năng xuất dữ liệu").
@@ -70,6 +75,7 @@ link chỉ xem. Đăng nhập Google. Người dùng từ 16 tuổi.
 | `/pixels`                                                | Year in Pixels                                                                          | Có        |
 | `/search`                                                | Tìm kiếm                                                                                | Có        |
 | `/profile` · `/profile/shares` · `/profile/trash`        | Hồ sơ & cài đặt · Trang đang chia sẻ · Thùng rác                                        | Có        |
+| `/friends` · `/journals/:id`                              | Bạn bè & sổ chung · Một cuốn sổ chung (ADR 0007, đang xây)                               | Có        |
 | `*`                                                      | 404 (khung app hoặc khung công khai tùy trạng thái đăng nhập)                           | –         |
 
 ### F-01. Viết nhật ký
@@ -158,6 +164,41 @@ email người gửi, Reply-To = người gửi; form ghi rõ). Gửi thư lỗi
 - Trang công khai: rate limit theo IP, `noindex`, `no-store`, `no-referrer`; không lộ email/`user_id`/id nội bộ; ảnh qua
   link ký 1 giờ; token không ghi log.
 
+### F-11. Bạn bè và sổ chung
+
+Đang xây (ADR 0007). Kế hoạch đầy đủ: [`Social_Plan.md`](Social_Plan.md).
+
+**Bạn bè**
+
+- Mỗi tài khoản có **mã bạn** 10 ký tự (bảng chữ không nhầm), **xoay được** bất cứ lúc nào → mã cũ và link mời
+  theo mã cũ chết ngay. Không tìm bạn theo email.
+- Gửi mã → **yêu cầu** → người nhận **chấp nhận** thì mới có sổ chung. Yêu cầu chờ quá 30 ngày thì hết hạn.
+  Không có tự động kết bạn.
+- Kết thúc sổ chung: ai cũng bấm được, hiệu lực tức thì. Người còn lại **không** thấy mục của người đã kết thúc;
+  mỗi người **vẫn thấy mục của chính mình**. Không xóa gì.
+
+**Sổ chung 1–1 (M1)**
+
+- Một cuốn sổ cho mỗi cặp; **mỗi người mỗi ngày tối đa một mục** (cùng bất biến "một ngày một trang" của `entries`).
+- Mục chung nhẹ hơn trang nhật ký: **bắt buộc có điểm** 1–5 (cùng bộ biểu tượng của hồ sơ); tiêu đề ≤ 60, nội dung
+  ≤ 500 ký tự, ≤ 2 ảnh; có thể có sub icon và cờ hiệu; không có từ khóa.
+- `entry_date` là ngày địa phương **của người viết**; ghi bù (viết muộn hẳn cho ngày đã qua) vẫn hiện trong sổ
+  nhưng **không** nối chuỗi.
+- **Chuỗi ấm** (chính): ngày nào sổ chung có ít nhất một mục của một trong hai người; đếm lùi từ "hôm nay" của
+  người xem theo **múi giờ người xem**. **Badge đồng bộ**: số ngày cả hai cùng có mục — thành tích, không phải
+  điều kiện giữ chuỗi. Hai bên ở múi giờ khác nhau có thể thấy chuỗi lệch 1 ngày.
+- Ảnh nằm dưới tiền tố `{user_id}/shared/`; người khác xem qua link ký 1 giờ. Xóa mềm 30 ngày như trang nhật ký.
+- Trần theo cấp tài khoản: `beta`/`free` **20 bạn, 10 sổ chung**; `premium` nhiều hơn. Vượt trần thì báo rõ —
+  **không bao giờ chặn việc ghi chữ** vào sổ đã có.
+
+**Riêng tư**
+
+- Nhật ký cá nhân (`entries`) **không ai trong sổ chung thấy** — kể cả bạn.
+- Mọi truy vấn chéo người dùng đi qua quan hệ đã chấp nhận; tài nguyên không thuộc người dùng → 404.
+- `author_id` lấy từ phiên, không lấy từ body. Mã bạn, nội dung mục chung không ghi log.
+- Xóa tài khoản dọn cả sổ chung, mục chung, quan hệ và ảnh `shared/`; `deletion_log` thêm loại `"social"` (chỉ
+  loại, thời điểm, số lượng — không có `user_id`/email/nội dung).
+
 ---
 
 ## 4. Yêu cầu phi tính năng
@@ -175,6 +216,7 @@ email người gửi, Reply-To = người gửi; form ghi rõ). Gửi thư lỗi
 | Quyền DB   | User API/tác vụ chỉ `readWrite@dailydiary` (không sửa validator); migration bằng user riêng `dbAdmin` + `readWrite`                                                                                                          |
 | Bí mật     | Chỉ trong `apps/api/.env.prod` trên máy chạy API, GitHub Secrets, hoặc `.env` bị `.gitignore`; production từ chối khởi động khi thiếu `SESSION_SECRET` hoặc bật `DEV_LOGIN`; `/docs` tắt ở production                                       |
 | Pháp lý    | `/privacy` liệt kê dữ liệu, cookie, log, nhà cung cấp, thời gian lưu, quyền người dùng — đúng với code. **Chưa rà soát pháp lý** (gồm chuyển dữ liệu ra nước ngoài: Singapore, Canada) — bắt buộc trước khi ra mắt công khai |
+| Xã hội     | Bạn bè và sổ chung 1–1 (ADR 0007): nhật ký cá nhân **không ai** trong sổ thấy; bạn chỉ thấy mục **bạn gửi vào sổ chung** và mục của người kia **khi sổ còn active**; kết thúc sổ = mất quyền xem của bên kia (không xóa dữ liệu của mình); tìm bạn bằng **mã bạn** (xoay được), **không** tìm theo email; mã bạn và nội dung mục chung không ghi log; rà soát pháp lý (chuyển dữ liệu xuyên biên) phải xong **trước khi mở rộng ra ngoài nhóm beta** |
 
 ### 4.2. Toàn vẹn dữ liệu
 
@@ -293,12 +335,14 @@ khung ban đầu: [`Project_Structure.md`](Project_Structure.md) (nguồn duy nh
 - Không transaction nhiều document; xóa tài khoản viết theo thứ tự, chạy lại được.
 - Validator `$jsonSchema` kiểm tra cấu trúc; giới hạn độ dài/số lượng kiểm tra ở backend theo `limits.json`.
 - Migration `python -m app.db.migrate`: chỉ tiến, chạy lại an toàn, lịch sử trong `_migrations` — hiện **0001–0009**.
+- Khi làm ADR 0007: thêm migration `m0010` (ba collection xã hội + `users.friend_code`).
 
 ```
 users
   _id uuid · google_sub string UNIQUE · email string (cập nhật mỗi lần đăng nhập)
   display_name string 1..50 · avatar_url string|null (link Google) · avatar_key string|null ("{user_id}/avatar/{id}.webp|jpg")
   timezone string (IANA) · icon_set_id string · onboarded_at date|null · custom_flag_colors ["#RRGGBB"] (≤ 8)
+  friend_code string UNIQUE sparse (mã bạn, 10 ký tự, xoay được)  -- ADR 0007
   account_tier "beta"|"free"|"premium" · joined_at date · deleted_at date|null (đang chờ xóa → chặn đăng nhập)
 
 user_sessions                                  -- cookie dd_session
@@ -321,9 +365,29 @@ share_links                                    -- tắt link = xóa document
   created_at, updated_at · UNIQUE (user_id, entry_date)
 
 feedback       _id, user_id, message, created_at, emailed_at date|null, anonymized bool (tùy chọn)
-deletion_log   _id, kind ("journal"|"account"|"trash"), at, pages, photos, share_links, feedback_anonymized — không có
-               user_id/email/nội dung (validator chặn trường lạ) · INDEX (at)
+deletion_log   _id, kind ("journal"|"account"|"trash"|"social"), at, pages, photos, share_links,
+               feedback_anonymized — không có user_id/email/nội dung (validator chặn trường lạ) · INDEX (at)
 user_items     _id, user_id, item_id, source, acquired_at · UNIQUE (user_id, item_id) — chưa dùng
+
+shared_journals -- ADR 0007 (sổ chung; M1: scope "pair")
+  _id uuid · scope "pair"|"group" · mode "together"|"alternating" · status "active"|"ended"
+  member_key string (hai uuid đã sắp xếp, "uuidA|uuidB") · members [{user_id, role, joined_at}]
+  created_by uuid · created_at, updated_at · ended_at date|null
+  UNIQUE member_key khi scope "pair" (partial) · INDEX (members.user_id), (status, created_at desc)
+
+shared_entries  -- ADR 0007 (một mục = một người, một ngày, trong một sổ)
+  _id uuid · journal_id uuid · author_id uuid (thành viên của sổ)
+  entry_date "YYYY-MM-DD" (ngày của người viết) · score int 1..5 (bắt buộc)
+  title string|null (≤ 60) · content string|null (≤ 500) · sub_icon, flag_color (như entries)
+  photos [{id, storage_key, thumb_key, width, height, size_bytes, position, created_at}] (≤ 2)
+        -- key "{user_id}/shared/{id}[_thumb].webp|jpg"
+  created_at, updated_at · deleted_at date|null
+  UNIQUE (journal_id, author_id, entry_date) · INDEX (journal_id, entry_date desc), (journal_id, author_id, entry_date desc)
+
+friendships     -- ADR 0007 (yêu cầu kết bạn)
+  _id uuid · requester_id, addressee_id uuid · status "pending"|"accepted"|"declined"|"ended"
+  journal_id uuid|null (sổ sinh ra khi accepted) · created_at, responded_at date|null
+  INDEX (addressee_id, status), (requester_id), (status, created_at desc)
 ```
 
 ### 5.5. API
@@ -359,6 +423,17 @@ Request ghi có cookie phiên phải kèm `Origin` hợp lệ + `X-CSRF-Token`. 
 | Chia sẻ   | GET / PUT / DELETE | `/entries/{date}/share`                        | Xem / bật-chỉnh / tắt link                                              |
 |           | GET                | `/shares`                                      | Trang đang chia sẻ                                                      |
 |           | GET                | `/public/shares/{token}`                       | Trang công khai                                                         |
+| Bạn bè   | GET                | `/friends` · `/friends/requests`               | Danh sách bạn · yêu cầu đến/đi                                           |
+|           | POST               | `/friends/requests`                            | Gửi yêu cầu kết bạn `{code}`                                            |
+|           | POST               | `/friends/requests/{id}/accept` · `/decline`   | Chấp nhận (sinh sổ chung) · từ chối                                     |
+|           | DELETE             | `/friends/{journal_id}`                        | Kết thúc sổ chung                                                       |
+|           | GET                | `/me/friend-code`                              | Mã bạn của tôi                                                           |
+|           | POST               | `/me/friend-code/rotate`                       | Xoay mã bạn                                                             |
+| Sổ chung  | GET                | `/journals` · `/journals/{id}`                 | Các sổ của tôi · chi tiết (chuỗi ấm, badge đồng bộ)                     |
+|           | GET                | `/journals/{id}/entries`                       | Mục của cả hai, `?cursor=`                                               |
+|           | PUT / DELETE       | `/journals/{id}/entries/{date}`                | Viết mục của **tôi** · xóa mềm                                          |
+|           | POST               | `/journals/{id}/photos/upload-url` · `/photos` | Presigned URL ảnh · xác nhận ảnh                                         |
+|           | PATCH              | `/journals/{id}/photos/order`                  | Sắp xếp ảnh                                                             |
 | Góp ý     | POST               | `/feedback`                                    | Lưu rồi gửi email trong nền                                             |
 
 ### 5.6. Luồng chính

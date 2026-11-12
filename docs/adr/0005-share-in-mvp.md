@@ -1,8 +1,12 @@
 # 0005. Đưa "Chia sẻ một trang" vào MVP
 
-- Trạng thái: Chấp nhận
+- Trạng thái: Chấp nhận (một phần bị thay thế bởi [0007](0007-shared-journal.md): dòng "không có nhật ký chung")
 - Ngày: 21/10/2026
 - Liên quan: Project_Specs.md mục 2.2, F-10, 5.4, 5.5 · MVP_Plan.md Bước 11b · thiết kế B8
+
+> **Thay thế bởi: 0007** — phần *"Không có nhật ký chung, bình luận, theo dõi người khác"* trong mục "Quyết định"
+> không còn đúng: Jotly sẽ có sổ chung 1–1 (ADR 0007). Phần còn lại của ADR này — chia sẻ **một trang** qua link
+> chỉ xem — vẫn giữ nguyên và tiếp tục là tính năng M0.
 
 ## Bối cảnh
 

@@ -704,3 +704,7 @@ Theo mục 2.2 của đặc tả: nhật ký chung và bình luận (chia sẻ m
 (`user_items`, `account_tier`, `joined_at`), không xây giao diện.
 
 Thêm main icon (bộ mới) và sub icon mới: làm sau khi sản phẩm hoàn thiện (chốt Q5, 23/10/2026).
+
+> **Cập nhật 12/11/2026 (ADR 0007):** "nhật ký chung" **không còn ngoài phạm vi** — M1 (bạn bè + sổ chung 1–1 + chuỗi
+> ấm) chuyển lên giai đoạn 2, kế hoạch ở [`Social_Plan.md`](Social_Plan.md). Bình luận, theo dõi người khác, feed
+> công khai, sổ chung nhóm (M3) và sổ chung luân phiên (M2) vẫn ngoài phạm vi.

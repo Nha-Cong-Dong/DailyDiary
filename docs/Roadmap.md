@@ -18,7 +18,11 @@ gian, lịch tháng, Year in Pixels. Mục tiêu giai đoạn 1: **ghi lại m�
 
 Người viết nhật ký (giấy hoặc số), người thích trang trí sổ, người xây dựng lối sống lành mạnh hay theo dõi tâm trạng,
 học sinh sinh viên, người thích du lịch, cha mẹ ghi lại quá trình con lớn, người đang trải qua thay đổi lớn; cặp đôi,
-nhóm bạn, gia đình *(giai đoạn sau)*. Từ 16 tuổi.
+nhóm bạn, gia đình. Từ 16 tuổi.
+
+**Giai đoạn 1 (đang xây, ADR 0007):** cặp đôi và nhóm bạn nhỏ dùng **sổ chung 1–1** — mỗi cặp một cuốn, mỗi người
+tối đa một mục mỗi ngày, chuỗi ấm để hai người cùng giữ thói quen. **Giai đoạn sau:** nhóm và tổ chức (M3), với
+lớp an toàn riêng cho người dùng 16–17 tuổi.
 
 ### 1.3. Chỉ số thành công (chuyển sang giai đoạn 2)
 
@@ -43,12 +47,15 @@ múi giờ, tự động lưu, tải ảnh.
 - Cá nhân hóa: chủ đề, theme, bộ biểu tượng mới; xác định phần **miễn phí vĩnh viễn** và phần trả phí mới.
 - "Ngày này năm trước", tiến trình/mục tiêu với so sánh trước – sau, thư gửi tương lai.
 - Đăng nhập Facebook; đánh giá lại trọng tâm nền tảng theo dữ liệu thiết bị.
+- **Bạn bè và sổ chung 1–1** (ADR 0007, [`Social_Plan.md`](Social_Plan.md)): mỗi cặp một cuốn sổ chung, mỗi người
+  tối đa một mục mỗi ngày, chuỗi ấm và badge đồng bộ. Nhật ký cá nhân vẫn riêng tư. Trần `beta`/`free`:
+  20 bạn, 10 sổ — **điểm kiếm tiền đầu tiên** của tính năng.
 
 ### 2.3. Giai đoạn 3 — ra mắt và kiếm tiền
 
 - Ứng dụng di động (Capacitor hoặc React Native).
 - Cửa hàng gói cá nhân hóa, tiền ảo; cân nhắc thuê bao cho dung lượng ảnh, video tổng kết.
-- Nhật ký chung, nhật ký trao đổi luân phiên; backend thanh toán, sổ cái giao dịch.
+- **Sổ chung luân phiên, sổ chung nhóm / tổ chức** (ADR 0007, M2/M3); backend thanh toán, sổ cái giao dịch.
 
 ### 2.4. Kế hoạch 2 tuần ban đầu (tham khảo)
 
@@ -110,6 +117,7 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 | Bộ biểu tượng cơ bản, sub icon, cờ hiệu | Không đáng kể    | Miễn phí                                        |
 | Lịch, Year in Pixels, thống kê tháng    | Thấp             | Miễn phí; thống kê nâng cao có thể trả phí      |
 | Ảnh                                     | Cao nhất         | Ví dụ 3–5 ảnh/ngày; nhiều hơn thuộc gói trả phí |
+| Mục chung trong sổ chung 1–1            | Rất thấp         | Miễn phí; **trần số bạn và số sổ** có thể thuộc gói trả phí (ADR 0007) |
 | Chủ đề, bộ biểu tượng mới               | Chi phí thiết kế | Nội dung trả phí trong cửa hàng                 |
 
 ### 3.3. Khi bật kiếm tiền
@@ -122,6 +130,9 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 
 Đã chuẩn bị trong code: giới hạn theo cấp tài khoản (`beta`/`free`/`premium`) trong `shared/limits.json`,
 `users.account_tier`, collection `user_items`, `joined_at`.
+
+**Điểm thu tiền đầu tiên của tính năng xã hội** (ADR 0007): `beta`/`free` có **20 bạn** và **10 sổ chung**;
+`premium` nhiều hơn. Mục chung bằng **chữ** luôn miễn phí — chỉ hạn mức ảnh và số quan hệ mới bị giới hạn.
 
 ## 4. Rủi ro
 
@@ -168,3 +179,4 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 | 25/10/2026 | Đặc tả chỉ mô tả hệ thống hiện tại (bản 2.0); bối cảnh và định hướng tách sang file này | – |
 | 29/10/2026 | API chuyển từ Render sang Docker trên máy cá nhân + Cloudflare Tunnel; web dùng Pages Direct Upload; `COOKIE_DOMAIN=jotly.io.vn` | Bước 14, `Deploy.md` |
 | 30/10/2026 | OAuth Google In production (thương hiệu đã xác minh); **chốt bản 1.0**, việc còn lại gom vào `Backlog.md` | Bước 14–15 |
+| 12/11/2026 | **Mở rộng sang nhiều người**: bạn bè + **sổ chung 1–1** + chuỗi ấm; M1 trước, nhóm (M3) để sau; tìm bạn bằng mã bạn (không theo email); trần `beta`/`free` 20 bạn / 10 sổ — điểm kiếm tiền đầu tiên; ADR 0007 thay một phần ADR 0005 | ADR 0007, `Social_Plan.md` |

@@ -3,7 +3,7 @@
 |                 |                                                                                                   |
 | --------------- | ------------------------------------------------------------------------------------------------- |
 | **Vai trò**     | Kế hoạch xây tính năng xã hội: bạn bè, sổ chung, chuỗi, nhóm. Bổ sung cho [`Roadmap.md`](Roadmap.md) và [`Project_Specs.md`](Project_Specs.md). |
-| **Trạng thái**  | DRAFT — các quyết định ở mục 10 đã chốt; chờ duyệt tài liệu trước khi viết code               |
+| **Trạng thái**  | Giai đoạn 0 (giấy tờ + ADR 0007) đã xong 12/11/2026; sẵn sàng cho Giai đoạn 1 (code) theo mục 10 đã chốt |
 | **Ngày lập**    | 12/11/2026                                                                                        |
 | **Liên quan**   | Hệ thống hiện tại: [`Project_Specs.md`](Project_Specs.md) · Kiến trúc: [`adr/`](adr/) · Cây dự án: [`Project_Structure.md`](Project_Structure.md) · Việc tồn đọng: [`Backlog.md`](Backlog.md) |
 
@@ -348,15 +348,16 @@ lại `components/diary/NotebookPage.tsx` — mỗi mục có dòng kẻ vở v�
 
 Mỗi giai đoạn là một PR, người dùng duyệt rồi mới làm giai đoạn sau (nhịp của `MVP_Plan.md`).
 
-### Giai đoạn 0 — Quyết định và giấy tờ (chưa viết code)
+### Giai đoạn 0 — Quyết định và giấy tờ (chưa viết code) · **xong 12/11/2026**
 
-| Việc | File |
-| --- | --- |
-| ADR mới thay thế phần "không có nhật ký chung" của ADR 0005 | `docs/adr/0007-shared-journal.md` (mới) |
-| Ghi `Thay thế bởi: 0007` vào ADR 0005 (theo quy tắc trong `adr/README.md`, **không** sửa nội dung quyết định cũ) | `docs/adr/0005-share-in-mvp.md` |
-| Sửa `Project_Specs.md`: §2.2 bỏ "không có nhật ký chung"; thêm tính năng mới; §4.1 cập nhật riêng tư; §5.4 thêm collection | `docs/Project_Specs.md` |
-| Sửa `Roadmap.md`: §2.3 "nhật ký chung" chuyển lên giai đoạn 2; §1.2 mở rộng đối tượng; §3.2 giải trình ảnh trong sổ chung | `docs/Roadmap.md` |
-| Thêm việc tồn đọng tương ứng | `docs/Backlog.md` |
+| Việc | File | Trạng thái |
+| --- | --- | --- |
+| ADR mới thay thế phần "không có nhật ký chung" của ADR 0005 | `docs/adr/0007-shared-journal.md` | ✅ đã viết |
+| Ghi `Thay thế bởi: 0007` vào ADR 0005 (theo quy tắc trong `adr/README.md`, **không** sửa nội dung quyết định cũ) | `docs/adr/0005-share-in-mvp.md` | ✅ đã đánh dấu |
+| Sửa `Project_Specs.md`: §2.2; thêm F-11; §3.0 màn; §4.1; §5.4; §5.5 | `docs/Project_Specs.md` | ✅ đã sửa |
+| Sửa `Roadmap.md`: §1.2; §2.2; §2.3; §3.2; §6 | `docs/Roadmap.md` | ✅ đã sửa |
+| Cập nhật mục "Ngoài phạm vi MVP" + Backlog | `docs/MVP_Plan.md`, `docs/Backlog.md` | ✅ đã sửa |
+| Bảng index ADR + dòng lịch sử thư mục | `docs/adr/README.md`, `docs/Project_Structure.md` | ✅ đã sửa |
 
 ### Giai đoạn 1 — Bạn bè (backend rồi frontend)
 
