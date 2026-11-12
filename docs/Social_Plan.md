@@ -3,7 +3,7 @@
 |                 |                                                                                                   |
 | --------------- | ------------------------------------------------------------------------------------------------- |
 | **Vai trò**     | Kế hoạch xây tính năng xã hội: bạn bè, sổ chung, chuỗi, nhóm. Bổ sung cho [`Roadmap.md`](Roadmap.md) và [`Project_Specs.md`](Project_Specs.md). |
-| **Trạng thái**  | DRAFT — chờ người dùng duyệt trước khi viết code                                                  |
+| **Trạng thái**  | DRAFT — các quyết định ở mục 10 đã chốt; chờ duyệt tài liệu trước khi viết code               |
 | **Ngày lập**    | 12/11/2026                                                                                        |
 | **Liên quan**   | Hệ thống hiện tại: [`Project_Specs.md`](Project_Specs.md) · Kiến trúc: [`adr/`](adr/) · Cây dự án: [`Project_Structure.md`](Project_Structure.md) · Việc tồn đọng: [`Backlog.md`](Backlog.md) |
 
@@ -301,6 +301,8 @@ Mọi giá trị nằm trong `shared/limits.json`, không viết cứng. Nhóm m
 | `journal_write` | ghi mục chung | `40/day` (user) | cao hơn vì 1 mục/ngày/người/sổ + sửa lại |
 | `journal_read` | đọc sổ chung | `60/minute` (user) | tách khỏi `read` để không cạn trần chung |
 
+Số bạn bè / sổ chung theo cấp tài khoản — xem bảng ở mục 6.
+
 Giới hạn nội dung (mới, trong `shared/limits.json` → `tiers.*.shared`):
 
 ```json
@@ -308,11 +310,19 @@ Giới hạn nội dung (mới, trong `shared/limits.json` → `tiers.*.shared`)
   "title_max": 60,
   "content_max": 500,
   "photos_per_entry_max": 2,
-  "journals_max": 50,
-  "friends_max": 200,
   "request_expires_days": 30
 }
 ```
+
+Giới hạn số quan hệ theo cấp tài khoản (`tiers.*.shared`, chốt 12/11/2026):
+
+| Cấp | Bạn bè (`friends_max`) | Sổ chung (`journals_max`) |
+| --- | --- | --- |
+| `beta` / `free` | **20** | **10** |
+| `premium` | **100** | **50** (chờ chốt cùng gói premium, `Roadmap.md` §3.3) |
+
+Vượt trần: chặn với thông báo rõ + lối vào gói premium; **không bao giờ chặn việc ghi chữ** vào sổ đã có
+(`Roadmap.md` §3.3).
 
 Ảnh trong sổ chung **tính vào hạn mức 500 MB** của tài khoản. Nhưng **chữ luôn được ghi miễn phí** (nguyên tắc
 `Roadmap.md` mục 3.3: "không bao giờ chặn việc lưu chữ và biểu tượng") → nếu hết hạn mức ảnh thì vẫn ghi được mục
@@ -386,16 +396,28 @@ Mỗi giai đoạn là một PR, người dùng duyệt rồi mới làm giai đ
 - **Đồng bộ nhật ký cá nhân hai chiều giữa hai người** — không; chỉ mục chung trong sổ chung.
 - **Sổ chung với nhóm > 2 người ở giai đoạn 1** — để giai đoạn 3.
 - **Kiếm tiền từ tính năng này** — để giai đoạn kiếm tiền (Roadmap §3.3): chỉ thu tiền cho phần *mới*, không thu tiền
-  lại phần đã có.
+  lại phần đã có. **Trần số bạn / số sổ chung là điểm kiếm tiền đầu tiên**: `beta`/`free` có 20 bạn / 10 sổ chung,
+  `premium` nhiều hơn — đã chốt 12/11/2026.
 
-## 10. Việc cần người dùng quyết
+## 10. Việc đã chốt (12/11/2026)
 
-| # | Câu hỏi | Gợi ý của mình |
+Các quyết định dưới đây đã được người dùng chốt và là căn cứ cho Giai đoạn 0.
+
+| # | Câu hỏi | Quyết định |
 | --- | --- | --- |
-| 1 | Khi kết thúc sổ chung, người kia có thấy mục cũ của tôi không? | Không. Mỗi người giữ mục của mình; không xóa gì. |
-| 2 | Có cho phép ghi nhiều mục trong một ngày không? | Không — 1 mục/người/ngày, giống hạt nhật ký `entries` và giống Locket. |
-| 3 | Chuỗi tính theo múi giờ người xem hay theo múi giờ cặp? | Theo người xem (đồng nhất với mọi mốc thời gian khác); chênh 1 ngày khi hai bên ở múi khác nhau. |
-| 4 | Mỗi tài khoản tối đa bao nhiêu bạn bè / sổ chung? | 200 bạn, 50 sổ chung (đề xuất trong `limits.json`). |
-| 5 | Sổ chung có bắt buộc điểm tâm trạng (score) không? | Có — giữ đúng "một chạm" là đơn vị ghi chép chính. |
-| 6 | Có cần chế độ "ẩn" (không ai thấy mục của tôi trong sổ chung) không? | Không ở giai đoạn 1; thêm sau nếu người dùng thấy áp lực. |
-| 7 | Có mở cho nhóm ở giai đoạn 1 không? | Không — đã chốt 1:1 trước. |
+| 1 | Khi kết thúc sổ chung, người kia có thấy mục cũ của tôi không? | **Không.** Mỗi người giữ mục của mình; không xóa gì. |
+| 2 | Có cho phép ghi nhiều mục trong một ngày không? | **Không** — 1 mục/người/ngày, giống hạt nhật ký `entries` và giống Locket. |
+| 3 | Chuỗi tính theo múi giờ người xem hay theo múi giờ cặp? | **Theo người xem** (đồng nhất với mọi mốc thời gian khác); chênh 1 ngày khi hai bên ở múi khác nhau. |
+| 4 | Mỗi tài khoản tối đa bao nhiêu bạn bè / sổ chung? | **`beta`/`free`: 20 bạn, 10 sổ chung. `premium`: nhiều hơn** (chốt cùng gói premium, `Roadmap.md` §3.3 — đề xuất 100 bạn / 50 sổ). |
+| 5 | Sổ chung có bắt buộc điểm tâm trạng (score) không? | **Có** — giữ đúng "một chạm" là đơn vị ghi chép chính. |
+| 6 | Có cần chế độ "ẩn" (không ai thấy mục của tôi trong sổ chung) không? | **Không ở giai đoạn 1**; thêm sau nếu người dùng thấy áp lực. |
+| 7 | Có mở cho nhóm ở giai đoạn 1 không? | **Không** — 1:1 trước, nhóm để giai đoạn 3. |
+
+Quyết định đã chốt khác (12/11/2026):
+
+| # | Nội dung | Quyết định |
+| --- | --- | --- |
+| A | Trình tự các chế độ | **M1 trước, từng bước** (nghiệm thu rồi mới lên M2, M3) |
+| B | Định nghĩa chuỗi | **Chuỗi ấm + badge đồng bộ** |
+| C | Mô hình M1 | **Sổ chung** (không phải thẻ qua lại không đối xứng kiểu Locket) |
+| D | Nhóm / tổ chức | **Để giai đoạn sau**, không gộp vào giai đoạn 1 |
