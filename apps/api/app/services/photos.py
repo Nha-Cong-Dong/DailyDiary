@@ -180,11 +180,17 @@ async def reorder(
 
 
 async def delete_photo(db: AsyncDatabase, storage: Storage, user: User, photo_id: UUID) -> None:
-    """Xóa một ảnh của trang chưa xóa; ảnh của người khác hoặc không tồn tại → 404."""
+    """Xóa một ảnh (cá nhân hoặc trong sổ chung) của trang/mục chưa xóa; ảnh của người khác → 404.
+
+    Ảnh trong trang nhật ký cá nhân xử lý trước; không có ở đó thì thử mục chung (ADR 0007).
+    Một URL xóa ảnh duy nhất, cả hai kho (`entries` và `shared_entries`).
+    """
+    found_personal = False
     for _ in range(_RETRIES):
         entry = await db[c.ENTRIES].find_one({"user_id": user.id, "photos.id": photo_id, **ACTIVE})
         if entry is None:
-            raise ApiError(404, "PHOTO_NOT_FOUND", "Không tìm thấy ảnh")
+            break  # không phải ảnh cá nhân → chuyển qua ảnh sổ chung
+        found_personal = True
         photos = _ordered(entry)
         gone = next(p for p in photos if p["id"] == photo_id)
         if await _swap_photos(db, entry, _renumber([p for p in photos if p["id"] != photo_id])) is None:
@@ -195,4 +201,9 @@ async def delete_photo(db: AsyncDatabase, storage: Storage, user: User, photo_id
         )
         await storage.delete(gone["storage_key"], gone["thumb_key"])
         return
-    raise _busy()
+    if found_personal:
+        raise _busy()
+    # Ảnh không ở trang cá nhân (hoặc trang bị xóa mềm): thử mục chung.
+    from app.services.shared_photos import delete_photo as delete_shared_photo
+
+    await delete_shared_photo(db, storage, user, photo_id)

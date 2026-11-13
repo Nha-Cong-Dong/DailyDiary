@@ -8,5 +8,20 @@ FEEDBACK = "feedback"
 SHARE_LINKS = "share_links"  # link chia sẻ công khai một ngày nhật ký
 DELETION_LOG = "deletion_log"  # mỗi lần xóa: loại, thời điểm, số lượng — không có dữ liệu cá nhân
 MIGRATIONS = "_migrations"
+# ADR 0007 (Giai đoạn 1): sổ chung và bạn bè
+SHARED_JOURNALS = "shared_journals"  # một cuốn sổ cho mỗi cặp
+SHARED_ENTRIES = "shared_entries"  # một mục = một người, một ngày, trong một cuốn sổ
+FRIENDSHIPS = "friendships"  # yêu cầu kết bạn → chấp nhận → sinh sổ chung
 
-ALL = (USERS, USER_SESSIONS, ENTRIES, USER_ITEMS, FEEDBACK, SHARE_LINKS, DELETION_LOG)
+ALL = (
+    USERS,
+    USER_SESSIONS,
+    ENTRIES,
+    USER_ITEMS,
+    FEEDBACK,
+    SHARE_LINKS,
+    DELETION_LOG,
+    SHARED_JOURNALS,
+    SHARED_ENTRIES,
+    FRIENDSHIPS,
+)

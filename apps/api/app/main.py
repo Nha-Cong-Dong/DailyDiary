@@ -14,7 +14,20 @@ from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.core.security import SecurityHeadersMiddleware, verify_csrf
 from app.core.storage import make_storage
 from app.db.client import make_client
-from app.routers import auth, calendar, entries, feedback, health, me, photos, pixels, search, shares
+from app.routers import (
+    auth,
+    calendar,
+    entries,
+    feedback,
+    friendships,
+    health,
+    me,
+    photos,
+    pixels,
+    search,
+    shared_journals,
+    shares,
+)
 
 DEV_ENVS = {"local", "test"}
 
@@ -90,6 +103,8 @@ def create_app() -> FastAPI:
     app.include_router(search.router)
     app.include_router(feedback.router)
     app.include_router(shares.router)
+    app.include_router(friendships.router)
+    app.include_router(shared_journals.router)
     if settings.dev_login and settings.env in DEV_ENVS:
         app.include_router(auth.dev_router)
     return app

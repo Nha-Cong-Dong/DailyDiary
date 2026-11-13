@@ -129,11 +129,36 @@ async def _anonymize_feedback(db: AsyncDatabase, user_id: UUID) -> int:
 
 
 async def _delete_user_data(db: AsyncDatabase, user_id: UUID) -> int:
-    """Phần trong DB, chạy lại được: phiên, trang, link chia sẻ, user_items; góp ý ẩn danh (trả số góp ý)."""
+    """Phần trong DB, chạy lại được: phiên, trang, link chia sẻ, user_items, dữ liệu xã hội (ADR 0007);
+    góp ý ẩn danh (trả số góp ý).
+
+    Dữ liệu xã hội: xóa mọi sổ chung tôi là thành viên, mọi mục chung tôi viết, mọi quan hệ liên quan
+    đến tôi. Ảnh sổ chung nằm dưới tiền tố `{user_id}/shared/` → được `purge_account` dọn trong kho.
+    """
     await db[c.USER_SESSIONS].delete_many({"user_id": user_id})
     await db[c.ENTRIES].delete_many({"user_id": user_id})
     await db[c.SHARE_LINKS].delete_many({"user_id": user_id})
     await db[c.USER_ITEMS].delete_many({"user_id": user_id})
+    # ADR 0007: sổ chung, mục chung, quan hệ kết bạn.
+    journals = await db[c.SHARED_JOURNALS].delete_many({"members.user_id": user_id})
+    shared = await db[c.SHARED_ENTRIES].delete_many({"author_id": user_id})
+    friendships = await db[c.FRIENDSHIPS].delete_many(
+        {"$or": [{"requester_id": user_id}, {"addressee_id": user_id}]}
+    )
+    if journals.deleted_count or shared.deleted_count or friendships.deleted_count:
+        await db[c.DELETION_LOG].insert_one(
+            {
+                "_id": uuid4(),
+                "kind": "social",
+                "at": datetime.now(UTC),
+                "pages": 0,
+                "photos": 0,
+                "share_links": 0,
+                "journals": journals.deleted_count,
+                "shared_entries": shared.deleted_count,
+                "friendships": friendships.deleted_count,
+            }
+        )
     return await _anonymize_feedback(db, user_id)
 
 

@@ -26,6 +26,7 @@ from app.db.migrations import (
     m0007_entries_norm_backfill,
     m0008_feedback_emailed_at,
     m0009_deletion_log,
+    m0010_social_journal,
 )
 
 MIGRATIONS = [
@@ -38,6 +39,7 @@ MIGRATIONS = [
     m0007_entries_norm_backfill,
     m0008_feedback_emailed_at,
     m0009_deletion_log,
+    m0010_social_journal,
 ]
 
 

@@ -16,8 +16,12 @@ USER_RATE_NAMES = {
     "avatar_upload",
     "feedback",
     "search",
+    # ADR 0007: bạn bè và sổ chung
+    "friend_request",
+    "journal_write",
+    "journal_read",
 }
-IP_RATE_NAMES = {"login", "logout", "share_view"}
+IP_RATE_NAMES = {"login", "logout", "share_view", "friend_request_ip"}
 
 
 def test_shared_limits_load_and_match_spec():

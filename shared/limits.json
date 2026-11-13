@@ -4,7 +4,8 @@
   "ip_rate_limits": {
     "login": "5/minute",
     "logout": "20/minute",
-    "share_view": "60/minute"
+    "share_view": "60/minute",
+    "friend_request_ip": "20/hour"
   },
   "tiers": {
     "beta": {
@@ -24,7 +25,13 @@
         "main_max_edge_px": 1920,
         "thumb_max_edge_px": 320,
         "webp_quality": 0.8,
-        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
+        "allowed_types": [
+          "image/jpeg",
+          "image/png",
+          "image/heic",
+          "image/heif",
+          "image/webp"
+        ]
       },
       "storage": {
         "quota_bytes": 524288000,
@@ -52,7 +59,18 @@
         "photo_upload": "10/minute;50/day",
         "avatar_upload": "5/minute;20/day",
         "feedback": "5/minute;20/day",
-        "search": "60/minute"
+        "search": "60/minute",
+        "friend_request": "10/day",
+        "journal_write": "40/day",
+        "journal_read": "60/minute"
+      },
+      "shared": {
+        "title_max": 60,
+        "content_max": 500,
+        "photos_per_entry_max": 2,
+        "request_expires_days": 30,
+        "friends_max": 20,
+        "journals_max": 10
       }
     },
     "free": {
@@ -72,7 +90,13 @@
         "main_max_edge_px": 1920,
         "thumb_max_edge_px": 320,
         "webp_quality": 0.8,
-        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
+        "allowed_types": [
+          "image/jpeg",
+          "image/png",
+          "image/heic",
+          "image/heif",
+          "image/webp"
+        ]
       },
       "storage": {
         "quota_bytes": 524288000,
@@ -100,7 +124,18 @@
         "photo_upload": "10/minute;50/day",
         "avatar_upload": "5/minute;20/day",
         "feedback": "5/minute;20/day",
-        "search": "60/minute"
+        "search": "60/minute",
+        "friend_request": "10/day",
+        "journal_write": "40/day",
+        "journal_read": "60/minute"
+      },
+      "shared": {
+        "title_max": 60,
+        "content_max": 500,
+        "photos_per_entry_max": 2,
+        "request_expires_days": 30,
+        "friends_max": 20,
+        "journals_max": 10
       }
     },
     "premium": {
@@ -120,7 +155,13 @@
         "main_max_edge_px": 1920,
         "thumb_max_edge_px": 320,
         "webp_quality": 0.8,
-        "allowed_types": ["image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"]
+        "allowed_types": [
+          "image/jpeg",
+          "image/png",
+          "image/heic",
+          "image/heif",
+          "image/webp"
+        ]
       },
       "storage": {
         "quota_bytes": 524288000,
@@ -148,7 +189,18 @@
         "photo_upload": "10/minute;50/day",
         "avatar_upload": "5/minute;20/day",
         "feedback": "5/minute;20/day",
-        "search": "60/minute"
+        "search": "60/minute",
+        "friend_request": "10/day",
+        "journal_write": "40/day",
+        "journal_read": "60/minute"
+      },
+      "shared": {
+        "title_max": 60,
+        "content_max": 500,
+        "photos_per_entry_max": 2,
+        "request_expires_days": 30,
+        "friends_max": 100,
+        "journals_max": 50
       }
     }
   }

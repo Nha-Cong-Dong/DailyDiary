@@ -56,6 +56,20 @@ class FeedbackLimits(_Strict):
     message_max: int
 
 
+class SharedLimits(_Strict):
+    """Sổ chung và bạn bè (ADR 0007): giới hạn nội dung một mục chung + trần quan hệ theo cấp tài khoản."""
+
+    # Nội dung một mục chung (F-11): nhẹ hơn trang nhật ký.
+    title_max: int
+    content_max: int
+    photos_per_entry_max: int
+    # Số ngày một yêu cầu kết bạn còn hiệu lực trước khi hết hạn.
+    request_expires_days: int
+    # Trần quan hệ theo cấp: vượt thì chặn gửi yêu cầu mới, không bao giờ chặn ghi chữ vào sổ đã có.
+    friends_max: int
+    journals_max: int
+
+
 def _check_rate_strings(value: dict[str, str]) -> dict[str, str]:
     for name, rate in value.items():
         try:
@@ -72,6 +86,7 @@ class TierLimits(_Strict):
     profile: ProfileLimits
     pagination: PaginationLimits
     feedback: FeedbackLimits
+    shared: SharedLimits
     rate_limits: dict[str, str]
 
     @field_validator("rate_limits")

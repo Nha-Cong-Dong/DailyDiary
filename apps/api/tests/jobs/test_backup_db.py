@@ -54,6 +54,51 @@ async def _fill(db) -> None:
     await db[c.FEEDBACK].insert_one(
         {"_id": uuid4(), "user_id": other, "message": "Góp ý có dấu", "created_at": now}
     )
+    # Dữ liệu xã hội (ADR 0007): hai cuốn sổ chung + một quan hệ, đủ để phủ mọi collection.
+    journal_id = uuid4()
+    member_key = "|".join(sorted([str(uid), str(other)]))
+    await db[c.SHARED_JOURNALS].insert_one(
+        {
+            "_id": journal_id,
+            "scope": "pair",
+            "mode": "together",
+            "status": "active",
+            "member_key": member_key,
+            "members": [
+                {"user_id": uid, "role": "member", "joined_at": now},
+                {"user_id": other, "role": "member", "joined_at": now},
+            ],
+            "created_by": uid,
+            "created_at": now,
+            "updated_at": now,
+        }
+    )
+    await db[c.SHARED_ENTRIES].insert_one(
+        {
+            "_id": uuid4(),
+            "journal_id": journal_id,
+            "author_id": uid,
+            "entry_date": "2026-10-01",
+            "score": 4,
+            "icon_set_id": "sprout",
+            "title": "Mục chung",
+            "photos": [],
+            "created_at": now,
+            "updated_at": now,
+            "deleted_at": None,
+        }
+    )
+    await db[c.FRIENDSHIPS].insert_one(
+        {
+            "_id": uuid4(),
+            "requester_id": uid,
+            "addressee_id": other,
+            "status": "accepted",
+            "journal_id": journal_id,
+            "created_at": now,
+            "responded_at": now,
+        }
+    )
     await log_deletion(db, "journal", pages=1, photos=0, share_links=0)
 
 
