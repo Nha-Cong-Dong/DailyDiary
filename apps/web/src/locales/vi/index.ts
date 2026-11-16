@@ -13,5 +13,6 @@ import share from './share'
 import feedback from './feedback'
 import legal from './legal'
 import lib from './lib'
+import social from './social'
 
-export const vi = { common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search, share, feedback, legal, lib } as const
+export const vi = { common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search, share, feedback, legal, lib, social } as const

@@ -646,6 +646,210 @@
         "title": "FeedbackOut",
         "type": "object"
       },
+      "FriendCodeOut": {
+        "description": "GET /me/friend-code: mã bạn của tôi. Mã này không bao giờ vào log.",
+        "properties": {
+          "friend_code": {
+            "title": "Friend Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "friend_code"
+        ],
+        "title": "FriendCodeOut",
+        "type": "object"
+      },
+      "FriendListOut": {
+        "description": "GET /friends.",
+        "properties": {
+          "friends": {
+            "items": {
+              "$ref": "#/components/schemas/FriendOut"
+            },
+            "title": "Friends",
+            "type": "array"
+          },
+          "friends_count": {
+            "title": "Friends Count",
+            "type": "integer"
+          },
+          "friends_max": {
+            "title": "Friends Max",
+            "type": "integer"
+          },
+          "journals_count": {
+            "title": "Journals Count",
+            "type": "integer"
+          },
+          "journals_max": {
+            "title": "Journals Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "friends",
+          "friends_max",
+          "journals_max",
+          "friends_count",
+          "journals_count"
+        ],
+        "title": "FriendListOut",
+        "type": "object"
+      },
+      "FriendOut": {
+        "description": "Một người bạn trong danh sách bạn bè.",
+        "properties": {
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "journal_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Journal Id"
+          },
+          "journal_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Journal Status"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "avatar_url",
+          "journal_id",
+          "journal_status"
+        ],
+        "title": "FriendOut",
+        "type": "object"
+      },
+      "FriendRequestIn": {
+        "additionalProperties": false,
+        "description": "POST /friends/requests: gửi yêu cầu kết bạn bằng mã bạn của người kia.",
+        "properties": {
+          "code": {
+            "maxLength": 16,
+            "minLength": 4,
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "FriendRequestIn",
+        "type": "object"
+      },
+      "FriendRequestListOut": {
+        "description": "GET /friends/requests.",
+        "properties": {
+          "incoming": {
+            "items": {
+              "$ref": "#/components/schemas/FriendRequestOut"
+            },
+            "title": "Incoming",
+            "type": "array"
+          },
+          "outgoing": {
+            "items": {
+              "$ref": "#/components/schemas/FriendRequestOut"
+            },
+            "title": "Outgoing",
+            "type": "array"
+          }
+        },
+        "required": [
+          "incoming",
+          "outgoing"
+        ],
+        "title": "FriendRequestListOut",
+        "type": "object"
+      },
+      "FriendRequestOut": {
+        "description": "Một yêu cầu kết bạn (đến hoặc đi).",
+        "properties": {
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "direction",
+          "display_name",
+          "avatar_url",
+          "status",
+          "created_at",
+          "expires_at"
+        ],
+        "title": "FriendRequestOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -675,6 +879,234 @@
           "db"
         ],
         "title": "HealthOut",
+        "type": "object"
+      },
+      "JournalDetailOut": {
+        "description": "GET /journals/{id}: thêm thành viên và mốc chuỗi dài nhất.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "longest_warm_streak": {
+            "title": "Longest Warm Streak",
+            "type": "integer"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/JournalMemberOut"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "my_today_entry": {
+            "title": "My Today Entry",
+            "type": "boolean"
+          },
+          "partner_avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Avatar Url"
+          },
+          "partner_display_name": {
+            "title": "Partner Display Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "synced_days": {
+            "title": "Synced Days",
+            "type": "integer"
+          },
+          "warm_streak": {
+            "title": "Warm Streak",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "mode",
+          "partner_display_name",
+          "partner_avatar_url",
+          "created_at",
+          "ended_at",
+          "warm_streak",
+          "synced_days",
+          "longest_warm_streak",
+          "my_today_entry",
+          "members"
+        ],
+        "title": "JournalDetailOut",
+        "type": "object"
+      },
+      "JournalListOut": {
+        "description": "GET /journals.",
+        "properties": {
+          "journals": {
+            "items": {
+              "$ref": "#/components/schemas/JournalOut"
+            },
+            "title": "Journals",
+            "type": "array"
+          },
+          "journals_count": {
+            "title": "Journals Count",
+            "type": "integer"
+          },
+          "journals_max": {
+            "title": "Journals Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "journals",
+          "journals_max",
+          "journals_count"
+        ],
+        "title": "JournalListOut",
+        "type": "object"
+      },
+      "JournalMemberOut": {
+        "description": "Thành viên của sổ (không lộ id nội bộ nếu không cần).",
+        "properties": {
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name",
+          "avatar_url",
+          "role"
+        ],
+        "title": "JournalMemberOut",
+        "type": "object"
+      },
+      "JournalOut": {
+        "description": "Một cuốn sổ chung (M1: 1–1).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "longest_warm_streak": {
+            "title": "Longest Warm Streak",
+            "type": "integer"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "my_today_entry": {
+            "title": "My Today Entry",
+            "type": "boolean"
+          },
+          "partner_avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Avatar Url"
+          },
+          "partner_display_name": {
+            "title": "Partner Display Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "synced_days": {
+            "title": "Synced Days",
+            "type": "integer"
+          },
+          "warm_streak": {
+            "title": "Warm Streak",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "mode",
+          "partner_display_name",
+          "partner_avatar_url",
+          "created_at",
+          "ended_at",
+          "warm_streak",
+          "synced_days",
+          "longest_warm_streak",
+          "my_today_entry"
+        ],
+        "title": "JournalOut",
         "type": "object"
       },
       "MeOut": {
@@ -1420,17 +1852,100 @@
         "title": "ShareUpdate",
         "type": "object"
       },
-      "SharedEntryOut": {
-        "description": "Một dòng ở màn \"Trang đang chia sẻ\": link kèm tóm tắt trang (của chính chủ).",
+      "SharedEntryPageOut": {
+        "description": "GET /journals/{id}/entries: một trang mục chung, mới nhất trước.",
         "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/app__schemas__social__SharedEntryOut"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "entries"
+        ],
+        "title": "SharedEntryPageOut",
+        "type": "object"
+      },
+      "SharedEntryPhotoOut": {
+        "description": "Ảnh của một mục chung. Link ký có hạn ~1 giờ.",
+        "properties": {
+          "height": {
+            "title": "Height",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
             "type": "string"
           },
-          "entry_date": {
-            "title": "Entry Date",
-            "type": "string"
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "thumb_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumb Url"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "width",
+          "height"
+        ],
+        "title": "SharedEntryPhotoOut",
+        "type": "object"
+      },
+      "SharedEntryWrite": {
+        "additionalProperties": false,
+        "description": "PUT /journals/{id}/entries/{date}: viết mục chung của tôi.\n\nGiới hạn độ dài/số ảnh kiểm ở service theo `shared/limits.json` (nhóm `shared` của cấp tài khoản).\n`updated_at` là bản client đang sửa (đã biết); khác bản đang lưu → 409.",
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
           },
           "flag_color": {
             "anyOf": [
@@ -1443,57 +1958,11 @@
             ],
             "title": "Flag Color"
           },
-          "has_content": {
-            "title": "Has Content",
-            "type": "boolean"
-          },
-          "keyword_count": {
-            "title": "Keyword Count",
-            "type": "integer"
-          },
-          "photo_count": {
-            "title": "Photo Count",
-            "type": "integer"
-          },
-          "photo_ids": {
-            "items": {
-              "format": "uuid",
-              "type": "string"
-            },
-            "title": "Photo Ids",
-            "type": "array"
-          },
           "score": {
+            "maximum": 5.0,
+            "minimum": 1.0,
             "title": "Score",
             "type": "integer"
-          },
-          "show_content": {
-            "title": "Show Content",
-            "type": "boolean"
-          },
-          "show_flag": {
-            "title": "Show Flag",
-            "type": "boolean"
-          },
-          "show_keywords": {
-            "title": "Show Keywords",
-            "type": "boolean"
-          },
-          "show_name": {
-            "title": "Show Name",
-            "type": "boolean"
-          },
-          "show_score": {
-            "title": "Show Score",
-            "type": "boolean"
-          },
-          "show_sub_icon": {
-            "title": "Show Sub Icon",
-            "type": "boolean"
-          },
-          "show_title": {
-            "title": "Show Title",
-            "type": "boolean"
           },
           "sub_icon": {
             "anyOf": [
@@ -1517,43 +1986,128 @@
             ],
             "title": "Title"
           },
-          "token": {
-            "title": "Token",
-            "type": "string"
-          },
           "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "score"
+        ],
+        "title": "SharedEntryWrite",
+        "type": "object"
+      },
+      "SharedPhotoConfirmIn": {
+        "additionalProperties": false,
+        "description": "POST /journals/{id}/photos: xác nhận ảnh đã tải lên kho.",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
             "type": "string"
           },
-          "url": {
-            "title": "Url",
+          "height": {
+            "minimum": 1.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "photo_id": {
+            "format": "uuid",
+            "title": "Photo Id",
+            "type": "string"
+          },
+          "width": {
+            "minimum": 1.0,
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "photo_id",
+          "content_type",
+          "width",
+          "height"
+        ],
+        "title": "SharedPhotoConfirmIn",
+        "type": "object"
+      },
+      "SharedPhotoOrderIn": {
+        "additionalProperties": false,
+        "description": "PATCH /journals/{id}/photos/order: đủ id ảnh của mục chung, theo thứ tự mới.",
+        "properties": {
+          "photo_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Photo Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "photo_ids"
+        ],
+        "title": "SharedPhotoOrderIn",
+        "type": "object"
+      },
+      "SharedPhotoUploadIn": {
+        "additionalProperties": false,
+        "description": "POST /journals/{id}/photos/upload-url.",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
             "type": "string"
           }
         },
         "required": [
-          "show_name",
-          "show_score",
-          "show_sub_icon",
-          "show_flag",
-          "show_title",
-          "show_content",
-          "show_keywords",
-          "photo_ids",
-          "entry_date",
-          "token",
-          "url",
-          "created_at",
-          "updated_at",
-          "title",
-          "score",
-          "sub_icon",
-          "flag_color",
-          "photo_count",
-          "has_content",
-          "keyword_count"
+          "content_type"
         ],
-        "title": "SharedEntryOut",
+        "title": "SharedPhotoUploadIn",
+        "type": "object"
+      },
+      "SharedPhotoUploadOut": {
+        "description": "Hai presigned PUT cho ảnh chung (ảnh chính + ảnh thu nhỏ).",
+        "properties": {
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "headers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Headers",
+            "type": "object"
+          },
+          "photo_id": {
+            "format": "uuid",
+            "title": "Photo Id",
+            "type": "string"
+          },
+          "thumb_upload_url": {
+            "title": "Thumb Upload Url",
+            "type": "string"
+          },
+          "upload_url": {
+            "title": "Upload Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "photo_id",
+          "upload_url",
+          "thumb_upload_url",
+          "headers",
+          "expires_in"
+        ],
+        "title": "SharedPhotoUploadOut",
         "type": "object"
       },
       "SubIconCount": {
@@ -1734,6 +2288,252 @@
           "share_links"
         ],
         "title": "WipeOut",
+        "type": "object"
+      },
+      "app__schemas__shares__SharedEntryOut": {
+        "description": "Một dòng ở màn \"Trang đang chia sẻ\": link kèm tóm tắt trang (của chính chủ).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "has_content": {
+            "title": "Has Content",
+            "type": "boolean"
+          },
+          "keyword_count": {
+            "title": "Keyword Count",
+            "type": "integer"
+          },
+          "photo_count": {
+            "title": "Photo Count",
+            "type": "integer"
+          },
+          "photo_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Photo Ids",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "show_content": {
+            "title": "Show Content",
+            "type": "boolean"
+          },
+          "show_flag": {
+            "title": "Show Flag",
+            "type": "boolean"
+          },
+          "show_keywords": {
+            "title": "Show Keywords",
+            "type": "boolean"
+          },
+          "show_name": {
+            "title": "Show Name",
+            "type": "boolean"
+          },
+          "show_score": {
+            "title": "Show Score",
+            "type": "boolean"
+          },
+          "show_sub_icon": {
+            "title": "Show Sub Icon",
+            "type": "boolean"
+          },
+          "show_title": {
+            "title": "Show Title",
+            "type": "boolean"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "show_name",
+          "show_score",
+          "show_sub_icon",
+          "show_flag",
+          "show_title",
+          "show_content",
+          "show_keywords",
+          "photo_ids",
+          "entry_date",
+          "token",
+          "url",
+          "created_at",
+          "updated_at",
+          "title",
+          "score",
+          "sub_icon",
+          "flag_color",
+          "photo_count",
+          "has_content",
+          "keyword_count"
+        ],
+        "title": "SharedEntryOut",
+        "type": "object"
+      },
+      "app__schemas__social__SharedEntryOut": {
+        "description": "Một mục chung. `author` là tên + avatar của người viết.",
+        "properties": {
+          "author_avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Avatar Url"
+          },
+          "author_display_name": {
+            "title": "Author Display Name",
+            "type": "string"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entry_date": {
+            "format": "date",
+            "title": "Entry Date",
+            "type": "string"
+          },
+          "flag_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flag Color"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "photos": {
+            "items": {
+              "$ref": "#/components/schemas/SharedEntryPhotoOut"
+            },
+            "title": "Photos",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sub_icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Icon"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entry_date",
+          "score",
+          "title",
+          "content",
+          "sub_icon",
+          "flag_color",
+          "photos",
+          "author_display_name",
+          "author_avatar_url",
+          "mine",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SharedEntryOut",
         "type": "object"
       }
     }
@@ -2819,6 +3619,323 @@
         ]
       }
     },
+    "/friends": {
+      "get": {
+        "description": "Danh sách bạn bè, kèm sổ chung của từng cặp.",
+        "operationId": "list_friends_friends_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Friends",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/friends/requests": {
+      "get": {
+        "description": "Yêu cầu kết bạn đến và đi, chưa hết hạn.",
+        "operationId": "list_requests_friends_requests_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Requests",
+        "tags": [
+          "friends"
+        ]
+      },
+      "post": {
+        "description": "Gửi yêu cầu kết bạn bằng mã bạn. Mã sai → 404 chung, không lộ lý do.",
+        "operationId": "send_request_friends_requests_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FriendRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Request",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/friends/requests/{request_id}/accept": {
+      "post": {
+        "description": "Chấp nhận yêu cầu → sinh sổ chung 1–1.",
+        "operationId": "accept_request_friends_requests__request_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Request",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/friends/requests/{request_id}/decline": {
+      "post": {
+        "description": "Từ chối yêu cầu.",
+        "operationId": "decline_request_friends_requests__request_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decline Request",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/friends/{journal_id}": {
+      "delete": {
+        "description": "Kết thúc sổ chung: hiệu lực tức thì, không xóa gì.",
+        "operationId": "end_journal_friends__journal_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End Journal",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
     "/health": {
       "get": {
         "operationId": "health_health_get",
@@ -2837,6 +3954,573 @@
         "summary": "Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/journals": {
+      "get": {
+        "description": "Các sổ chung của tôi, kèm trạng thái chuỗi ấm và badge đồng bộ.",
+        "operationId": "list_journals_journals_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Journals",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/{journal_id}": {
+      "get": {
+        "description": "Chi tiết một cuốn sổ: thành viên, chuỗi ấm, badge đồng bộ.",
+        "operationId": "get_journal_journals__journal_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Journal",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/{journal_id}/entries": {
+      "get": {
+        "description": "Mục chung của cả hai, mới nhất trước. `?cursor=` để sang trang tiếp.",
+        "operationId": "list_entries_journals__journal_id__entries_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedEntryPageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Entries",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/{journal_id}/entries/{day}": {
+      "delete": {
+        "description": "Xóa mềm mục chung của tôi.",
+        "operationId": "delete_entry_journals__journal_id__entries__day__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Entry",
+        "tags": [
+          "journals"
+        ]
+      },
+      "put": {
+        "description": "Viết mục chung của **tôi** cho một ngày.",
+        "operationId": "save_entry_journals__journal_id__entries__day__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedEntryWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__schemas__social__SharedEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Entry",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/{journal_id}/photos": {
+      "post": {
+        "description": "Xác nhận ảnh đã tải lên kho rồi gắn vào mục chung của tôi.",
+        "operationId": "confirm_upload_journals__journal_id__photos_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedPhotoConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__schemas__social__SharedEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Upload",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/{journal_id}/photos/order": {
+      "patch": {
+        "description": "Sắp xếp ảnh của mục chung của tôi.",
+        "operationId": "reorder_photos_journals__journal_id__photos_order_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedPhotoOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__schemas__social__SharedEntryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reorder Photos",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/{journal_id}/photos/upload-url": {
+      "post": {
+        "description": "Ký hai presigned PUT cho ảnh của mục chung (mục phải có trước).",
+        "operationId": "create_upload_journals__journal_id__photos_upload_url_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharedPhotoUploadIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedPhotoUploadOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Upload",
+        "tags": [
+          "journals"
         ]
       }
     },
@@ -3158,6 +4842,106 @@
         ]
       }
     },
+    "/me/friend-code": {
+      "get": {
+        "description": "Mã bạn của tôi (sinh lần đầu nếu chưa có). Mã không bao giờ vào log.",
+        "operationId": "my_friend_code_me_friend_code_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendCodeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "My Friend Code",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/me/friend-code/rotate": {
+      "post": {
+        "description": "Xoay mã bạn: mã cũ và link mời theo mã cũ chết ngay.",
+        "operationId": "rotate_friend_code_me_friend_code_rotate_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendCodeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rotate Friend Code",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
     "/photos/{photo_id}": {
       "delete": {
         "description": "Xóa ảnh khỏi trang và khỏi kho.",
@@ -3471,7 +5255,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/SharedEntryOut"
+                    "$ref": "#/components/schemas/app__schemas__shares__SharedEntryOut"
                   },
                   "title": "Response List Shares Shares Get",
                   "type": "array"

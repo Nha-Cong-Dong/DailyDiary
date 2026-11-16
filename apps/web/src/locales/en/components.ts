@@ -111,6 +111,8 @@ const en: Shape<typeof vi> = {
     timeline: 'Timeline',
     pixels: 'Year in Pixels',
     pixelsShort: 'Full year',
+    social: 'Friends',
+    socialShort: 'Friends',
     profile: 'Profile',
     main: 'Main navigation',
     logoAria: 'Jotly, Today',

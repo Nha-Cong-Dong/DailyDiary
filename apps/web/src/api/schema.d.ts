@@ -294,6 +294,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/friends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Friends
+         * @description Danh sách bạn bè, kèm sổ chung của từng cặp.
+         */
+        get: operations["list_friends_friends_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/friends/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Requests
+         * @description Yêu cầu kết bạn đến và đi, chưa hết hạn.
+         */
+        get: operations["list_requests_friends_requests_get"];
+        put?: never;
+        /**
+         * Send Request
+         * @description Gửi yêu cầu kết bạn bằng mã bạn. Mã sai → 404 chung, không lộ lý do.
+         */
+        post: operations["send_request_friends_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/friends/requests/{request_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Request
+         * @description Chấp nhận yêu cầu → sinh sổ chung 1–1.
+         */
+        post: operations["accept_request_friends_requests__request_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/friends/requests/{request_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Request
+         * @description Từ chối yêu cầu.
+         */
+        post: operations["decline_request_friends_requests__request_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/friends/{journal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * End Journal
+         * @description Kết thúc sổ chung: hiệu lực tức thì, không xóa gì.
+         */
+        delete: operations["end_journal_friends__journal_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -305,6 +409,150 @@ export interface paths {
         get: operations["health_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Journals
+         * @description Các sổ chung của tôi, kèm trạng thái chuỗi ấm và badge đồng bộ.
+         */
+        get: operations["list_journals_journals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/{journal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Journal
+         * @description Chi tiết một cuốn sổ: thành viên, chuỗi ấm, badge đồng bộ.
+         */
+        get: operations["get_journal_journals__journal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/{journal_id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Entries
+         * @description Mục chung của cả hai, mới nhất trước. `?cursor=` để sang trang tiếp.
+         */
+        get: operations["list_entries_journals__journal_id__entries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/{journal_id}/entries/{day}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Save Entry
+         * @description Viết mục chung của **tôi** cho một ngày.
+         */
+        put: operations["save_entry_journals__journal_id__entries__day__put"];
+        post?: never;
+        /**
+         * Delete Entry
+         * @description Xóa mềm mục chung của tôi.
+         */
+        delete: operations["delete_entry_journals__journal_id__entries__day__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/{journal_id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Upload
+         * @description Xác nhận ảnh đã tải lên kho rồi gắn vào mục chung của tôi.
+         */
+        post: operations["confirm_upload_journals__journal_id__photos_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/{journal_id}/photos/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Reorder Photos
+         * @description Sắp xếp ảnh của mục chung của tôi.
+         */
+        patch: operations["reorder_photos_journals__journal_id__photos_order_patch"];
+        trace?: never;
+    };
+    "/journals/{journal_id}/photos/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Upload
+         * @description Ký hai presigned PUT cho ảnh của mục chung (mục phải có trước).
+         */
+        post: operations["create_upload_journals__journal_id__photos_upload_url_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -393,6 +641,46 @@ export interface paths {
         get: operations["data_summary_me_data_summary_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/friend-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Friend Code
+         * @description Mã bạn của tôi (sinh lần đầu nếu chưa có). Mã không bao giờ vào log.
+         */
+        get: operations["my_friend_code_me_friend_code_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/friend-code/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate Friend Code
+         * @description Xoay mã bạn: mã cũ và link mời theo mã cũ chết ngay.
+         */
+        post: operations["rotate_friend_code_me_friend_code_rotate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -795,6 +1083,96 @@ export interface components {
              */
             received: boolean;
         };
+        /**
+         * FriendCodeOut
+         * @description GET /me/friend-code: mã bạn của tôi. Mã này không bao giờ vào log.
+         */
+        FriendCodeOut: {
+            /** Friend Code */
+            friend_code: string;
+        };
+        /**
+         * FriendListOut
+         * @description GET /friends.
+         */
+        FriendListOut: {
+            /** Friends */
+            friends: components["schemas"]["FriendOut"][];
+            /** Friends Count */
+            friends_count: number;
+            /** Friends Max */
+            friends_max: number;
+            /** Journals Count */
+            journals_count: number;
+            /** Journals Max */
+            journals_max: number;
+        };
+        /**
+         * FriendOut
+         * @description Một người bạn trong danh sách bạn bè.
+         */
+        FriendOut: {
+            /** Avatar Url */
+            avatar_url: string | null;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Journal Id */
+            journal_id: string | null;
+            /** Journal Status */
+            journal_status: string | null;
+        };
+        /**
+         * FriendRequestIn
+         * @description POST /friends/requests: gửi yêu cầu kết bạn bằng mã bạn của người kia.
+         */
+        FriendRequestIn: {
+            /** Code */
+            code: string;
+        };
+        /**
+         * FriendRequestListOut
+         * @description GET /friends/requests.
+         */
+        FriendRequestListOut: {
+            /** Incoming */
+            incoming: components["schemas"]["FriendRequestOut"][];
+            /** Outgoing */
+            outgoing: components["schemas"]["FriendRequestOut"][];
+        };
+        /**
+         * FriendRequestOut
+         * @description Một yêu cầu kết bạn (đến hoặc đi).
+         */
+        FriendRequestOut: {
+            /** Avatar Url */
+            avatar_url: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Direction */
+            direction: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -806,6 +1184,100 @@ export interface components {
             db: string;
             /** Status */
             status: string;
+        };
+        /**
+         * JournalDetailOut
+         * @description GET /journals/{id}: thêm thành viên và mốc chuỗi dài nhất.
+         */
+        JournalDetailOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Ended At */
+            ended_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Longest Warm Streak */
+            longest_warm_streak: number;
+            /** Members */
+            members: components["schemas"]["JournalMemberOut"][];
+            /** Mode */
+            mode: string;
+            /** My Today Entry */
+            my_today_entry: boolean;
+            /** Partner Avatar Url */
+            partner_avatar_url: string | null;
+            /** Partner Display Name */
+            partner_display_name: string;
+            /** Status */
+            status: string;
+            /** Synced Days */
+            synced_days: number;
+            /** Warm Streak */
+            warm_streak: number;
+        };
+        /**
+         * JournalListOut
+         * @description GET /journals.
+         */
+        JournalListOut: {
+            /** Journals */
+            journals: components["schemas"]["JournalOut"][];
+            /** Journals Count */
+            journals_count: number;
+            /** Journals Max */
+            journals_max: number;
+        };
+        /**
+         * JournalMemberOut
+         * @description Thành viên của sổ (không lộ id nội bộ nếu không cần).
+         */
+        JournalMemberOut: {
+            /** Avatar Url */
+            avatar_url: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Role */
+            role: string;
+        };
+        /**
+         * JournalOut
+         * @description Một cuốn sổ chung (M1: 1–1).
+         */
+        JournalOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Ended At */
+            ended_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Longest Warm Streak */
+            longest_warm_streak: number;
+            /** Mode */
+            mode: string;
+            /** My Today Entry */
+            my_today_entry: boolean;
+            /** Partner Avatar Url */
+            partner_avatar_url: string | null;
+            /** Partner Display Name */
+            partner_display_name: string;
+            /** Status */
+            status: string;
+            /** Synced Days */
+            synced_days: number;
+            /** Warm Streak */
+            warm_streak: number;
         };
         /**
          * MeOut
@@ -1090,56 +1562,110 @@ export interface components {
             show_title: boolean;
         };
         /**
-         * SharedEntryOut
-         * @description Một dòng ở màn "Trang đang chia sẻ": link kèm tóm tắt trang (của chính chủ).
+         * SharedEntryPageOut
+         * @description GET /journals/{id}/entries: một trang mục chung, mới nhất trước.
          */
-        SharedEntryOut: {
+        SharedEntryPageOut: {
+            /** Entries */
+            entries: components["schemas"]["app__schemas__social__SharedEntryOut"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /**
+         * SharedEntryPhotoOut
+         * @description Ảnh của một mục chung. Link ký có hạn ~1 giờ.
+         */
+        SharedEntryPhotoOut: {
+            /** Height */
+            height: number;
             /**
-             * Created At
-             * Format: date-time
+             * Id
+             * Format: uuid
              */
-            created_at: string;
-            /** Entry Date */
-            entry_date: string;
+            id: string;
+            /** Position */
+            position: number;
+            /** Thumb Url */
+            thumb_url?: string | null;
+            /** Url */
+            url?: string | null;
+            /** Width */
+            width: number;
+        };
+        /**
+         * SharedEntryWrite
+         * @description PUT /journals/{id}/entries/{date}: viết mục chung của tôi.
+         *
+         *     Giới hạn độ dài/số ảnh kiểm ở service theo `shared/limits.json` (nhóm `shared` của cấp tài khoản).
+         *     `updated_at` là bản client đang sửa (đã biết); khác bản đang lưu → 409.
+         */
+        SharedEntryWrite: {
+            /** Content */
+            content?: string | null;
             /** Flag Color */
-            flag_color: string | null;
-            /** Has Content */
-            has_content: boolean;
-            /** Keyword Count */
-            keyword_count: number;
-            /** Photo Count */
-            photo_count: number;
-            /** Photo Ids */
-            photo_ids: string[];
+            flag_color?: string | null;
             /** Score */
             score: number;
-            /** Show Content */
-            show_content: boolean;
-            /** Show Flag */
-            show_flag: boolean;
-            /** Show Keywords */
-            show_keywords: boolean;
-            /** Show Name */
-            show_name: boolean;
-            /** Show Score */
-            show_score: boolean;
-            /** Show Sub Icon */
-            show_sub_icon: boolean;
-            /** Show Title */
-            show_title: boolean;
             /** Sub Icon */
-            sub_icon: string | null;
+            sub_icon?: string | null;
             /** Title */
-            title: string | null;
-            /** Token */
-            token: string;
+            title?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /**
+         * SharedPhotoConfirmIn
+         * @description POST /journals/{id}/photos: xác nhận ảnh đã tải lên kho.
+         */
+        SharedPhotoConfirmIn: {
+            /** Content Type */
+            content_type: string;
+            /** Height */
+            height: number;
             /**
-             * Updated At
-             * Format: date-time
+             * Photo Id
+             * Format: uuid
              */
-            updated_at: string;
-            /** Url */
-            url: string;
+            photo_id: string;
+            /** Width */
+            width: number;
+        };
+        /**
+         * SharedPhotoOrderIn
+         * @description PATCH /journals/{id}/photos/order: đủ id ảnh của mục chung, theo thứ tự mới.
+         */
+        SharedPhotoOrderIn: {
+            /** Photo Ids */
+            photo_ids: string[];
+        };
+        /**
+         * SharedPhotoUploadIn
+         * @description POST /journals/{id}/photos/upload-url.
+         */
+        SharedPhotoUploadIn: {
+            /** Content Type */
+            content_type: string;
+        };
+        /**
+         * SharedPhotoUploadOut
+         * @description Hai presigned PUT cho ảnh chung (ảnh chính + ảnh thu nhỏ).
+         */
+        SharedPhotoUploadOut: {
+            /** Expires In */
+            expires_in: number;
+            /** Headers */
+            headers: {
+                [key: string]: string;
+            };
+            /**
+             * Photo Id
+             * Format: uuid
+             */
+            photo_id: string;
+            /** Thumb Upload Url */
+            thumb_upload_url: string;
+            /** Upload Url */
+            upload_url: string;
         };
         /** SubIconCount */
         SubIconCount: {
@@ -1223,6 +1749,97 @@ export interface components {
             photos: number;
             /** Share Links */
             share_links: number;
+        };
+        /**
+         * SharedEntryOut
+         * @description Một dòng ở màn "Trang đang chia sẻ": link kèm tóm tắt trang (của chính chủ).
+         */
+        app__schemas__shares__SharedEntryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Entry Date */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Has Content */
+            has_content: boolean;
+            /** Keyword Count */
+            keyword_count: number;
+            /** Photo Count */
+            photo_count: number;
+            /** Photo Ids */
+            photo_ids: string[];
+            /** Score */
+            score: number;
+            /** Show Content */
+            show_content: boolean;
+            /** Show Flag */
+            show_flag: boolean;
+            /** Show Keywords */
+            show_keywords: boolean;
+            /** Show Name */
+            show_name: boolean;
+            /** Show Score */
+            show_score: boolean;
+            /** Show Sub Icon */
+            show_sub_icon: boolean;
+            /** Show Title */
+            show_title: boolean;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /** Token */
+            token: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Url */
+            url: string;
+        };
+        /**
+         * SharedEntryOut
+         * @description Một mục chung. `author` là tên + avatar của người viết.
+         */
+        app__schemas__social__SharedEntryOut: {
+            /** Author Avatar Url */
+            author_avatar_url: string | null;
+            /** Author Display Name */
+            author_display_name: string;
+            /** Content */
+            content: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entry Date
+             * Format: date
+             */
+            entry_date: string;
+            /** Flag Color */
+            flag_color: string | null;
+            /** Mine */
+            mine: boolean;
+            /** Photos */
+            photos: components["schemas"]["SharedEntryPhotoOut"][];
+            /** Score */
+            score: number;
+            /** Sub Icon */
+            sub_icon: string | null;
+            /** Title */
+            title: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
     };
     responses: never;
@@ -1831,6 +2448,196 @@ export interface operations {
             };
         };
     };
+    list_friends_friends_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_requests_friends_requests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendRequestListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_request_friends_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FriendRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendRequestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_request_friends_requests__request_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_request_friends_requests__request_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    end_journal_friends__journal_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                journal_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -1847,6 +2654,292 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthOut"];
+                };
+            };
+        };
+    };
+    list_journals_journals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_journal_journals__journal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                journal_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_entries_journals__journal_id__entries_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                journal_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedEntryPageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_entry_journals__journal_id__entries__day__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                journal_id: string;
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharedEntryWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__schemas__social__SharedEntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_entry_journals__journal_id__entries__day__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                journal_id: string;
+                day: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_upload_journals__journal_id__photos_post: {
+        parameters: {
+            query: {
+                day: string;
+            };
+            header?: never;
+            path: {
+                journal_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharedPhotoConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__schemas__social__SharedEntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_photos_journals__journal_id__photos_order_patch: {
+        parameters: {
+            query: {
+                day: string;
+            };
+            header?: never;
+            path: {
+                journal_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharedPhotoOrderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__schemas__social__SharedEntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_upload_journals__journal_id__photos_upload_url_post: {
+        parameters: {
+            query: {
+                day: string;
+            };
+            header?: never;
+            path: {
+                journal_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharedPhotoUploadIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedPhotoUploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2047,6 +3140,68 @@ export interface operations {
             };
         };
     };
+    my_friend_code_me_friend_code_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendCodeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rotate_friend_code_me_friend_code_rotate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FriendCodeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_photo_photos__photo_id__delete: {
         parameters: {
             query?: never;
@@ -2197,7 +3352,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SharedEntryOut"][];
+                    "application/json": components["schemas"]["app__schemas__shares__SharedEntryOut"][];
                 };
             };
             /** @description Validation Error */

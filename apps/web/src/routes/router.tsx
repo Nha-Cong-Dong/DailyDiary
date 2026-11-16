@@ -58,6 +58,7 @@ export function createRouter(client: QueryClient) {
                 { path: 'search', lazy: async () => ({ Component: (await import('./SearchPage')).SearchPage }) },
                 { path: 'pixels', loader: warm(client, 'pixels'), lazy: async () => ({ Component: (await import('./PixelsPage')).PixelsPage }) },
                 { path: 'timeline', loader: warm(client, 'timeline'), lazy: async () => ({ Component: (await import('./TimelinePage')).TimelinePage }) },
+                { path: 'social', lazy: async () => ({ Component: (await import('./SocialPage')).SocialPage }) },
                 { path: 'profile', lazy: async () => ({ Component: (await import('./ProfilePage')).ProfilePage }) },
                 { path: 'profile/shares', lazy: async () => ({ Component: (await import('./SharedListPage')).SharedListPage }) },
                 { path: 'profile/trash', lazy: async () => ({ Component: (await import('./TrashPage')).TrashPage }) },

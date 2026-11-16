@@ -101,6 +101,8 @@ export default {
     timeline: 'Dòng thời gian',
     pixels: 'Year in Pixels',
     pixelsShort: 'Cả năm',
+    social: 'Bạn bè',
+    socialShort: 'Bạn bè',
     profile: 'Hồ sơ',
     main: 'Điều hướng chính',
     logoAria: 'Jotly, Hôm nay',

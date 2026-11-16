@@ -1,0 +1,39 @@
+import { useMemo, useState } from 'react'
+import { Camera, LoaderCircle, Save, Trash2 } from 'lucide-react'
+import { Avatar } from '@/components/layout/Avatar'
+import { PhotoTile } from '@/components/diary/PhotoViewer'
+import { ScorePicker } from '@/components/diary/ScorePicker'
+import { SubIconPicker } from '@/components/diary/SubIconPicker'
+import { FlagPicker } from '@/components/diary/FlagPicker'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { useT } from '@/lib/i18n'
+import { todayIn } from '@/lib/date'
+import { useProfile } from '@/lib/profile'
+import { tierLimits } from '@/lib/limits'
+import { useJournalDetail, useJournalEntries, useRefreshJournalEntries, useSaveSharedEntry } from '../useSocial'
+import { deleteSharedPhoto, makeSharedPhotoUpload } from '../sharedPhotoUpload'
+import type { Journal, SharedEntry } from '../social'
+
+export function JournalDetail({ journal, onBack }: { journal: Journal; onBack: () => void }) {
+  const t = useT(); const detail = useJournalDetail(journal.id); const profile = useProfile()
+  const entries = useJournalEntries(journal.id); const refresh = useRefreshJournalEntries(journal.id)
+  if (detail.isPending) return <Card className="p-6"><span className="skeleton block h-7 w-48" /></Card>
+  if (detail.isError || !detail.data) return <Card className="p-6"><p className="text-danger">{t('social:states.error')}</p><Button className="mt-3" variant="outline" onClick={() => detail.refetch()}>{t('social:states.retry')}</Button></Card>
+  return <section className="animate-rise scroll-mt-6"><Button variant="ghost" onClick={onBack}>← {t('social:detail.back')}</Button><Card className="mt-3 overflow-hidden"><header className="flex flex-wrap items-center gap-4 border-b border-line-soft bg-lavender-soft/40 p-5"><Avatar name={detail.data.partner_display_name} src={detail.data.partner_avatar_url} size={58} /><div className="min-w-0 flex-1"><h2 className="truncate text-[24px] font-bold">{detail.data.partner_display_name}</h2><p className="text-label text-ink-soft">{detail.data.members.length} {t('social:detail.members')} · {journal.warm_streak} {t('social:journals.warm')}</p></div>{journal.ended_at ? <span className="rounded-full bg-sunk px-3 py-1 text-label text-ink-soft">{t('social:detail.ended')}</span> : null}</header>{!journal.ended_at ? <SharedEntryForm journalId={journal.id} today={todayIn(profile.timeZone)} initial={entries.data?.pages[0]?.entries.find((entry) => entry.mine && entry.entry_date === todayIn(profile.timeZone)) ?? null} /> : null}<Feed pages={entries.data?.pages.flatMap((page) => page.entries) ?? []} loading={entries.isPending} /><div className="p-5"><SharedPhotos journalId={journal.id} day={todayIn(profile.timeZone)} entry={entries.data?.pages[0]?.entries.find((entry) => entry.mine && entry.entry_date === todayIn(profile.timeZone)) ?? null} onChanged={refresh} /></div></Card></section>
+}
+
+function SharedEntryForm({ journalId, today, initial }: { journalId: string; today: string; initial: SharedEntry | null }) {
+  const t = useT(); const profile = useProfile(); const save = useSaveSharedEntry(journalId, today)
+  const [score, setScore] = useState<number | null>(initial?.score ?? null); const [title, setTitle] = useState(initial?.title ?? ''); const [content, setContent] = useState(initial?.content ?? ''); const [subIcon, setSubIcon] = useState(initial?.sub_icon ?? null); const [flag, setFlag] = useState(initial?.flag_color ?? null)
+  return <form className="space-y-5 border-b border-line-soft p-5" onSubmit={(event) => { event.preventDefault(); if (score) save.mutate({ score, title: title || null, content: content || null, sub_icon: subIcon, flag_color: flag, updated_at: initial?.updated_at ?? null }) }}><div><h3 className="font-semibold">{t('social:detail.write')}</h3><p className="mt-1 text-label text-ink-soft">{today}</p></div><fieldset><legend className="mb-2 text-sm font-semibold">{t('social:detail.score')}</legend><ScorePicker iconSetId={profile.iconSetId} value={score as 1 | 2 | 3 | 4 | 5 | null} onChange={setScore} /></fieldset><div className="grid gap-3"><Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} placeholder={t('social:detail.title')} /><Textarea value={content} onChange={(e) => setContent(e.target.value)} maxLength={500} placeholder={t('social:detail.content')} /></div><div><p className="mb-2 text-sm font-semibold">Sub icon</p><SubIconPicker value={subIcon} onChange={setSubIcon} /></div><div><p className="mb-2 text-sm font-semibold">Flag</p><FlagPicker value={flag} onChange={setFlag} form /></div><Button type="submit" disabled={!score || save.isPending}>{save.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Save className="size-4" />}{save.isSuccess ? t('social:detail.saved') : t('social:detail.save')}</Button></form>
+}
+
+function Feed({ pages, loading }: { pages: SharedEntry[]; loading: boolean }) { const t = useT(); return <div className="p-5"><h3 className="font-semibold">{t('social:detail.feed')}</h3>{loading ? <div className="mt-3 space-y-3"><span className="skeleton block h-24" /><span className="skeleton block h-24" /></div> : pages.length ? <div className="mt-3 space-y-3">{pages.map((entry) => <article key={`${entry.entry_date}-${entry.author_display_name}`} className="rounded-md border border-line-soft bg-paper p-4"><div className="flex items-center gap-2"><Avatar name={entry.author_display_name} src={entry.author_avatar_url} size={30} /><p className="text-label font-semibold">{entry.mine ? t('social:detail.mine') : entry.author_display_name} · {entry.entry_date}</p><span className="ml-auto nums font-bold">{entry.score}/5</span></div>{entry.title ? <h4 className="mt-3 font-semibold">{entry.title}</h4> : null}{entry.content ? <p className="mt-1 whitespace-pre-wrap text-body text-ink-soft">{entry.content}</p> : null}</article>)}</div> : <p className="mt-3 py-5 text-center text-body text-ink-soft">{t('social:detail.empty')}</p>}</div> }
+
+function SharedPhotos({ journalId, day, entry, onChanged }: { journalId: string; day: string; entry: SharedEntry | null; onChanged: () => void }) {
+  const t = useT(); const photos = entry?.photos ?? []; const upload = useMemo(() => makeSharedPhotoUpload(journalId, day), [journalId, day]); const [busy, setBusy] = useState(false); const maxPhotos = tierLimits().shared.photos_per_entry_max
+  return <div><div className="flex items-center justify-between gap-3"><div><h3 className="font-semibold">{t('social:photos.title')}</h3><p className="text-label text-ink-soft">{t('social:photos.limit', { count: maxPhotos })}</p></div><label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-stroke px-3 py-2 text-sm font-semibold"><Camera className="size-4" />{busy ? t('social:photos.uploading') : t('social:photos.add')}<input className="sr-only" type="file" accept="image/*" disabled={busy || photos.length >= maxPhotos || !entry} onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; setBusy(true); try { await upload(file, () => undefined, new AbortController().signal); onChanged() } finally { setBusy(false); e.target.value = '' } }} /></label></div><div className="mt-3 grid grid-cols-2 gap-3">{photos.map((photo) => <div key={photo.id} className="relative"><PhotoTile photo={{ id: photo.id, label: t('social:photos.title'), url: photo.url, thumbUrl: photo.thumb_url, width: photo.width, height: photo.height }} index={photo.position} total={photos.length} onOpen={() => undefined} /><button type="button" aria-label={t('social:photos.remove')} className="absolute right-2 top-2 rounded-full bg-card p-2 shadow-sm" onClick={async () => { await deleteSharedPhoto(photo.id); onChanged() }}><Trash2 className="size-4 text-danger" /></button></div>)}</div></div>
+}

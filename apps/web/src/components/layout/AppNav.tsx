@@ -1,4 +1,4 @@
-import { LayoutGrid, List, Pencil, Search, UserRound } from 'lucide-react'
+import { HeartHandshake, LayoutGrid, List, Pencil, Search, UserRound } from 'lucide-react'
 import { Link, NavLink, useLocation, useMatches } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useProfile } from '@/lib/profile'
@@ -13,6 +13,7 @@ const ITEMS = [
   { to: '/today', label: 'components:nav.today', short: 'components:nav.today', icon: Pencil },
   { to: '/timeline', label: 'components:nav.timeline', short: 'components:nav.timeline', icon: List },
   { to: '/pixels', label: 'components:nav.pixels', short: 'components:nav.pixelsShort', icon: LayoutGrid },
+  { to: '/social', label: 'components:nav.social', short: 'components:nav.socialShort', icon: HeartHandshake },
 ] as const
 
 const focusRing = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus'
@@ -118,7 +119,7 @@ export function BottomTabs() {
         phoneChrome === 'none' && 'invisible',
       )}
     >
-      <ul className="mx-auto grid max-w-md grid-cols-4 gap-1">
+      <ul className="mx-auto grid max-w-md grid-cols-5 gap-1">
         {tabs.map((item) => (
           <li key={item.to}>
             <NavLink

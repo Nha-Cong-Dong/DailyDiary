@@ -15,8 +15,9 @@ export type ShareParts = Omit<ShareSettings, 'photo_ids'>
 /** Link đang bật của một ngày (GET/PUT /entries/{date}/share; GET trả null khi chưa bật). `url` do backend dựng. */
 export type ShareLink = Schemas['ShareOut']
 
-/** Một dòng trong "Trang đang chia sẻ" (GET /shares): link kèm tóm tắt trang, không kèm nội dung. */
-export type ShareListItem = Schemas['SharedEntryOut']
+/** Một dòng trong "Trang đang chia sẻ" (GET /shares): link kèm tóm tắt trang, không kèm nội dung.
+ *  Tên OpenAPI có prefix `app__schemas__shares__` do trùng tên `SharedEntryOut` với schema social. */
+export type ShareListItem = Schemas['app__schemas__shares__SharedEntryOut']
 
 /** Trang người nhận xem (GET /public/shares/{token}): trường không được chọn VẮNG MẶT khỏi JSON. */
 export type PublicShare = Schemas['PublicShareOut']
