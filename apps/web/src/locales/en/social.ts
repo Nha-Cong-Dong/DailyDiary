@@ -8,7 +8,7 @@ export default {
   journals: { title: 'Shared journals', count: '{{count}}/{{max}} journals', empty: 'No shared journals yet.', open: 'Open journal', active: 'Active', ended: 'Ended', warm: 'Warm streak', synced: 'Synced days', longest: 'Longest' },
   detail: {
     back: 'All shared journals', members: 'Members',
-    write: "Write today's entry", score: "Today's score", title: 'Title', titlePlaceholder: 'Short title ({{max}} characters)', content: 'What is on your mind?', contentPlaceholder: 'A few short lines ({{max}} characters)', save: 'Save entry', saved: 'Saved',
+    write: "Write today's entry", score: "Today's score", title: 'Title', titlePlaceholder: 'Short title ({{max}} characters)', content: 'What is on your mind?', contentPlaceholder: 'A few short lines ({{max}} characters)', subIcon: 'Small icon', flagColor: 'Color flag', save: 'Save entry', saved: 'Saved',
     mine: 'You', feed: 'Written days', empty: 'No entries in this journal yet.',
     ended: 'Journal ended · view only', loadMore: 'Load more',
     myColumn: 'Your entries', theirColumn: "{{name}}'s entries",

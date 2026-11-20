@@ -8,7 +8,7 @@ export default {
   journals: { title: 'Sổ chung', count: '{{count}}/{{max}} sổ', empty: 'Chưa có sổ chung.', open: 'Mở sổ', active: 'Đang mở', ended: 'Đã kết thúc', warm: 'Chuỗi ấm', synced: 'Ngày đồng bộ', longest: 'Dài nhất' },
   detail: {
     back: 'Tất cả sổ chung', members: 'Thành viên',
-    write: 'Viết mục hôm nay', score: 'Điểm hôm nay', title: 'Tiêu đề', titlePlaceholder: 'Tiêu đề ngắn ({{max}} ký tự)', content: 'Bạn muốn ghi gì?', contentPlaceholder: 'Vài dòng ngắn thôi ({{max}} ký tự)', save: 'Lưu mục', saved: 'Đã lưu',
+    write: 'Viết mục hôm nay', score: 'Điểm hôm nay', title: 'Tiêu đề', titlePlaceholder: 'Tiêu đề ngắn ({{max}} ký tự)', content: 'Bạn muốn ghi gì?', contentPlaceholder: 'Vài dòng ngắn thôi ({{max}} ký tự)', subIcon: 'Biểu tượng phụ', flagColor: 'Cờ hiệu', save: 'Lưu mục', saved: 'Đã lưu',
     mine: 'Bạn', feed: 'Những ngày đã viết', empty: 'Chưa có mục nào trong sổ này.',
     ended: 'Sổ đã kết thúc · chỉ xem', loadMore: 'Xem thêm',
     myColumn: 'Mục của bạn', theirColumn: 'Mục của {{name}}',

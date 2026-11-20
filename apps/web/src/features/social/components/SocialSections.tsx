@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { ApiError } from '@/api/client'
 import { useT } from '@/lib/i18n'
 import { useAcceptFriendRequest, useDeclineFriendRequest, useSendFriendRequest } from '../useSocial'
 import type { Friend, FriendList, FriendRequest, FriendRequestList, Journal, JournalList } from '../social'
@@ -13,7 +14,8 @@ const focus = 'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visi
 
 export function SendRequestForm({ limits }: { limits: FriendList }) {
   const t = useT(); const send = useSendFriendRequest(); const [code, setCode] = useState('')
-  return <Card className="p-5"><h2 className="font-semibold">{t('social:send.title')}</h2><form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={(e) => { e.preventDefault(); if (code.trim()) send.mutate(code.trim(), { onSuccess: () => setCode('') }) }}><Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={16} placeholder={t('social:send.placeholder')} /><Button type="submit" disabled={!code.trim() || send.isPending || limits.friends_count >= limits.friends_max}><Send className="size-4" />{t('social:send.submit')}</Button></form>{limits.friends_count >= limits.friends_max ? <p className="mt-3 text-label text-ink-soft">{t('social:send.limit')}</p> : null}{send.isSuccess ? <Alert className="mt-3"><AlertDescription>{t('social:send.sent')}</AlertDescription></Alert> : null}{send.isError ? <Alert className="mt-3" variant="destructive"><AlertDescription>{t('social:send.invalid')}</AlertDescription></Alert> : null}</Card>
+  const requestError = send.isError && send.error instanceof ApiError && send.error.code !== 'NOT_FOUND' ? send.error.message : null
+  return <Card className="p-5"><h2 className="font-semibold">{t('social:send.title')}</h2><form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={(e) => { e.preventDefault(); if (code.trim()) send.mutate(code.trim(), { onSuccess: () => setCode('') }) }}><Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={16} placeholder={t('social:send.placeholder')} /><Button type="submit" disabled={!code.trim() || send.isPending || limits.friends_count >= limits.friends_max}><Send className="size-4" />{t('social:send.submit')}</Button></form>{limits.friends_count >= limits.friends_max ? <p className="mt-3 text-label text-ink-soft">{t('social:send.limit')}</p> : null}{send.isSuccess ? <Alert className="mt-3"><AlertDescription>{t('social:send.sent')}</AlertDescription></Alert> : null}{requestError ? <Alert className="mt-3" variant="destructive"><AlertDescription>{requestError}</AlertDescription></Alert> : null}{send.isError && !requestError ? <Alert className="mt-3" variant="destructive"><AlertDescription>{t('social:send.invalid')}</AlertDescription></Alert> : null}</Card>
 }
 
 export function RequestsPanel({ data }: { data: FriendRequestList }) {

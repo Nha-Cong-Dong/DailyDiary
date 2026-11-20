@@ -11,7 +11,7 @@ import { tierLimits } from '@/lib/limits'
  * Chưa được rà soát pháp lý: làm trước khi ra mắt công khai (đặc tả 4.1, mục Pháp lý).
  */
 export const CONTACT_EMAIL = 'bachvuongtri@gmail.com'
-const UPDATED = '30/10/2026'
+const UPDATED = '16/11/2026'
 const MIN_AGE = 16
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
@@ -58,7 +58,8 @@ export function PrivacyPolicy() {
 
         <section aria-label="Tóm tắt" className="rounded-lg border-[1.5px] border-stroke bg-card p-5 shadow-sm md:p-6">
           <List>
-            <li>Nhật ký mặc định chỉ mình bạn xem được. Chỉ khi bạn tự tạo link chia sẻ thì người có link mới xem được.</li>
+            <li>Nhật ký cá nhân mặc định chỉ mình bạn xem được. Chỉ khi bạn tự tạo link chia sẻ thì người có link mới xem được.</li>
+            <li>Khi bạn kết bạn và mở sổ chung, bạn bè chỉ xem được các mục chung mà bạn tự viết vào sổ — không bao giờ xem được nhật ký cá nhân của bạn.</li>
             <li>Jotly không bán dữ liệu, không chạy quảng cáo, không dùng nhật ký của bạn để huấn luyện AI.</li>
             <li>Jotly hiện không dùng công cụ phân tích hành vi hay theo dõi quảng cáo.</li>
             <li>Bạn xóa được từng trang, toàn bộ dữ liệu hoặc cả tài khoản bất cứ lúc nào.</li>
@@ -87,6 +88,10 @@ export function PrivacyPolicy() {
               <strong>Link chia sẻ</strong> bạn tạo và các phần bạn chọn cho hiện.
             </li>
             <li>
+              <strong>Sổ chung</strong> khi bạn kết bạn: các mục chung bạn viết (điểm, tiêu đề, nội dung ngắn,
+              biểu tượng, cờ hiệu, ảnh), mã bạn để người khác mời kết bạn, và thông tin ai là thành viên của sổ.
+            </li>
+            <li>
               <strong>Góp ý</strong> bạn gửi qua nút Góp ý.
             </li>
             <li>
@@ -108,9 +113,15 @@ export function PrivacyPolicy() {
 
         <Section id="pv-nguoi-xem" title="3. Ai xem được nhật ký">
           <p>
-            Chỉ bạn. Khi bạn chia sẻ một trang, bất kỳ ai có link đều xem được những phần bạn đã chọn (điểm, tiêu đề, nội
-            dung, ảnh…), không cần đăng nhập. Trang chia sẻ không hiện email của bạn, chỉ hiện tên nếu bạn chọn, và báo công
-            cụ tìm kiếm không lập chỉ mục. Tắt chia sẻ thì link ngừng hoạt động ngay.
+            Nhật ký cá nhân của bạn chỉ bạn xem được, trừ khi bạn tự tạo link chia sẻ: khi đó, bất kỳ ai có link đều
+            xem được những phần bạn đã chọn (điểm, tiêu đề, nội dung, ảnh…), không cần đăng nhập. Trang chia sẻ không
+            hiện email của bạn, chỉ hiện tên nếu bạn chọn, và báo công cụ tìm kiếm không lập chỉ mục. Tắt chia sẻ thì
+            link ngừng hoạt động ngay.
+          </p>
+          <p>
+            Nếu bạn kết bạn và cùng mở một cuốn sổ chung, người bạn có thể xem các mục chung mà bạn viết vào sổ ấy —
+            và bạn xem các mục của họ. Hai bên không bao giờ xem được nhật ký cá nhân của nhau. Kết thúc sổ chung thì
+            mỗi người chỉ còn thấy các mục mình đã viết; các mục cũ không bị xóa.
           </p>
         </Section>
 
@@ -162,12 +173,13 @@ export function PrivacyPolicy() {
             </li>
             <li>
               <strong>Xóa toàn bộ dữ liệu</strong> (trong Hồ sơ): xóa mọi trang, ảnh nhật ký và link chia sẻ; giữ tài khoản và
-              cài đặt.
+              cài đặt. Sổ chung và mục chung không bị xóa theo; muốn dừng quan hệ, kết thúc từng sổ chung trong mục Bạn bè.
             </li>
             <li>
               <strong>Xóa tài khoản</strong> (trong Hồ sơ): đăng xuất ngay, xóa nhật ký, ảnh, link chia sẻ, phiên đăng nhập và
-              hồ sơ. Góp ý bạn từng gửi được giữ lại nhưng tách khỏi tài khoản; bản email góp ý đã gửi tới hộp thư của
-              người vận hành không tự xóa được.
+              hồ sơ; các sổ chung, mục chung và quan hệ bạn bè liên quan đến bạn cũng bị xóa cùng, và người bạn không còn xem
+              được các mục chung của bạn trong sổ. Góp ý bạn từng gửi được giữ lại nhưng tách khỏi tài khoản; bản email góp ý
+              đã gửi tới hộp thư của người vận hành không tự xóa được.
             </li>
             <li>
               Bản sao lưu được giữ tối đa 7 ngày, nên dữ liệu đã xóa có thể còn trong bản sao lưu đến 7 ngày rồi mới mất hẳn.
