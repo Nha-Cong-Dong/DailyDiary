@@ -39,6 +39,13 @@ const en: Shape<typeof vi> = {
     SHARE_EMPTY: 'Turn on at least one part to share',
     AVATAR_INVALID: "The profile photo wasn't fully uploaded, is too large, or isn't a supported format",
     FLAG_COLORS_LIMIT: 'Up to {{n}} custom color flags',
+    FRIENDS_LIMIT: "You have {{n}} friends, the most for your plan",
+    JOURNALS_LIMIT: "You have {{n}} shared journals, the most for your plan",
+    JOURNAL_ENDED: 'This shared journal has ended, no more writing',
+    SELF_REQUEST: 'You cannot befriend yourself',
+    ALREADY_FRIENDS: 'You two are already friends',
+    REQUEST_EXISTS: 'A friend request between you two already exists',
+    CURSOR_INVALID: 'The page marker is no longer valid',
   },
 }
 
