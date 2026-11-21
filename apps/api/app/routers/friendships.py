@@ -1,6 +1,7 @@
-"""Bạn bè (ADR 0007, F-11): mã bạn, yêu cầu kết bạn, chấp nhận/từ chối, kết thúc sổ chung.
+"""Bạn bè (ADR 0007, F-11): mã bạn, yêu cầu kết bạn, chấp nhận/từ chối, mời mở sổ, kết thúc sổ.
 
 Router chỉ nhận request, gọi service, trả response — không truy vấn DB trực tiếp.
+Mời mở sổ chung ở đây (một bên mời); danh sách/chấp nhận/từ chối lời mời ở `shared_journals`.
 """
 
 from uuid import UUID
@@ -19,8 +20,10 @@ from app.schemas.social import (
     FriendRequestIn,
     FriendRequestListOut,
     FriendRequestOut,
+    JournalInviteOut,
 )
 from app.services import friendships as friend_service
+from app.services import journal_invites
 
 router = APIRouter(tags=["friends"])
 
@@ -66,9 +69,18 @@ async def send_request(
 @router.post("/friends/requests/{request_id}/accept", status_code=204)
 @limiter.limit(rate_limit("write"))
 async def accept_request(request: Request, request_id: UUID, user: CurrentUser, db: Db) -> Response:
-    """Chấp nhận yêu cầu → sinh sổ chung 1–1."""
+    """Chấp nhận yêu cầu kết bạn → thành bạn (sổ chung tạo riêng qua lời mời mở sổ)."""
     await friend_service.accept_request(db, user, request_id)
     return Response(status_code=204)
+
+
+@router.post("/friends/{friend_id}/journal-invite", response_model=JournalInviteOut)
+@limiter.limit(rate_limit("journal_invite"))
+async def invite_journal(
+    request: Request, friend_id: UUID, user: CurrentUser, db: Db, s3: OptionalS3
+) -> JournalInviteOut:
+    """Mời một người bạn mở sổ chung; sổ chỉ được tạo khi hai bên đều chấp nhận."""
+    return await journal_invites.invite_journal(db, user, friend_id, s3)
 
 
 @router.post("/friends/requests/{request_id}/decline", status_code=204)

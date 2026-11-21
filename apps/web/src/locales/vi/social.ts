@@ -4,8 +4,10 @@ export default {
   friendCode: { title: 'Mã bạn của bạn', copy: 'Sao chép mã', copied: 'Đã sao chép', rotate: 'Đổi mã', confirmTitle: 'Đổi mã bạn?', confirmBody: 'Mã cũ và các link mời từ mã cũ sẽ ngừng hoạt động ngay lập tức.', cancel: 'Để sau', confirm: 'Đổi mã' },
   send: { title: 'Thêm bạn', placeholder: 'Nhập mã bạn của họ', submit: 'Gửi lời mời', sent: 'Đã gửi lời mời', limit: 'Bạn đã đạt giới hạn bạn bè.', invalid: 'Không tìm thấy mã bạn này.' },
   requests: { title: 'Lời mời kết bạn', incoming: 'Đến', outgoing: 'Đã gửi', accept: 'Chấp nhận', decline: 'Từ chối', pending: 'Đang chờ', empty: 'Chưa có lời mời nào.' },
-  friends: { title: 'Bạn bè', count: '{{count}}/{{max}} bạn', empty: 'Danh sách bạn còn trống.', invite: 'Mời một người bạn bằng mã ở trên', journal: 'Mở sổ chung', noJournal: 'Chưa có sổ chung' },
-  journals: { title: 'Sổ chung', count: '{{count}}/{{max}} sổ', empty: 'Chưa có sổ chung.', open: 'Mở sổ', active: 'Đang mở', ended: 'Đã kết thúc', warm: 'Chuỗi ấm', synced: 'Ngày đồng bộ', longest: 'Dài nhất' },
+  friends: { title: 'Bạn bè', count: '{{count}}/{{max}} bạn', empty: 'Danh sách bạn còn trống.', invite: 'Mời một người bạn bằng mã ở trên', journal: 'Mở sổ chung', journalInvitePending: 'Đang chờ chấp nhận mở sổ', noJournal: 'Chưa có sổ chung', lastActive: 'Lần hoạt động: {{time}}' },
+  journals: { title: 'Sổ chung', count: '{{count}}/{{max}} sổ', empty: 'Chưa có sổ chung.', open: 'Mở sổ', active: 'Đang hoạt động', ended: 'Đã kết thúc', warm: 'Chuỗi', synced: 'Ngày đồng bộ', longest: 'Dài nhất', partnerLastActive: 'Lần hoạt động của bạn: {{time}}' },
+  journalInvites: { title: 'Lời mời mở sổ chung', incoming: 'Đến', outgoing: 'Đã gửi', accept: 'Chấp nhận mở sổ', decline: 'Từ chối', pending: 'Đang chờ', empty: 'Chưa có lời mời mở sổ nào.', note: 'Sổ chung được tạo khi hai bên cùng chấp nhận lời mời.' },
+  lastActive: { justNow: 'vừa xong', minutes: '{{n}} phút trước', today: 'lúc {{time}}', day: 'ngày {{date}}' },
   detail: {
     back: 'Tất cả sổ chung', members: 'Thành viên',
     write: 'Viết mục hôm nay', score: 'Điểm hôm nay', title: 'Tiêu đề', titlePlaceholder: 'Tiêu đề ngắn ({{max}} ký tự)', content: 'Bạn muốn ghi gì?', contentPlaceholder: 'Vài dòng ngắn thôi ({{max}} ký tự)', subIcon: 'Biểu tượng phụ', flagColor: 'Cờ hiệu', save: 'Lưu mục', saved: 'Đã lưu',

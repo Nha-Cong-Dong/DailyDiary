@@ -4,25 +4,27 @@ import { Card } from '@/components/ui/card'
 import { useT } from '@/lib/i18n'
 import { FriendCodeCard } from './components/FriendCodeCard'
 import { JournalDetail } from './components/JournalDetail'
-import { FriendsList, JournalsList, RequestsPanel, SendRequestForm } from './components/SocialSections'
-import { useFriends, useFriendRequests, useJournals } from './useSocial'
+import { FriendsList, JournalInvitesPanel, JournalsList, RequestsPanel, SendRequestForm } from './components/SocialSections'
+import { useFriends, useFriendRequests, useJournalInvites, useJournals } from './useSocial'
 import type { Journal } from './social'
 
 /**
- * Mục Social (Giai đoạn 1 · ADR 0007): mã bạn, kết bạn, yêu cầu, danh sách bạn và các sổ chung.
- * Nội dung chính của trang nằm trong các component; `SocialPage` chỉ ghép khung và điều hướng xem sổ chi tiết.
+ * Mục Social (Giai đoạn 1 · ADR 0007): mã bạn, kết bạn, yêu cầu, danh sách bạn,
+ * lời mời mở sổ chung và các sổ chung. Nội dung chính nằm trong các component;
+ * `SocialPage` chỉ ghép khung và điều hướng xem sổ chi tiết.
  */
 export function SocialPage() {
   const t = useT()
   const friends = useFriends()
   const requests = useFriendRequests()
+  const journalInvites = useJournalInvites()
   const journals = useJournals()
   const [openJournal, setOpenJournal] = useState<Journal | null>(null)
 
-  if (friends.isPending || requests.isPending || journals.isPending) return <PageLoadingFallback label={t('social:states.loading')} />
-  const error = friends.error ?? requests.error ?? journals.error
+  if (friends.isPending || requests.isPending || journalInvites.isPending || journals.isPending) return <PageLoadingFallback label={t('social:states.loading')} />
+  const error = friends.error ?? requests.error ?? journalInvites.error ?? journals.error
   if (error) {
-    return <ServerErrorState onRetry={() => Promise.all([friends.refetch(), requests.refetch(), journals.refetch()])} />
+    return <ServerErrorState onRetry={() => Promise.all([friends.refetch(), requests.refetch(), journalInvites.refetch(), journals.refetch()])} />
   }
   const friendData = friends.data!
   const requestData = requests.data!
@@ -39,6 +41,7 @@ export function SocialPage() {
             <SendRequestForm limits={friendData} />
             <RequestsPanel data={requestData} />
           </div>
+          <JournalInvitesPanel data={journalInvites.data!} />
           <FriendsList data={friendData} onJournal={(id) => setOpenJournal(journalData.journals.find((j) => j.id === id) ?? null)} />
           <JournalsList data={journalData} onOpen={setOpenJournal} />
         </div>

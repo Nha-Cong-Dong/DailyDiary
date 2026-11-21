@@ -101,7 +101,27 @@ async def get_current_user(
     request.state.user_id = str(doc["_id"])  # key_func của rate limit đọc giá trị này
     # Lúc đăng nhập của phiên này: thao tác nhạy cảm (xóa tài khoản) đòi phiên còn mới (services/account.py).
     request.state.session_started = session["created_at"]
+    await _touch_last_active(db, doc["_id"], now)
     return User.from_doc(doc)
+
+
+async def _touch_last_active(db: AsyncDatabase, user_id: UUID, now: datetime) -> None:
+    """Ghi `last_active` (điểm theo dõi hoạt động): cập nhật theo mỗi request đã đăng nhập.
+
+    Throttling: chỉ set khi trường hiện có đã ≥ 60 giây trước (hoặc chưa tồn tại), để chuỗi request
+    liên tiếp trong một phút không sinh thêm write. Trễ ≤ 60 giây so với "đang hoạt động" là chấp nhận
+    được với mốc hiển thị của frontend (5 phút / 60 phút).
+    """
+    await db[c.USERS].update_one(
+        {
+            "_id": user_id,
+            "$or": [
+                {"last_active": {"$lt": now - timedelta(seconds=60)}},
+                {"last_active": {"$exists": False}},
+            ],
+        },
+        {"$set": {"last_active": now}},
+    )
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]

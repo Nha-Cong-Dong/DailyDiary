@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
-import { entriesKey, friendCodeKey, friendsKey, journalKey, journalsKey, requestsKey, SOCIAL_KEY, type FriendCode, type FriendList, type FriendRequestList, type JournalDetail, type JournalList, type SharedEntry, type SharedEntryPage, type SharedEntryWrite } from './social'
+import { entriesKey, friendCodeKey, friendsKey, journalInvitesKey, journalKey, journalsKey, requestsKey, SOCIAL_KEY, type FriendCode, type FriendList, type FriendRequestList, type JournalDetail, type JournalInviteList, type JournalList, type SharedEntry, type SharedEntryPage, type SharedEntryWrite } from './social'
 
 export const friendCodeQuery = () => queryOptions({
   queryKey: friendCodeKey(),
@@ -24,6 +24,15 @@ export const requestsQuery = () => queryOptions({
   queryKey: requestsKey(),
   queryFn: async (): Promise<FriendRequestList> => {
     const { data, error, response } = await api.GET('/friends/requests')
+    if (error || !data) throw toApiError(response, error)
+    return data
+  },
+})
+
+export const journalInvitesQuery = () => queryOptions({
+  queryKey: journalInvitesKey(),
+  queryFn: async (): Promise<JournalInviteList> => {
+    const { data, error, response } = await api.GET('/journals/invites')
     if (error || !data) throw toApiError(response, error)
     return data
   },
@@ -63,6 +72,7 @@ export const journalEntriesQuery = (id: string) => infiniteQueryOptions({
 export function useFriendCode() { return useQuery(friendCodeQuery()) }
 export function useFriends() { return useQuery(friendsQuery()) }
 export function useFriendRequests() { return useQuery(requestsQuery()) }
+export function useJournalInvites() { return useQuery(journalInvitesQuery()) }
 export function useJournals() { return useQuery(journalsQuery()) }
 export function useJournalDetail(id: string) { return useQuery(journalDetailQuery(id)) }
 export function useJournalEntries(id: string) { return useInfiniteQuery(journalEntriesQuery(id)) }
@@ -70,6 +80,7 @@ export function useJournalEntries(id: string) { return useInfiniteQuery(journalE
 function refreshLists(client: ReturnType<typeof useQueryClient>) {
   void client.invalidateQueries({ queryKey: friendsKey() })
   void client.invalidateQueries({ queryKey: requestsKey() })
+  void client.invalidateQueries({ queryKey: journalInvitesKey() })
   void client.invalidateQueries({ queryKey: journalsKey() })
 }
 
@@ -113,6 +124,35 @@ function useRequestDecision(action: 'accept' | 'decline') {
 
 export function useAcceptFriendRequest() { return useRequestDecision('accept') }
 export function useDeclineFriendRequest() { return useRequestDecision('decline') }
+
+export function useInviteJournal() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: async (friendId: string) => {
+      const { data, error, response } = await api.POST('/friends/{friend_id}/journal-invite', { params: { path: { friend_id: friendId } } })
+      if (error || !data) throw toApiError(response, error)
+      return data
+    },
+    onSuccess: () => refreshLists(client),
+  })
+}
+
+function useJournalInviteDecision(action: 'accept' | 'decline') {
+  const client = useQueryClient()
+  return useMutation({
+    scope: { id: `social:journal-invite:${action}` },
+    mutationFn: async (inviteId: string) => {
+      const result = action === 'accept'
+        ? await api.POST('/journals/invites/{invite_id}/accept', { params: { path: { invite_id: inviteId } } })
+        : await api.POST('/journals/invites/{invite_id}/decline', { params: { path: { invite_id: inviteId } } })
+      if (result.error) throw toApiError(result.response, result.error)
+    },
+    onSuccess: () => refreshLists(client),
+  })
+}
+
+export function useAcceptJournalInvite() { return useJournalInviteDecision('accept') }
+export function useDeclineJournalInvite() { return useJournalInviteDecision('decline') }
 
 export function useEndJournal() {
   const client = useQueryClient()

@@ -349,7 +349,7 @@ export interface paths {
         put?: never;
         /**
          * Accept Request
-         * @description Chấp nhận yêu cầu → sinh sổ chung 1–1.
+         * @description Chấp nhận yêu cầu kết bạn → thành bạn (sổ chung tạo riêng qua lời mời mở sổ).
          */
         post: operations["accept_request_friends_requests__request_id__accept_post"];
         delete?: never;
@@ -372,6 +372,26 @@ export interface paths {
          * @description Từ chối yêu cầu.
          */
         post: operations["decline_request_friends_requests__request_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/friends/{friend_id}/journal-invite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invite Journal
+         * @description Mời một người bạn mở sổ chung; sổ chỉ được tạo khi hai bên đều chấp nhận.
+         */
+        post: operations["invite_journal_friends__friend_id__journal_invite_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -429,6 +449,66 @@ export interface paths {
         get: operations["list_journals_journals_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Journal Invites
+         * @description Lời mời mở sổ chung đang chờ (đến và đi), chưa hết hạn.
+         */
+        get: operations["list_journal_invites_journals_invites_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/invites/{invite_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Journal Invite
+         * @description Chấp nhận lời mời (phải là người được mời) → tạo sổ chung nếu hai bên đều sẵn sàng.
+         */
+        post: operations["accept_journal_invite_journals_invites__invite_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/journals/invites/{invite_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Journal Invite
+         * @description Từ chối lời mời (phải là người được mời).
+         */
+        post: operations["decline_journal_invite_journals_invites__invite_id__decline_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1123,8 +1203,15 @@ export interface components {
             id: string;
             /** Journal Id */
             journal_id: string | null;
+            /**
+             * Journal Invite Pending
+             * @default false
+             */
+            journal_invite_pending: boolean;
             /** Journal Status */
             journal_status: string | null;
+            /** Last Active */
+            last_active?: string | null;
         };
         /**
          * FriendRequestIn
@@ -1214,12 +1301,53 @@ export interface components {
             partner_avatar_url: string | null;
             /** Partner Display Name */
             partner_display_name: string;
+            /** Partner Last Active */
+            partner_last_active?: string | null;
             /** Status */
             status: string;
             /** Synced Days */
             synced_days: number;
             /** Warm Streak */
             warm_streak: number;
+        };
+        /**
+         * JournalInviteListOut
+         * @description GET /journals/invites.
+         */
+        JournalInviteListOut: {
+            /** Incoming */
+            incoming: components["schemas"]["JournalInviteOut"][];
+            /** Outgoing */
+            outgoing: components["schemas"]["JournalInviteOut"][];
+        };
+        /**
+         * JournalInviteOut
+         * @description Một lời mời mở sổ chung (đến hoặc đi).
+         */
+        JournalInviteOut: {
+            /** Avatar Url */
+            avatar_url: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Direction */
+            direction: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string;
         };
         /**
          * JournalListOut
@@ -1272,6 +1400,8 @@ export interface components {
             partner_avatar_url: string | null;
             /** Partner Display Name */
             partner_display_name: string;
+            /** Partner Last Active */
+            partner_last_active?: string | null;
             /** Status */
             status: string;
             /** Synced Days */
@@ -2607,6 +2737,39 @@ export interface operations {
             };
         };
     };
+    invite_journal_friends__friend_id__journal_invite_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                friend_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalInviteOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     end_journal_friends__journal_id__delete: {
         parameters: {
             query?: never;
@@ -2677,6 +2840,99 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["JournalListOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_journal_invites_journals_invites_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalInviteListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_journal_invite_journals_invites__invite_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invite_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_journal_invite_journals_invites__invite_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invite_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

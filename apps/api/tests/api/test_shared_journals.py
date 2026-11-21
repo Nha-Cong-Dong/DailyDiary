@@ -22,11 +22,14 @@ def _key(url: str) -> str:
 
 
 async def _journal(alice, bob, db):
-    """Hai người bạn + một cuốn sổ chung active."""
+    """Hai người bạn + một cuốn sổ chung active (kết bạn → mời mở sổ → hai bên chấp nhận)."""
     code = (await bob.get("/me/friend-code")).json()["friend_code"]
     r = await alice.post("/friends/requests", json={"code": code})
     assert r.status_code == 200, r.text
     r = await bob.post(f"/friends/requests/{r.json()['id']}/accept")
+    assert r.status_code == 204, r.text
+    invite_id = (await alice.post(f"/friends/{bob.user['_id']}/journal-invite")).json()["id"]
+    r = await bob.post(f"/journals/invites/{invite_id}/accept")
     assert r.status_code == 204, r.text
     journal = await db[c.SHARED_JOURNALS].find_one({"members.user_id": alice.user["_id"]})
     assert journal is not None

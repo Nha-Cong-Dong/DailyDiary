@@ -74,7 +74,14 @@ def _partner_id(journal: dict, user_id: UUID) -> UUID | None:
 async def _profiles(db: AsyncDatabase, ids: set[UUID]) -> dict[UUID, dict]:
     if not ids:
         return {}
-    fields = {"_id": 1, "display_name": 1, "avatar_url": 1, "avatar_key": 1, "deleted_at": 1}
+    fields = {
+        "_id": 1,
+        "display_name": 1,
+        "avatar_url": 1,
+        "avatar_key": 1,
+        "deleted_at": 1,
+        "last_active": 1,
+    }
     return {p["_id"]: p async for p in db[c.USERS].find({"_id": {"$in": sorted(ids)}}, fields)}
 
 
@@ -173,6 +180,7 @@ async def _journal_out(db: AsyncDatabase, journal: dict, user: User, storage: St
         mode=journal.get("mode", "together"),
         partner_display_name=(profile or {}).get("display_name", "") if profile else "",
         partner_avatar_url=_avatar(profile or {}, storage),
+        partner_last_active=(profile or {}).get("last_active"),
         created_at=journal["created_at"],
         ended_at=journal.get("ended_at"),
         warm_streak=warm,

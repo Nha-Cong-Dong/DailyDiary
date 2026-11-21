@@ -12,6 +12,8 @@ export type Friend = Schemas['FriendOut']
 export type FriendList = Schemas['FriendListOut']
 export type FriendRequest = Schemas['FriendRequestOut']
 export type FriendRequestList = Schemas['FriendRequestListOut']
+export type JournalInvite = Schemas['JournalInviteOut']
+export type JournalInviteList = Schemas['JournalInviteListOut']
 export type Journal = Schemas['JournalOut']
 export type JournalList = Schemas['JournalListOut']
 export type JournalDetail = Schemas['JournalDetailOut']
@@ -27,6 +29,7 @@ export type JournalId = string
 export const SOCIAL_KEY = ['social'] as const
 export const friendsKey = () => [...SOCIAL_KEY, 'friends'] as const
 export const requestsKey = () => [...SOCIAL_KEY, 'requests'] as const
+export const journalInvitesKey = () => [...SOCIAL_KEY, 'journal-invites'] as const
 export const journalsKey = () => [...SOCIAL_KEY, 'journals'] as const
 export const journalKey = (id: JournalId) => [...SOCIAL_KEY, 'journal', id] as const
 export const entriesKey = (id: JournalId, cursor?: string | null) => [...SOCIAL_KEY, 'entries', id, cursor ?? null] as const

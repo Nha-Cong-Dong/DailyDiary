@@ -732,6 +732,11 @@
             ],
             "title": "Journal Id"
           },
+          "journal_invite_pending": {
+            "default": false,
+            "title": "Journal Invite Pending",
+            "type": "boolean"
+          },
           "journal_status": {
             "anyOf": [
               {
@@ -742,6 +747,18 @@
               }
             ],
             "title": "Journal Status"
+          },
+          "last_active": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active"
           }
         },
         "required": [
@@ -940,6 +957,18 @@
             "title": "Partner Display Name",
             "type": "string"
           },
+          "partner_last_active": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Last Active"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -968,6 +997,85 @@
           "members"
         ],
         "title": "JournalDetailOut",
+        "type": "object"
+      },
+      "JournalInviteListOut": {
+        "description": "GET /journals/invites.",
+        "properties": {
+          "incoming": {
+            "items": {
+              "$ref": "#/components/schemas/JournalInviteOut"
+            },
+            "title": "Incoming",
+            "type": "array"
+          },
+          "outgoing": {
+            "items": {
+              "$ref": "#/components/schemas/JournalInviteOut"
+            },
+            "title": "Outgoing",
+            "type": "array"
+          }
+        },
+        "required": [
+          "incoming",
+          "outgoing"
+        ],
+        "title": "JournalInviteListOut",
+        "type": "object"
+      },
+      "JournalInviteOut": {
+        "description": "Một lời mời mở sổ chung (đến hoặc đi).",
+        "properties": {
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "direction": {
+            "title": "Direction",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "direction",
+          "display_name",
+          "avatar_url",
+          "status",
+          "created_at",
+          "expires_at"
+        ],
+        "title": "JournalInviteOut",
         "type": "object"
       },
       "JournalListOut": {
@@ -1079,6 +1187,18 @@
           "partner_display_name": {
             "title": "Partner Display Name",
             "type": "string"
+          },
+          "partner_last_active": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Last Active"
           },
           "status": {
             "title": "Status",
@@ -3779,7 +3899,7 @@
     },
     "/friends/requests/{request_id}/accept": {
       "post": {
-        "description": "Chấp nhận yêu cầu → sinh sổ chung 1–1.",
+        "description": "Chấp nhận yêu cầu kết bạn → thành bạn (sổ chung tạo riêng qua lời mời mở sổ).",
         "operationId": "accept_request_friends_requests__request_id__accept_post",
         "parameters": [
           {
@@ -3878,6 +3998,66 @@
           }
         },
         "summary": "Decline Request",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/friends/{friend_id}/journal-invite": {
+      "post": {
+        "description": "Mời một người bạn mở sổ chung; sổ chỉ được tạo khi hai bên đều chấp nhận.",
+        "operationId": "invite_journal_friends__friend_id__journal_invite_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "friend_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Friend Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalInviteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Invite Journal",
         "tags": [
           "friends"
         ]
@@ -4002,6 +4182,162 @@
           }
         },
         "summary": "List Journals",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/invites": {
+      "get": {
+        "description": "Lời mời mở sổ chung đang chờ (đến và đi), chưa hết hạn.",
+        "operationId": "list_journal_invites_journals_invites_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalInviteListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Journal Invites",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/invites/{invite_id}/accept": {
+      "post": {
+        "description": "Chấp nhận lời mời (phải là người được mời) → tạo sổ chung nếu hai bên đều sẵn sàng.",
+        "operationId": "accept_journal_invite_journals_invites__invite_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invite_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Invite Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Journal Invite",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/invites/{invite_id}/decline": {
+      "post": {
+        "description": "Từ chối lời mời (phải là người được mời).",
+        "operationId": "decline_journal_invite_journals_invites__invite_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invite_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Invite Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decline Journal Invite",
         "tags": [
           "journals"
         ]

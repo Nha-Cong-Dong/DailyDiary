@@ -62,7 +62,8 @@
         "search": "60/minute",
         "friend_request": "10/day",
         "journal_write": "40/day",
-        "journal_read": "60/minute"
+        "journal_read": "60/minute",
+        "journal_invite": "10/day"
       },
       "shared": {
         "title_max": 60,
@@ -127,7 +128,8 @@
         "search": "60/minute",
         "friend_request": "10/day",
         "journal_write": "40/day",
-        "journal_read": "60/minute"
+        "journal_read": "60/minute",
+        "journal_invite": "10/day"
       },
       "shared": {
         "title_max": 60,
@@ -192,7 +194,8 @@
         "search": "60/minute",
         "friend_request": "10/day",
         "journal_write": "40/day",
-        "journal_read": "60/minute"
+        "journal_read": "60/minute",
+        "journal_invite": "10/day"
       },
       "shared": {
         "title_max": 60,

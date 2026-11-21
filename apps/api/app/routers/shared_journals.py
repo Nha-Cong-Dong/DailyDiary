@@ -1,7 +1,8 @@
-"""Sổ chung (ADR 0007, F-11): đọc/ghi mục chung, ảnh trong sổ chung.
+"""Sổ chung (ADR 0007, F-11): đọc/ghi mục chung, ảnh trong sổ chung, lời mời mở sổ.
 
 Mọi endpoint kiểm tra người gọi là thành viên của sổ; không thuộc → 404 (không phải 403,
 để không rò rỉ sự tồn tại). `author_id` lấy từ phiên, không lấy từ body.
+Lời mời mở sổ: một bên mời (routers/friendships.py), hai bên đều chấp nhận mới tạo sổ.
 """
 
 from datetime import date
@@ -16,6 +17,7 @@ from app.core.storage import S3, OptionalS3
 from app.db.client import Db
 from app.schemas.social import (
     JournalDetailOut,
+    JournalInviteListOut,
     JournalListOut,
     SharedEntryOut,
     SharedEntryPageOut,
@@ -25,10 +27,40 @@ from app.schemas.social import (
     SharedPhotoUploadIn,
     SharedPhotoUploadOut,
 )
+from app.services import journal_invites
 from app.services import shared_journals as journal_service
 from app.services import shared_photos as shared_photo_service
 
 router = APIRouter(tags=["journals"])
+
+
+@router.get("/journals/invites", response_model=JournalInviteListOut)
+@limiter.limit(rate_limit("read"))
+async def list_journal_invites(
+    request: Request, user: CurrentUser, db: Db, s3: OptionalS3
+) -> JournalInviteListOut:
+    """Lời mời mở sổ chung đang chờ (đến và đi), chưa hết hạn."""
+    return await journal_invites.list_journal_invites(db, user, s3)
+
+
+@router.post("/journals/invites/{invite_id}/accept", status_code=204)
+@limiter.limit(rate_limit("write"))
+async def accept_journal_invite(
+    request: Request, invite_id: UUID, user: CurrentUser, db: Db
+) -> Response:
+    """Chấp nhận lời mời (phải là người được mời) → tạo sổ chung nếu hai bên đều sẵn sàng."""
+    await journal_invites.accept_invite(db, user, invite_id)
+    return Response(status_code=204)
+
+
+@router.post("/journals/invites/{invite_id}/decline", status_code=204)
+@limiter.limit(rate_limit("write"))
+async def decline_journal_invite(
+    request: Request, invite_id: UUID, user: CurrentUser, db: Db
+) -> Response:
+    """Từ chối lời mời (phải là người được mời)."""
+    await journal_invites.decline_invite(db, user, invite_id)
+    return Response(status_code=204)
 
 
 @router.get("/journals", response_model=JournalListOut)

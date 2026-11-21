@@ -1,12 +1,12 @@
-"""Bạn bè (ADR 0007, F-11): mã bạn, yêu cầu kết bạn, chấp nhận → sinh sổ chung, kết thúc sổ.
+"""Bạn bè (ADR 0007, F-11): mã bạn, yêu cầu kết bạn, chấp nhận → thành bạn, kết thúc sổ.
 
 - Tìm bạn bằng **mã bạn** (không theo email): mỗi tài khoản một mã 10 ký tự, xoay được bất cứ lúc nào;
   mã cũ chết ngay. Mã bạn không bao giờ vào log (nó là định danh người dùng).
 - Quan hệ phải được chấp nhận: gửi mã → yêu cầu (hết hạn sau `shared.request_expires_days`) → chấp nhận
-  thì sinh sổ chung. Không có tự động kết bạn.
+  thì thành bạn. Không có tự động kết bạn.
+- Thành bạn **không** tự sinh sổ chung: sổ được tạo riêng khi hai bên chấp nhận lời mời mở sổ
+  (`journal_requests`, xem `services/journal_invites.py`).
 - Kết thúc sổ chung: hiệu lực tức thì, không xóa gì; sổ chuyển `status: "ended"`.
-- Không transaction nhiều document (ADR 0001): tạo sổ dùng `member_key` + index unique (partial,
-  `scope: "pair"`) để hai lần chấp nhận cùng lúc chỉ tạo được một cuốn.
 """
 
 import secrets
@@ -29,12 +29,20 @@ from app.schemas.social import (
     FriendRequestOut,
 )
 from app.schemas.users import User
+from app.services.journal_invites import pending_invite_exists as journal_invite_pending
 
 # Bảng chữ không nhầm: bỏ I/L (dễ lẫn 1), O (lẫn 0), 0 và 1. 31 ký tự → 31^10 tổ hợp mã.
 CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ"
 
-# Trường đọc của `users` khi cần tên/avatar để hiện.
-_PROFILE_FIELDS = {"_id": 1, "display_name": 1, "avatar_url": 1, "avatar_key": 1, "deleted_at": 1}
+# Trường đọc của `users` khi cần tên/avatar/hoạt động để hiện.
+_PROFILE_FIELDS = {
+    "_id": 1,
+    "display_name": 1,
+    "avatar_url": 1,
+    "avatar_key": 1,
+    "deleted_at": 1,
+    "last_active": 1,
+}
 
 
 def _not_found() -> ApiError:
@@ -79,23 +87,14 @@ async def rotate_friend_code(db: AsyncDatabase, user: User) -> str:
     return doc["friend_code"]
 
 
-def member_key(a: UUID, b: UUID) -> str:
-    """Khóa cặp: hai uuid đã sắp xếp. Index unique loại trùng khi hai request chạy cùng lúc."""
-    return "|".join(sorted([str(a), str(b)]))
-
-
 async def _count_friends(db: AsyncDatabase, user_id: UUID) -> int:
-    """Số quan hệ đã chấp nhận (mỗi quan hệ = một cuốn sổ)."""
+    """Số quan hệ đã chấp nhận (mỗi quan hệ = một người bạn)."""
     return await db[c.FRIENDSHIPS].count_documents(
         {
             "status": "accepted",
             "$or": [{"addressee_id": user_id}, {"requester_id": user_id}],
         }
     )
-
-
-async def _count_active_journals(db: AsyncDatabase, user_id: UUID) -> int:
-    return await db[c.SHARED_JOURNALS].count_documents({"members.user_id": user_id, "status": "active"})
 
 
 async def _profiles(db: AsyncDatabase, ids: set[UUID]) -> dict[UUID, dict]:
@@ -120,7 +119,7 @@ async def list_friends(db: AsyncDatabase, user: User, storage: Storage | None) -
     ).to_list()
 
     def other_of(d: dict) -> UUID:
-        return d["addressee_id"] if d["addressee_id"] == user.id else d["requester_id"]
+        return d["requester_id"] if d["addressee_id"] == user.id else d["addressee_id"]
 
     profiles = await _profiles(db, {other_of(d) for d in docs})
 
@@ -133,6 +132,8 @@ async def list_friends(db: AsyncDatabase, user: User, storage: Storage | None) -
         if journal_id is not None:
             jdoc = await db[c.SHARED_JOURNALS].find_one({"_id": journal_id}, {"_id": 0, "status": 1})
             status = jdoc.get("status") if jdoc else None
+        # Lần hoạt động cuối của người kia (điểm 3: mốc 5 phút, hiện "lần hoạt động").
+        last_active = profile.get("last_active")
         friends.append(
             FriendOut(
                 id=other_id,
@@ -140,6 +141,8 @@ async def list_friends(db: AsyncDatabase, user: User, storage: Storage | None) -
                 avatar_url=_avatar_url(profile, storage),
                 journal_id=journal_id,
                 journal_status=status,
+                journal_invite_pending=await journal_invite_pending(db, user.id, other_id),
+                last_active=last_active,
             )
         )
     friends.sort(key=lambda f: f.display_name.lower())
@@ -219,9 +222,17 @@ async def send_request(
         raise ApiError(422, "SELF_REQUEST", "Không thể kết bạn với chính mình")
 
     # Đã là bạn → không gửi lại.
-    if await db[c.SHARED_JOURNALS].find_one(
-        {"member_key": member_key(user.id, target["_id"]), "scope": "pair"}, {"_id": 1}
-    ):
+    already = await db[c.FRIENDSHIPS].find_one(
+        {
+            "status": "accepted",
+            "$or": [
+                {"requester_id": user.id, "addressee_id": target["_id"]},
+                {"requester_id": target["_id"], "addressee_id": user.id},
+            ],
+        },
+        {"_id": 1},
+    )
+    if already:
         raise ApiError(409, "ALREADY_FRIENDS", "Hai người đã là bạn")
 
     # Yêu cầu đang chờ giữa hai người (bất kỳ hướng nào) → không gửi lại.
@@ -262,62 +273,30 @@ async def send_request(
     )
 
 
-async def accept_request(db: AsyncDatabase, user: User, request_id: UUID) -> dict:
-    """Chấp nhận yêu cầu (phải là người nhận) → tạo sổ chung.
+async def accept_request(db: AsyncDatabase, user: User, request_id: UUID) -> None:
+    """Chấp nhận yêu cầu (phải là người nhận) → thành bạn.
 
-    Hai bên cùng bấm chấp nhận trong cùng khoảnh khắc: chỉ một cuốn sổ được tạo
-    (index unique `member_key`). Trần sổ chung kiểm trước khi tạo.
+    Chấp nhận chỉ thiết lập quan hệ bạn bè; sổ chung **không** được sinh tự động —
+    phải có một lời mời mở sổ chung và hai bên đều chấp nhận (xem `services/journal_invites.py`).
     """
-    limits = get_limits().tier(user.account_tier).shared
     now = datetime.now(UTC)
-    cutoff = now - timedelta(days=limits.request_expires_days)
+    cutoff = now - timedelta(days=get_limits().tier(user.account_tier).shared.request_expires_days)
 
     req = await db[c.FRIENDSHIPS].find_one(
         {"_id": request_id, "addressee_id": user.id, "status": "pending"},
-        {"_id": 1, "requester_id": 1, "addressee_id": 1, "created_at": 1},
+        {"_id": 1, "created_at": 1},
     )
     if req is None:
         raise _not_found()
     if (req.get("created_at") or now) < cutoff:
         raise _not_found()  # hết hạn: coi như không tồn tại
 
-    # Trần sổ chung: M1 một cặp một sổ, nên trần bằng trần bạn.
-    if await _count_active_journals(db, user.id) >= limits.journals_max:
-        raise ApiError(422, "JOURNALS_LIMIT", f"Đã đủ {limits.journals_max} sổ chung")
-
-    other_id = req["requester_id"]
-    key = member_key(user.id, other_id)
-
-    # Upsert theo member_key: hai request cùng lúc chỉ tạo được một cuốn (index unique partial).
-    journal = await db[c.SHARED_JOURNALS].find_one_and_update(
-        {"member_key": key, "scope": "pair"},
-        {
-            "$setOnInsert": {
-                "_id": uuid4(),
-                "scope": "pair",
-                "mode": "together",
-                "status": "active",
-                "member_key": key,
-                "members": [
-                    {"user_id": user.id, "role": "member", "joined_at": now},
-                    {"user_id": other_id, "role": "member", "joined_at": now},
-                ],
-                "created_by": user.id,
-                "created_at": now,
-                "updated_at": now,
-            }
-        },
-        upsert=True,
-        return_document=ReturnDocument.AFTER,
+    result = await db[c.FRIENDSHIPS].update_one(
+        {"_id": request_id, "addressee_id": user.id, "status": "pending"},
+        {"$set": {"status": "accepted", "responded_at": now, "journal_id": None}},
     )
-    if journal is None:
+    if result.matched_count == 0:
         raise _not_found()
-
-    await db[c.FRIENDSHIPS].update_one(
-        {"_id": req["_id"], "status": "pending"},
-        {"$set": {"status": "accepted", "journal_id": journal["_id"], "responded_at": now}},
-    )
-    return journal
 
 
 async def decline_request(db: AsyncDatabase, user: User, request_id: UUID) -> None:
@@ -348,3 +327,18 @@ async def end_journal(db: AsyncDatabase, user: User, journal_id: UUID) -> None:
     await db[c.FRIENDSHIPS].update_many(
         {"journal_id": journal_id, "status": "accepted"}, {"$set": {"status": "ended"}}
     )
+    # Hủy lời mời mở sổ còn chờ của cặp này (kết thúc sổ = hai người không viết chung nữa).
+    members = await db[c.SHARED_JOURNALS].find_one({"_id": journal_id}, {"_id": 0, "members": 1})
+    if members:
+        ids = [m["user_id"] for m in members["members"]]
+        if len(ids) == 2:
+            a, b = ids
+            await db[c.JOURNAL_REQUESTS].delete_many(
+                {
+                    "status": "pending",
+                    "$or": [
+                        {"requester_id": a, "addressee_id": b},
+                        {"requester_id": b, "addressee_id": a},
+                    ],
+                }
+            )

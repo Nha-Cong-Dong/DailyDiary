@@ -36,6 +36,7 @@ class User(BaseModel):
     account_tier: AccountTier
     joined_at: datetime
     onboarded_at: datetime | None
+    last_active: datetime | None  # dùng app gần nhất (cập nhật theo request) để hiện "lần hoạt động"
     custom_flag_colors: tuple[str, ...] = ()
     avatar_key: str | None = None  # ảnh tự tải lên (kho ảnh); có thì thay ảnh Google
 
@@ -51,6 +52,7 @@ class User(BaseModel):
             account_tier=doc["account_tier"],
             joined_at=doc["joined_at"],
             onboarded_at=doc.get("onboarded_at"),
+            last_active=doc.get("last_active"),
             custom_flag_colors=tuple(doc.get("custom_flag_colors") or ()),
             avatar_key=doc.get("avatar_key"),
         )

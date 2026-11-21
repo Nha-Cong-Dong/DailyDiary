@@ -99,6 +99,16 @@ async def _fill(db) -> None:
             "responded_at": now,
         }
     )
+    await db[c.JOURNAL_REQUESTS].insert_one(
+        {
+            "_id": uuid4(),
+            "requester_id": uid,
+            "addressee_id": other,
+            "status": "pending",
+            "journal_id": None,
+            "created_at": now,
+        }
+    )
     await log_deletion(db, "journal", pages=1, photos=0, share_links=0)
 
 

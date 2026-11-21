@@ -36,6 +36,10 @@ class FriendOut(BaseModel):
     # Cuốn sổ chung đang active với người này (nếu có).
     journal_id: UUID | None
     journal_status: str | None
+    # Đang có lời mời mở sổ chung giữa hai người chưa (để hiện trạng thái "đang mời").
+    journal_invite_pending: bool = False
+    # Lần người bạn này hoạt động trong app gần nhất (điểm theo dõi hoạt động).
+    last_active: datetime | None = None
 
 
 class FriendListOut(BaseModel):
@@ -47,6 +51,26 @@ class FriendListOut(BaseModel):
     journals_max: int
     friends_count: int
     journals_count: int
+
+
+class JournalInviteOut(BaseModel):
+    """Một lời mời mở sổ chung (đến hoặc đi)."""
+
+    id: UUID
+    # "incoming" = người kia mời tôi; "outgoing" = tôi mời người kia.
+    direction: str
+    display_name: str
+    avatar_url: str | None
+    status: str
+    created_at: datetime
+    expires_at: datetime
+
+
+class JournalInviteListOut(BaseModel):
+    """GET /journals/invites."""
+
+    incoming: list[JournalInviteOut]
+    outgoing: list[JournalInviteOut]
 
 
 class FriendRequestOut(BaseModel):
@@ -78,6 +102,8 @@ class JournalOut(BaseModel):
     # Thành viên khác (không phải tôi) — tên và avatar để hiện.
     partner_display_name: str
     partner_avatar_url: str | None
+    # Lần người bạn hoạt động trong app gần nhất (để hiện "lần hoạt động" trên thẻ sổ).
+    partner_last_active: datetime | None = None
     created_at: datetime
     ended_at: datetime | None
     # Chuỗi ấm (ngày có ít nhất một mục của một trong hai) và badge đồng bộ (cả hai cùng có mục).

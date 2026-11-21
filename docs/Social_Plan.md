@@ -102,17 +102,23 @@ log. Thay vào đó:
 ### 2.5 Vòng đời quan hệ
 
 ```
-        gửi yêu cầu            chấp nhận
-A ────────────────────► B ──────────────► sổ chung (active)
-                          │                    │
-                   từ chối / hết hạn         kết thúc (một bên bấm)
-                                              ▼
-                                     sổ chung (ended)
+        gửi yêu cầu            chấp nhận                    mời mở sổ           chấp nhận
+A ────────────────────► B ──────────────► bạn (chưa có sổ) ──────────────► sổ chung (active)
+                          │                    │                                  │
+                   từ chối / hết hạn     từ chối / hết hạn                   kết thúc (một bên bấm)
+                                                                                   ▼
+                                                                        sổ chung (ended)
 ```
 
 - Yêu cầu phải được **chấp nhận** (không tự động kết bạn) — bắt buộc cho riêng tư.
+- **Thành bạn chưa chắc đã có sổ** (hiệu đính 21/11/2026): chấp nhận chỉ tạo quan hệ bạn; sổ chung
+  được tạo khi hai bên cùng chấp nhận một **lời mời mở sổ** (`journal_requests`). Không ai tự sinh sổ cho cặp khác.
+- **Theo dõi lần hoạt động** (hiệu đính 21/11/2026): `users.last_active` cập nhật theo request; hiện
+  "Lần hoạt động: …" ở danh sách bạn và thẻ sổ. Mốc: <5 phút "vừa xong"; 5–59 phút làm tròn xuống mốc 5 phút;
+  ≥60 phút theo giờ ("lúc HH:mm" / "D/M").
 - **Kết thúc sổ chung**: ai cũng bấm được, hiệu lực tức thì. Người còn lại **không** thấy các mục của người đã
-  kết thúc nữa; mỗi người **vẫn thấy mục của chính mình** (dữ liệu thuộc về người viết). Không xóa gì.
+  kết thúc nữa; mỗi người **vẫn thấy mục của chính mình** (dữ liệu thuộc về người viết). Không xóa gì;
+  lời mời mở sổ đang chờ của cặp bị hủy.
 - Yêu cầu chờ quá 30 ngày thì hết hạn (dọn bằng tác vụ định kỳ).
 
 ## 3. Mô hình dữ liệu
@@ -171,12 +177,25 @@ Index:
 | `_id` | binData (uuid4) | |
 | `requester_id`, `addressee_id` | binData | |
 | `status` | `"pending"` \| `"accepted"` \| `"declined"` \| `"ended"` | |
-| `journal_id` | binData \| null | sổ chung sinh ra khi `accepted` |
+| `journal_id` | binData \| null | sổ chung (sinh khi lời mời mở sổ được hai bên chấp nhận; hiệu đính 21/11/2026) |
 | `created_at`, `responded_at` | date | hết hạn sau 30 ngày khi còn `pending` |
 
 Index: `ix_friend_request_addressee` (`addressee_id`, `status`), `ix_friend_request_requester`, `ix_friend_status`.
 
-**Thay đổi `users`:** thêm `friend_code` (string, unique, sparse). Migration `m0010` dùng `collMod` + `create_index`
+**`journal_requests`** (hiệu đính 21/11/2026, migration `m0011`) — lời mời mở sổ chung giữa hai người bạn:
+
+| Trường | Kiểu | Ghi chú |
+| --- | --- | --- |
+| `_id` | binData (uuid4) | |
+| `requester_id`, `addressee_id` | binData | người mời / người được mời |
+| `status` | `"pending"` \| `"accepted"` \| `"declined"` | chỉ người được mời phản hồi |
+| `journal_id` | binData \| null | sổ sinh ra khi `accepted` |
+| `created_at`, `responded_at` | date | hết hạn theo `shared.request_expires_days` khi còn `pending` |
+
+Index: `ix_addressee_status`, `ix_requester`, `uq_pair_directed` (unique `requester_id` + `addressee_id`).
+
+**Thay đổi `users`:** thêm `friend_code` (string, unique, sparse) và `last_active` (date, nullable —
+hiệu đính 21/11/2026, cập nhật theo request, throttling 60 giây). Migration `m0011` dùng `collMod` + `create_index`
 theo đúng mẫu `m0005_user_custom_flag_colors.py` (sao chép validator cũ rồi thêm trường).
 
 ### 3.2 Ảnh trong sổ chung
@@ -209,12 +228,13 @@ Mọi thao tác nhiều collection chạy **theo thứ tự và chạy lại đ�
 
 | Method | Đường dẫn | Viết | Rate limit |
 | --- | --- | --- | --- |
-| `GET` | `/friends` | danh sách bạn bè (tên, avatar, sổ chung) | `read` |
+| `GET` | `/friends` | danh sách bạn bè (tên, avatar, sổ chung, lần hoạt động, cờ mời mở sổ) | `read` |
 | `GET` | `/friends/requests` | yêu cầu đến / đi | `read` |
 | `POST` | `/friends/requests` | `{ code }` → gửi yêu cầu | `friend_request` (IP + user) |
-| `POST` | `/friends/requests/{id}/accept` | chấp nhận → tạo sổ chung | `write` |
+| `POST` | `/friends/requests/{id}/accept` | chấp nhận → thành bạn (chưa có sổ) | `write` |
 | `POST` | `/friends/requests/{id}/decline` | từ chối | `write` |
-| `DELETE` | `/friends/{journal_id}` | kết thúc sổ chung | `write` |
+| `POST` | `/friends/{friend_id}/journal-invite` | mời mở sổ chung (hiệu đính 21/11/2026) | `journal_invite` (10/ngày) |
+| `DELETE` | `/friends/{journal_id}` | kết thúc sổ chung (hủy luôn lời mời đang chờ) | `write` |
 | `GET` | `/me/friend-code` | mã bạn của tôi | `me` |
 | `POST` | `/me/friend-code/rotate` | xoay mã | `write` |
 
@@ -222,7 +242,10 @@ Mọi thao tác nhiều collection chạy **theo thứ tự và chạy lại đ�
 
 | Method | Đường dẫn | Viết | Rate limit |
 | --- | --- | --- | --- |
-| `GET` | `/journals` | các sổ chung của tôi + trạng thái chuỗi | `read` |
+| `GET` | `/journals` | các sổ chung của tôi + trạng thái chuỗi + lần hoạt động của bạn | `read` |
+| `GET` | `/journals/invites` | lời mời mở sổ đến / đi (hiệu đính 21/11/2026) | `read` |
+| `POST` | `/journals/invites/{id}/accept` | chấp nhận → tạo sổ (chỉ người được mời) | `write` |
+| `POST` | `/journals/invites/{id}/decline` | từ chối lời mời | `write` |
 | `GET` | `/journals/{id}` | chi tiết: thành viên, chuỗi ấm, badge đồng bộ, mốc dài nhất | `read` |
 | `GET` | `/journals/{id}/entries` | `?cursor=` — mục của cả hai, mới nhất trước | `read` |
 | `PUT` | `/journals/{id}/entries/{date}` | viết mục của **tôi** cho ngày đó | `journal_write` |

@@ -25,9 +25,15 @@ async def _send_request(alice, bob, db):
 
 
 async def _make_journal(alice, bob, db):
-    """Hai người bạn + một cuốn sổ chung active (gói toàn bộ luồng: gửi → chấp nhận)."""
+    """Hai người bạn + một cuốn sổ chung active (gói toàn bộ luồng mới:
+    kết bạn → chấp nhận (thành bạn, chưa có sổ) → mời mở sổ → chấp nhận (tạo sổ))."""
     req_id = await _send_request(alice, bob, db)
     r = await bob.post(f"/friends/requests/{req_id}/accept")
+    assert r.status_code == 204, r.text
+    # Thành bạn nhưng chưa có sổ chung.
+    assert await db[c.SHARED_JOURNALS].count_documents({}) == 0
+    invite = (await alice.post(f"/friends/{bob.user['_id']}/journal-invite")).json()["id"]
+    r = await bob.post(f"/journals/invites/{invite}/accept")
     assert r.status_code == 204, r.text
     journal = await db[c.SHARED_JOURNALS].find_one({"members.user_id": alice.user["_id"]})
     assert journal is not None
@@ -58,6 +64,77 @@ async def test_code_only_generated_once_not_logged(alice, db):
         assert (await alice.get("/me/friend-code")).json()["friend_code"] == stored["friend_code"]
 
 
+async def test_accept_frienship_does_not_create_journal(alice, bob, db):
+    """Chấp nhận yêu cầu kết bạn chỉ thành bạn — KHÔNG tự sinh sổ chung."""
+    req_id = await _send_request(alice, bob, db)
+    assert (await bob.post(f"/friends/requests/{req_id}/accept")).status_code == 204
+    doc = await db[c.FRIENDSHIPS].find_one({"_id": UUID(req_id)})
+    assert doc["status"] == "accepted" and doc["journal_id"] is None
+    assert await db[c.SHARED_JOURNALS].count_documents({}) == 0
+    assert (await alice.get("/friends")).json()["friends_count"] == 1
+
+
+async def test_journal_invite_creates_journal_when_both_accept(alice, bob, db):
+    """Mời mở sổ + chấp nhận → tạo đúng một cuốn sổ cho cặp."""
+    req_id = await _send_request(alice, bob, db)
+    assert (await bob.post(f"/friends/requests/{req_id}/accept")).status_code == 204
+
+    invite = await alice.post(f"/friends/{bob.user['_id']}/journal-invite")
+    assert invite.status_code == 200, invite.text
+    invite_id = invite.json()["id"]
+    assert invite.json()["direction"] == "outgoing"
+    # Bob (người được mời) thấy ở hướng "incoming".
+    invites = (await bob.get("/journals/invites")).json()
+    assert [i["id"] for i in invites["incoming"]] == [invite_id]
+
+    assert (await bob.post(f"/journals/invites/{invite_id}/accept")).status_code == 204
+    journal = await db[c.SHARED_JOURNALS].find_one({"members.user_id": alice.user["_id"]})
+    assert journal is not None
+    assert {m["user_id"] for m in journal["members"]} == {alice.user["_id"], bob.user["_id"]}
+    # Quan hệ bạn được gắn journal_id (để danh sách bạn hiện "Mở sổ chung").
+    assert (await db[c.FRIENDSHIPS].find_one({"_id": UUID(req_id)}))["journal_id"] == journal["_id"]
+
+
+async def test_journal_invite_rejected_before_friendship(alice, db):
+    """Mời mở sổ với người chưa phải bạn → 422 NOT_FRIENDS."""
+    r = await alice.post(f"/friends/{uuid4()}/journal-invite")
+    assert r.status_code == 422 and r.json()["error"]["code"] == "NOT_FRIENDS"
+
+
+async def test_journal_invite_only_addressee_accepts(alice, bob, db):
+    req_id = await _send_request(alice, bob, db)
+    await bob.post(f"/friends/requests/{req_id}/accept")
+    invite_id = (await alice.post(f"/friends/{bob.user['_id']}/journal-invite")).json()["id"]
+    # Alice (người mời) không chấp nhận được chính lời mời mình gửi.
+    assert (await alice.post(f"/journals/invites/{invite_id}/accept")).status_code == 404
+    # Bob từ chối → không có sổ.
+    assert (await bob.post(f"/journals/invites/{invite_id}/decline")).status_code == 204
+    assert await db[c.SHARED_JOURNALS].count_documents({}) == 0
+
+
+async def test_journal_invite_blocked_when_journal_exists(alice, bob, db):
+    await _make_journal(alice, bob, db)
+    r = await alice.post(f"/friends/{bob.user['_id']}/journal-invite")
+    assert r.status_code == 409 and r.json()["error"]["code"] == "JOURNAL_EXISTS"
+
+
+async def test_journal_invite_duplicate_pending_rejected(alice, bob, db):
+    req_id = await _send_request(alice, bob, db)
+    await bob.post(f"/friends/requests/{req_id}/accept")
+    assert (await alice.post(f"/friends/{bob.user['_id']}/journal-invite")).status_code == 200
+    # Mời lại cùng cặp khi đã có lời mời đang chờ → 409.
+    r = await alice.post(f"/friends/{bob.user['_id']}/journal-invite")
+    assert r.status_code == 409 and r.json()["error"]["code"] == "INVITE_EXISTS"
+
+
+async def test_journal_invite_requires_login(anon, make_client):
+    carol = await make_client("carol@example.com")
+    # Chưa đăng nhập → 401 (chưa đến logic).
+    assert (await anon.post(f"/friends/{uuid4()}/journal-invite")).status_code == 401
+    # Carol chưa có bạn: gọi với uuid lạ → 422 NOT_FRIENDS (đã xác thực).
+    assert (await carol.post(f"/friends/{uuid4()}/journal-invite")).status_code == 422
+
+
 async def test_send_request_creates_pending_then_accepts(alice, bob, db):
     req_id = await _send_request(alice, bob, db)
     # Alice (người gửi) thấy ở hướng "outgoing".
@@ -72,20 +149,21 @@ async def test_send_request_creates_pending_then_accepts(alice, bob, db):
 
     r = await bob.post(f"/friends/requests/{req_id}/accept")
     assert r.status_code == 204
-    # Quan hệ chuyển accepted; có sổ chung.
+    # Quan hệ chuyển accepted (chưa có sổ).
     doc = await db[c.FRIENDSHIPS].find_one({"_id": UUID(req_id)})
-    assert doc["status"] == "accepted" and doc["journal_id"] is not None
-    journal = await db[c.SHARED_JOURNALS].find_one({"_id": doc["journal_id"]})
-    assert {m["user_id"] for m in journal["members"]} == {alice.user["_id"], bob.user["_id"]}
+    assert doc["status"] == "accepted" and doc["journal_id"] is None
     assert (await alice.get("/friends")).json()["friends_count"] == 1
 
 
 async def test_accept_creates_single_journal_when_both_click(alice, bob, db):
-    """Hai người cùng bấm chấp nhận một yêu cầu chỉ tạo đúng một cuốn sổ (index unique member_key)."""
+    """Hai người cùng chấp nhận lời mời mở sổ chỉ tạo đúng một cuốn (index unique member_key)."""
     req_id = await _send_request(alice, bob, db)
     assert (await bob.post(f"/friends/requests/{req_id}/accept")).status_code == 204
-    # Bấm lần hai: yêu cầu không còn pending → 404, không tạo sổ thứ hai.
-    assert (await bob.post(f"/friends/requests/{req_id}/accept")).status_code == 404
+    invite = await alice.post(f"/friends/{bob.user['_id']}/journal-invite")
+    invite_id = invite.json()["id"]
+    # Chỉ người được mời (Bob) mới chấp nhận; bấm lần hai không còn pending → 404, chỉ một cuốn.
+    assert (await bob.post(f"/journals/invites/{invite_id}/accept")).status_code == 204
+    assert (await bob.post(f"/journals/invites/{invite_id}/accept")).status_code == 404
     assert await db[c.SHARED_JOURNALS].count_documents({"members.user_id": alice.user["_id"]}) == 1
 
 
@@ -179,6 +257,33 @@ async def test_friends_list_is_empty_without_relationships(alice, db):
     assert data["friends"] == [] and data["friends_count"] == 0
     # Trần theo cấp (beta = 20/10) được trả về để hiện "x/y".
     assert data["friends_max"] == 20 and data["journals_max"] == 10
+
+
+async def test_last_active_tracked_and_shown_on_friend_row(alice, bob, db):
+    """Mỗi request đã đăng nhập cập nhật users.last_active; danh sách bạn + thẻ sổ hiện nó."""
+    assert (await alice.get("/me/friend-code")).status_code == 200  # một request đã đăng nhập
+    stored = await db[c.USERS].find_one({"_id": alice.user["_id"]}, {"last_active": 1})
+    assert stored["last_active"] is not None
+
+    # Bob (có last_active) vào danh sách bạn của Alice, kèm cờ mời mở sổ.
+    req_id = await _send_request(alice, bob, db)
+    await bob.post(f"/friends/requests/{req_id}/accept")
+    row = (await alice.get("/friends")).json()["friends"][0]
+    assert row["id"] == str(bob.user["_id"])
+    assert row["last_active"] is not None
+    assert row["journal_invite_pending"] is False
+
+    # Mời mở sổ → cờ pending hiện trên cả hai bên.
+    invite_id = (await alice.post(f"/friends/{bob.user['_id']}/journal-invite")).json()["id"]
+    assert (await alice.get("/friends")).json()["friends"][0]["journal_invite_pending"] is True
+    assert (await bob.get("/friends")).json()["friends"][0]["journal_invite_pending"] is True
+    assert (await bob.post(f"/journals/invites/{invite_id}/accept")).status_code == 204
+
+    # Thẻ sổ chung hiện last_active của người kia.
+    jid = (await alice.get("/journals")).json()["journals"][0]["id"]
+    assert (await bob.get(f"/journals/{jid}")).status_code == 200
+    card = (await bob.get("/journals")).json()["journals"][0]
+    assert card["partner_last_active"] is not None
 
 
 async def test_write_requires_login(anon):

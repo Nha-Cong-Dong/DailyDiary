@@ -18,6 +18,7 @@ USER_RATE_NAMES = {
     "search",
     # ADR 0007: bạn bè và sổ chung
     "friend_request",
+    "journal_invite",
     "journal_write",
     "journal_read",
 }

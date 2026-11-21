@@ -4,8 +4,10 @@ export default {
   friendCode: { title: 'Your friend code', copy: 'Copy code', copied: 'Copied', rotate: 'Change code', confirmTitle: 'Change your friend code?', confirmBody: 'Your old code and any invite links from it will stop working immediately.', cancel: 'Not now', confirm: 'Change code' },
   send: { title: 'Add a friend', placeholder: 'Enter their friend code', submit: 'Send invite', sent: 'Invite sent', limit: 'You have reached your friend limit.', invalid: 'This friend code was not found.' },
   requests: { title: 'Friend requests', incoming: 'Incoming', outgoing: 'Sent', accept: 'Accept', decline: 'Decline', pending: 'Pending', empty: 'No requests yet.' },
-  friends: { title: 'Friends', count: '{{count}}/{{max}} friends', empty: 'Your friend list is empty.', invite: 'Invite someone with the code above', journal: 'Open shared journal', noJournal: 'No shared journal yet' },
-  journals: { title: 'Shared journals', count: '{{count}}/{{max}} journals', empty: 'No shared journals yet.', open: 'Open journal', active: 'Active', ended: 'Ended', warm: 'Warm streak', synced: 'Synced days', longest: 'Longest' },
+  friends: { title: 'Friends', count: '{{count}}/{{max}} friends', empty: 'Your friend list is empty.', invite: 'Invite someone with the code above', journal: 'Open shared journal', journalInvitePending: 'Awaiting journal invite', noJournal: 'No shared journal yet', lastActive: 'Last active: {{time}}' },
+  journals: { title: 'Shared journals', count: '{{count}}/{{max}} journals', empty: 'No shared journals yet.', open: 'Open journal', active: 'Active', ended: 'Ended', warm: 'Streak', synced: 'Synced days', longest: 'Longest', partnerLastActive: "Your friend's last activity: {{time}}" },
+  journalInvites: { title: 'Journal invites', incoming: 'Incoming', outgoing: 'Sent', accept: 'Accept & open', decline: 'Decline', pending: 'Pending', empty: 'No journal invites yet.', note: 'A shared journal is created when both friends accept the invite.' },
+  lastActive: { justNow: 'just now', minutes: '{{n}} min ago', today: 'at {{time}}', day: '{{date}}' },
   detail: {
     back: 'All shared journals', members: 'Members',
     write: "Write today's entry", score: "Today's score", title: 'Title', titlePlaceholder: 'Short title ({{max}} characters)', content: 'What is on your mind?', contentPlaceholder: 'A few short lines ({{max}} characters)', subIcon: 'Small icon', flagColor: 'Color flag', save: 'Save entry', saved: 'Saved',

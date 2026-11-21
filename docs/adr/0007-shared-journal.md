@@ -39,8 +39,9 @@ lối vào khóa "Nhật ký chung, sắp có" ở thanh điều hướng và H�
 - **Tìm bạn bằng mã bạn**, không tìm theo email. Mỗi tài khoản có một mã ngẫu nhiên 10 ký tự, **xoay được** bất
   cứ lúc nào; mã cũ và link mời theo mã cũ chết ngay (giống cách tắt link chia sẻ trong `share_links`).
   Lý do: tìm theo email tạo ra bản đồ quan hệ nhạy cảm và rò rỉ qua log.
-- **Quan hệ phải được chấp nhận**: gửi mã → yêu cầu → người nhận chấp nhận → sinh sổ chung. Yêu cầu chờ hết
-  hạn sau 30 ngày.
+- **Quan hệ phải được chấp nhận**: gửi mã → yêu cầu → người nhận chấp nhận → **thành bạn**. Yêu cầu chờ hết
+  hạn sau 30 ngày. *Sửa 21/11/2026: chấp nhận chỉ tạo quan hệ bạn; cuốn sổ chung được tạo riêng qua một lời
+  mời mở sổ (`journal_requests`) mà cả hai phải chấp nhận — không tự sinh sổ lúc kết bạn (xem Hiệu đính dưới).*
 - **Kết thúc sổ chung**: ai cũng bấm được, hiệu lực tức thì. Người còn lại **không** thấy mục của người đã kết
   thúc; mỗi người **vẫn thấy mục của chính mình**. Không xóa gì.
 - **Ảnh trong sổ chung** nằm dưới tiền tố `{user_id}/shared/` → tác vụ xóa tài khoản dọn được theo cơ chế
@@ -57,7 +58,8 @@ lối vào khóa "Nhật ký chung, sắp có" ở thanh điều hướng và H�
 
 ## Hệ quả
 
-- Thêm ba collection: `shared_journals`, `shared_entries`, `friendships`; thêm `users.friend_code` (unique, sparse).
+- Thêm ba collection: `shared_journals`, `shared_entries`, `friendships` (hiệu đính 21/11/2026: thêm
+  `journal_requests`); thêm `users.friend_code` (unique, sparse) và `users.last_active` (hiệu đính 21/11/2026).
   Migration `m0010` theo mẫu `m0005`/`m0006` (copy validator cũ rồi `collMod`).
 - `deletion_log` thêm loại `"social"` — chỉ loại, thời điểm, số lượng; không `user_id`/email/nội dung.
 - Xóa tài khoản phải dọn thêm `shared_journals` (mình là thành viên), `shared_entries` mình viết,
@@ -70,3 +72,23 @@ lối vào khóa "Nhật ký chung, sắp có" ở thanh điều hướng và H�
   bị thay thế bởi ADR này.
 - Mọi chữ hiển thị mới phải có **cả hai** ngôn ngữ (ADR 0006); chữ tiếng Anh dài hơn → kiểm tra tràn ở 360 px.
 - Chi phí: mỗi truy vấn đọc sổ chung là một lần đọc DB thêm (ADR 0002 ghi nhận chi phí này).
+
+## Hiệu đính (21/11/2026)
+
+Theo phản hồi của người dùng, ba điểm sửa trên ADR này:
+
+1. **Thành bạn ≠ có sổ chung.** Chấp nhận yêu cầu kết bạn chỉ thiết lập quan hệ bạn
+   (`friendships.status = accepted`, `journal_id = null`). Cuốn sổ chung được tạo **riêng** qua một
+   **lời mời mở sổ** (`journal_requests`): một người bạn bấm "Mở sổ chung", người kia chấp nhận → mới
+   sinh `shared_journals`. Trần sổ chung kiểm ở bước tạo (bên chấp nhận), không phải lúc gửi mời.
+   Một cặp vẫn tối đa một cuốn (index unique `member_key` + upsert theo `member_key`).
+2. **Theo dõi lần hoạt động của bạn.** `users.last_active` cập nhật theo từng request đã đăng nhập
+   (throttling: chỉ set khi giá trị hiện có đã ≥ 60 giây trước). Hiện ở danh sách bạn ("Lần hoạt động: …")
+   và trên thẻ sổ chung. Mốc hiển thị: <5 phút = "vừa xong"; 5–59 phút = làm tròn xuống mốc 5 phút
+   ("X phút trước"); ≥60 phút = theo giờ ("lúc HH:mm" nếu hôm nay, không thì "D/M").
+3. **Đổi nhãn:** "Chuỗi ấm" → "Chuỗi"; trạng thái "Đang mở" → "Đang hoạt động".
+
+Hệ quả: thêm collection `journal_requests` (migration `m0011`: `users.last_active`, `deletion_log`
+nhận trường đếm lời mời, index + validator cho `journal_requests`). `deletion_log` loại `"social"`
+đếm thêm `journal_invites`. Xóa tài khoản dọn thêm `journal_requests` (mình gửi hoặc mình nhận).
+Rate limit mới `journal_invite` (10/ngày) tách khỏi `friend_request`.
