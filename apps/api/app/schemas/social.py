@@ -5,6 +5,7 @@
 """
 
 from datetime import date, datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -93,6 +94,14 @@ class FriendRequestListOut(BaseModel):
     outgoing: list[FriendRequestOut]
 
 
+class JournalModeIn(BaseModel):
+    """POST /journals/{journal_id}/mode: đổi chế độ cùng viết / luân phiên."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    mode: Literal["together", "alternating"]
+
+
 class JournalOut(BaseModel):
     """Một cuốn sổ chung (M1: 1–1)."""
 
@@ -112,6 +121,8 @@ class JournalOut(BaseModel):
     longest_warm_streak: int
     # Mục của tôi trong sổ (nếu hôm nay đã ghi).
     my_today_entry: bool
+    # Luân phiên (M2): hôm nay đến lượt tôi viết không (False = đến lượt bạn).
+    my_turn: bool
 
 
 class JournalListOut(BaseModel):

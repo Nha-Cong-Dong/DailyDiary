@@ -19,6 +19,8 @@ from app.schemas.social import (
     JournalDetailOut,
     JournalInviteListOut,
     JournalListOut,
+    JournalModeIn,
+    JournalOut,
     SharedEntryOut,
     SharedEntryPageOut,
     SharedEntryWrite,
@@ -77,6 +79,19 @@ async def get_journal(
 ) -> JournalDetailOut:
     """Chi tiết một cuốn sổ: thành viên, chuỗi ấm, badge đồng bộ."""
     return await journal_service.get_journal(db, user, journal_id, s3)
+
+
+@router.post("/journals/{journal_id}/mode", response_model=JournalOut)
+@limiter.limit(rate_limit("write"))
+async def set_journal_mode(
+    request: Request,
+    journal_id: UUID,
+    body: JournalModeIn,
+    user: CurrentUser,
+    db: Db,
+) -> JournalOut:
+    """Đổi chế độ sổ: cùng viết / luân phiên (M2, opt-in; chỉ sổ đang hoạt động)."""
+    return await journal_service.set_journal_mode(db, user, journal_id, body)
 
 
 @router.get("/journals/{journal_id}/entries", response_model=SharedEntryPageOut)

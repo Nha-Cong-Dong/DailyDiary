@@ -28,6 +28,7 @@ from app.schemas.social import (
     JournalDetailOut,
     JournalListOut,
     JournalMemberOut,
+    JournalModeIn,
     JournalOut,
     SharedEntryOut,
     SharedEntryPageOut,
@@ -69,6 +70,20 @@ def _partner_id(journal: dict, user_id: UUID) -> UUID | None:
         if m["user_id"] != user_id:
             return m["user_id"]
     return None
+
+
+def _turn_owner_id(journal: dict, day: date) -> UUID | None:
+    """Người cầm lượt trong ngày `day` (chế độ luân phiên, ADR 0007 M2).
+
+    Stateless, không cần thêm trường DB: mốc "ngày 0" là UTC date của `created_at` thuộc
+    `members[0]` (người tạo sổ), sau đó đổi bên theo chẵn/lẻ. Chênh múi giờ giữa hai bên
+    làm lệch tối đa 1 ngày (chấp nhận, đồng nhất với cách đếm chuỗi ấm — ADR 0007).
+    """
+    members = journal.get("members", [])
+    if len(members) != 2:
+        return None
+    anchor = journal["created_at"].astimezone(ZoneInfo("UTC")).date()
+    return members[(day - anchor).days % 2]["user_id"]
 
 
 async def _profiles(db: AsyncDatabase, ids: set[UUID]) -> dict[UUID, dict]:
@@ -174,10 +189,15 @@ async def _journal_out(db: AsyncDatabase, journal: dict, user: User, storage: St
         },
         {"_id": 1},
     )
+    mode = journal.get("mode", "together")
+    active = journal.get("status", "active") == "active"
+    my_turn = True
+    if active and mode == "alternating":
+        my_turn = _turn_owner_id(journal, today) == user.id
     return JournalOut(
         id=journal["_id"],
         status=journal.get("status", "active"),
-        mode=journal.get("mode", "together"),
+        mode=mode,
         partner_display_name=(profile or {}).get("display_name", "") if profile else "",
         partner_avatar_url=_avatar(profile or {}, storage),
         partner_last_active=(profile or {}).get("last_active"),
@@ -187,6 +207,7 @@ async def _journal_out(db: AsyncDatabase, journal: dict, user: User, storage: St
         synced_days=synced,
         longest_warm_streak=longest,
         my_today_entry=mine_today is not None,
+        my_turn=my_turn,
     )
 
 
@@ -217,6 +238,26 @@ async def get_journal(
         for m in journal.get("members", [])
     ]
     return JournalDetailOut(**base.model_dump(), members=members)
+
+
+async def set_journal_mode(
+    db: AsyncDatabase, user: User, journal_id: UUID, data: JournalModeIn
+) -> JournalOut:
+    """Đổi chế độ sổ (cùng viết / luân phiên) — tính năng opt-in, đổi được bất cứ lúc nào.
+
+    Chỉ sổ đang hoạt động đổi được; ai cũng đổi được (một chiều, như "kết thúc sổ").
+    """
+    journal = await find_member_journal(db, user, journal_id)
+    if journal is None:
+        raise _not_found()
+    if journal.get("status", "active") == "ended":
+        raise ApiError(422, "JOURNAL_ENDED", "Sổ chung đã kết thúc, không đổi chế độ được")
+    now = _now()
+    await db[c.SHARED_JOURNALS].update_one(
+        {"_id": journal_id}, {"$set": {"mode": data.mode, "updated_at": now}}
+    )
+    journal["mode"] = data.mode
+    return await _journal_out(db, journal, user, None)
 
 
 def shared_entry_out(doc: dict, author: dict | None, mine: bool, storage: Storage | None) -> SharedEntryOut:
@@ -327,6 +368,14 @@ async def save_entry(
     # Ngày không được vượt "hôm nay" của người viết.
     if day > user_today(user.timezone):
         raise ApiError(422, "ENTRY_FUTURE_DATE", "Chưa thể ghi cho ngày chưa tới")
+    # Luân phiên (M2): chỉ người cầm lượt của ngày đó được tạo mục mới; sửa/xóa mục cũ của mình (lê từ
+    # chế độ cùng viết) vẫn được → guard chỉ áp khi tạo mới (không có baseVersion).
+    if (
+        journal.get("mode", "together") == "alternating"
+        and data.updated_at is None
+        and _turn_owner_id(journal, day) != user.id
+    ):
+        raise ApiError(422, "TURN_NOT_YOURS", "Chưa đến lượt của bạn trong chế độ luân phiên")
     if data.title is not None and len(data.title) > limits.title_max:
         raise ApiError(422, "ENTRY_LIMIT_TITLE", f"Tiêu đề tối đa {limits.title_max} ký tự")
     if data.content is not None and len(data.content) > limits.content_max:

@@ -579,6 +579,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journals/{journal_id}/mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set Journal Mode
+         * @description Đổi chế độ sổ: cùng viết / luân phiên (M2, opt-in; chỉ sổ đang hoạt động).
+         */
+        post: operations["set_journal_mode_journals__journal_id__mode_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journals/{journal_id}/photos": {
         parameters: {
             query?: never;
@@ -1297,6 +1317,8 @@ export interface components {
             mode: string;
             /** My Today Entry */
             my_today_entry: boolean;
+            /** My Turn */
+            my_turn: boolean;
             /** Partner Avatar Url */
             partner_avatar_url: string | null;
             /** Partner Display Name */
@@ -1374,6 +1396,17 @@ export interface components {
             role: string;
         };
         /**
+         * JournalModeIn
+         * @description POST /journals/{journal_id}/mode: đổi chế độ cùng viết / luân phiên.
+         */
+        JournalModeIn: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "together" | "alternating";
+        };
+        /**
          * JournalOut
          * @description Một cuốn sổ chung (M1: 1–1).
          */
@@ -1396,6 +1429,8 @@ export interface components {
             mode: string;
             /** My Today Entry */
             my_today_entry: boolean;
+            /** My Turn */
+            my_turn: boolean;
             /** Partner Avatar Url */
             partner_avatar_url: string | null;
             /** Partner Display Name */
@@ -3071,6 +3106,43 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_journal_mode_journals__journal_id__mode_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                journal_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JournalModeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalOut"];
+                };
             };
             /** @description Validation Error */
             422: {

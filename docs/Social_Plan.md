@@ -402,9 +402,13 @@ Mỗi giai đoạn là một PR, người dùng duyệt rồi mới làm giai đ
 
 ### Giai đoạn 2 — Chế độ luân phiên + chuỗi nâng cao
 
-- `mode: "alternating"` — mỗi ngày chỉ một người được viết, lượt đổi sau mỗi mục. Cần thêm trường
-  `turn_user_id`, `turn_date` vào `shared_journals` (migration `m0011`).
-- Chuỗi theo cặp dài hơn 30 ngày, cột mốc 30/100 ngày (`Roadmap.md` mục 3.3).
+- `mode: "alternating"` — tính năng **opt-in** (hiệu đính 21/11/2026): một người mỗi ngày, đổi lượt theo
+  chẵn/lẻ tính stateless từ `created_at` (ngày 0 = `members[0]`, không thêm trường DB). Ai cũng đổi
+  chế độ được; chỉ sổ đang hoạt động đổi được; sai lượt → `422 TURN_NOT_YOURS` (chỉ chặn tạo mục mới,
+  sửa/xóa mục cũ của mình vẫn được).
+- **Xong 21/11/2026:** endpoint `POST /journals/{journal_id}/mode`, field `my_turn` trên `JournalOut`,
+  guard trong `save_entry`, toggle "Cùng viết / Luân phiên" + banner lượt trong UI, mốc 30/100 ngày
+  (badge theo `warm_streak`, phía frontend).
 
 ### Giai đoạn 3 — Nhóm / tổ chức
 

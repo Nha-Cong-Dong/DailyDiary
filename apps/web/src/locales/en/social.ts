@@ -5,7 +5,7 @@ export default {
   send: { title: 'Add a friend', placeholder: 'Enter their friend code', submit: 'Send invite', sent: 'Invite sent', limit: 'You have reached your friend limit.', invalid: 'This friend code was not found.' },
   requests: { title: 'Friend requests', incoming: 'Incoming', outgoing: 'Sent', accept: 'Accept', decline: 'Decline', pending: 'Pending', empty: 'No requests yet.' },
   friends: { title: 'Friends', count: '{{count}}/{{max}} friends', empty: 'Your friend list is empty.', invite: 'Invite someone with the code above', journal: 'Open shared journal', journalInvitePending: 'Awaiting journal invite', noJournal: 'No shared journal yet', lastActive: 'Last active: {{time}}' },
-  journals: { title: 'Shared journals', count: '{{count}}/{{max}} journals', empty: 'No shared journals yet.', open: 'Open journal', active: 'Active', ended: 'Ended', warm: 'Streak', synced: 'Synced days', longest: 'Longest', partnerLastActive: "Your friend's last activity: {{time}}" },
+  journals: { title: 'Shared journals', count: '{{count}}/{{max}} journals', empty: 'No shared journals yet.', open: 'Open journal', active: 'Active', ended: 'Ended', warm: 'Streak', synced: 'Synced days', longest: 'Longest', partnerLastActive: "Your friend's last activity: {{time}}", milestone: '{{n}} days' },
   journalInvites: { title: 'Journal invites', incoming: 'Incoming', outgoing: 'Sent', accept: 'Accept & open', decline: 'Decline', pending: 'Pending', empty: 'No journal invites yet.', note: 'A shared journal is created when both friends accept the invite.' },
   lastActive: { justNow: 'just now', minutes: '{{n}} min ago', today: 'at {{time}}', day: '{{date}}' },
   detail: {
@@ -20,6 +20,8 @@ export default {
     endTitle: 'End your shared journal with {{name}}?',
     endBody: 'They will no longer see your entries in this journal, and you will not see theirs. Entries you wrote stay yours; the journal becomes view-only. This cannot be undone.',
     endCancel: 'Not now', endConfirm: 'End journal', endedToast: 'Shared journal ended.',
+    mode: { label: 'Writing mode', together: 'Write together', alternating: 'Alternate', hint: 'Alternate: one person writes each day, turns flip daily.' },
+    theirTurn: "Today is {{name}}'s turn to write",
   },
   photos: {
     title: 'Photos for the day', add: 'Add photo', uploading: 'Uploading photo…', limit: 'Up to {{count}} photos per entry',

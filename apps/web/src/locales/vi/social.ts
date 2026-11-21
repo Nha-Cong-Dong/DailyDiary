@@ -5,7 +5,7 @@ export default {
   send: { title: 'Thêm bạn', placeholder: 'Nhập mã bạn của họ', submit: 'Gửi lời mời', sent: 'Đã gửi lời mời', limit: 'Bạn đã đạt giới hạn bạn bè.', invalid: 'Không tìm thấy mã bạn này.' },
   requests: { title: 'Lời mời kết bạn', incoming: 'Đến', outgoing: 'Đã gửi', accept: 'Chấp nhận', decline: 'Từ chối', pending: 'Đang chờ', empty: 'Chưa có lời mời nào.' },
   friends: { title: 'Bạn bè', count: '{{count}}/{{max}} bạn', empty: 'Danh sách bạn còn trống.', invite: 'Mời một người bạn bằng mã ở trên', journal: 'Mở sổ chung', journalInvitePending: 'Đang chờ chấp nhận mở sổ', noJournal: 'Chưa có sổ chung', lastActive: 'Lần hoạt động: {{time}}' },
-  journals: { title: 'Sổ chung', count: '{{count}}/{{max}} sổ', empty: 'Chưa có sổ chung.', open: 'Mở sổ', active: 'Đang hoạt động', ended: 'Đã kết thúc', warm: 'Chuỗi', synced: 'Ngày đồng bộ', longest: 'Dài nhất', partnerLastActive: 'Lần hoạt động của bạn: {{time}}' },
+  journals: { title: 'Sổ chung', count: '{{count}}/{{max}} sổ', empty: 'Chưa có sổ chung.', open: 'Mở sổ', active: 'Đang hoạt động', ended: 'Đã kết thúc', warm: 'Chuỗi', synced: 'Ngày đồng bộ', longest: 'Dài nhất', partnerLastActive: 'Lần hoạt động của bạn: {{time}}', milestone: 'Đã {{n}} ngày' },
   journalInvites: { title: 'Lời mời mở sổ chung', incoming: 'Đến', outgoing: 'Đã gửi', accept: 'Chấp nhận mở sổ', decline: 'Từ chối', pending: 'Đang chờ', empty: 'Chưa có lời mời mở sổ nào.', note: 'Sổ chung được tạo khi hai bên cùng chấp nhận lời mời.' },
   lastActive: { justNow: 'vừa xong', minutes: '{{n}} phút trước', today: 'lúc {{time}}', day: 'ngày {{date}}' },
   detail: {
@@ -20,6 +20,8 @@ export default {
     endTitle: 'Kết thúc sổ chung với {{name}}?',
     endBody: 'Họ sẽ không xem được mục của bạn trong sổ nữa, và bạn cũng không xem được mục của họ. Các mục bạn đã viết vẫn thuộc về bạn; sổ chuyển sang chế độ chỉ xem. Không thể hoàn tác.',
     endCancel: 'Để sau', endConfirm: 'Kết thúc sổ', endedToast: 'Đã kết thúc sổ chung.',
+    mode: { label: 'Chế độ viết', together: 'Cùng viết', alternating: 'Luân phiên', hint: 'Luân phiên: mỗi ngày đến lượt một người viết.' },
+    theirTurn: 'Hôm nay đến lượt của {{name}}',
   },
   photos: {
     title: 'Ảnh trong ngày', add: 'Thêm ảnh', uploading: 'Đang tải ảnh…', limit: 'Tối đa {{count}} ảnh mỗi mục',

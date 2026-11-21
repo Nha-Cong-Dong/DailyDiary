@@ -92,3 +92,15 @@ Hệ quả: thêm collection `journal_requests` (migration `m0011`: `users.last_
 nhận trường đếm lời mời, index + validator cho `journal_requests`). `deletion_log` loại `"social"`
 đếm thêm `journal_invites`. Xóa tài khoản dọn thêm `journal_requests` (mình gửi hoặc mình nhận).
 Rate limit mới `journal_invite` (10/ngày) tách khỏi `friend_request`.
+
+4. **M2 · Chế độ luân phiên (opt-in, xong 21/11/2026):** `shared_journals.mode: "alternating"`
+   (validator m0010 đã reserve sẵn enum) là tính năng bật thêm, **không phải luật bắt buộc**:
+   - Ai cũng đổi chế độ được (một chiều, như "kết thúc sổ"); chỉ sổ đang hoạt động đổi được
+     (`POST /journals/{id}/mode`, rate `write`; sổ ended → 422).
+   - Lượt tính **stateless, không thêm trường DB**: ngày 0 (UTC date của `created_at`) thuộc
+     `members[0]`, đổi bên theo chẵn/lẻ — hai client tự tính được, khớp ADR 0001 (không
+     transaction). Chênh múi giờ lệch tối đa 1 ngày (chấp nhận, như chuỗi ấm).
+   - Guard chỉ khi tạo mục mới: sai lượt → `422 TURN_NOT_YOURS`; sửa/xóa mục cũ của mình
+     (lê từ cùng viết) vẫn được. `JournalOut.my_turn` (hôm nay, theo múi giờ người xem) để UI
+     ẩn form / hiện "đến lượt {tên}".
+   - Mốc 30/100 ngày: badge phía frontend theo `warm_streak` (không thêm logic backend).

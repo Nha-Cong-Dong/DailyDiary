@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Segmented } from '@/components/ui/segmented'
 import { Alert, AlertAction, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -25,7 +26,7 @@ import { todayIn } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
 import { tierLimits } from '@/lib/limits'
 import { ApiError } from '@/api/client'
-import { useEndJournal, useJournalDetail, useJournalEntries, useRefreshJournalEntries, useSaveSharedEntry } from '../useSocial'
+import { useEndJournal, useJournalDetail, useJournalEntries, useRefreshJournalEntries, useSaveSharedEntry, useSetJournalMode } from '../useSocial'
 import { deleteSharedPhoto, makeSharedPhotoUpload } from '../sharedPhotoUpload'
 import type { SharedEntry, Journal } from '../social'
 
@@ -36,6 +37,7 @@ export function JournalDetail({ journal, onBack }: { journal: Journal; onBack: (
   const entries = useJournalEntries(journal.id)
   const refresh = useRefreshJournalEntries(journal.id)
   const endJournal = useEndJournal()
+  const setMode = useSetJournalMode(journal.id)
   const [confirmEnd, setConfirmEnd] = useState(false)
   const partner = detail.data?.partner_display_name ?? journal.partner_display_name
 
@@ -55,6 +57,10 @@ export function JournalDetail({ journal, onBack }: { journal: Journal; onBack: (
   const theirs = allEntries.filter((entry) => !entry.mine)
   const today = todayIn(profile.timeZone)
   const myToday = mine.find((entry) => entry.entry_date === today) ?? null
+  const mode = detail.data.mode === 'alternating' ? 'alternating' : 'together'
+  const isAlternate = mode === 'alternating'
+  const myTurn = !isAlternate || detail.data.my_turn
+  const active = !journal.ended_at
 
   return (
     <section className="animate-rise scroll-mt-6">
@@ -66,6 +72,7 @@ export function JournalDetail({ journal, onBack }: { journal: Journal; onBack: (
             <h2 className="truncate text-[24px] font-bold">{partner}</h2>
             <p className="text-label text-ink-soft">
               {detail.data.members.length} {t('social:detail.members')} · {journal.warm_streak} {t('social:journals.warm')}
+              {journal.warm_streak >= 30 ? <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-primary">{t('social:journals.milestone', { n: journal.warm_streak })}</span> : null}
             </p>
           </div>
           {journal.ended_at ? (
@@ -80,7 +87,27 @@ export function JournalDetail({ journal, onBack }: { journal: Journal; onBack: (
 
         {endJournal.isSuccess ? <Alert className="m-5"><AlertDescription>{t('social:detail.endedToast')}</AlertDescription></Alert> : null}
 
-        {!journal.ended_at ? <SharedEntryForm journalId={journal.id} today={today} initial={myToday} onSync={refresh} /> : null}
+        {active ? (
+          <div className="flex flex-wrap items-center gap-4 border-b border-line-soft px-5 py-4">
+            <Segmented
+              value={mode}
+              onChange={(value) => { if (value !== mode) setMode.mutate(value) }}
+              ariaLabel={t('social:detail.mode.label')}
+              options={[
+                { value: 'together', label: t('social:detail.mode.together') },
+                { value: 'alternating', label: t('social:detail.mode.alternating') },
+              ] as const}
+            />
+            <p className="text-label text-ink-soft">{t('social:detail.mode.hint')}</p>
+          </div>
+        ) : null}
+
+        {active && myTurn ? <SharedEntryForm journalId={journal.id} today={today} initial={myToday} onSync={refresh} /> : null}
+        {active && !myTurn ? (
+          <Alert className="m-5">
+            <AlertDescription>{t('social:detail.theirTurn', { name: partner })}</AlertDescription>
+          </Alert>
+        ) : null}
 
         <div className="grid gap-6 p-5 md:grid-cols-2">
           <FeedColumn heading={t('social:detail.myColumn')} entries={mine} emptyLabel={t('social:detail.empty')} loading={entries.isPending} />

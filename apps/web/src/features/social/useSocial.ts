@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, toApiError } from '@/api/client'
-import { entriesKey, friendCodeKey, friendsKey, journalInvitesKey, journalKey, journalsKey, requestsKey, SOCIAL_KEY, type FriendCode, type FriendList, type FriendRequestList, type JournalDetail, type JournalInviteList, type JournalList, type SharedEntry, type SharedEntryPage, type SharedEntryWrite } from './social'
+import { entriesKey, friendCodeKey, friendsKey, journalInvitesKey, journalKey, journalsKey, requestsKey, SOCIAL_KEY, type FriendCode, type FriendList, type FriendRequestList, type JournalDetail, type Journal, type JournalInviteList, type JournalList, type SharedEntry, type SharedEntryPage, type SharedEntryWrite } from './social'
 
 export const friendCodeQuery = () => queryOptions({
   queryKey: friendCodeKey(),
@@ -165,6 +165,21 @@ export function useEndJournal() {
       void client.invalidateQueries({ queryKey: journalsKey() })
       void client.invalidateQueries({ queryKey: friendsKey() })
       void client.invalidateQueries({ queryKey: journalKey(journalId) })
+    },
+  })
+}
+
+export function useSetJournalMode(journalId: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: async (mode: 'together' | 'alternating'): Promise<Journal> => {
+      const { data, error, response } = await api.POST('/journals/{journal_id}/mode', { params: { path: { journal_id: journalId } }, body: { mode } })
+      if (error || !data) throw toApiError(response, error)
+      return data
+    },
+    onSuccess: (journal) => {
+      client.setQueryData(journalKey(journalId), (prev: JournalDetail | undefined) => (prev ? { ...prev, ...journal } : prev))
+      void client.invalidateQueries({ queryKey: journalsKey() })
     },
   })
 }

@@ -10,7 +10,7 @@ function jsonResponse(data: unknown, status = 200) {
 const journal = {
   id: 'journal-1', partner_display_name: 'Bạn A', partner_avatar_url: null,
   status: 'active', mode: 'together', ended_at: null, warm_streak: 3,
-  synced_days: 5, longest_warm_streak: 9, my_today_entry: false,
+  synced_days: 5, longest_warm_streak: 9, my_today_entry: false, my_turn: true,
   partner_last_active: '2025-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z',
 }
 

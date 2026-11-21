@@ -942,6 +942,10 @@
             "title": "My Today Entry",
             "type": "boolean"
           },
+          "my_turn": {
+            "title": "My Turn",
+            "type": "boolean"
+          },
           "partner_avatar_url": {
             "anyOf": [
               {
@@ -994,6 +998,7 @@
           "synced_days",
           "longest_warm_streak",
           "my_today_entry",
+          "my_turn",
           "members"
         ],
         "title": "JournalDetailOut",
@@ -1136,6 +1141,25 @@
         "title": "JournalMemberOut",
         "type": "object"
       },
+      "JournalModeIn": {
+        "additionalProperties": false,
+        "description": "POST /journals/{journal_id}/mode: đổi chế độ cùng viết / luân phiên.",
+        "properties": {
+          "mode": {
+            "enum": [
+              "together",
+              "alternating"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "title": "JournalModeIn",
+        "type": "object"
+      },
       "JournalOut": {
         "description": "Một cuốn sổ chung (M1: 1–1).",
         "properties": {
@@ -1171,6 +1195,10 @@
           },
           "my_today_entry": {
             "title": "My Today Entry",
+            "type": "boolean"
+          },
+          "my_turn": {
+            "title": "My Turn",
             "type": "boolean"
           },
           "partner_avatar_url": {
@@ -1224,7 +1252,8 @@
           "warm_streak",
           "synced_days",
           "longest_warm_streak",
-          "my_today_entry"
+          "my_today_entry",
+          "my_turn"
         ],
         "title": "JournalOut",
         "type": "object"
@@ -4615,6 +4644,76 @@
           }
         },
         "summary": "Save Entry",
+        "tags": [
+          "journals"
+        ]
+      }
+    },
+    "/journals/{journal_id}/mode": {
+      "post": {
+        "description": "Đổi chế độ sổ: cùng viết / luân phiên (M2, opt-in; chỉ sổ đang hoạt động).",
+        "operationId": "set_journal_mode_journals__journal_id__mode_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "journal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Journal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JournalModeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Journal Mode",
         "tags": [
           "journals"
         ]
