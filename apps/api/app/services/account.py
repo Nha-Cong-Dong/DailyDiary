@@ -139,6 +139,8 @@ async def _delete_user_data(db: AsyncDatabase, user_id: UUID) -> int:
     await db[c.ENTRIES].delete_many({"user_id": user_id})
     await db[c.SHARE_LINKS].delete_many({"user_id": user_id})
     await db[c.USER_ITEMS].delete_many({"user_id": user_id})
+    # GĐ2 giữ chân: thư gửi tương lai (chỉ chữ, không ảnh → không cần dọn storage).
+    await db[c.LETTERS].delete_many({"user_id": user_id})
     # ADR 0007: sổ chung, mục chung, quan hệ kết bạn, lời mời mở sổ.
     journals = await db[c.SHARED_JOURNALS].delete_many({"members.user_id": user_id})
     shared = await db[c.SHARED_ENTRIES].delete_many({"author_id": user_id})

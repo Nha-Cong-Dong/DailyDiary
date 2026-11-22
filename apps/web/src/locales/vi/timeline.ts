@@ -123,4 +123,10 @@ export default {
     writeMore: 'Viết thêm',
     undo: 'Hoàn tác',
   },
+  lastYear: {
+    heading: 'Cách đây một năm, hôm nay',
+    body: 'Bạn đã ghi: {label} · {title}',
+    noContent: '(không có tiêu đề hay nội dung)',
+    open: 'Xem ngày đó',
+  },
 } as const

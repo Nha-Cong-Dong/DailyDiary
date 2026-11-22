@@ -21,6 +21,7 @@ from app.routers import (
     feedback,
     friendships,
     health,
+    letters,
     me,
     photos,
     pixels,
@@ -105,6 +106,7 @@ def create_app() -> FastAPI:
     app.include_router(shares.router)
     app.include_router(friendships.router)
     app.include_router(shared_journals.router)
+    app.include_router(letters.router)
     if settings.dev_login and settings.env in DEV_ENVS:
         app.include_router(auth.dev_router)
     return app

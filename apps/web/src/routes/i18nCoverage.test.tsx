@@ -11,6 +11,7 @@ import { OnboardingPage } from '@/routes/OnboardingPage'
 import { PixelsPage } from '@/routes/PixelsPage'
 import { ProfilePage } from '@/routes/ProfilePage'
 import { SearchPage } from '@/routes/SearchPage'
+import { LettersPage } from '@/routes/LettersPage'
 import { SharedListPage } from '@/routes/SharedListPage'
 import { TimelinePage } from '@/routes/TimelinePage'
 import { TodayPage } from '@/routes/TodayPage'
@@ -53,6 +54,7 @@ const SCREENS: { name: string; route: RouteObject; path: string; guest?: boolean
   { name: 'Hồ sơ', route: { path: '/profile', Component: ProfilePage }, path: '/profile', ready: /Profile|Language/ },
   { name: 'Đang chia sẻ', route: { path: '/profile/shares', Component: SharedListPage }, path: '/profile/shares', ready: /shar/i },
   { name: 'Thùng rác', route: { path: '/profile/trash', Component: TrashPage }, path: '/profile/trash', ready: /Trash/ },
+  { name: 'Thư tương lai', route: { path: '/profile/letters', Component: LettersPage }, path: '/profile/letters', ready: /letter/i },
   { name: 'Onboarding', route: { path: '/onboarding', Component: OnboardingPage }, path: '/onboarding', ready: /Name|photo/i },
   { name: '404', route: { path: '*', Component: NotFoundPage }, path: '/khong-co', ready: /page|Page/ },
 ]

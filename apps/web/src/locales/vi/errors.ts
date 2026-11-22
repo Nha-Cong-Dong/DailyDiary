@@ -45,5 +45,10 @@ export default {
     SHARE_EMPTY: 'Bật ít nhất một phần để có thể chia sẻ',
     AVATAR_INVALID: 'Ảnh đại diện chưa tải lên đủ, quá lớn hoặc sai định dạng',
     FLAG_COLORS_LIMIT: 'Tối đa {{n}} màu cờ tùy chỉnh',
+    LETTER_EMPTY: 'Thư cần nội dung',
+    LETTER_LIMIT_CONTENT: 'Nội dung tối đa {{n}} ký tự',
+    LETTER_NOT_FUTURE: 'Hẹn mở phải là ngày sau hôm nay',
+    LETTER_TODAY: 'Hôm nay bạn đã gửi thư rồi',
+    LETTER_NOT_FOUND: 'Không tìm thấy thư này',
   },
 } as const

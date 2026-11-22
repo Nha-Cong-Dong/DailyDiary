@@ -61,6 +61,7 @@ export function createRouter(client: QueryClient) {
                 { path: 'social', lazy: async () => ({ Component: (await import('./SocialPage')).SocialPage }) },
                 { path: 'profile', lazy: async () => ({ Component: (await import('./ProfilePage')).ProfilePage }) },
                 { path: 'profile/shares', lazy: async () => ({ Component: (await import('./SharedListPage')).SharedListPage }) },
+                { path: 'profile/letters', lazy: async () => ({ Component: (await import('./LettersPage')).LettersPage }) },
                 { path: 'profile/trash', lazy: async () => ({ Component: (await import('./TrashPage')).TrashPage }) },
               ],
             },

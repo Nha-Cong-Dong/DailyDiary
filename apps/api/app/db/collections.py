@@ -13,6 +13,8 @@ SHARED_JOURNALS = "shared_journals"  # một cuốn sổ cho mỗi cặp
 SHARED_ENTRIES = "shared_entries"  # một mục = một người, một ngày, trong một cuốn sổ
 FRIENDSHIPS = "friendships"  # yêu cầu kết bạn → chấp nhận (thành bạn)
 JOURNAL_REQUESTS = "journal_requests"  # lời mời mở sổ chung giữa hai người bạn (ADR 0007)
+# GĐ2 giữ chân: thư gửi tương lai — nội dung chỉ mở ra được từ `reveal_date`, tối đa 1 thư/1 ngày ghi.
+LETTERS = "letters"
 
 ALL = (
     USERS,
@@ -26,4 +28,5 @@ ALL = (
     SHARED_ENTRIES,
     FRIENDSHIPS,
     JOURNAL_REQUESTS,
+    LETTERS,
 )

@@ -137,3 +137,14 @@ export function daysInYear(year: number): number {
 export function editedOnTheDay(entryDate: DateString, updatedAt: string, timeZone: string): boolean {
   return todayIn(timeZone, new Date(updatedAt)) === entryDate
 }
+
+/**
+ * Cùng ngày tháng, năm trước ("cách đây một năm hôm nay"). 29/2 rơi về 28/2 khi năm trước không nhuận
+ * (không có ngày tương ứng); các ngày khác giữ nguyên. Thuần lịch, không phụ thuộc múi giờ.
+ */
+export function sameDayLastYear(date: DateString): DateString {
+  const [y, m, d] = date.split('-').map(Number)
+  const prevYear = y - 1
+  const day = d === 29 && m === 2 && daysInMonth(prevYear, 2) < 29 ? 28 : d
+  return format(new Date(Date.UTC(prevYear, m - 1, day)))
+}

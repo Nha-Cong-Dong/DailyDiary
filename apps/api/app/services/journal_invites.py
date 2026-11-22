@@ -120,9 +120,11 @@ async def list_journal_invites(
         "created_at": {"$gte": cutoff},
         "$or": [{"requester_id": user.id}, {"addressee_id": user.id}],
     }
-    pending = await db[c.JOURNAL_REQUESTS].find(
-        query, {"_id": 1, "requester_id": 1, "addressee_id": 1, "created_at": 1}
-    ).to_list()
+    pending = (
+        await db[c.JOURNAL_REQUESTS]
+        .find(query, {"_id": 1, "requester_id": 1, "addressee_id": 1, "created_at": 1})
+        .to_list()
+    )
 
     incoming = [r for r in pending if r["addressee_id"] == user.id]
     outgoing = [r for r in pending if r["requester_id"] == user.id]

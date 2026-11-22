@@ -46,6 +46,11 @@ const en: Shape<typeof vi> = {
     ALREADY_FRIENDS: 'You two are already friends',
     REQUEST_EXISTS: 'A friend request between you two already exists',
     CURSOR_INVALID: 'The page marker is no longer valid',
+    LETTER_EMPTY: 'A letter needs some text',
+    LETTER_LIMIT_CONTENT: 'The letter can be up to {{n}} characters',
+    LETTER_NOT_FUTURE: 'The opening day must be after today',
+    LETTER_TODAY: "You've already sent a letter today",
+    LETTER_NOT_FOUND: 'Letter not found',
   },
 }
 

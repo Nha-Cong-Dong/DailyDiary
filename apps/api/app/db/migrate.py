@@ -28,6 +28,7 @@ from app.db.migrations import (
     m0009_deletion_log,
     m0010_social_journal,
     m0011_journal_requests,
+    m0012_letters,
 )
 
 MIGRATIONS = [
@@ -42,6 +43,7 @@ MIGRATIONS = [
     m0009_deletion_log,
     m0010_social_journal,
     m0011_journal_requests,
+    m0012_letters,
 ]
 
 

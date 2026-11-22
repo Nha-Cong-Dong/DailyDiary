@@ -1258,6 +1258,89 @@
         "title": "JournalOut",
         "type": "object"
       },
+      "LetterListOut": {
+        "description": "GET /letters: danh sách thư, thư đến hạn trước (sắp mở) đứng trước.",
+        "properties": {
+          "letters": {
+            "items": {
+              "$ref": "#/components/schemas/LetterOut"
+            },
+            "title": "Letters",
+            "type": "array"
+          }
+        },
+        "required": [
+          "letters"
+        ],
+        "title": "LetterListOut",
+        "type": "object"
+      },
+      "LetterOut": {
+        "description": "Một lá thư. `content` trả None khi còn niêm phong (chưa đến `reveal_date`) — giữ bất ngờ.",
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reveal_date": {
+            "format": "date",
+            "title": "Reveal Date",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "content",
+          "reveal_date",
+          "status",
+          "created_at"
+        ],
+        "title": "LetterOut",
+        "type": "object"
+      },
+      "LetterWrite": {
+        "additionalProperties": false,
+        "description": "POST /letters: viết thư, hẹn ngày mở (phải là ngày sau \"hôm nay\" của người dùng).",
+        "properties": {
+          "content": {
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "reveal_date": {
+            "format": "date",
+            "title": "Reveal Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "reveal_date"
+        ],
+        "title": "LetterWrite",
+        "type": "object"
+      },
       "MeOut": {
         "description": "GET/PATCH /me. Không trả google_sub hay id nội bộ.",
         "properties": {
@@ -5006,6 +5089,167 @@
         "summary": "Top Keywords",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/letters": {
+      "get": {
+        "description": "Danh sách thư của tôi; thư còn niêm phong chỉ hiện ngày mở.",
+        "operationId": "list_letters_letters_get",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LetterListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Letters",
+        "tags": [
+          "letters"
+        ]
+      },
+      "post": {
+        "description": "Ghi thư, hẹn ngày mở (phải là ngày sau hôm nay).",
+        "operationId": "create_letter_letters_post",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LetterWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LetterOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Letter",
+        "tags": [
+          "letters"
+        ]
+      }
+    },
+    "/letters/{letter_id}": {
+      "delete": {
+        "description": "Xóa hẳn một lá thư (thư không giữ ảnh nên không có gì dọn ở storage).",
+        "operationId": "delete_letter_letters__letter_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "letter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Letter Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Letter",
+        "tags": [
+          "letters"
         ]
       }
     },

@@ -45,7 +45,8 @@ múi giờ, tự động lưu, tải ảnh.
 
 - PWA, nhắc viết nhật ký (thông báo đẩy, email dự phòng).
 - Cá nhân hóa: chủ đề, theme, bộ biểu tượng mới; xác định phần **miễn phí vĩnh viễn** và phần trả phí mới.
-- "Ngày này năm trước", tiến trình/mục tiêu với so sánh trước – sau, thư gửi tương lai.
+- "Ngày này năm trước" ✅ 22/11/2026 (thẻ ở màn Dòng thời gian) và thư gửi tương lai ✅ 22/11/2026 (mục Hồ sơ,
+  tối đa 1 thư/ngày, mở đúng hẹn); còn lại của mục này: tiến trình/mục tiêu với so sánh trước – sau.
 - Đăng nhập Facebook; đánh giá lại trọng tâm nền tảng theo dữ liệu thiết bị.
 - **Bạn bè và sổ chung 1–1** (ADR 0007, [`Social_Plan.md`](Social_Plan.md)): mỗi cặp một cuốn sổ chung, mỗi người
   tối đa một mục mỗi ngày, chuỗi ấm và badge đồng bộ. Nhật ký cá nhân vẫn riêng tư. Trần `beta`/`free`:

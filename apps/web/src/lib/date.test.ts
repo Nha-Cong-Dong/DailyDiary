@@ -9,6 +9,7 @@ import {
   isValidDate,
   longDateLabel,
   minutesLeftToday,
+  sameDayLastYear,
   todayIn,
   weekdayShort,
 } from './date'
@@ -71,6 +72,12 @@ describe('ngày hợp lệ, độ dài tháng, nhãn ghi đúng ngày', () => {
     expect(daysInYear(2028)).toBe(366)
     expect(daysInYear(2026)).toBe(365)
     expect(daysInMonth(2028, 2)).toBe(29)
+  })
+
+  it('cùng ngày tháng năm trước; 29/2 rơi về 28/2 khi năm trước không nhuận', () => {
+    expect(sameDayLastYear('2026-10-18')).toBe('2025-10-18')
+    expect(sameDayLastYear('2028-02-29')).toBe('2027-02-28') // 2027 không nhuận
+    expect(sameDayLastYear('2026-02-28')).toBe('2025-02-28')
   })
 
   it('sửa lúc 23:59 cùng ngày là "ghi đúng ngày"; 00:01 hôm sau là "cập nhật muộn"', () => {

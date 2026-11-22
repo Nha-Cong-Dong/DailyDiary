@@ -1,0 +1,22 @@
+// Bản dịch tiếng Việt, nhóm "letters" (nguồn chuẩn: khóa ở đây quyết định khóa của mọi ngôn ngữ khác).
+export default {
+  back: 'Hồ sơ',
+  title: 'Thư gửi tương lai',
+  intro: 'Viết thư cho bản thân ở một ngày sau. Nội dung chỉ mở ra đúng ngày bạn hẹn.',
+  loading: 'Đang tải thư…',
+  loadError: 'Chưa tải được thư, vui lòng thử lại',
+  empty: 'Chưa có lá thư nào. Viết thư đầu tiên cho tương lai của bạn nhé.',
+  newTitle: 'Viết thư mới',
+  newHint: 'Tối đa 1 thư mỗi ngày. Sau khi gửi, nội dung không sửa được.',
+  contentLabel: 'Nội dung thư',
+  contentPlaceholder: 'Gửi đến bạn của ngày mai…',
+  dateLabel: 'Ngày mở thư',
+  send: 'Gửi thư',
+  onePerDay: 'Tối đa 1 thư mỗi ngày',
+  sealedUntil: 'Niêm phong · mở {{date}}',
+  openedOn: 'Đã mở · {{date}}',
+  delete: 'Xóa thư',
+  deleteConfirm: 'Xóa hẳn lá thư này? Nội dung sẽ không mở được nữa.',
+  deleteConfirmAction: 'Xóa',
+  cancel: 'Hủy',
+} as const

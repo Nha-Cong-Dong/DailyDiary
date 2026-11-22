@@ -140,6 +140,12 @@ const en: Shape<typeof vi> = {
     writeMore: 'Write more',
     undo: 'Undo',
   },
+  lastYear: {
+    heading: 'A year ago today',
+    body: 'You wrote: {label} · {title}',
+    noContent: '(no title or text)',
+    open: 'Open that day',
+  },
 }
 
 export default en

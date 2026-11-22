@@ -325,6 +325,23 @@ export function ProfileSettings({ sharing, shareCount = 0, onClearShares, onFeed
         </div>
       </Section>
 
+      <Section id={`${ids}-letters`} title={t('profile:settings.letters')} delay={0.17}>
+        <Link to="/profile/letters" className={cn(phoneRow, 'sm:hidden')}>
+          <Mail className="size-5 shrink-0" aria-hidden="true" />
+          <span className="flex-1 font-semibold">{t('profile:settings.letters')}</span>
+          <ChevronRight className="size-[18px] shrink-0 text-ink-soft" aria-hidden="true" />
+        </Link>
+        <div className="max-sm:hidden">
+          <Row title={t('profile:settings.letters')} hint={t('profile:settings.lettersHint')}>
+            <Button asChild variant="secondary" size="sm" className="h-10">
+              <Link to="/profile/letters">
+                <Mail aria-hidden="true" /> {t('profile:settings.openLetters')}
+              </Link>
+            </Button>
+          </Row>
+        </div>
+      </Section>
+
       {onFeedback ? (
         <Section id={`${ids}-feedback`} title={t('profile:settings.feedbackSection')} delay={0.18}>
           <button type="button" className={cn(phoneRow, 'sm:hidden')} onClick={onFeedback}>

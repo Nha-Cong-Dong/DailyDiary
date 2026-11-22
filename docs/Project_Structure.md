@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 41 (16/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 42 (22/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -86,13 +86,13 @@ dailydiary/
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
     │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_entries_norm_backfill.py, m0008_feedback_emailed_at.py, m0009_deletion_log.py, m0010_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py, account.py, feedback.py)
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py, account.py, feedback.py, letters.py)
     │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py,
     │   │   │                         # account.py: xóa toàn bộ dữ liệu, xóa tài khoản, dọn kho; feedback.py;
     │   │   │                         # maintenance.py: dọn thùng rác quá hạn, không theo một người dùng)
     │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, calendar, pixels,
     │   │   │                         # search (/search, /keywords/top, /sub-icons/top), shares (F-10: chủ trang + /public/shares);
-    │   │   │                         # feedback (POST /feedback)
+    │   │   │                         # feedback (POST /feedback), letters (GĐ2: thư gửi tương lai GET/POST/DELETE /letters)
     │   │   └── jobs/                 # tác vụ định kỳ: uv run python -m app.jobs.run <tên> (run.py);
     │   │                             # purge_accounts.py (làm nốt xóa tài khoản dang dở), backup_db.py (sao lưu + khôi phục DB),
     │   │                             # backup_photos.py (chép ảnh tăng dần sang kho sao lưu), blobstore.py (giao diện kho sao lưu)
@@ -131,7 +131,8 @@ dailydiary/
             │                         # route có khung riêng trên điện thoại khai báo handle.phoneChrome ('tabs' | 'none');
             │                         # trong bản build: LoginPage, OnboardingPage, TodayPage, ProfilePage, NotFoundPage,
             │                         # DayPage (/day/:date), DayEditPage (/day/:date/edit), BackfillPage (/day/:date/backfill),
-            │                         # SharePage (/s/:token), SharedListPage (/profile/shares), TrashPage (/profile/trash), TimelinePage (/timeline), PixelsPage (/pixels),
+            │                         # SharePage (/s/:token), SharedListPage (/profile/shares), LettersPage (/profile/letters), TrashPage (/profile/trash),
+            │                         # TimelinePage (/timeline), PixelsPage (/pixels),
             │                         # SearchPage (/search), PrivacyPage (/privacy, công khai); chỉ có khi chạy dev: DevUiPage (/dev/ui)
             ├── features/             # mỗi tính năng một thư mục
             │   ├── health/           # kiểm tra kết nối API
@@ -157,6 +158,8 @@ dailydiary/
             │   ├── social/           # Bạn bè + sổ chung 1–1 (F-11, ADR 0007): SocialPage.tsx, social.ts (kiểu OpenAPI), useSocial.ts,
             │   │                     # sharedPhotoUpload.ts (ảnh presigned), components/ (FriendCodeCard, SocialSections, JournalDetail);
             │   │                     # route /social trong router.tsx + tab nav AppNav; test SocialPage.test.tsx
+            │   ├── letters/          # Thư gửi tương lai (GĐ2 giữ chân): Letters.tsx (form + danh sách, niêm phong/đến hạn),
+            │   │                     # useLetters.ts (GET/POST/DELETE /letters), Letters.test.tsx; route /profile/letters
             │   ├── feedback/         # form góp ý (FeedbackDialog, useSendFeedback); trang Hồ sơ ghép vào
             │   └── legal/            # trang pháp lý công khai: PrivacyPolicy.tsx (chính sách quyền riêng tư, đặc tả 4.1; email liên hệ)
             ├── components/
@@ -182,7 +185,7 @@ dailydiary/
             │                         # usage.ts (GET /me/data-summary: số trang/ảnh + dung lượng, dùng ở Hồ sơ và ô tải ảnh)
             ├── locales/              # bản dịch giao diện (ADR 0006): vi/ (nguồn chuẩn) và en/, mỗi tính năng một file <nhóm>.ts
             │                         # (common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search,
-            │                         # share, social, feedback, legal), index.ts gom lại, shape.ts (kiểu Shape: bản dịch phải đủ khóa tiếng Việt),
+            │                         # share, social, letters, feedback, legal), index.ts gom lại, shape.ts (kiểu Shape: bản dịch phải đủ khóa tiếng Việt),
             │                         # i18next.d.ts (kiểu khóa lấy từ vi/)
             ├── styles/               # shadcn-tailwind.css (vendored), motion.css (keyframes jot-*, cử chỉ lift/cta/press/pick,
             │                         # chuyển cảnh nối View Transitions, giảm chuyển động), fonts.css (@font-face cho font tự host trong assets/fonts/)
@@ -361,3 +364,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 39 | 08/11/2026 | Thêm tiếng Anh cho giao diện web (ADR 0006): `src/locales/` (`vi/`, `en/`, `shape.ts`, `i18next.d.ts`), `lib/i18n.ts` (+ test), `lib/rich.tsx`, thư viện `i18next`, `react-i18next`; `lib/date.ts` lấy tên thứ, tháng từ bản dịch; ô chọn ngôn ngữ ở Landing và Hồ sơ hoạt động |
 | 40 | 12/11/2026 | Giai đoạn 0 của tính năng xã hội (ADR 0007): thêm `docs/Social_Plan.md` (kế hoạch: bạn bè, mã bạn, sổ chung 1–1, chuỗi ấm + badge đồng bộ, 3 collection mới `shared_journals`/`shared_entries`/`friendships`, trần 20 bạn/10 sổ ở `beta`/`free`), `docs/adr/0007-shared-journal.md` (thay thế một phần [ADR 0005](adr/0005-share-in-mvp.md)); cập nhật `adr/README.md`, `Project_Specs.md` (F-11, §2, §4.1, §5.4, §5.5), `Roadmap.md` (§1.2, §2, §3.2, §6), `MVP_Plan.md`, `Backlog.md` |
 | 41 | 16/11/2026 | Giai đoạn 1 frontend Social: thêm `features/social/` (mã bạn, bạn bè, yêu cầu, sổ chung, form mục chung, feed, ảnh presigned ≤ giới hạn), route `/social`, tab điều hướng, i18n `social.ts`, test UI; cập nhật OpenAPI type collision cho `features/share/shares.ts`. |
+| 42 | 22/11/2026 | GĐ2 giữ chân: Ngày này năm trước (`lib/date.ts` `sameDayLastYear`, thẻ ở `features/timeline/`) + Thư gửi tương lai: backend (`routers/services/schemas/letters.py`, collection `letters` + migration `m0012_letters.py`, xóa dữ liệu dọn thư), web `features/letters/` (form + danh sách, niêm phong/đến hạn), route `/profile/letters`, i18n `letters.ts` (vi+en), lỗi `LETTER_*` trong `errors.ts`, mock API letters trong `test/withMe.tsx`; tái sinh `openapi.json` + `schema.d.ts` |

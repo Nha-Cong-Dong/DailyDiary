@@ -194,6 +194,26 @@ export function mockApi(me: Me, entries: Record<string, EntryOut> = {}, storage:
     const share = path.match(/^\/entries\/(\d{4}-\d{2}-\d{2})\/share$/)
     if (share && request.method === 'GET') return json(null)
     if (path === '/shares') return json([])
+    if (path === '/letters' && request.method === 'GET') return json({ letters: [] })
+    if (path === '/letters' && request.method === 'POST') {
+      const b = body as { content: string; reveal_date: string }
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: me.timezone }).format(new Date())
+      if (!b.content?.trim()) return json({ error: { code: 'LETTER_EMPTY', message: 'Thư cần nội dung' } }, 422)
+      if (b.reveal_date <= today)
+        return json({ error: { code: 'LETTER_NOT_FUTURE', message: 'Hẹn mở phải là ngày sau hôm nay' } }, 422)
+      return json(
+        {
+          id: crypto.randomUUID(),
+          content: null,
+          reveal_date: b.reveal_date,
+          status: 'sealed',
+          created_at: new Date().toISOString(),
+        },
+        201,
+      )
+    }
+    const letter = path.match(/^\/letters\/([^/]+)$/)
+    if (letter && request.method === 'DELETE') return new Response(null, { status: 204 })
     const photo = path.match(/^\/photos\/([^/]+)$/)
     if (photo && request.method === 'DELETE') {
       const owner = Object.values(entries).find((e) => e.photos.some((p) => p.id === photo[1]))

@@ -109,6 +109,16 @@ async def _fill(db) -> None:
             "created_at": now,
         }
     )
+    await db[c.LETTERS].insert_one(
+        {
+            "_id": uuid4(),
+            "user_id": uid,
+            "content": "Thư cho mình 2027",
+            "reveal_date": "2027-10-01",
+            "authored_date": "2026-10-01",
+            "created_at": now,
+        }
+    )
     await log_deletion(db, "journal", pages=1, photos=0, share_links=0)
 
 

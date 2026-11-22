@@ -14,5 +14,6 @@ import feedback from './feedback'
 import legal from './legal'
 import lib from './lib'
 import social from './social'
+import letters from './letters'
 
-export const vi = { common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search, share, feedback, legal, lib, social } as const
+export const vi = { common, catalog, errors, components, landing, auth, profile, entry, timeline, pixels, search, share, feedback, legal, lib, social, letters } as const

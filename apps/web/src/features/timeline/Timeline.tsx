@@ -32,6 +32,8 @@ import { useCalendar } from './useCalendar'
 import { useMonth } from './useMonth'
 import { useQuickScore } from './useQuickScore'
 import { useT } from '@/lib/i18n'
+import { sameDayLastYear } from '@/lib/date'
+import { useDay } from '@/features/entry/useDay'
 
 /** Số trang hiện trước khi bấm "Xem thêm". */
 const LIMIT = 7
@@ -318,6 +320,8 @@ export function Timeline() {
         <MonthRhythmCompact key={`rc${month}`} data={t} />
       </div>
 
+      <LastYearCard today={today} />
+
       <Segmented
         options={views}
         value={view}
@@ -441,6 +445,29 @@ export function Timeline() {
           />
         ) : null}
       </BottomSheet>
+    </div>
+  )
+}
+
+/** "Ngày này năm trước": thẻ nudge giữ chân, chỉ hiện khi có mục cùng ngày năm ngoái. */
+function LastYearCard({ today }: { today: string }) {
+  const tr = useT()
+  const { iconSetId } = useProfile()
+  const yearAgo = sameDayLastYear(today)
+  const { data } = useDay(yearAgo)
+  if (!data) return null
+  const title = data.title?.trim() || data.content?.trim().slice(0, 80) || tr('timeline:lastYear.noContent')
+  return (
+    <div className="animate-rise flex flex-wrap items-center justify-between gap-3 rounded-[20px] border-[1.5px] border-stroke bg-card p-4">
+      <div className="min-w-0">
+        <h2 className="text-sm font-semibold">{tr('timeline:lastYear.heading')}</h2>
+        <p className="text-label text-ink-soft">
+          {tr('timeline:lastYear.body', { label: scoreLabel(iconSetId, data.score), title })}
+        </p>
+      </div>
+      <Link to={`/day/${yearAgo}`} className="press shrink-0 rounded-[12px] border-[1.5px] border-stroke bg-secondary px-3.5 py-2 text-sm font-semibold">
+        {tr('timeline:lastYear.open')}
+      </Link>
     </div>
   )
 }

@@ -47,9 +47,7 @@ async def list_journal_invites(
 
 @router.post("/journals/invites/{invite_id}/accept", status_code=204)
 @limiter.limit(rate_limit("write"))
-async def accept_journal_invite(
-    request: Request, invite_id: UUID, user: CurrentUser, db: Db
-) -> Response:
+async def accept_journal_invite(request: Request, invite_id: UUID, user: CurrentUser, db: Db) -> Response:
     """Chấp nhận lời mời (phải là người được mời) → tạo sổ chung nếu hai bên đều sẵn sàng."""
     await journal_invites.accept_invite(db, user, invite_id)
     return Response(status_code=204)
@@ -57,9 +55,7 @@ async def accept_journal_invite(
 
 @router.post("/journals/invites/{invite_id}/decline", status_code=204)
 @limiter.limit(rate_limit("write"))
-async def decline_journal_invite(
-    request: Request, invite_id: UUID, user: CurrentUser, db: Db
-) -> Response:
+async def decline_journal_invite(request: Request, invite_id: UUID, user: CurrentUser, db: Db) -> Response:
     """Từ chối lời mời (phải là người được mời)."""
     await journal_invites.decline_invite(db, user, invite_id)
     return Response(status_code=204)

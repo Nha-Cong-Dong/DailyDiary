@@ -679,6 +679,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/letters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Letters
+         * @description Danh sách thư của tôi; thư còn niêm phong chỉ hiện ngày mở.
+         */
+        get: operations["list_letters_letters_get"];
+        put?: never;
+        /**
+         * Create Letter
+         * @description Ghi thư, hẹn ngày mở (phải là ngày sau hôm nay).
+         */
+        post: operations["create_letter_letters_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/letters/{letter_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Letter
+         * @description Xóa hẳn một lá thư (thư không giữ ảnh nên không có gì dọn ở storage).
+         */
+        delete: operations["delete_letter_letters__letter_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -1443,6 +1487,52 @@ export interface components {
             synced_days: number;
             /** Warm Streak */
             warm_streak: number;
+        };
+        /**
+         * LetterListOut
+         * @description GET /letters: danh sách thư, thư đến hạn trước (sắp mở) đứng trước.
+         */
+        LetterListOut: {
+            /** Letters */
+            letters: components["schemas"]["LetterOut"][];
+        };
+        /**
+         * LetterOut
+         * @description Một lá thư. `content` trả None khi còn niêm phong (chưa đến `reveal_date`) — giữ bất ngờ.
+         */
+        LetterOut: {
+            /** Content */
+            content: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Reveal Date
+             * Format: date
+             */
+            reveal_date: string;
+            /** Status */
+            status: string;
+        };
+        /**
+         * LetterWrite
+         * @description POST /letters: viết thư, hẹn ngày mở (phải là ngày sau "hôm nay" của người dùng).
+         */
+        LetterWrite: {
+            /** Content */
+            content: string;
+            /**
+             * Reveal Date
+             * Format: date
+             */
+            reveal_date: string;
         };
         /**
          * MeOut
@@ -3291,6 +3381,103 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TopKeywordsOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_letters_letters_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LetterListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_letter_letters_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LetterWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LetterOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_letter_letters__letter_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                letter_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
