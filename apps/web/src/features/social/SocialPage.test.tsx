@@ -9,7 +9,7 @@ function jsonResponse(data: unknown, status = 200) {
 
 const journal = {
   id: 'journal-1', partner_display_name: 'Bạn A', partner_avatar_url: null,
-  status: 'active', mode: 'together', ended_at: null, warm_streak: 3,
+  status: 'active', mode: 'together', generation: 1, ended_at: null, warm_streak: 3,
   synced_days: 5, longest_warm_streak: 9, my_today_entry: false, my_turn: true,
   partner_last_active: '2025-01-01T00:00:00Z', created_at: '2025-01-01T00:00:00Z',
 }
@@ -29,6 +29,7 @@ function mockSocial(
     if (url.pathname === '/friends/requests' && input.method === 'GET') return jsonResponse(requests)
     if (url.pathname === '/journals/invites') return jsonResponse(invites)
     if (url.pathname === '/journals') return jsonResponse({ journals: friends.journals_count ? [journal] : [], journals_count: friends.journals_count, journals_max: friends.journals_max })
+    if (url.pathname === '/friends/friend-1/friendship' && input.method === 'DELETE') return new Response(null, { status: 204 })
     if (url.pathname === '/friends/requests/req-1/accept') return new Response(null, { status: 204 })
     if (url.pathname === '/journals/invites/inv-1/accept') return new Response(null, { status: 204 })
     return jsonResponse({ error: { code: 'NOT_FOUND', message: 'Không tìm thấy' } }, 404)
@@ -63,6 +64,17 @@ describe('SocialPage', () => {
     renderWithMe([{ path: '/', Component: SocialPage }], '/')
     fireEvent.click(await screen.findByRole('button', { name: 'Chấp nhận' }))
     await waitFor(() => expect(paths).toContain('POST /friends/requests/req-1/accept'))
+  })
+
+  it('unfriends from the friend menu after confirming', async () => {
+    const friend = { id: 'friend-1', display_name: 'Bạn A', avatar_url: null, journal_id: null, journal_status: null, journal_invite_pending: false, last_active: null }
+    const { paths } = mockSocial({ ...emptyFriends, friends: [friend], friends_count: 1 }, { incoming: [], outgoing: [] })
+    renderWithMe([{ path: '/', Component: SocialPage }], '/')
+    fireEvent.keyDown(await screen.findByRole('button', { name: 'Tùy chọn bạn bè' }), { key: 'Enter' })
+    fireEvent.click(await screen.findByRole('menuitem', { name: /Hủy kết bạn/ }))
+    expect(paths).not.toContain('DELETE /friends/friend-1/friendship')
+    fireEvent.click(await screen.findByRole('button', { name: 'Hủy kết bạn' }))
+    await waitFor(() => expect(paths).toContain('DELETE /friends/friend-1/friendship'))
   })
 
   it('accepts an incoming journal invite', async () => {

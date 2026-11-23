@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { HeartHandshake, Send, Users } from 'lucide-react'
+import { HeartHandshake, MoreHorizontal, Send, UserMinus, Users } from 'lucide-react'
 import { Avatar } from '@/components/layout/Avatar'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { useNow } from '@/lib/date'
 import { ApiError } from '@/api/client'
 import { useProfile } from '@/lib/profile'
 import { useT } from '@/lib/i18n'
-import { useAcceptFriendRequest, useAcceptJournalInvite, useDeclineFriendRequest, useDeclineJournalInvite, useInviteJournal, useSendFriendRequest } from '../useSocial'
+import { useAcceptFriendRequest, useAcceptJournalInvite, useDeclineFriendRequest, useDeclineJournalInvite, useInviteJournal, useSendFriendRequest, useUnfriend } from '../useSocial'
 import { lastActiveLabel } from '../lastActive'
 import type { Friend, FriendList, FriendRequest, FriendRequestList, Journal, JournalInvite, JournalInviteList, JournalList } from '../social'
 
@@ -36,21 +38,61 @@ function FriendRow({ friend, onJournal }: { friend: Friend; onJournal: (id: stri
   const { timeZone } = useProfile()
   const now = useNow(60_000)
   const invite = useInviteJournal()
+  const unfriend = useUnfriend()
+  const [confirmUnfriend, setConfirmUnfriend] = useState(false)
   const label = lastActiveLabel(friend.last_active, now, timeZone)
   const hasJournal = Boolean(friend.journal_id && friend.journal_status === 'active')
+  const ended = friend.journal_status === 'ended'
   const sub = hasJournal
     ? t('social:friends.journal')
     : friend.journal_invite_pending
       ? t('social:friends.journalInvitePending')
-      : t('social:friends.noJournal')
-  return <div className="flex items-center gap-3 border-b border-line-soft py-3 last:border-0"><Avatar name={friend.display_name} src={friend.avatar_url} size={44} /><div className="min-w-0 flex-1"><p className="truncate font-semibold">{friend.display_name}</p><p className="text-label text-ink-soft">{sub}{label ? <> · {t('social:friends.lastActive', { time: label })}</> : null}</p></div>{hasJournal ? <Button size="sm" variant="outline" className={focus} onClick={() => onJournal(friend.journal_id!)}>{t('social:friends.journal')}</Button> : !friend.journal_invite_pending ? <Button size="sm" variant="outline" className={focus} disabled={invite.isPending} onClick={() => invite.mutate(friend.id)}>{t('social:friends.journal')}</Button> : null}</div>
+      : ended
+        ? t('social:friends.journalEnded')
+        : t('social:friends.noJournal')
+  return (
+    <div className="flex items-center gap-3 border-b border-line-soft py-3 last:border-0">
+      <Avatar name={friend.display_name} src={friend.avatar_url} size={44} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold">{friend.display_name}</p>
+        <p className="text-label text-ink-soft">{sub}{label ? <> · {t('social:friends.lastActive', { time: label })}</> : null}</p>
+        {invite.isError ? <p role="alert" className="text-label text-destructive">{invite.error instanceof ApiError ? invite.error.message : t('social:send.invalid')}</p> : null}
+        {unfriend.isError ? <p role="alert" className="text-label text-destructive">{unfriend.error instanceof ApiError ? unfriend.error.message : t('social:send.invalid')}</p> : null}
+      </div>
+      {hasJournal ? (
+        <Button size="sm" variant="outline" className={focus} onClick={() => onJournal(friend.journal_id!)}>{t('social:friends.openJournal')}</Button>
+      ) : !friend.journal_invite_pending ? (
+        <Button size="sm" variant="outline" className={focus} disabled={invite.isPending} onClick={() => invite.mutate(friend.id)}>{ended ? t('social:friends.journalNew') : t('social:friends.journal')}</Button>
+      ) : null}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="ghost" className={focus} aria-label={t('social:friends.menu')}><MoreHorizontal className="size-5" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem variant="destructive" onSelect={() => setConfirmUnfriend(true)}><UserMinus className="size-4" />{t('social:friends.unfriend')}</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog open={confirmUnfriend} onOpenChange={setConfirmUnfriend}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('social:friends.unfriendTitle', { name: friend.display_name })}</AlertDialogTitle>
+            <AlertDialogDescription>{t('social:friends.unfriendBody')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('social:friends.unfriendCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => unfriend.mutate(friend.id)}>{t('social:friends.unfriendConfirm')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
 }
 
 export function JournalsList({ data, onOpen }: { data: JournalList; onOpen: (journal: Journal) => void }) {
   const t = useT()
   const { timeZone } = useProfile()
   const now = useNow(60_000)
-  return <section><div className="flex items-baseline justify-between gap-3"><h2 className="font-semibold">{t('social:journals.title')}</h2><span className="text-label text-ink-soft">{t('social:journals.count', { count: data.journals_count, max: data.journals_max })}</span></div>{data.journals.length ? <div className="mt-3 flex flex-col gap-3">{data.journals.map((journal) => { const active = !journal.ended_at; const label = lastActiveLabel(journal.partner_last_active, now, timeZone); return <button type="button" key={journal.id} onClick={() => onOpen(journal)} className={`w-full rounded-lg border-[1.5px] border-stroke bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${focus}`}><div className="flex items-center gap-3"><Avatar name={journal.partner_display_name} src={journal.partner_avatar_url} size={48} /><div className="min-w-0 flex-1"><p className="truncate font-semibold">{journal.partner_display_name}</p><p className="text-label text-ink-soft">{active ? t('social:journals.active') : t('social:journals.ended')}{active && label ? <> · {t('social:journals.partnerLastActive', { time: label })}</> : null}</p></div><HeartHandshake className="size-5 text-primary" aria-hidden="true" /></div><div className="mt-4 grid grid-cols-3 gap-2 border-t border-line-soft pt-3 text-center">{active && journal.warm_streak >= 30 ? <p className="col-span-3 text-label font-semibold text-primary">{t('social:journals.milestone', { n: journal.warm_streak })}</p> : null}<Stat value={journal.warm_streak} label={t('social:journals.warm')} /><Stat value={journal.synced_days} label={t('social:journals.synced')} /><Stat value={journal.longest_warm_streak} label={t('social:journals.longest')} /></div></button> })}</div> : <div className="py-6 text-center"><HeartHandshake className="mx-auto size-8 text-ink-soft" /><p className="mt-2 font-semibold">{t('social:states.emptyTitle')}</p><p className="mt-1 text-body text-ink-soft">{t('social:states.emptyBody')}</p></div>}</section>
+  return <section><div className="flex items-baseline justify-between gap-3"><h2 className="font-semibold">{t('social:journals.title')}</h2><span className="text-label text-ink-soft">{t('social:journals.count', { count: data.journals_count, max: data.journals_max })}</span></div>{data.journals.length ? <div className="mt-3 flex flex-col gap-3">{data.journals.map((journal) => { const active = !journal.ended_at; const label = lastActiveLabel(journal.partner_last_active, now, timeZone); return <button type="button" key={journal.id} onClick={() => onOpen(journal)} className={`w-full rounded-lg border-[1.5px] border-stroke bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${focus}`}><div className="flex items-center gap-3"><Avatar name={journal.partner_display_name} src={journal.partner_avatar_url} size={48} /><div className="min-w-0 flex-1"><p className="truncate font-semibold">{journal.partner_display_name}</p><p className="text-label text-ink-soft">{t('social:journals.generation', { n: journal.generation })} · {active ? t('social:journals.active') : t('social:journals.ended')}{active && label ? <> · {t('social:journals.partnerLastActive', { time: label })}</> : null}</p></div><HeartHandshake className="size-5 text-primary" aria-hidden="true" /></div><div className="mt-4 grid grid-cols-3 gap-2 border-t border-line-soft pt-3 text-center">{active && journal.warm_streak >= 30 ? <p className="col-span-3 text-label font-semibold text-primary">{t('social:journals.milestone', { n: journal.warm_streak })}</p> : null}<Stat value={journal.warm_streak} label={t('social:journals.warm')} /><Stat value={journal.synced_days} label={t('social:journals.synced')} /><Stat value={journal.longest_warm_streak} label={t('social:journals.longest')} /></div></button> })}</div> : <div className="py-6 text-center"><HeartHandshake className="mx-auto size-8 text-ink-soft" /><p className="mt-2 font-semibold">{t('social:states.emptyTitle')}</p><p className="mt-1 text-body text-ink-soft">{t('social:states.emptyBody')}</p></div>}</section>
 }
 
 export function JournalInvitesPanel({ data }: { data: JournalInviteList }) {

@@ -91,6 +91,14 @@ async def decline_request(request: Request, request_id: UUID, user: CurrentUser,
     return Response(status_code=204)
 
 
+@router.delete("/friends/{friend_id}/friendship", status_code=204)
+@limiter.limit(rate_limit("write"))
+async def unfriend(request: Request, friend_id: UUID, user: CurrentUser, db: Db) -> Response:
+    """Hủy kết bạn: kết thúc sổ đang có (giữ dữ liệu) và hủy lời mời mở sổ đang chờ."""
+    await friend_service.unfriend(db, user, friend_id)
+    return Response(status_code=204)
+
+
 @router.delete("/friends/{journal_id}", status_code=204)
 @limiter.limit(rate_limit("write"))
 async def end_journal(request: Request, journal_id: UUID, user: CurrentUser, db: Db) -> Response:

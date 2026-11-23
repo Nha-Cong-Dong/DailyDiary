@@ -310,6 +310,25 @@ async def decline_request(db: AsyncDatabase, user: User, request_id: UUID) -> No
         raise _not_found()
 
 
+async def unfriend(db: AsyncDatabase, user: User, friend_id: UUID) -> None:
+    """Hủy kết bạn: quan hệ → ended, kết thúc sổ đang hoạt động (giữ dữ liệu), hủy lời mời mở sổ chờ."""
+    pair = [
+        {"requester_id": user.id, "addressee_id": friend_id},
+        {"requester_id": friend_id, "addressee_id": user.id},
+    ]
+    result = await db[c.FRIENDSHIPS].update_one(
+        {"status": "accepted", "$or": pair}, {"$set": {"status": "ended", "responded_at": datetime.now(UTC)}}
+    )
+    if result.matched_count == 0:
+        raise _not_found()
+    key = "|".join(sorted([str(user.id), str(friend_id)]))
+    async for journal in db[c.SHARED_JOURNALS].find(
+        {"member_key": key, "scope": "pair", "status": "active"}, {"_id": 1}
+    ):
+        await end_journal(db, user, journal["_id"])
+    await db[c.JOURNAL_REQUESTS].delete_many({"status": "pending", "$or": pair})
+
+
 async def end_journal(db: AsyncDatabase, user: User, journal_id: UUID) -> None:
     """Kết thúc sổ chung: hiệu lực tức thì, không xóa gì.
 
@@ -324,9 +343,7 @@ async def end_journal(db: AsyncDatabase, user: User, journal_id: UUID) -> None:
     await db[c.SHARED_JOURNALS].update_one(
         {"_id": journal_id}, {"$set": {"status": "ended", "ended_at": now, "updated_at": now}}
     )
-    await db[c.FRIENDSHIPS].update_many(
-        {"journal_id": journal_id, "status": "accepted"}, {"$set": {"status": "ended"}}
-    )
+    # Vẫn là bạn: kết thúc sổ không hủy kết bạn (muốn mở sổ mới thì mời lại; hủy kết bạn là `unfriend`).
     # Hủy lời mời mở sổ còn chờ của cặp này (kết thúc sổ = hai người không viết chung nữa).
     members = await db[c.SHARED_JOURNALS].find_one({"_id": journal_id}, {"_id": 0, "members": 1})
     if members:

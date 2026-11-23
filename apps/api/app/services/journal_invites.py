@@ -2,8 +2,9 @@
 
 - Sổ chỉ được tạo khi **hai bên đều chấp nhận**: một người gửi lời mời (bấm "Mở sổ chung"),
   người kia chấp nhận → tạo sổ. Không ai được tự sinh sổ cho cặp khác.
-- Một cặp tối đa một cuốn sổ (index unique `member_key`, xem m0010): hai bên bấm chấp nhận
-  cùng lúc chỉ tạo được một cuốn (upsert theo `member_key`).
+- Một cặp có tối đa một sổ đang hoạt động và tối đa `shared.journals_per_pair_max` sổ tổng cộng:
+  sổ đã kết thúc được lưu trữ, mở lại = sổ mới (`generation` + 1, đánh số lại từ 0). Unique
+  `(member_key, generation)` (m0013) làm hai bên bấm chấp nhận cùng lúc chỉ tạo được một cuốn.
 - Trần số sổ chung kiểm ở bước tạo (bên chấp nhận).
 - Lời mời có hiệu lực `shared.request_expires_days` rồi tự biến mất khỏi danh sách (khớp
   cách hết hạn của yêu cầu kết bạn).
@@ -12,7 +13,6 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
-from pymongo import ReturnDocument
 from pymongo.asynchronous.database import AsyncDatabase
 from pymongo.errors import DuplicateKeyError
 
@@ -77,8 +77,16 @@ async def invite_journal(
         raise ApiError(422, "NOT_FRIENDS", "Chỉ mời được người bạn của mình")
 
     key = "|".join(sorted([str(user.id), str(friend_id)]))
-    if await db[c.SHARED_JOURNALS].find_one({"member_key": key, **_PAIR}, {"_id": 1}):
+    # Sổ đã kết thúc được lưu trữ, không chặn mở sổ mới; chỉ chặn khi còn sổ đang hoạt động hoặc đủ trần cặp.
+    if await db[c.SHARED_JOURNALS].find_one({"member_key": key, "status": "active", **_PAIR}, {"_id": 1}):
         raise ApiError(409, "JOURNAL_EXISTS", "Hai người đã có sổ chung")
+    if (
+        await db[c.SHARED_JOURNALS].count_documents({"member_key": key, **_PAIR})
+        >= limits.journals_per_pair_max
+    ):
+        raise ApiError(
+            422, "PAIR_JOURNALS_LIMIT", f"Mỗi cặp bạn chỉ có tối đa {limits.journals_per_pair_max} sổ chung"
+        )
     if await db[c.JOURNAL_REQUESTS].find_one(_pair_invite_filter(user.id, friend_id), {"_id": 1}):
         raise ApiError(409, "INVITE_EXISTS", "Đã có lời mời mở sổ chung giữa hai người")
 
@@ -177,30 +185,39 @@ async def accept_invite(db: AsyncDatabase, user: User, invite_id: UUID) -> dict:
     other_id = invite["requester_id"]
     key = "|".join(sorted([str(user.id), str(other_id)]))
 
-    # Upsert theo member_key: hai người bấm chấp nhận cùng khoảnh khắc chỉ tạo một cuốn.
-    journal = await db[c.SHARED_JOURNALS].find_one_and_update(
-        {"member_key": key, **_PAIR},
-        {
-            "$setOnInsert": {
-                "_id": uuid4(),
-                "scope": "pair",
-                "mode": "together",
-                "status": "active",
-                "member_key": key,
-                "members": [
-                    {"user_id": user.id, "role": "member", "joined_at": now},
-                    {"user_id": other_id, "role": "member", "joined_at": now},
-                ],
-                "created_by": user.id,
-                "created_at": now,
-                "updated_at": now,
-            }
-        },
-        upsert=True,
-        return_document=ReturnDocument.AFTER,
-    )
+    # Sổ đang hoạt động của cặp (nếu bên kia vừa chấp nhận cùng lúc) thì dùng lại; không thì tạo cuốn kế tiếp
+    # (sổ cũ đã kết thúc giữ nguyên làm lưu trữ). Unique (member_key, generation) chặn tạo trùng khi đua nhau.
+    pair_filter = {"member_key": key, **_PAIR}
+    journal = await db[c.SHARED_JOURNALS].find_one({**pair_filter, "status": "active"})
     if journal is None:
-        raise _not_found()
+        generation = await db[c.SHARED_JOURNALS].count_documents(pair_filter) + 1
+        if generation > limits.journals_per_pair_max:
+            raise ApiError(
+                422,
+                "PAIR_JOURNALS_LIMIT",
+                f"Mỗi cặp bạn chỉ có tối đa {limits.journals_per_pair_max} sổ chung",
+            )
+        journal = {
+            "_id": uuid4(),
+            "scope": "pair",
+            "mode": "together",
+            "status": "active",
+            "member_key": key,
+            "generation": generation,
+            "members": [
+                {"user_id": user.id, "role": "member", "joined_at": now},
+                {"user_id": other_id, "role": "member", "joined_at": now},
+            ],
+            "created_by": user.id,
+            "created_at": now,
+            "updated_at": now,
+        }
+        try:
+            await db[c.SHARED_JOURNALS].insert_one(journal)
+        except DuplicateKeyError:
+            journal = await db[c.SHARED_JOURNALS].find_one({**pair_filter, "status": "active"})
+            if journal is None:
+                raise _not_found() from None
 
     result = await db[c.JOURNAL_REQUESTS].update_one(
         {"_id": invite_id, "addressee_id": user.id, "status": "pending"},

@@ -169,6 +169,17 @@ export function useEndJournal() {
   })
 }
 
+export function useUnfriend() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: async (friendId: string) => {
+      const { error, response } = await api.DELETE('/friends/{friend_id}/friendship', { params: { path: { friend_id: friendId } } })
+      if (error) throw toApiError(response, error)
+    },
+    onSuccess: () => refreshLists(client),
+  })
+}
+
 export function useSetJournalMode(journalId: string) {
   const client = useQueryClient()
   return useMutation({

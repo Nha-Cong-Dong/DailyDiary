@@ -918,6 +918,11 @@
             ],
             "title": "Ended At"
           },
+          "generation": {
+            "default": 1,
+            "title": "Generation",
+            "type": "integer"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -1179,6 +1184,11 @@
               }
             ],
             "title": "Ended At"
+          },
+          "generation": {
+            "default": 1,
+            "title": "Generation",
+            "type": "integer"
           },
           "id": {
             "format": "uuid",
@@ -4110,6 +4120,59 @@
           }
         },
         "summary": "Decline Request",
+        "tags": [
+          "friends"
+        ]
+      }
+    },
+    "/friends/{friend_id}/friendship": {
+      "delete": {
+        "description": "Hủy kết bạn: kết thúc sổ đang có (giữ dữ liệu) và hủy lời mời mở sổ đang chờ.",
+        "operationId": "unfriend_friends__friend_id__friendship_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "friend_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Friend Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "cookie",
+            "name": "dd_session",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dd Session"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unfriend",
         "tags": [
           "friends"
         ]

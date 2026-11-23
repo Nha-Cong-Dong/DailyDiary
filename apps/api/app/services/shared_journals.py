@@ -198,6 +198,7 @@ async def _journal_out(db: AsyncDatabase, journal: dict, user: User, storage: St
         id=journal["_id"],
         status=journal.get("status", "active"),
         mode=mode,
+        generation=journal.get("generation", 1),
         partner_display_name=(profile or {}).get("display_name", "") if profile else "",
         partner_avatar_url=_avatar(profile or {}, storage),
         partner_last_active=(profile or {}).get("last_active"),

@@ -108,6 +108,8 @@ class JournalOut(BaseModel):
     id: UUID
     status: str
     mode: str
+    # Cuốn thứ mấy của cặp (1, 2): để phân biệt sổ cũ đã lưu trữ với sổ mới.
+    generation: int = 1
     # Thành viên khác (không phải tôi) — tên và avatar để hiện.
     partner_display_name: str
     partner_avatar_url: str | None

@@ -68,6 +68,8 @@ class SharedLimits(_Strict):
     # Trần quan hệ theo cấp: vượt thì chặn gửi yêu cầu mới, không bao giờ chặn ghi chữ vào sổ đã có.
     friends_max: int
     journals_max: int
+    # Số sổ tối đa của MỘT cặp bạn (sổ cũ đã kết thúc vẫn tính: được lưu trữ, mở sổ mới đánh số lại từ 0).
+    journals_per_pair_max: int
 
 
 def _check_rate_strings(value: dict[str, str]) -> dict[str, str]:

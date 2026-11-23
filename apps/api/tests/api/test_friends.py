@@ -225,15 +225,62 @@ def _limits_with_expiry(days):
     return limits.model_copy(update={"tiers": new_tiers})
 
 
-async def test_end_journal_sets_status_and_marks_relationship_ended(alice, bob, db):
+async def test_end_journal_sets_status_and_keeps_friendship(alice, bob, db):
     journal = await _make_journal(alice, bob, db)
     r = await alice.delete(f"/friends/{journal['_id']}")
     assert r.status_code == 204
     assert (await db[c.SHARED_JOURNALS].find_one({"_id": journal["_id"]}))["status"] == "ended"
-    # Quan hệ chuyển ended; không xóa mục chung nào (hiệu lực tức thì, không xóa gì).
-    assert (await db[c.FRIENDSHIPS].find_one({"journal_id": journal["_id"]}))["status"] == "ended"
+    # Kết thúc sổ không hủy kết bạn (hiệu lực tức thì, không xóa gì).
+    assert (await db[c.FRIENDSHIPS].find_one({"journal_id": journal["_id"]}))["status"] == "accepted"
     # Kết thúc lần nữa: vẫn 204 (chạy lại được) nhưng sổ đã ended.
     assert (await alice.delete(f"/friends/{journal['_id']}")).status_code == 204
+
+
+async def _reopen(alice, bob):
+    invite = await alice.post(f"/friends/{bob.user['_id']}/journal-invite")
+    assert invite.status_code == 200, invite.text
+    r = await bob.post(f"/journals/invites/{invite.json()['id']}/accept")
+    assert r.status_code == 204, r.text
+
+
+async def test_reopen_after_end_creates_new_journal_and_keeps_old(alice, bob, db):
+    old = await _make_journal(alice, bob, db)
+    await alice.delete(f"/friends/{old['_id']}")
+    await _reopen(alice, bob)
+    journals = await db[c.SHARED_JOURNALS].find({}).sort("generation", 1).to_list()
+    assert [(j["generation"], j["status"]) for j in journals] == [(1, "ended"), (2, "active")]
+    assert journals[0]["_id"] == old["_id"] and journals[1]["_id"] != old["_id"]
+    # Danh sách bạn trỏ tới sổ mới; API sổ báo đúng số thứ tự.
+    friend = (await alice.get("/friends")).json()["friends"][0]
+    assert friend["journal_id"] == str(journals[1]["_id"]) and friend["journal_status"] == "active"
+    gens = {j["id"]: j["generation"] for j in (await alice.get("/journals")).json()["journals"]}
+    assert gens == {str(old["_id"]): 1, str(journals[1]["_id"]): 2}
+
+
+async def test_pair_journals_limit(alice, bob, db):
+    first = await _make_journal(alice, bob, db)
+    await alice.delete(f"/friends/{first['_id']}")
+    await _reopen(alice, bob)
+    second = await db[c.SHARED_JOURNALS].find_one({"status": "active"})
+    await alice.delete(f"/friends/{second['_id']}")
+    r = await alice.post(f"/friends/{bob.user['_id']}/journal-invite")
+    assert r.status_code == 422 and r.json()["error"]["code"] == "PAIR_JOURNALS_LIMIT"
+
+
+async def test_unfriend_ends_journal_keeps_data_and_cancels_invite(alice, bob, db):
+    journal = await _make_journal(alice, bob, db)
+    r = await alice.delete(f"/friends/{bob.user['_id']}/friendship")
+    assert r.status_code == 204
+    assert (await db[c.SHARED_JOURNALS].find_one({"_id": journal["_id"]}))["status"] == "ended"
+    assert (await alice.get("/friends")).json()["friends"] == []
+    assert (await bob.get("/friends")).json()["friends"] == []
+    # Không còn là bạn: không mời mở sổ được; hủy lần nữa → 404.
+    assert (await alice.post(f"/friends/{bob.user['_id']}/journal-invite")).status_code == 422
+    assert (await alice.delete(f"/friends/{bob.user['_id']}/friendship")).status_code == 404
+
+
+async def test_unfriend_requires_being_friends(alice, bob, db):
+    assert (await alice.delete(f"/friends/{bob.user['_id']}/friendship")).status_code == 404
 
 
 async def test_end_journal_requires_membership(alice, bob, db, make_client):

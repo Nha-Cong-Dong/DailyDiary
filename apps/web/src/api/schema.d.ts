@@ -378,6 +378,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/friends/{friend_id}/friendship": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Unfriend
+         * @description Hủy kết bạn: kết thúc sổ đang có (giữ dữ liệu) và hủy lời mời mở sổ đang chờ.
+         */
+        delete: operations["unfriend_friends__friend_id__friendship_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/friends/{friend_id}/journal-invite": {
         parameters: {
             query?: never;
@@ -1349,6 +1369,11 @@ export interface components {
             /** Ended At */
             ended_at: string | null;
             /**
+             * Generation
+             * @default 1
+             */
+            generation: number;
+            /**
              * Id
              * Format: uuid
              */
@@ -1462,6 +1487,11 @@ export interface components {
             created_at: string;
             /** Ended At */
             ended_at: string | null;
+            /**
+             * Generation
+             * @default 1
+             */
+            generation: number;
             /**
              * Id
              * Format: uuid
@@ -2837,6 +2867,37 @@ export interface operations {
             header?: never;
             path: {
                 request_id: string;
+            };
+            cookie?: {
+                dd_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unfriend_friends__friend_id__friendship_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                friend_id: string;
             };
             cookie?: {
                 dd_session?: string | null;
