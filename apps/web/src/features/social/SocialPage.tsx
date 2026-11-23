@@ -36,21 +36,18 @@ export function SocialPage() {
         <JournalDetail journal={journalData.journals.find((j) => j.id === openJournal.id) ?? openJournal} onBack={() => setOpenJournal(null)} />
       ) : (
         <div className="flex flex-col gap-4">
-          {/* Cụm 1: kết nối — trái "của tôi" (mã, thêm bạn), phải "đến với tôi" (lời mời) */}
-          <Card className="grid divide-y divide-line-soft p-0 md:grid-cols-2 md:divide-x md:divide-y-0">
-            <div className="flex flex-col gap-5 p-5">
+          {/* Một khối liền: hàng trên = kết nối (mã/thêm bạn | lời mời), hàng dưới = bạn bè | sổ chung. Chỉ có đường kẻ, không có khe giữa các ô. */}
+          <Card className="grid gap-0 overflow-hidden p-0 md:grid-cols-2 [&>div]:p-5 [&>div]:border-line-soft max-md:[&>div:not(:first-child)]:border-t md:[&>div:nth-child(n+3)]:border-t md:[&>div:nth-child(even)]:border-l">
+            <div className="flex flex-col gap-5">
               <FriendCodeCard />
               <div className="border-t border-line-soft pt-5"><SendRequestForm limits={friendData} /></div>
             </div>
-            <div className="flex flex-col gap-5 p-5">
+            <div className="flex flex-col gap-5">
               <RequestsPanel data={requestData} />
               <div className="border-t border-line-soft pt-5"><JournalInvitesPanel data={journalInvites.data!} /></div>
             </div>
-          </Card>
-          {/* Cụm 2: bạn bè ↔ sổ chung */}
-          <Card className="grid divide-y divide-line-soft p-0 md:grid-cols-2 md:divide-x md:divide-y-0">
-            <div className="p-5"><FriendsList data={friendData} onJournal={(id) => setOpenJournal(journalData.journals.find((j) => j.id === id) ?? null)} /></div>
-            <div className="p-5"><JournalsList data={journalData} onOpen={setOpenJournal} /></div>
+            <div><FriendsList data={friendData} onJournal={(id) => setOpenJournal(journalData.journals.find((j) => j.id === id) ?? null)} /></div>
+            <div><JournalsList data={journalData} onOpen={setOpenJournal} /></div>
           </Card>
         </div>
       )}

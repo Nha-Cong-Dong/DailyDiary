@@ -71,7 +71,8 @@
         "photos_per_entry_max": 2,
         "request_expires_days": 30,
         "friends_max": 20,
-        "journals_max": 10
+        "journals_max": 10,
+        "journals_per_pair_max": 2
       }
     },
     "free": {
@@ -137,7 +138,8 @@
         "photos_per_entry_max": 2,
         "request_expires_days": 30,
         "friends_max": 20,
-        "journals_max": 10
+        "journals_max": 10,
+        "journals_per_pair_max": 2
       }
     },
     "premium": {
@@ -203,7 +205,8 @@
         "photos_per_entry_max": 2,
         "request_expires_days": 30,
         "friends_max": 100,
-        "journals_max": 50
+        "journals_max": 50,
+        "journals_per_pair_max": 2
       }
     }
   }

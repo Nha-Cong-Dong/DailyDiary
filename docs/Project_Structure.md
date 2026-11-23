@@ -3,7 +3,7 @@
 |                  |                                                                                |
 | ---------------- | ------------------------------------------------------------------------------ |
 | **Vai trò**      | Nguồn chuẩn **duy nhất** cho cấu trúc thư mục. Tài liệu và skill khác chỉ link tới đây. |
-| **Phiên bản**    | 42 (22/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
+| **Phiên bản**    | 43 (23/11/2026), xem [Lịch sử thay đổi](#lịch-sử-thay-đổi)                      |
 | **Liên quan**    | Mô hình dữ liệu: `Project_Specs.md` mục 5.4 · Kế hoạch: `MVP_Plan.md` · Quyết định: `adr/` |
 
 ## Quy tắc dùng cây này
@@ -365,3 +365,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 40 | 12/11/2026 | Giai đoạn 0 của tính năng xã hội (ADR 0007): thêm `docs/Social_Plan.md` (kế hoạch: bạn bè, mã bạn, sổ chung 1–1, chuỗi ấm + badge đồng bộ, 3 collection mới `shared_journals`/`shared_entries`/`friendships`, trần 20 bạn/10 sổ ở `beta`/`free`), `docs/adr/0007-shared-journal.md` (thay thế một phần [ADR 0005](adr/0005-share-in-mvp.md)); cập nhật `adr/README.md`, `Project_Specs.md` (F-11, §2, §4.1, §5.4, §5.5), `Roadmap.md` (§1.2, §2, §3.2, §6), `MVP_Plan.md`, `Backlog.md` |
 | 41 | 16/11/2026 | Giai đoạn 1 frontend Social: thêm `features/social/` (mã bạn, bạn bè, yêu cầu, sổ chung, form mục chung, feed, ảnh presigned ≤ giới hạn), route `/social`, tab điều hướng, i18n `social.ts`, test UI; cập nhật OpenAPI type collision cho `features/share/shares.ts`. |
 | 42 | 22/11/2026 | GĐ2 giữ chân: Ngày này năm trước (`lib/date.ts` `sameDayLastYear`, thẻ ở `features/timeline/`) + Thư gửi tương lai: backend (`routers/services/schemas/letters.py`, collection `letters` + migration `m0012_letters.py`, xóa dữ liệu dọn thư), web `features/letters/` (form + danh sách, niêm phong/đến hạn), route `/profile/letters`, i18n `letters.ts` (vi+en), lỗi `LETTER_*` trong `errors.ts`, mock API letters trong `test/withMe.tsx`; tái sinh `openapi.json` + `schema.d.ts` |
+| 43 | 23/11/2026 | Trang Social gom 2 cụm thành một khối liền (`SocialPage.tsx`); hủy kết bạn (`DELETE /friends/{friend_id}/friendship`, menu ⋯ ở `FriendRow`); mở lại sổ sau khi kết thúc = sổ mới `generation` + 1, tối đa `journals_per_pair_max` (`shared/limits.json`) mỗi cặp: migration `m0013_journal_generation.py` (đổi unique `member_key` → `(member_key, generation)`, unique lời mời chỉ áp cho lời mời đang chờ); kết thúc sổ không còn hủy kết bạn; tái sinh `openapi.json` + `schema.d.ts` |

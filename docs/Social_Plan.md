@@ -142,7 +142,7 @@ Index:
 
 | Tên | Key | Ghi chú |
 | --- | --- | --- |
-| `uq_journal_member_key` | `member_key` ASC, **unique**, partial `{scope: "pair"}` | một sổ chung cho mỗi cặp |
+| `uq_member_key_generation` | `member_key` ASC, `generation` ASC, **unique**, partial `{scope: "pair"}` | một sổ mỗi lần cho mỗi cặp; sổ cũ lưu trữ, sổ mới `generation` + 1 (tối đa `journals_per_pair_max`) — m0013 |
 | `ix_journal_member` | `members.user_id` ASC | tìm sổ chung của một người |
 | `ix_journal_status` | `status` ASC, `created_at` DESC | danh sách sổ chung đang active |
 

@@ -81,7 +81,7 @@ Theo phản hồi của người dùng, ba điểm sửa trên ADR này:
    (`friendships.status = accepted`, `journal_id = null`). Cuốn sổ chung được tạo **riêng** qua một
    **lời mời mở sổ** (`journal_requests`): một người bạn bấm "Mở sổ chung", người kia chấp nhận → mới
    sinh `shared_journals`. Trần sổ chung kiểm ở bước tạo (bên chấp nhận), không phải lúc gửi mời.
-   Một cặp vẫn tối đa một cuốn (index unique `member_key` + upsert theo `member_key`).
+   Một cặp tối đa một sổ *đang hoạt động*. Sổ đã kết thúc được lưu trữ; mở lại = sổ mới (`generation` + 1, đánh số lại từ 0), tối đa `shared.journals_per_pair_max` (2) sổ mỗi cặp. Unique `(member_key, generation)` (m0013) thay cho unique `member_key`. Kết thúc sổ không hủy kết bạn; hủy kết bạn (`DELETE /friends/{friend_id}/friendship`) kết thúc sổ đang có và giữ dữ liệu.
 2. **Theo dõi lần hoạt động của bạn.** `users.last_active` cập nhật theo từng request đã đăng nhập
    (throttling: chỉ set khi giá trị hiện có đã ≥ 60 giây trước). Hiện ở danh sách bạn ("Lần hoạt động: …")
    và trên thẻ sổ chung. Mốc hiển thị: <5 phút = "vừa xong"; 5–59 phút = làm tròn xuống mốc 5 phút
