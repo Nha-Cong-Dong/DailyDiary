@@ -36,14 +36,22 @@ export function SocialPage() {
         <JournalDetail journal={journalData.journals.find((j) => j.id === openJournal.id) ?? openJournal} onBack={() => setOpenJournal(null)} />
       ) : (
         <div className="flex flex-col gap-4">
-          <FriendCodeCard />
-          <div className="grid gap-4 md:grid-cols-2">
-            <SendRequestForm limits={friendData} />
-            <RequestsPanel data={requestData} />
-          </div>
-          <JournalInvitesPanel data={journalInvites.data!} />
-          <FriendsList data={friendData} onJournal={(id) => setOpenJournal(journalData.journals.find((j) => j.id === id) ?? null)} />
-          <JournalsList data={journalData} onOpen={setOpenJournal} />
+          {/* Cụm 1: kết nối — trái "của tôi" (mã, thêm bạn), phải "đến với tôi" (lời mời) */}
+          <Card className="grid divide-y divide-line-soft p-0 md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div className="flex flex-col gap-5 p-5">
+              <FriendCodeCard />
+              <div className="border-t border-line-soft pt-5"><SendRequestForm limits={friendData} /></div>
+            </div>
+            <div className="flex flex-col gap-5 p-5">
+              <RequestsPanel data={requestData} />
+              <div className="border-t border-line-soft pt-5"><JournalInvitesPanel data={journalInvites.data!} /></div>
+            </div>
+          </Card>
+          {/* Cụm 2: bạn bè ↔ sổ chung */}
+          <Card className="grid divide-y divide-line-soft p-0 md:grid-cols-2 md:divide-x md:divide-y-0">
+            <div className="p-5"><FriendsList data={friendData} onJournal={(id) => setOpenJournal(journalData.journals.find((j) => j.id === id) ?? null)} /></div>
+            <div className="p-5"><JournalsList data={journalData} onOpen={setOpenJournal} /></div>
+          </Card>
         </div>
       )}
     </div>
