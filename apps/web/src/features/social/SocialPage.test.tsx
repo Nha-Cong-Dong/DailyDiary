@@ -18,12 +18,14 @@ function mockSocial(
   friends: { friends: unknown[]; friends_count: number; friends_max: number; journals_count: number; journals_max: number },
   requests: { incoming: unknown[]; outgoing: unknown[] },
   journalInvites?: { incoming: unknown[]; outgoing: unknown[] },
+  extra: Record<string, unknown> = {},
 ) {
   const invites = journalInvites ?? { incoming: [], outgoing: [] }
   const paths: string[] = []
   const fetchMock = vi.fn(async (input: Request) => {
     const url = new URL(input.url)
     paths.push(`${input.method} ${url.pathname}`)
+    if (url.pathname in extra) return jsonResponse(extra[url.pathname])
     if (url.pathname === '/me/friend-code') return jsonResponse({ friend_code: 'ABCD1234' })
     if (url.pathname === '/friends') return jsonResponse(friends)
     if (url.pathname === '/friends/requests' && input.method === 'GET') return jsonResponse(requests)
@@ -75,6 +77,24 @@ describe('SocialPage', () => {
     expect(paths).not.toContain('DELETE /friends/friend-1/friendship')
     fireEvent.click(await screen.findByRole('button', { name: 'Hủy kết bạn' }))
     await waitFor(() => expect(paths).toContain('DELETE /friends/friend-1/friendship'))
+  })
+
+  it("shows the partner's photos, sub icon and flag, and opens the photo viewer", async () => {
+    const photo = { id: 'p-1', position: 0, width: 800, height: 600, url: 'https://kho.test/full.webp', thumb_url: 'https://kho.test/thumb.webp' }
+    const entry = { entry_date: '2025-01-01', score: 4, title: null, content: null, sub_icon: '🌈', flag_color: '#123456', photos: [photo], author_display_name: 'Bạn A', author_avatar_url: null, mine: false, created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' }
+    mockSocial({ ...emptyFriends, journals_count: 1 }, { incoming: [], outgoing: [] }, undefined, {
+      '/journals/journal-1': { ...journal, members: [] },
+      '/journals/journal-1/entries': { entries: [entry], next_cursor: null },
+    })
+    renderWithMe([{ path: '/', Component: SocialPage }], '/')
+    fireEvent.click(await screen.findByRole('button', { name: /Sổ thứ 1/ }))
+    const tile = await screen.findByRole('button', { name: 'Mở ảnh 1 trên 1' })
+    expect(tile.querySelector('img')).toHaveAttribute('src', photo.thumb_url)
+    expect(tile.closest('article')).toHaveTextContent('🌈')
+    expect(screen.getByRole('img', { name: /Cờ hiệu/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Xóa ảnh' })).not.toBeInTheDocument()
+    fireEvent.click(tile)
+    expect((await screen.findByRole('dialog')).querySelector('img')).toHaveAttribute('src', photo.url)
   })
 
   it('accepts an incoming journal invite', async () => {

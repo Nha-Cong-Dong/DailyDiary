@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Camera, HeartOff, LoaderCircle, Save, Trash2 } from 'lucide-react'
 import { Avatar } from '@/components/layout/Avatar'
-import { PhotoTile } from '@/components/diary/PhotoViewer'
+import { PhotoTile, PhotoViewer } from '@/components/diary/PhotoViewer'
 import { ScorePicker } from '@/components/diary/ScorePicker'
 import { SubIconPicker } from '@/components/diary/SubIconPicker'
 import { FlagPicker } from '@/components/diary/FlagPicker'
@@ -21,14 +21,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { flagHex, flagName } from '@/lib/catalog'
 import { useT } from '@/lib/i18n'
+import { useDarkMode } from '@/lib/theme'
 import { todayIn } from '@/lib/date'
 import { useProfile } from '@/lib/profile'
 import { tierLimits } from '@/lib/limits'
 import { ApiError } from '@/api/client'
 import { useEndJournal, useJournalDetail, useJournalEntries, useRefreshJournalEntries, useSaveSharedEntry, useSetJournalMode } from '../useSocial'
 import { deleteSharedPhoto, makeSharedPhotoUpload } from '../sharedPhotoUpload'
-import type { SharedEntry, Journal } from '../social'
+import { toSharedPhoto, type SharedEntry, type Journal } from '../social'
 
 export function JournalDetail({ journal, onBack }: { journal: Journal; onBack: () => void }) {
   const t = useT()
@@ -232,6 +234,7 @@ function SharedEntryForm({ journalId, today, initial, onSync }: { journalId: str
 
 function FeedColumn({ heading, entries, emptyLabel, loading }: { heading: string; entries: SharedEntry[]; emptyLabel: string; loading: boolean }) {
   const t = useT()
+  const dark = useDarkMode()
   return (
     <div>
       <h3 className="font-semibold">{heading}</h3>
@@ -247,16 +250,45 @@ function FeedColumn({ heading, entries, emptyLabel, loading }: { heading: string
               <div className="flex items-center gap-2">
                 <Avatar name={entry.author_display_name} src={entry.author_avatar_url} size={30} />
                 <p className="text-label font-semibold">{entry.mine ? t('social:detail.mine') : entry.author_display_name} · {entry.entry_date}</p>
-                <span className="ml-auto nums font-bold">{entry.score}/5</span>
+                <span className="ml-auto flex items-center gap-2">
+                  {entry.flag_color ? (
+                    <span role="img" aria-label={`${t('social:detail.flagColor')}: ${flagName(entry.flag_color)}`} className="size-3.5 rounded-[4px] border border-stroke" style={{ backgroundColor: flagHex(entry.flag_color, dark) }} />
+                  ) : null}
+                  {entry.sub_icon ? <span>{entry.sub_icon}</span> : null}
+                  <span className="nums font-bold">{entry.score}/5</span>
+                </span>
               </div>
               {entry.title ? <h4 className="mt-3 font-semibold">{entry.title}</h4> : null}
               {entry.content ? <p className="mt-1 whitespace-pre-wrap text-body text-ink-soft">{entry.content}</p> : null}
+              {entry.photos.length ? <PhotoGrid photos={entry.photos} /> : null}
             </article>
           ))}
         </div>
       ) : (
         <p className="mt-3 py-5 text-center text-body text-ink-soft">{emptyLabel}</p>
       )}
+    </div>
+  )
+}
+
+/** Lưới ảnh của một mục chung, bấm để xem lớn. Có `onRemove` (mục của tôi) thì hiện nút xóa trên ảnh. */
+function PhotoGrid({ photos, onRemove }: { photos: SharedEntry['photos']; onRemove?: (id: string) => void }) {
+  const t = useT()
+  const [open, setOpen] = useState<number | null>(null)
+  const items = photos.map(toSharedPhoto)
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-3">
+      {items.map((photo, index) => (
+        <div key={photo.id} className="relative">
+          <PhotoTile photo={photo} index={index} total={items.length} onOpen={() => setOpen(index)} className="w-full" />
+          {onRemove ? (
+            <button type="button" aria-label={t('social:photos.remove')} className="absolute right-2 top-2 rounded-full bg-card p-2 shadow-sm" onClick={() => onRemove(photo.id)}>
+              <Trash2 className="size-4 text-danger" />
+            </button>
+          ) : null}
+        </div>
+      ))}
+      <PhotoViewer photos={items} index={open} onIndexChange={setOpen} />
     </div>
   )
 }
@@ -302,24 +334,13 @@ function SharedPhotos({ journalId, day, entry, onChanged }: { journalId: string;
         </label>
       </div>
       {failed ? <p className="mt-2 text-label text-danger">{t('social:photos.failed')}</p> : null}
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        {photos.map((photo) => (
-          <div key={photo.id} className="relative">
-            <PhotoTile photo={{ id: photo.id, label: t('social:photos.title'), url: photo.url, thumbUrl: photo.thumb_url, width: photo.width, height: photo.height }} index={photo.position} total={photos.length} onOpen={() => undefined} />
-            <button
-              type="button"
-              aria-label={t('social:photos.remove')}
-              className="absolute right-2 top-2 rounded-full bg-card p-2 shadow-sm"
-              onClick={async () => {
-                await deleteSharedPhoto(photo.id)
-                onChanged()
-              }}
-            >
-              <Trash2 className="size-4 text-danger" />
-            </button>
-          </div>
-        ))}
-      </div>
+      <PhotoGrid
+        photos={photos}
+        onRemove={async (id) => {
+          await deleteSharedPhoto(id)
+          onChanged()
+        }}
+      />
     </div>
   )
 }
