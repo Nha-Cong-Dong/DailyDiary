@@ -85,14 +85,15 @@ dailydiary/
     │   │   │   ├── client.py         # AsyncMongoClient, dependency Db
     │   │   │   ├── collections.py    # tên collection
     │   │   │   ├── migrate.py        # python -m app.db.migrate
-    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_entries_norm_backfill.py, m0008_feedback_emailed_at.py, m0009_deletion_log.py, m0010_<mo_ta>.py ...
-    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py, account.py, feedback.py, letters.py)
+    │   │   │   └── migrations/       # m0001_initial.py, m0002_user_icon_set_onboarded.py, m0003_share_links.py, m0004_entries_icon_set_norm.py, m0005_user_custom_flag_colors.py, m0006_user_avatar_key.py, m0007_entries_norm_backfill.py, m0008_feedback_emailed_at.py, m0009_deletion_log.py, m0010_social_journal.py, m0011_journal_requests.py, m0012_letters.py, m0013_journal_generation.py
+    │   │   ├── schemas/              # Pydantic, một file mỗi tài nguyên: XxxCreate/XxxUpdate/XxxOut (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py, account.py, feedback.py, social.py, letters.py)
     │   │   ├── services/             # nghiệp vụ + truy vấn MongoDB; tham số đầu là user_id (users.py, entries.py, photos.py, calendar.py, pixels.py, search.py, shares.py,
     │   │   │                         # account.py: xóa toàn bộ dữ liệu, xóa tài khoản, dọn kho; feedback.py;
-    │   │   │                         # maintenance.py: dọn thùng rác quá hạn, không theo một người dùng)
+    │   │   │                         # maintenance.py: dọn thùng rác quá hạn, không theo một người dùng;
+    │   │   │                         # friendships.py, journal_invites.py, shared_journals.py, shared_photos.py (F-11); letters.py)
     │   │   ├── routers/              # health, auth (Google + dev-login chỉ local/test), me, entries, photos, calendar, pixels,
     │   │   │                         # search (/search, /keywords/top, /sub-icons/top), shares (F-10: chủ trang + /public/shares);
-    │   │   │                         # feedback (POST /feedback), letters (GĐ2: thư gửi tương lai GET/POST/DELETE /letters)
+    │   │   │                         # feedback (POST /feedback), friendships + shared_journals (F-11), letters (thư gửi tương lai GET/POST/DELETE /letters)
     │   │   └── jobs/                 # tác vụ định kỳ: uv run python -m app.jobs.run <tên> (run.py);
     │   │                             # purge_accounts.py (làm nốt xóa tài khoản dang dở), backup_db.py (sao lưu + khôi phục DB),
     │   │                             # backup_photos.py (chép ảnh tăng dần sang kho sao lưu), blobstore.py (giao diện kho sao lưu)
@@ -366,3 +367,4 @@ Thay đổi về **hình dạng** (không chỉ thêm file):
 | 41 | 16/11/2026 | Giai đoạn 1 frontend Social: thêm `features/social/` (mã bạn, bạn bè, yêu cầu, sổ chung, form mục chung, feed, ảnh presigned ≤ giới hạn), route `/social`, tab điều hướng, i18n `social.ts`, test UI; cập nhật OpenAPI type collision cho `features/share/shares.ts`. |
 | 42 | 22/11/2026 | GĐ2 giữ chân: Ngày này năm trước (`lib/date.ts` `sameDayLastYear`, thẻ ở `features/timeline/`) + Thư gửi tương lai: backend (`routers/services/schemas/letters.py`, collection `letters` + migration `m0012_letters.py`, xóa dữ liệu dọn thư), web `features/letters/` (form + danh sách, niêm phong/đến hạn), route `/profile/letters`, i18n `letters.ts` (vi+en), lỗi `LETTER_*` trong `errors.ts`, mock API letters trong `test/withMe.tsx`; tái sinh `openapi.json` + `schema.d.ts` |
 | 43 | 23/11/2026 | Trang Social gom 2 cụm thành một khối liền (`SocialPage.tsx`); hủy kết bạn (`DELETE /friends/{friend_id}/friendship`, menu ⋯ ở `FriendRow`); mở lại sổ sau khi kết thúc = sổ mới `generation` + 1, tối đa `journals_per_pair_max` (`shared/limits.json`) mỗi cặp: migration `m0013_journal_generation.py` (đổi unique `member_key` → `(member_key, generation)`, unique lời mời chỉ áp cho lời mời đang chờ); kết thúc sổ không còn hủy kết bạn; tái sinh `openapi.json` + `schema.d.ts` |
+| 44 | 27/11/2026 | Đồng bộ cây với code (không đổi cấu trúc): thêm tên router/service/schema/migration của F-11 và thư gửi tương lai |

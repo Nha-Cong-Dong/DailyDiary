@@ -3,7 +3,7 @@
 |                 |                                                                                                   |
 | --------------- | ------------------------------------------------------------------------------------------------- |
 | **Vai trò**     | Kế hoạch xây tính năng xã hội: bạn bè, sổ chung, chuỗi, nhóm. Bổ sung cho [`Roadmap.md`](Roadmap.md) và [`Project_Specs.md`](Project_Specs.md). |
-| **Trạng thái**  | Giai đoạn 0 (giấy tờ + ADR 0007) đã xong 12/11/2026; sẵn sàng cho Giai đoạn 1 (code) theo mục 10 đã chốt |
+| **Trạng thái**  | Giai đoạn 0–2 xong code (23/11/2026) trên nhánh `feat/social-journal`, chưa merge; lỗi đã biết ở [`Backlog.md`](Backlog.md) mục 6. Giai đoạn 3 chưa bắt đầu |
 | **Ngày lập**    | 12/11/2026                                                                                        |
 | **Liên quan**   | Hệ thống hiện tại: [`Project_Specs.md`](Project_Specs.md) · Kiến trúc: [`adr/`](adr/) · Cây dự án: [`Project_Structure.md`](Project_Structure.md) · Việc tồn đọng: [`Backlog.md`](Backlog.md) |
 
@@ -382,7 +382,9 @@ Mỗi giai đoạn là một PR, người dùng duyệt rồi mới làm giai đ
 | Cập nhật mục "Ngoài phạm vi MVP" + Backlog | `docs/MVP_Plan.md`, `docs/Backlog.md` | ✅ đã sửa |
 | Bảng index ADR + dòng lịch sử thư mục | `docs/adr/README.md`, `docs/Project_Structure.md` | ✅ đã sửa |
 
-### Giai đoạn 1 — Bạn bè (backend rồi frontend)
+### Giai đoạn 1 — Bạn bè (backend rồi frontend) · **xong code**
+
+Khác kế hoạch: web gộp một feature `features/social/` và một màn `/social`.
 
 1. **Migration `m0010`**: `shared_journals`, `shared_entries`, `friendships`; thêm `users.friend_code` + index unique
    sparse. Theo đúng mẫu `m0005`/`m0006` (copy validator cũ rồi `collMod`).
@@ -400,7 +402,7 @@ Mỗi giai đoạn là một PR, người dùng duyệt rồi mới làm giai đ
 9. **Cập nhật `/privacy`** (mục "Ai xem được nhật ký").
 10. **Cập nhật `docs/Project_Structure.md`**: cây + một dòng ở "Lịch sử thay đổi".
 
-### Giai đoạn 2 — Chế độ luân phiên + chuỗi nâng cao
+### Giai đoạn 2 — Chế độ luân phiên + chuỗi nâng cao · **xong code 21/11/2026**
 
 - `mode: "alternating"` — tính năng **opt-in** (hiệu đính 21/11/2026): một người mỗi ngày, đổi lượt theo
   chẵn/lẻ tính stateless từ `created_at` (ngày 0 = `members[0]`, không thêm trường DB). Ai cũng đổi

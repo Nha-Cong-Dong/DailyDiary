@@ -48,15 +48,16 @@ múi giờ, tự động lưu, tải ảnh.
 - "Ngày này năm trước" ✅ 22/11/2026 (thẻ ở màn Dòng thời gian) và thư gửi tương lai ✅ 22/11/2026 (mục Hồ sơ,
   tối đa 1 thư/ngày, mở đúng hẹn); còn lại của mục này: tiến trình/mục tiêu với so sánh trước – sau.
 - Đăng nhập Facebook; đánh giá lại trọng tâm nền tảng theo dữ liệu thiết bị.
-- **Bạn bè và sổ chung 1–1** (ADR 0007, [`Social_Plan.md`](Social_Plan.md)): mỗi cặp một cuốn sổ chung, mỗi người
-  tối đa một mục mỗi ngày, chuỗi ấm và badge đồng bộ. Nhật ký cá nhân vẫn riêng tư. Trần `beta`/`free`:
-  20 bạn, 10 sổ — **điểm kiếm tiền đầu tiên** của tính năng.
+- **Bạn bè và sổ chung 1–1** (ADR 0007, [`Social_Plan.md`](Social_Plan.md)) ✅ code xong 23/11/2026, chưa phát hành:
+  mỗi cặp một cuốn sổ chung đang hoạt động, mỗi người tối đa một mục mỗi ngày, cùng viết hoặc luân phiên, chuỗi và
+  badge đồng bộ. Nhật ký cá nhân vẫn riêng tư. Trần `beta`/`free`: 20 bạn, 10 sổ — **điểm kiếm tiền đầu tiên** của
+  tính năng.
 
 ### 2.3. Giai đoạn 3 — ra mắt và kiếm tiền
 
 - Ứng dụng di động (Capacitor hoặc React Native).
 - Cửa hàng gói cá nhân hóa, tiền ảo; cân nhắc thuê bao cho dung lượng ảnh, video tổng kết.
-- **Sổ chung luân phiên, sổ chung nhóm / tổ chức** (ADR 0007, M2/M3); backend thanh toán, sổ cái giao dịch.
+- **Sổ chung nhóm / tổ chức** (ADR 0007, M3); backend thanh toán, sổ cái giao dịch.
 
 ### 2.4. Kế hoạch 2 tuần ban đầu (tham khảo)
 
@@ -181,3 +182,4 @@ Hướng chọn: web + PWA ở giai đoạn 1–2 → mobile khi đã chứng mi
 | 29/10/2026 | API chuyển từ Render sang Docker trên máy cá nhân + Cloudflare Tunnel; web dùng Pages Direct Upload; `COOKIE_DOMAIN=jotly.io.vn` | Bước 14, `Deploy.md` |
 | 30/10/2026 | OAuth Google In production (thương hiệu đã xác minh); **chốt bản 1.0**, việc còn lại gom vào `Backlog.md` | Bước 14–15 |
 | 12/11/2026 | **Mở rộng sang nhiều người**: bạn bè + **sổ chung 1–1** + chuỗi ấm; M1 trước, nhóm (M3) để sau; tìm bạn bằng mã bạn (không theo email); trần `beta`/`free` 20 bạn / 10 sổ — điểm kiếm tiền đầu tiên; ADR 0007 thay một phần ADR 0005 | ADR 0007, `Social_Plan.md` |
+| 21–23/11/2026 | Thành bạn không tự sinh sổ (cần lời mời); hiện lần hoạt động; chế độ luân phiên (tùy chọn); "Ngày này năm trước" và thư gửi tương lai; hủy kết bạn; tối đa 2 sổ mỗi cặp | ADR 0007 (hiệu đính), `Social_Plan.md` |

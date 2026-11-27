@@ -1,16 +1,20 @@
 ---
 name: social-journal-phase1-status
-description: Trạng thái Giai đoạn 1 của Social_Plan (bạn bè, sổ chung 1:1) — xong code + CI, chờ PR
+description: Trạng thái Social_Plan trên feat/social-journal — giai đoạn 1–2 xong code, còn lỗi riêng tư phải sửa trước khi mở PR/merge
 metadata:
   type: project
 ---
 
-Nhánh `feat/social-journal` (F-11, ADR-0007, theo `docs/Social_Plan.md`) — trạng thái 2026-11-17:
+Nhánh `feat/social-journal` (F-11, ADR-0007) — trạng thái 2026-11-27:
 
-- Backend **xong** (commit `784db7f`): migration `m0010`, services `friendships.py`, `shared_journals.py`, `shared_photos.py`, test + dọn khi xóa tài khoản.
-- Frontend **xong**: gộp vào 1 feature `features/social/` (không tách `friends/`+`journals/` như plan ban đầu): SocialPage + FriendCodeCard (có AlertDialog xác nhận xoay mã), SocialSections (lỗi cụ thể theo mã API), JournalDetail (2 cột "mục của tôi/họ" trên desktop, form mục + 409 conflict sync, AlertDialog kết thúc sổ, ảnh ≤2/mục + needsEntry), route `/social` + tab nav. Commit `b7c3495`, i18n `8ebc4c9`.
-- `npm run gen:api` + `openapi.json`/`schema.d.ts` đã commit cùng `b7c3495`.
-- Trang `/privacy` đã cập nhật (section 3 "Ai xem được nhật ký", dữ liệu sổ chung, phạm vi xóa, ngày cập nhật).
-- CI web xanh: lint + typecheck + 232 test + build (17/11/2026).
-- Chưa làm: e2e social (tùy chọn), preview artifact mock HTML (mục 7 plan, tùy chọn), PR.
-- Giai đoạn 2 (chế độ luân phiên, `m0011`, mốc 30/100 ngày) và Giai đoạn 3 (nhóm/tổ chức, ADR 0008) **chưa bắt đầu**.
+- Giai đoạn 1 (bạn bè, sổ chung, ảnh chung) và 2 (luân phiên, mốc 30/100) **xong code**; thêm "Ngày này năm trước",
+  thư gửi tương lai, mở lại sổ, hủy kết bạn. Giai đoạn 3 (nhóm, ADR 0008) chưa bắt đầu.
+- Chưa có PR, chưa phát hành; production mới chạy migration 0001–0009 (cần 0010–0013 trước khi merge).
+- Kiểm tra local 2026-11-27: pytest 398 đạt; ruff, oxlint, tsc, build đạt; e2e 53 đạt, 5 bỏ qua; Vitest chập chờn
+  (lần tốt nhất 237/239, hai ca Landing đạt khi chạy riêng lại). Chưa có e2e cho social và thư.
+- privacy-check tìm ra lỗi **chưa sửa** (danh sách ở `docs/Backlog.md` mục 6; file này bị `.gitignore`). Nặng nhất:
+  "Xóa toàn bộ dữ liệu" xóa luôn file ảnh sổ chung.
+
+**How to apply:** e2e local phải ép SMTP về Mailpit (`SMTP_HOST=127.0.0.1 SMTP_PORT=1025 SMTP_STARTTLS=false`, user và
+mật khẩu rỗng) vì `apps/api/.env` dùng Gmail thật; đặt `VITE_API_URL=http://localhost:8000` vì `.env` /
+`.env.development.local` trỏ nơi khác.
